@@ -53,18 +53,11 @@ void AppDelegate::initGLContextAttrs()
     GLView::setGLContextAttrs(glContextAttrs);
 }
 
-// if you want to use the package manager to install more packages,
-// don't modify or remove this function
-static int register_all_packages()
-{
-    return 0;  // flag for packages manager
-}
-
 bool AppDelegate::applicationDidFinishLaunching()
 {
     // initialize director
     auto director = Director::getInstance();
-    auto glView   = director->getOpenGLView();
+    auto glView   = director->getGLView();
     if (!glView)
     {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32) || (AX_TARGET_PLATFORM == AX_PLATFORM_MAC) || \
@@ -74,7 +67,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #else
         glView = GLViewImpl::create("HelloCpp");
 #endif
-        director->setOpenGLView(glView);
+        director->setGLView(glView);
     }
 
     // turn on display FPS
@@ -105,8 +98,6 @@ bool AppDelegate::applicationDidFinishLaunching()
         director->setContentScaleFactor(MIN(smallResolutionSize.height / designResolutionSize.height,
                                             smallResolutionSize.width / designResolutionSize.width));
     }
-
-    register_all_packages();
 
     // create a scene. it's an autorelease object
     auto scene = utils::createInstance<HelloWorld>();

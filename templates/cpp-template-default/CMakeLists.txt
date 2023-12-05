@@ -69,7 +69,7 @@ file(GLOB_RECURSE GAME_HEADER
 file(GLOB_RECURSE GAME_SOURCE
     Source/*.cpp
     )
-    
+
 set(GAME_INC_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Source"
 )
@@ -122,13 +122,13 @@ elseif(APPLE)
 
         if (TVOS)
             set(APP_UI_RES
-                proj.ios_mac/ios/LaunchScreenBackground.png
+                proj.ios_mac/ios/targets/tvos/LaunchScreenBackground.png
                 proj.ios_mac/ios/targets/tvos/LaunchScreen.storyboard
                 proj.ios_mac/ios/targets/tvos/Images.xcassets
                 )
         else()
             set(APP_UI_RES
-                proj.ios_mac/ios/LaunchScreenBackground.png
+                proj.ios_mac/ios/targets/ios/LaunchScreenBackground.png
                 proj.ios_mac/ios/targets/ios/LaunchScreen.storyboard
                 proj.ios_mac/ios/targets/ios/Images.xcassets
                 )
@@ -196,6 +196,7 @@ if(APPLE)
     elseif(IOS)
         set_target_properties(${APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/proj.ios_mac/ios/targets/ios/Info.plist")
         set_xcode_property(${APP_NAME} ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
+        set_xcode_property(${APP_NAME} TARGETED_DEVICE_FAMILY "1,2")
     endif()
 
     # For code-signing, set the DEVELOPMENT_TEAM:

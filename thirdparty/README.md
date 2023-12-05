@@ -6,7 +6,7 @@
 
 ## astcenc
 - [![Upstream](https://img.shields.io/github/v/release/ARM-software/astc-encoder?label=Upstream)](https://github.com/ARM-software/astc-encoder)
-- Version: 4.5.0
+- Version: 4.6.0
 - License: Apache-2.0
 
 ## Box2D
@@ -37,7 +37,7 @@
 
 ## Clipper2
 - [![Upstream](https://img.shields.io/github/v/tag/AngusJohnson/Clipper2?label=Upstream)](https://github.com/AngusJohnson/Clipper2)
-- Version: 1.2.3
+- Version: 1.3.0
 - License: BSL-1.0
 
 ## ConcurrentQueue
@@ -97,7 +97,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.0.0
+- Version: 3.0.1
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -123,7 +123,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-03c3112
+  - Version: 2.1-07b3cd3
   - License: MIT
 
 - tolua
@@ -153,7 +153,7 @@
 
 ## ntcvt (Windows only)
 - [![Upstream](https://img.shields.io/github/v/tag/simdsoft/ntcvt?label=Upstream)](https://github.com/simdsoft/ntcvt)
-- Version: 1.0.0
+- Version: 1.0.1
 - License: Apache-2.0
 
 ## oboe (Adnroid only)
@@ -179,7 +179,7 @@
 
 ## OpenSSL
 - [![Upstream](https://img.shields.io/github/v/tag/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
-- Version: 3.0.10
+- Version: 3.0.12
 - License: Apache-2.0
 
 ## png
@@ -218,7 +218,7 @@
 
 ## simdjson
 - [![Upstream](https://img.shields.io/github/v/tag/simdjson/simdjson?label=Upstream)](https://github.com/simdjson/simdjson)
-- Version: 3.3.0
+- Version: 3.6.0
 - License: Apache-2.0
 
 ## stb (stb_image)
@@ -253,7 +253,7 @@
 
 ## yasio
 - [![Upstream](https://img.shields.io/github/v/release/yasio/yasio?label=Upstream)](https://github.com/yasio/yasio)
-- Version: 4.1.0
+- Version: 4.1.1
 - License: MIT WITH Anti-996
 
 ## zlib
