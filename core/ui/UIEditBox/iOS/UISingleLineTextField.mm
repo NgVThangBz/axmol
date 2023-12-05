@@ -79,7 +79,7 @@
     auto glView = ax::Director::getInstance()->getOpenGLView();
 
     float padding = AX_EDIT_BOX_PADDING * glView->getScaleX() / glView->getContentScaleFactor();
-    return CGRectInset(bounds, padding, padding);
+    return CGRectInset(bounds, padding, 0);
 }
 
 - (CGRect)editingRectForBounds:(CGRect)bounds
