@@ -72,7 +72,8 @@ public:
     bool writeLeader(DRW_Leader *ent);
     bool writeDimension(DRW_Dimension *ent);
     void setEllipseParts(int parts){elParts = parts;} /*!< set parts number when convert ellipse to polyline */
-    bool writePlotSettings(DRW_PlotSettings *ent);
+    bool writePlotSettings(DRW_PlotSettings* ent);
+    bool writeExtData(const std::vector<DRW_Variant*>& ed);
 
     DRW::Version getVersion() const;
     DRW::error getError() const;
@@ -124,7 +125,6 @@ private:
     bool writeTables();
     bool writeBlocks();
     bool writeObjects();
-    bool writeExtData(const std::vector<DRW_Variant*> &ed);
     /*use version from dwgutil.h*/
     std::string toHexStr(int n);//RLZ removeme
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
