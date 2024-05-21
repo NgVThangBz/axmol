@@ -361,6 +361,11 @@ public:
                      float borderWidth,
                      const Color4B& borderColor);
 
+    void drawPolygon1(const Vec2* verts,
+                     int count,
+                     const Color4B& fillColor,
+                     float borderWidth,
+                     const Color4B& borderColor);
     /** draw a triangle with color.
      *
      * @param p1 The triangle vertex point.
