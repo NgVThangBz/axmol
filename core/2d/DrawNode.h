@@ -361,6 +361,25 @@ public:
                      float borderWidth,
                      const Color4B& borderColor);
 
+    /** draw a polygon with a fill color and line color
+     * @code
+     * When this function bound into js or lua,the parameter will be changed
+     * In js: var drawPolygon(var Arrayofpoints, var fillColor, var width, var borderColor)
+     * In lua:local drawPolygon(local pointTable,local tableCount,local fillColor,local width,local borderColor)
+     * @endcode
+     * @param verts A pointer to point coordinates.
+     * @param count The number of verts measured in points.
+     * @param fillColor The color will fill in polygon.
+     * @param borderWidth The border of line width.
+     * @param borderColor The border of line color.
+     * @js NA
+     */
+    void drawPolygonCorrect(const Vec2* verts,
+                     int count,
+                     const Color4B& fillColor,
+                     float borderWidth,
+                     const Color4B& borderColor);
+
     /** draw a triangle with color.
      *
      * @param p1 The triangle vertex point.
