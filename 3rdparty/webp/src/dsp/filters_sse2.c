@@ -23,16 +23,14 @@
 //------------------------------------------------------------------------------
 // Helpful macro.
 
-#define DCHECK(in, out)                                                        \
-  do {                                                                         \
-    assert((in) != NULL);                                                      \
-    assert((out) != NULL);                                                     \
-    assert(width > 0);                                                         \
-    assert(height > 0);                                                        \
-    assert(stride >= width);                                                   \
-    assert(row >= 0 && num_rows > 0 && row + num_rows <= height);              \
-    (void)height;  /* Silence unused warning. */                               \
-  } while (0)
+# define SANITY_CHECK(in, out)                                                 \
+  assert((in) != NULL);                                                        \
+  assert((out) != NULL);                                                       \
+  assert(width > 0);                                                           \
+  assert(height > 0);                                                          \
+  assert(stride >= width);                                                     \
+  assert(row >= 0 && num_rows > 0 && row + num_rows <= height);                \
+  (void)height;  // Silence unused warning.
 
 static void PredictLineTop_SSE2(const uint8_t* src, const uint8_t* pred,
                                 uint8_t* dst, int length) {
@@ -80,7 +78,7 @@ static WEBP_INLINE void DoHorizontalFilter_SSE2(const uint8_t* in,
                                                 uint8_t* out) {
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
 
@@ -113,7 +111,7 @@ static WEBP_INLINE void DoVerticalFilter_SSE2(const uint8_t* in,
                                               uint8_t* out) {
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
 
@@ -176,7 +174,7 @@ static WEBP_INLINE void DoGradientFilter_SSE2(const uint8_t* in,
                                               uint8_t* out) {
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
 
@@ -199,7 +197,7 @@ static WEBP_INLINE void DoGradientFilter_SSE2(const uint8_t* in,
   }
 }
 
-#undef DCHECK
+#undef SANITY_CHECK
 
 //------------------------------------------------------------------------------
 

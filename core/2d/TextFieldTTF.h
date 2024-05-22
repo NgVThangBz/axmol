@@ -39,8 +39,7 @@ NS_AX_BEGIN
 class TextFieldTTF;
 
 /**
- * A input protocol for TextField. 
- * !!!DEPRECATED since axmol-2.1.3
+ * A input protocol for TextField.
  */
 class AX_DLL TextFieldDelegate
 {

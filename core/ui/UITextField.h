@@ -42,7 +42,6 @@ namespace ui
 /**
  * @brief A helper class which inherit from @see `TextFieldTTF` and implements the @see `TextFieldDelegate` protocol.
  * It is mainly be used internally by @see `UITextField` class.
- * !!!DEPRECATED since axmol-2.1.3
  * @js NA
  * @lua NA
  */

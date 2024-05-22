@@ -24,16 +24,14 @@
 //------------------------------------------------------------------------------
 // Helpful macro.
 
-#define DCHECK(in, out)                                                        \
-  do {                                                                         \
-    assert(in != NULL);                                                        \
-    assert(out != NULL);                                                       \
-    assert(width > 0);                                                         \
-    assert(height > 0);                                                        \
-    assert(stride >= width);                                                   \
-    assert(row >= 0 && num_rows > 0 && row + num_rows <= height);              \
-    (void)height;  /* Silence unused warning. */                               \
-  } while (0)
+# define SANITY_CHECK(in, out)                                                 \
+  assert(in != NULL);                                                          \
+  assert(out != NULL);                                                         \
+  assert(width > 0);                                                           \
+  assert(height > 0);                                                          \
+  assert(stride >= width);                                                     \
+  assert(row >= 0 && num_rows > 0 && row + num_rows <= height);                \
+  (void)height;  // Silence unused warning.
 
 #define DO_PREDICT_LINE(SRC, DST, LENGTH, INVERSE) do {                        \
     const uint8_t* psrc = (uint8_t*)(SRC);                                     \
@@ -202,7 +200,7 @@ static WEBP_INLINE void DoHorizontalFilter_MIPSdspR2(const uint8_t* in,
   const uint8_t* preds;
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
   preds = in;
@@ -250,7 +248,7 @@ static WEBP_INLINE void DoVerticalFilter_MIPSdspR2(const uint8_t* in,
   const uint8_t* preds;
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
   preds = in;
@@ -318,7 +316,7 @@ static void DoGradientFilter_MIPSdspR2(const uint8_t* in,
   const uint8_t* preds;
   const size_t start_offset = row * stride;
   const int last_row = row + num_rows;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
   in += start_offset;
   out += start_offset;
   preds = in;
@@ -380,7 +378,7 @@ static void GradientUnfilter_MIPSdspR2(const uint8_t* prev, const uint8_t* in,
 #undef DO_PREDICT_LINE_VERTICAL
 #undef PREDICT_LINE_ONE_PASS
 #undef DO_PREDICT_LINE
-#undef DCHECK
+#undef SANITY_CHECK
 
 //------------------------------------------------------------------------------
 // Entry point

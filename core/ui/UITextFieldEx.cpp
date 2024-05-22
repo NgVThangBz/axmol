@@ -1,39 +1,31 @@
-/****************************************************************************
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
-
-https://axmolengine.github.io/
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-****************************************************************************/
-
+//
+// Copyright (c) 2014-2022 @HALX99 - All Rights Reserved
+//
+#ifndef _UITEXTFIELD_CPP_H_
+#define _UITEXTFIELD_CPP_H_
 #include "UITextFieldEx.h"
+
 #include "base/Director.h"
+
+/// cocos2d singleton objects
+#define CCDIRECTOR ax::Director::getInstance()
+#define CCRUNONGL CCDIRECTOR->getScheduler()->runOnAxmolThread
+#define CCEVENTMGR CCDIRECTOR->getEventDispatcher()
+#define CCSCHTASKS CCDIRECTOR->getScheduler()
+#define CCACTIONMGR CCDIRECTOR->getActionManager()
+#define CCFILEUTILS ax::FileUtils::getInstance()
+#define CCAUDIO ax::SimpleAudioEngine::getInstance()
+#define CCAPP ax::CCApplication::getInstance()
 
 NS_AX_BEGIN
 
 #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
-#    define axbeep(t) MessageBeep(t)
+#    define nxbeep(t) MessageBeep(t)
 #else
-#    define axbeep(t)
+#    define nxbeep(t)
 #endif
 
-static Label* _createLabel(std::string_view text,
+static Label* createLabel(std::string_view text,
                           std::string_view font,
                           float fontSize,
                           const Vec2& dimensions    = Vec2::ZERO,
@@ -50,7 +42,7 @@ static Label* _createLabel(std::string_view text,
     }
 }
 
-static bool _checkVisibility(Node* theNode)
+static bool engine_inj_checkVisibility(Node* theNode)
 {
     // AX_ASSERT(theNode != NULL);
     bool visible = false;
@@ -59,7 +51,7 @@ static bool _checkVisibility(Node* theNode)
     return visible;
 }
 
-static bool _containsTouchPoint(ax::Node* target, ax::Touch* touch)
+static bool engine_inj_containsTouchPoint(ax::Node* target, ax::Touch* touch)
 {
     assert(target != nullptr);
 
@@ -184,7 +176,7 @@ static void internalSetLableFont(Label* l, std::string_view fontName, float font
 
 static float internalCalcStringWidth(std::string_view s, std::string_view fontName, float fontSize)
 {
-    auto label = _createLabel(std::string{s}, fontName, fontSize);
+    auto label = createLabel(std::string{s}, fontName, fontSize);
     return label->getContentSize().width;
 }
 
@@ -235,38 +227,39 @@ static std::string internalUTF8MoveRight(std::string_view utf8Text, int length /
 //////////////////////////////////////////////////////////////////////////
 bool TextFieldEx::s_keyboardVisible = false;
 TextFieldEx::TextFieldEx()
-    : _editable(true)
-    , _renderLabel(nullptr)
-    , _charCount(0)
-    , _inputText("")
-    , _placeHolder("")
-    , _colorText(Color4B::WHITE)
-    , _colorSpaceHolder(Color4B::GRAY)
-    , _secureTextEntry(false)
-    , _cursor(nullptr)
-    , _touchListener(nullptr)
-    , _kbdListener(nullptr)
+    : editable(true)
+    , renderLabel(nullptr)
+    , charCount(0)
+    , inputText("")
+    , placeHolder("")
+    , colorText(Color4B::WHITE)
+    , colorSpaceHolder(Color4B::GRAY)
+    , secureTextEntry(false)
+    , cursor(nullptr)
+    , enabled(true)
+    , touchListener(nullptr)
+    , kbdListener(nullptr)
     , onTextModify(nullptr)
     , onOpenIME(nullptr)
     , onCloseIME(nullptr)
-    , _charLimit(std::numeric_limits<int>::max())
-    , _systemFontUsed(false)
-    , _fontSize(24)
-    , _insertPosUtf8(0)
-    , _insertPos(0)
-    , _cursorPos(0)
-    , _touchCursorControlEnabled(true)
-    , _cursorVisible(false)
+    , charLimit(std::numeric_limits<int>::max())
+    , systemFontUsed(false)
+    , fontSize(24)
+    , insertPosUtf8(0)
+    , insertPos(0)
+    , cursorPos(0)
+    , touchCursorControlEnabled(true)
+    , cursorVisible(false)
     , _continuousTouchDelayTimerID(nullptr)
     , _continuousTouchDelayTime(0.6)
 {}
 
 TextFieldEx::~TextFieldEx()
 {
-    if (_kbdListener != nullptr)
-        _eventDispatcher->removeEventListener(_kbdListener);
-    if (_touchListener != nullptr)
-        _eventDispatcher->removeEventListener(_touchListener);
+    if (this->kbdListener != nullptr)
+        CCEVENTMGR->removeEventListener(this->kbdListener);
+    if (this->touchListener != nullptr)
+        CCEVENTMGR->removeEventListener(this->touchListener);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -301,95 +294,95 @@ bool TextFieldEx::initWithPlaceHolder(std::string_view placeholder,
                                       float cursorWidth,
                                       const Color4B& cursorColor)
 {
-    _placeHolder = placeholder;
+    this->placeHolder = placeholder;
 
-    _renderLabel =
-        _createLabel(placeholder, fontName, fontSize, Vec2::ZERO, TextHAlignment::CENTER, TextVAlignment::CENTER);
-    _renderLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
-    this->addChild(_renderLabel);
+    this->renderLabel =
+        createLabel(placeholder, fontName, fontSize, Vec2::ZERO, TextHAlignment::CENTER, TextVAlignment::CENTER);
+    this->renderLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
+    this->addChild(this->renderLabel);
 
-    _director->getScheduler()->runOnAxmolThread([this] { _renderLabel->setPosition(Point(0, this->getContentSize().height / 2)); });
+    CCRUNONGL([this] { renderLabel->setPosition(Point(0, this->getContentSize().height / 2)); });
 
     __initCursor(fontSize, cursorWidth, cursorColor);
 
-    _fontName       = fontName;
-    _fontSize       = fontSize;
-    _systemFontUsed = !FileUtils::getInstance()->isFileExist(fontName);
+    this->fontName       = fontName;
+    this->fontSize       = fontSize;
+    this->systemFontUsed = !FileUtils::getInstance()->isFileExist(fontName);
 
     return true;
 }
 
 std::string_view TextFieldEx::getTextFontName() const
 {
-    return _fontName;
+    return this->fontName;
 }
 
 void TextFieldEx::setTextFontName(std::string_view fontName)
 {
     if (FileUtils::getInstance()->isFileExist(fontName))
     {
-        TTFConfig config    = _renderLabel->getTTFConfig();
+        TTFConfig config    = renderLabel->getTTFConfig();
         config.fontFilePath = fontName;
-        config.fontSize     = _fontSize;
-        _renderLabel->setTTFConfig(config);
-        _systemFontUsed = false;
+        config.fontSize     = this->fontSize;
+        renderLabel->setTTFConfig(config);
+        systemFontUsed = false;
         _fontType      = 1;
     }
     else
     {
-        _renderLabel->setSystemFontName(fontName);
-        if (!_systemFontUsed)
+        renderLabel->setSystemFontName(fontName);
+        if (!systemFontUsed)
         {
-            _renderLabel->requestSystemFontRefresh();
+            renderLabel->requestSystemFontRefresh();
         }
-        _renderLabel->setSystemFontSize(_fontSize);
-        _systemFontUsed = true;
+        renderLabel->setSystemFontSize(this->fontSize);
+        systemFontUsed = true;
         _fontType      = 0;
     }
-    _fontName = fontName;
+    this->fontName = fontName;
 
     using namespace std::string_view_literals;
-    _asteriskWidth = internalCalcStringWidth("*"sv, _fontName, _fontSize);
+    this->asteriskWidth = internalCalcStringWidth("*"sv, this->fontName, this->fontSize);
 }
 
 void TextFieldEx::setTextFontSize(float size)
 {
-    if (_systemFontUsed)
+    if (this->systemFontUsed)
     {
-        _renderLabel->setSystemFontSize(size);
+        renderLabel->setSystemFontSize(size);
     }
     else
     {
-        TTFConfig config = _renderLabel->getTTFConfig();
+        TTFConfig config = renderLabel->getTTFConfig();
         config.fontSize  = size;
-        _renderLabel->setTTFConfig(config);
+        renderLabel->setTTFConfig(config);
     }
 
-    _fontSize = size;
+    this->fontSize = size;
 
     using namespace std::string_view_literals;
-    _asteriskWidth = internalCalcStringWidth("*"sv, _fontName, _fontSize);
+    this->asteriskWidth = internalCalcStringWidth("*"sv, this->fontName, this->fontSize);
 }
 
 float TextFieldEx::getTextFontSize() const
 {
-    return _fontSize;
+    return this->fontSize;
 }
 
 void TextFieldEx::enableIME(Node* control)
 {
-    if (_touchListener != nullptr)
+    if (touchListener != nullptr)
     {
         return;
     }
-    _touchListener = EventListenerTouchOneByOne::create();
+    touchListener = EventListenerTouchOneByOne::create();
 
     if (control == nullptr)
         control = this;
 
-    _touchListener->onTouchBegan = [control,this](Touch* touch, Event*) {
-        bool focus = (_checkVisibility(this) && _editable && this->_enabled &&
-                      _containsTouchPoint(control, touch));
+    touchListener->onTouchBegan = [control,this](Touch* touch, Event*) {
+        bool focus = (engine_inj_checkVisibility(this) && this->editable && this->enabled &&
+                      engine_inj_containsTouchPoint(control, touch));
 
         if (this->_continuousTouchDelayTimerID != nullptr)
         {
@@ -397,7 +390,7 @@ void TextFieldEx::enableIME(Node* control)
             this->_continuousTouchDelayTimerID = nullptr;
         }
 
-        if (focus && _cursorVisible)
+        if (focus && this->cursorVisible)
         {
             auto worldPoint = touch->getLocation();
             if (this->_continuousTouchCallback)
@@ -408,23 +401,23 @@ void TextFieldEx::enableIME(Node* control)
         }
         return true;
     };
-    _touchListener->onTouchEnded = [control, this](Touch* touch, Event* e) {
+    touchListener->onTouchEnded = [control, this](Touch* touch, Event* e) {
         if (this->_continuousTouchDelayTimerID != nullptr)
         {
             stimer::kill(this->_continuousTouchDelayTimerID);
             this->_continuousTouchDelayTimerID = nullptr;
         }
 
-        bool focus = (_checkVisibility(this) && _editable && this->_enabled &&
-                      _containsTouchPoint(control, touch));
+        bool focus = (engine_inj_checkVisibility(this) && this->editable && this->enabled &&
+                      engine_inj_containsTouchPoint(control, touch));
 
         if (focus)
         {
-            if (!s_keyboardVisible || !_cursorVisible)
+            if (!s_keyboardVisible || !this->cursorVisible)
                 openIME();
-            if (_touchCursorControlEnabled)
+            if (this->touchCursorControlEnabled)
             {
-                auto renderLabelPoint = _renderLabel->convertToNodeSpace(touch->getLocation());
+                auto renderLabelPoint = renderLabel->convertToNodeSpace(touch->getLocation());
                 __moveCursorTo(renderLabelPoint.x);
             }
         }
@@ -434,12 +427,12 @@ void TextFieldEx::enableIME(Node* control)
         }
     };
 
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(_touchListener, this);
+    CCEVENTMGR->addEventListenerWithSceneGraphPriority(touchListener, this);
 
     /// enable use keyboard <- -> to move cursor.
-    _kbdListener               = EventListenerKeyboard::create();
-    _kbdListener->onKeyPressed = [this](EventKeyboard::KeyCode code, Event*) {
-        if (_cursorVisible)
+    kbdListener               = EventListenerKeyboard::create();
+    kbdListener->onKeyPressed = [this](EventKeyboard::KeyCode code, Event*) {
+        if (this->cursorVisible)
         {
             switch (code)
             {
@@ -458,22 +451,22 @@ void TextFieldEx::enableIME(Node* control)
         }
     };
 
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(_kbdListener, this);
+    CCEVENTMGR->addEventListenerWithSceneGraphPriority(kbdListener, this);
 }
 
 void TextFieldEx::disableIME(void)
 {
-    _eventDispatcher->removeEventListener(_kbdListener);
-    _eventDispatcher->removeEventListener(_touchListener);
+    CCEVENTMGR->removeEventListener(kbdListener);
+    CCEVENTMGR->removeEventListener(touchListener);
 
-    _kbdListener   = nullptr;
-    _touchListener = nullptr;
+    kbdListener   = nullptr;
+    touchListener = nullptr;
     closeIME();
 }
 
 Label* TextFieldEx::getRenderLabel()
 {
-    return _renderLabel;
+    return this->renderLabel;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -553,19 +546,19 @@ bool TextFieldEx::canDetachWithIME()
 
 void TextFieldEx::insertText(const char* text, size_t len)
 {
-    if (!_editable || !this->_enabled)
+    if (!this->editable || !this->enabled)
     {
         return;
     }
 
-    if (_charLimit > 0 && _charCount >= _charLimit)
+    if (this->charLimit > 0 && this->charCount >= this->charLimit)
     {  // regard zero as unlimited
-        axbeep(0);
+        nxbeep(0);
         return;
     }
 
     int nb;
-    auto n = _truncateUTF8String(text, static_cast<int>(_charLimit - _charCount), nb);
+    auto n = _truncateUTF8String(text, static_cast<int>(this->charLimit - this->charCount), nb);
 
     std::string insert(text, nb);
 
@@ -585,9 +578,9 @@ void TextFieldEx::insertText(const char* text, size_t len)
         //     return;
         // }
 
-        _charCount += n;  // _calcCharCount(insert.c_str());
-        std::string sText(_inputText);
-        sText.insert(_insertPos, insert);  // original is: sText.append(insert);
+        charCount += n;  // _calcCharCount(insert.c_str());
+        std::string sText(inputText);
+        sText.insert(this->insertPos, insert);  // original is: sText.append(insert);
 
         // bool needUpdatePos
         this->setString(sText);
@@ -618,16 +611,16 @@ void TextFieldEx::insertText(const char* text, size_t len)
 
 void TextFieldEx::deleteBackward()
 {
-    if (!_editable || !this->_enabled || 0 == _charCount)
+    if (!this->editable || !this->enabled || 0 == this->charCount)
     {
-        axbeep(0);
+        nxbeep(0);
         return;
     }
 
-    size_t len = _inputText.length();
-    if (0 == len || _insertPos == 0)
+    size_t len = inputText.length();
+    if (0 == len || insertPos == 0)
     {
-        axbeep(0);
+        nxbeep(0);
         // there is no string
         // __updateCursorPosition();
         return;
@@ -636,7 +629,7 @@ void TextFieldEx::deleteBackward()
     // get the delete byte number
     size_t deleteLen = 1;  // default, erase 1 byte
 
-    while (0x80 == (0xC0 & _inputText.at(_insertPos - deleteLen)))
+    while (0x80 == (0xC0 & inputText.at(insertPos - deleteLen)))
     {
         ++deleteLen;
     }
@@ -653,10 +646,10 @@ void TextFieldEx::deleteBackward()
     {
         __moveCursor(-1);
 
-        _inputText.clear();
-        _charCount = 0;
-        _renderLabel->setTextColor(_colorSpaceHolder);
-        _renderLabel->setString(_placeHolder);
+        this->inputText.clear();
+        this->charCount = 0;
+        this->renderLabel->setTextColor(colorSpaceHolder);
+        this->renderLabel->setString(placeHolder);
 
         // __updateCursorPosition();
 
@@ -668,8 +661,8 @@ void TextFieldEx::deleteBackward()
     }
 
     // set new input text
-    std::string text = _inputText;  // (inputText.c_str(), len - deleteLen);
-    text.erase(_insertPos - deleteLen, deleteLen);
+    std::string text = inputText;  // (inputText.c_str(), len - deleteLen);
+    text.erase(insertPos - deleteLen, deleteLen);
 
     __moveCursor(-1);
 
@@ -684,16 +677,16 @@ void TextFieldEx::deleteBackward()
 
 void TextFieldEx::handleDeleteKeyEvent()
 {
-    if (!_editable || !this->_enabled || 0 == _charCount)
+    if (!this->editable || !this->enabled || 0 == this->charCount)
     {
-        axbeep(0);
+        nxbeep(0);
         return;
     }
 
-    size_t len = _inputText.length();
-    if (0 == len || _insertPosUtf8 == _charCount)
+    size_t len = inputText.length();
+    if (0 == len || insertPosUtf8 == this->charCount)
     {
-        axbeep(0);
+        nxbeep(0);
         // there is no string
         // __updateCursorPosition();
         return;
@@ -702,7 +695,7 @@ void TextFieldEx::handleDeleteKeyEvent()
     // get the delete byte number
     size_t deleteLen = 1;  // default, erase 1 byte
 
-    while ((_inputText.length() > _insertPos + deleteLen) && 0x80 == (0xC0 & _inputText.at(_insertPos + deleteLen)))
+    while ((inputText.length() > insertPos + deleteLen) && 0x80 == (0xC0 & inputText.at(insertPos + deleteLen)))
     {
         ++deleteLen;
     }
@@ -717,10 +710,10 @@ void TextFieldEx::handleDeleteKeyEvent()
     // if all text deleted, show placeholder string
     if (len <= deleteLen)
     {
-        _inputText.clear();
-        _charCount = 0;
-        _renderLabel->setTextColor(_colorSpaceHolder);
-        _renderLabel->setString(_placeHolder);
+        this->inputText.clear();
+        this->charCount = 0;
+        this->renderLabel->setTextColor(colorSpaceHolder);
+        this->renderLabel->setString(placeHolder);
 
         __updateCursorPosition();
 
@@ -732,8 +725,8 @@ void TextFieldEx::handleDeleteKeyEvent()
     }
 
     // set new input text
-    std::string text = _inputText;  // (inputText.c_str(), len - deleteLen);
-    text.erase(_insertPos, deleteLen);
+    std::string text = inputText;  // (inputText.c_str(), len - deleteLen);
+    text.erase(insertPos, deleteLen);
 
     // __moveCursor(-1);
 
@@ -745,41 +738,41 @@ void TextFieldEx::handleDeleteKeyEvent()
 
 std::string_view TextFieldEx::getContentText()
 {
-    return _inputText;
+    return inputText;
 }
 
 void TextFieldEx::setTextColor(const Color4B& color)
 {
-    _colorText = color;
-    if (!_inputText.empty())
-        _renderLabel->setTextColor(_colorText);
+    colorText = color;
+    if (!this->inputText.empty())
+        this->renderLabel->setTextColor(colorText);
 }
 
 const Color4B& TextFieldEx::getTextColor(void) const
 {
-    return _colorText;
+    return colorText;
 }
 
 void TextFieldEx::setCursorColor(const Color3B& color)
 {
-    _cursor->setColor(color);
+    this->cursor->setColor(color);
 }
 
 const Color3B& TextFieldEx::getCursorColor(void) const
 {
-    return _cursor->getColor();
+    return this->cursor->getColor();
 }
 
 const Color4B& TextFieldEx::getPlaceholderColor() const
 {
-    return _colorSpaceHolder;
+    return colorSpaceHolder;
 }
 
 void TextFieldEx::setPlaceholderColor(const Color4B& color)
 {
-    _colorSpaceHolder = color;
-    if (_inputText.empty())
-        _renderLabel->setTextColor(color);
+    colorSpaceHolder = color;
+    if (this->inputText.empty())
+        this->renderLabel->setTextColor(color);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -791,17 +784,17 @@ void TextFieldEx::setString(std::string_view text)
 {
     static char bulletString[] = {(char)0xe2, (char)0x80, (char)0xa2, (char)0x00};
 
-    _inputText = text;
+    this->inputText = text;
 
     std::string secureText;
 
-    std::string* displayText = &_inputText;
+    std::string* displayText = &this->inputText;
 
-    if (!_inputText.empty())
+    if (!this->inputText.empty())
     {
-        if (_secureTextEntry)
+        if (secureTextEntry)
         {
-            size_t length = _inputText.length();
+            size_t length = inputText.length();
             displayText   = &secureText;
 
             while (length > 0)
@@ -813,61 +806,61 @@ void TextFieldEx::setString(std::string_view text)
     }
 
     // if there is no input text, display placeholder instead
-    if (_inputText.empty())
+    if (this->inputText.empty())
     {
-        _renderLabel->setTextColor(_colorSpaceHolder);
-        _renderLabel->setString(_placeHolder);
+        renderLabel->setTextColor(colorSpaceHolder);
+        renderLabel->setString(placeHolder);
     }
     else
     {
-        _renderLabel->setTextColor(_colorText);
-        _renderLabel->setString(*displayText);
+        renderLabel->setTextColor(colorText);
+        renderLabel->setString(*displayText);
     }
 
-    bool bInsertAtEnd = (_insertPosUtf8 == _charCount);
+    bool bInsertAtEnd = (insertPosUtf8 == charCount);
 
-    _charCount = _calcCharCount(_inputText.c_str());
+    charCount = _calcCharCount(inputText.c_str());
 
     if (bInsertAtEnd)
     {
-        _insertPosUtf8 = static_cast<int>(_charCount);
-        _insertPos     = static_cast<int>(_inputText.length());
-        _cursorPos     = static_cast<int>(displayText->length());
+        insertPosUtf8 = static_cast<int>(charCount);
+        insertPos     = static_cast<int>(inputText.length());
+        cursorPos     = static_cast<int>(displayText->length());
     }
 }
 
 void TextFieldEx::updateContentSize(void)
 {
-    this->setContentSize(_renderLabel->getContentSize());
+    this->setContentSize(renderLabel->getContentSize());
 }
 
 std::string_view TextFieldEx::getString() const
 {
-    return _inputText;
+    return inputText;
 }
 
 // place holder text property
 void TextFieldEx::setPlaceholderText(std::string_view text)
 {
-    _placeHolder = text;
-    if (_inputText.empty())
+    placeHolder = text;
+    if (inputText.empty())
     {
-        _renderLabel->setTextColor(_colorSpaceHolder);
-        _renderLabel->setString(_placeHolder);
+        renderLabel->setTextColor(colorSpaceHolder);
+        renderLabel->setString(placeHolder);
     }
 }
 
 std::string_view TextFieldEx::getPlaceholderText() const
 {
-    return _placeHolder;
+    return placeHolder;
 }
 
 // secureTextEntry
 void TextFieldEx::setPasswordEnabled(bool value)
 {
-    if (_secureTextEntry != value)
+    if (secureTextEntry != value)
     {
-        _secureTextEntry = value;
+        secureTextEntry = value;
         this->setString(this->getString());
         __updateCursorPosition();
     }
@@ -875,19 +868,30 @@ void TextFieldEx::setPasswordEnabled(bool value)
 
 bool TextFieldEx::isPasswordEnabled() const
 {
-    return _secureTextEntry;
+    return secureTextEntry;
+}
+
+const Vec2& TextFieldEx::getContentSize() const
+{
+    // const_cast<TextFieldEx*>(this)->setContentSize(renderLabel->getContentSize());
+    return Node::getContentSize();
 }
 
 void TextFieldEx::setEnabled(bool bEnabled)
 {
-    if (this->_enabled != bEnabled)
+    if (this->enabled != bEnabled)
     {
         if (!bEnabled)
         {
             this->closeIME();
         }
-        this->_enabled = bEnabled;
+        this->enabled = bEnabled;
     }
+}
+
+bool TextFieldEx::isEnabled(void) const
+{
+    return this->enabled;
 }
 
 int TextFieldEx::getFontType() const
@@ -897,12 +901,17 @@ int TextFieldEx::getFontType() const
 
 void TextFieldEx::__initCursor(int height, int width, const Color4B& color)
 {
-    _cursor = engine_inj_create_lump(Color4B(color), height, width);
+    this->cursor = engine_inj_create_lump(Color4B(color), height, width);
 
-    this->addChild(_cursor);
+    this->addChild(this->cursor);
 
-    _cursor->setPosition(Point(0, this->getContentSize().height / 2));
-    // nodes_layout::setNodeLB(_cursor, ax::Point::ZERO);
+    this->cursor->setPosition(Point(0, this->getContentSize().height / 2));
+    // nodes_layout::setNodeLB(this->cursor, ax::Point::ZERO);
+
+    /*CCAction* blink = CCRepeatForever::create(
+        (CCActionInterval *)CCSequence::create(CCFadeOut::create(0.25f),
+        CCFadeIn::create(0.25f),
+        NULL));*/
 
     __hideCursor();
 
@@ -911,80 +920,87 @@ void TextFieldEx::__initCursor(int height, int width, const Color4B& color)
 
 void TextFieldEx::__showCursor(void)
 {
-    if (_cursor)
+    if (this->cursor)
     {
-        _cursorVisible = true;
-        _cursor->setVisible(true);
-        _cursor->runAction(RepeatForever::create(Blink::create(1, 1)));
+        this->cursorVisible = true;
+        this->cursor->setVisible(true);
+        this->cursor->runAction(RepeatForever::create(Blink::create(1, 1)));
     }
 }
 
 void TextFieldEx::__hideCursor(void)
 {
-    if (_cursor)
+    if (this->cursor)
     {
-        _cursor->setVisible(false);
-        _cursorVisible = false;
-        _cursor->stopAllActions();
+        this->cursor->setVisible(false);
+        this->cursorVisible = false;
+        this->cursor->stopAllActions();
     }
 }
 
 void TextFieldEx::__updateCursorPosition(void)
 {
-    if (_cursor && _insertPosUtf8 == _charCount)
+    if (this->cursor && this->insertPosUtf8 == this->charCount)
     {
         if (0 == this->getCharCount())
         {
-            _cursor->setPosition(Point(0, this->getContentSize().height / 2));
+            this->cursor->setPosition(Point(0, this->getContentSize().height / 2));
         }
         else
         {
-            _cursor->setPosition(Point(_renderLabel->getContentSize().width, this->getContentSize().height / 2));
+            this->cursor->setPosition(Point(renderLabel->getContentSize().width, this->getContentSize().height / 2));
         }
     }
 }
 
 void TextFieldEx::__moveCursor(int direction)
 {
-    auto newOffset = _insertPosUtf8 + direction;
+    /*bool checkSupport = this->renderLabel->getLetter(0) != nullptr;
+    if (!checkSupport)
+    {
+        MessageBeep(MB_ICONHAND);
+        return;
+    }*/
 
-    if (newOffset > 0 && newOffset <= _charCount)
+    auto newOffset = this->insertPosUtf8 + direction;
+
+    if (newOffset > 0 && newOffset <= this->charCount)
     {
 
         std::string_view displayText;
-        if (!_secureTextEntry)
+        if (!secureTextEntry)
             displayText = this->getString();
-        else if (!_inputText.empty())
-            displayText = _renderLabel->getString();
+        else if (!this->inputText.empty())
+            displayText = renderLabel->getString();
 
         if (direction < 0)
         {
-            _insertPos = static_cast<int>(internalUTF8MoveLeft(_inputText, _insertPos).size());
+            this->insertPos = static_cast<int>(internalUTF8MoveLeft(this->inputText, this->insertPos).size());
 
-            auto s = internalUTF8MoveLeft(displayText, _cursorPos);
+            auto s = internalUTF8MoveLeft(displayText, this->cursorPos);
 
-            auto width = internalCalcStringWidth(s, _fontName, _fontSize);
-            _cursor->setPosition(Point(width, this->getContentSize().height / 2));
-            _cursorPos = static_cast<int>(s.length());
+            auto width = internalCalcStringWidth(s, this->fontName, this->fontSize);
+            this->cursor->setPosition(Point(width, this->getContentSize().height / 2));
+            this->cursorPos = static_cast<int>(s.length());
         }
         else
         {
-            _insertPos = static_cast<int>(internalUTF8MoveRight(_inputText, _insertPos).size());
+            this->insertPos = static_cast<int>(internalUTF8MoveRight(this->inputText, this->insertPos).size());
 
-            auto s     = internalUTF8MoveRight(displayText, _cursorPos);
-            auto width = internalCalcStringWidth(s, _fontName, _fontSize);
-            _cursor->setPosition(Point(width, this->getContentSize().height / 2));
-            _cursorPos = static_cast<int>(s.length());
+            auto s     = internalUTF8MoveRight(displayText, this->cursorPos);
+            auto width = internalCalcStringWidth(s, this->fontName, this->fontSize);
+            this->cursor->setPosition(Point(width, this->getContentSize().height / 2));
+            this->cursorPos = static_cast<int>(s.length());
         }
 
-        _insertPosUtf8 = newOffset;
+        this->insertPosUtf8 = newOffset;
     }
     else if (newOffset == 0)
     {
-        _cursor->setPosition(Point(0, this->getContentSize().height / 2));
-        _insertPosUtf8 = newOffset;
-        _insertPos     = 0;
-        _cursorPos     = 0;
+        this->cursor->setPosition(Point(0, this->getContentSize().height / 2));
+        this->insertPosUtf8 = newOffset;
+        this->insertPos     = 0;
+        this->cursorPos     = 0;
     }
     else
     {
@@ -998,26 +1014,26 @@ void TextFieldEx::__moveCursorTo(float x)
     float normalizedX = 0;
 
     std::string_view displayText;
-    if (!_secureTextEntry)
+    if (!secureTextEntry)
     {
-        displayText = _inputText;
+        displayText = this->inputText;
     }
     else
     {
-        if (!_inputText.empty())
+        if (!this->inputText.empty())
         {
-            displayText = _renderLabel->getString();
+            displayText = renderLabel->getString();
         }
     }
 
     int length = static_cast<int>(displayText.length());
-    int n      = static_cast<int>(_charCount);  // UTF8 char counter
+    int n      = static_cast<int>(this->charCount);  // UTF8 char counter
 
     int insertWhere     = 0;
     int insertWhereUtf8 = 0;
     while (length > 0)
     {
-        auto checkX = internalCalcStringWidth(displayText, _fontName, _fontSize);
+        auto checkX = internalCalcStringWidth(displayText, this->fontName, this->fontSize);
         if (x >= checkX)
         {
             insertWhere     = length;
@@ -1039,12 +1055,13 @@ void TextFieldEx::__moveCursorTo(float x)
         length -= backwardLen;
     }
 
-    _insertPos     = !_secureTextEntry ? insertWhere : insertWhereUtf8;
-    _cursorPos     = insertWhere;
-    _insertPosUtf8 = insertWhereUtf8;
-    _cursor->setPosition(Point(normalizedX, this->getContentSize().height / 2));
+    this->insertPos     = !this->secureTextEntry ? insertWhere : insertWhereUtf8;
+    this->cursorPos     = insertWhere;
+    this->insertPosUtf8 = insertWhereUtf8;
+    this->cursor->setPosition(Point(normalizedX, this->getContentSize().height / 2));
 }
 };  // namespace ui
 
 NS_AX_END
 
+#endif

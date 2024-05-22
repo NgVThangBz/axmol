@@ -1,4 +1,4 @@
-# This script easy to build win32, linux, winuwp(winrt), ios, tvos, osx, android depends on $AX_ROOT/1k/1kiss.ps1
+# This script easy to build win32, linux, winuwp(winrt), ios, tvos, osx, android depends on $AX_ROOT/1k/build.ps1
 # usage: pwsh build.ps1 -p <targetPlatform> -a <arch>
 # options
 #  -p: build target platform: win32,winuwp(winrt),linux,android,osx,ios,tvos,wasm
@@ -39,6 +39,8 @@ param(
 
 $unhandled_args = @()
 
+$1k_switch_options = @{ 'dll' = $true; 'u' = $true; 'dm' = $true }
+
 $options = @{p = $null; d = $null; xc = @(); xb = @(); }
 
 $optName = $null
@@ -47,7 +49,7 @@ foreach ($arg in $args) {
         if ($arg.StartsWith('-')) {
             $optName = $arg.SubString(1).TrimEnd(':')
         }
-        if (!$options.Contains("$optName")) {
+        if ($1k_switch_options.Contains("$optName")) {
             $unhandled_args += $arg
             $optName = $null
             continue
@@ -66,16 +68,16 @@ foreach ($arg in $args) {
 }
 
 function translate_array_opt($opt) {
-    if ($opt -and $opt -isnot [array]) {
+    if ($opt -and $opt.GetType().BaseType -ne [array]) {
         $opt = "$opt".Split(',')
     }
     return $opt
 }
 
-if ($options.xb -isnot [array]) {
+if ($options.xb.Count -ne 0) {
     [array]$options.xb = (translate_array_opt $options.xb)
 }
-if ($options.xc -isnot [array]) {
+if ($options.xc.Count -ne 0) {
     [array]$options.xc = (translate_array_opt $options.xc)
 }
 
@@ -88,10 +90,10 @@ else {
     throw "The axmol engine incompleted"
 }
 
-# 1k/1kiss.ps1
-$1k_script = Join-Path $AX_ROOT '1k/1kiss.ps1'
-if (!(Test-Path $1k_script -PathType Leaf)) {
-    throw "The 1k/1kiss.ps1 not found"
+# 1k/build.ps1
+$b1k_script = Join-Path $AX_ROOT '1k/build.ps1'
+if (!(Test-Path $b1k_script -PathType Leaf)) {
+    throw "The 1k/build.ps1 not found"
 }
 
 $source_proj_dir = if ($options.d) { $options.d } else { $workDir }
@@ -100,9 +102,8 @@ $Global:is_axmol_app = (Test-Path (Join-Path $source_proj_dir '.axproj.json') -P
 $is_android = $options.p -eq 'android'
 
 # start construct full cmd line
-$1k_args = @()
+$b1k_args = @()
 
-$cmake_target = $null
 $cm_target_index = $options.xb.IndexOf('--target')
 if ($cm_target_index -ne -1) {
     $cmake_target = $options.xb[$cm_target_index + 1]
@@ -144,7 +145,7 @@ $proj_name = (Get-Item $proj_dir).BaseName
 
 $use_gradle = $is_android -and (Test-Path $(Join-Path $proj_dir 'proj.android/gradlew') -PathType Leaf)
 if ($use_gradle) {
-    $1k_args += '-xt', 'proj.android/gradlew'
+    $b1k_args += '-xt', 'proj.android/gradlew'
 }
 
 if (!$use_gradle) {
@@ -173,18 +174,18 @@ else {
 }
 
 if ($proj_dir) {
-    $1k_args += '-d', "$proj_dir"
+    $b1k_args += '-d', "$proj_dir"
 }
 $prefix = Join-Path $AX_ROOT 'tools/external'
-$1k_args += '-prefix', "$prefix"
+$b1k_args += '-prefix', "$prefix"
 
 # remove arg we don't want forward to
 $options.Remove('d')
-$1k_args = [System.Collections.ArrayList]$1k_args
+$b1k_args = [System.Collections.ArrayList]$b1k_args
 foreach ($option in $options.GetEnumerator()) {
     if ($option.Value) {
-        $null = $1k_args.Add("-$($option.Key)")
-        $null = $1k_args.Add($option.Value)
+        $null = $b1k_args.Add("-$($option.Key)")
+        $null = $b1k_args.Add($option.Value)
     }
 }
 
@@ -196,11 +197,11 @@ if ($forceConfig) {
     $forward_args['forceConfig'] = $true
 }
 
-. $1k_script @1k_args @forward_args @unhandled_args
+. $b1k_script @b1k_args @forward_args @unhandled_args
 
 if (!$configOnly) {
-    $1k.pause('Build done')
+    $b1k.pause('Build done')
 }
 else {
-    $1k.pause('Generate done')
+    $b1k.pause('Generate done')
 }

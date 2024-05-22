@@ -63,8 +63,7 @@ typedef struct HuffmanTables {
 
 // Allocates a HuffmanTables with 'size' contiguous HuffmanCodes. Returns 0 on
 // memory allocation error, 1 otherwise.
-WEBP_NODISCARD int VP8LHuffmanTablesAllocate(int size,
-                                             HuffmanTables* huffman_tables);
+int VP8LHuffmanTablesAllocate(int size, HuffmanTables* huffman_tables);
 void VP8LHuffmanTablesDeallocate(HuffmanTables* const huffman_tables);
 
 #define HUFFMAN_PACKED_BITS 6
@@ -92,7 +91,7 @@ struct HTreeGroup {
 };
 
 // Creates the instance of HTreeGroup with specified number of tree-groups.
-WEBP_NODISCARD HTreeGroup* VP8LHtreeGroupsNew(int num_htree_groups);
+HTreeGroup* VP8LHtreeGroupsNew(int num_htree_groups);
 
 // Releases the memory allocated for HTreeGroup.
 void VP8LHtreeGroupsFree(HTreeGroup* const htree_groups);
@@ -102,10 +101,8 @@ void VP8LHtreeGroupsFree(HTreeGroup* const htree_groups);
 // the huffman table.
 // Returns built table size or 0 in case of error (invalid tree or
 // memory error).
-WEBP_NODISCARD int VP8LBuildHuffmanTable(HuffmanTables* const root_table,
-                                         int root_bits,
-                                         const int code_lengths[],
-                                         int code_lengths_size);
+int VP8LBuildHuffmanTable(HuffmanTables* const root_table, int root_bits,
+                          const int code_lengths[], int code_lengths_size);
 
 #ifdef __cplusplus
 }    // extern "C"

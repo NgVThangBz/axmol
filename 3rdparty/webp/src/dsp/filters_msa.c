@@ -56,14 +56,12 @@ static WEBP_INLINE void PredictLineInverse0(const uint8_t* src,
 //------------------------------------------------------------------------------
 // Helpful macro.
 
-#define DCHECK(in, out)        \
-  do {                         \
-    assert(in != NULL);        \
-    assert(out != NULL);       \
-    assert(width > 0);         \
-    assert(height > 0);        \
-    assert(stride >= width);   \
-  } while (0)
+#define SANITY_CHECK(in, out)  \
+  assert(in != NULL);          \
+  assert(out != NULL);         \
+  assert(width > 0);           \
+  assert(height > 0);          \
+  assert(stride >= width);
 
 //------------------------------------------------------------------------------
 // Horrizontal filter
@@ -74,7 +72,7 @@ static void HorizontalFilter_MSA(const uint8_t* data, int width, int height,
   const uint8_t* in = data;
   uint8_t* out = filtered_data;
   int row = 1;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
 
   // Leftmost pixel is the same as input for topmost scanline.
   out[0] = in[0];
@@ -137,7 +135,7 @@ static void GradientFilter_MSA(const uint8_t* data, int width, int height,
   const uint8_t* preds = data;
   uint8_t* out = filtered_data;
   int row = 1;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
 
   // left prediction for top scan-line
   out[0] = in[0];
@@ -165,7 +163,7 @@ static void VerticalFilter_MSA(const uint8_t* data, int width, int height,
   const uint8_t* preds = data;
   uint8_t* out = filtered_data;
   int row = 1;
-  DCHECK(in, out);
+  SANITY_CHECK(in, out);
 
   // Very first top-left pixel is copied.
   out[0] = in[0];
@@ -184,7 +182,7 @@ static void VerticalFilter_MSA(const uint8_t* data, int width, int height,
   }
 }
 
-#undef DCHECK
+#undef SANITY_CHECK
 
 //------------------------------------------------------------------------------
 // Entry point

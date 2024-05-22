@@ -415,10 +415,7 @@ void Sprite::setTextureRect(const Rect& rect, bool rotated, const Vec2& untrimme
 {
     _rectRotated = rotated;
 
-    if (_autoSizeEnabled || _contentSize == Vec2::ZERO)
-    {
-        Node::setContentSize(untrimmedSize);
-    }
+    Node::setContentSize(untrimmedSize);
     _originalContentSize = untrimmedSize;
 
     setVertexRect(rect);

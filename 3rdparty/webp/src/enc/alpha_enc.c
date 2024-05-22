@@ -20,7 +20,6 @@
 #include "src/utils/filters_utils.h"
 #include "src/utils/quant_levels_utils.h"
 #include "src/utils/utils.h"
-#include "src/webp/encode.h"
 #include "src/webp/format_constants.h"
 
 // -----------------------------------------------------------------------------
@@ -56,7 +55,7 @@ static int EncodeLossless(const uint8_t* const data, int width, int height,
   WebPConfig config;
   WebPPicture picture;
 
-  if (!WebPPictureInit(&picture)) return 0;
+  WebPPictureInit(&picture);
   picture.width = width;
   picture.height = height;
   picture.use_argb = 1;
@@ -67,7 +66,7 @@ static int EncodeLossless(const uint8_t* const data, int width, int height,
   WebPDispatchAlphaToGreen(data, width, picture.width, picture.height,
                            picture.argb, picture.argb_stride);
 
-  if (!WebPConfigInit(&config)) return 0;
+  WebPConfigInit(&config);
   config.lossless = 1;
   // Enable exact, or it would alter RGB values of transparent alpha, which is
   // normally OK but not here since we are not encoding the input image but  an
@@ -84,7 +83,11 @@ static int EncodeLossless(const uint8_t* const data, int width, int height,
       (use_quality_100 && effort_level == 6) ? 100 : 8.f * effort_level;
   assert(config.quality >= 0 && config.quality <= 100.f);
 
-  ok = VP8LEncodeStream(&config, &picture, bw);
+  // TODO(urvang): Temporary fix to avoid generating images that trigger
+  // a decoder bug related to alpha with color cache.
+  // See: https://code.google.com/p/webp/issues/detail?id=239
+  // Need to re-enable this later.
+  ok = VP8LEncodeStream(&config, &picture, bw, /*use_cache=*/0);
   WebPPictureFree(&picture);
   ok = ok && !bw->error_;
   if (!ok) {

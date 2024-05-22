@@ -1,4 +1,4 @@
-/* auto-generated on 2024-05-07 18:04:59 -0400. Do not edit! */
+/* auto-generated on 2024-04-05 15:17:57 -0400. Do not edit! */
 /* including simdjson.cpp:  */
 /* begin file simdjson.cpp */
 #define SIMDJSON_SRC_SIMDJSON_CPP
@@ -105,9 +105,9 @@
 #endif // __clang__
 #endif // _MSC_VER
 
-#if (defined(__x86_64__) || defined(_M_AMD64)) && !defined(_M_ARM64EC)
+#if defined(__x86_64__) || defined(_M_AMD64)
 #define SIMDJSON_IS_X86_64 1
-#elif defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+#elif defined(__aarch64__) || defined(_M_ARM64)
 #define SIMDJSON_IS_ARM64 1
 #elif defined(__riscv) && __riscv_xlen == 64
 #define SIMDJSON_IS_RISCV64 1
@@ -6139,7 +6139,7 @@ public:
    *
    * @return the name of the implementation, e.g. "haswell", "westmere", "arm64".
    */
-  virtual std::string name() const { return std::string(_name); }
+  virtual const std::string &name() const { return _name; }
 
   /**
    * The description of this implementation.
@@ -6149,7 +6149,7 @@ public:
    *
    * @return the description of the implementation, e.g. "Intel/AMD AVX2", "Intel/AMD SSE4.2", "ARM NEON".
    */
-  virtual std::string description() const { return std::string(_description); }
+  virtual const std::string &description() const { return _description; }
 
   /**
    * The instruction sets this implementation is compiled against
@@ -6225,19 +6225,18 @@ protected:
     _required_instruction_sets(required_instruction_sets)
   {
   }
-protected:
-  ~implementation() = default;
+  virtual ~implementation()=default;
 
 private:
   /**
    * The name of this implementation.
    */
-  std::string_view _name;
+  const std::string _name;
 
   /**
    * The description of this implementation.
    */
-  std::string_view _description;
+  const std::string _description;
 
   /**
    * Instruction sets required for this implementation.
@@ -6713,7 +6712,7 @@ static inline uint32_t detect_supported_architectures() {
   return instruction_set::ALTIVEC;
 }
 
-#elif defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+#elif defined(__aarch64__) || defined(_M_ARM64)
 
 static inline uint32_t detect_supported_architectures() {
   return instruction_set::NEON;
@@ -7347,8 +7346,8 @@ namespace internal {
  */
 class detect_best_supported_implementation_on_first_use final : public implementation {
 public:
-  std::string name() const noexcept final { return set_best()->name(); }
-  std::string description() const noexcept final { return set_best()->description(); }
+  const std::string &name() const noexcept final { return set_best()->name(); }
+  const std::string &description() const noexcept final { return set_best()->description(); }
   uint32_t required_instruction_sets() const noexcept final { return set_best()->required_instruction_sets(); }
   simdjson_warn_unused error_code create_dom_parser_implementation(
     size_t capacity,
@@ -7367,8 +7366,6 @@ public:
 private:
   const implementation *set_best() const noexcept;
 };
-
-static_assert(std::is_trivially_destructible<detect_best_supported_implementation_on_first_use>::value, "detect_best_supported_implementation_on_first_use should be trivially destructible");
 
 static const std::initializer_list<const implementation *>& get_available_implementation_pointers() {
   static const std::initializer_list<const implementation *> available_implementation_pointers {
@@ -7425,8 +7422,6 @@ public:
   }
   unsupported_implementation() : implementation("unsupported", "Unsupported CPU (no detected SIMD instructions)", 0) {}
 };
-
-static_assert(std::is_trivially_destructible<unsupported_implementation>::value, "unsupported_singleton should be trivially destructible");
 
 const unsupported_implementation* get_unsupported_singleton() {
     static const unsupported_implementation unsupported_singleton{};
@@ -7744,10 +7739,10 @@ simdjson_inline uint64_t prefix_xor(uint64_t bitmask) {
 
 #include <cstring>
 
-#if SIMDJSON_REGULAR_VISUAL_STUDIO && SIMDJSON_IS_ARM64
+#if _M_ARM64
 // __umulh requires intrin.h
 #include <intrin.h>
-#endif // SIMDJSON_REGULAR_VISUAL_STUDIO && SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 
 namespace simdjson {
 namespace arm64 {
@@ -7767,13 +7762,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -7928,7 +7923,7 @@ namespace {
       tmp = vpaddq_u8(tmp, tmp);
       return vgetq_lane_u16(vreinterpretq_u16_u8(tmp), 0);
     }
-    simdjson_inline bool any() const { return vmaxvq_u32(vreinterpretq_u32_u8(*this)) != 0; }
+    simdjson_inline bool any() const { return vmaxvq_u8(*this) != 0; }
   };
 
   // Unsigned bytes
@@ -10500,10 +10495,10 @@ simdjson_inline uint64_t prefix_xor(uint64_t bitmask) {
 
 #include <cstring>
 
-#if SIMDJSON_REGULAR_VISUAL_STUDIO && SIMDJSON_IS_ARM64
+#if _M_ARM64
 // __umulh requires intrin.h
 #include <intrin.h>
-#endif // SIMDJSON_REGULAR_VISUAL_STUDIO && SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 
 namespace simdjson {
 namespace arm64 {
@@ -10523,13 +10518,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -10684,7 +10679,7 @@ namespace {
       tmp = vpaddq_u8(tmp, tmp);
       return vgetq_lane_u16(vreinterpretq_u16_u8(tmp), 0);
     }
-    simdjson_inline bool any() const { return vmaxvq_u32(vreinterpretq_u32_u8(*this)) != 0; }
+    simdjson_inline bool any() const { return vmaxvq_u8(*this) != 0; }
   };
 
   // Unsigned bytes
@@ -14241,13 +14236,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -14333,10 +14328,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm256_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m256i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m256i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm256_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm256_testz_si256(*this, *this); }
@@ -16874,13 +16869,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -16966,10 +16961,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm256_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m256i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m256i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm256_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm256_testz_si256(*this, *this); }
@@ -20515,10 +20510,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm512_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m512i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m512i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
     simdjson_inline bool any() const { return !!_mm512_test_epi8_mask (*this, *this); }
     simdjson_inline simd8<bool> operator~() const { return *this ^ true; }
   };
@@ -20881,13 +20876,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -23146,10 +23141,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm512_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m512i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m512i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
     simdjson_inline bool any() const { return !!_mm512_test_epi8_mask (*this, *this); }
     simdjson_inline simd8<bool> operator~() const { return *this ^ true; }
   };
@@ -23512,13 +23507,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -26706,13 +26701,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -26829,11 +26824,11 @@ template <> struct simd8<bool> : base8<bool> {
     return (__m128i)vec_splats((unsigned char)(-(!!_value)));
   }
 
-  simdjson_inline simd8() : base8<bool>() {}
-  simdjson_inline simd8(const __m128i _value)
+  simdjson_inline simd8<bool>() : base8<bool>() {}
+  simdjson_inline simd8<bool>(const __m128i _value)
       : base8<bool>(_value) {}
   // Splat constructor
-  simdjson_inline simd8(bool _value)
+  simdjson_inline simd8<bool>(bool _value)
       : base8<bool>(splat(_value)) {}
 
   simdjson_inline int to_bitmask() const {
@@ -29450,13 +29445,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -29573,11 +29568,11 @@ template <> struct simd8<bool> : base8<bool> {
     return (__m128i)vec_splats((unsigned char)(-(!!_value)));
   }
 
-  simdjson_inline simd8() : base8<bool>() {}
-  simdjson_inline simd8(const __m128i _value)
+  simdjson_inline simd8<bool>() : base8<bool>() {}
+  simdjson_inline simd8<bool>(const __m128i _value)
       : base8<bool>(_value) {}
   // Splat constructor
-  simdjson_inline simd8(bool _value)
+  simdjson_inline simd8<bool>(bool _value)
       : base8<bool>(splat(_value)) {}
 
   simdjson_inline int to_bitmask() const {
@@ -33175,13 +33170,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -33261,10 +33256,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm_testz_si128(*this, *this); }
@@ -33689,10 +33684,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm_testz_si128(*this, *this); }
@@ -36240,13 +36235,13 @@ static simdjson_inline uint32_t parse_eight_digits_unrolled(const uint8_t *chars
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -36326,10 +36321,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm_testz_si128(*this, *this); }
@@ -36754,10 +36749,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return _mm_set1_epi8(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return _mm_movemask_epi8(*this); }
     simdjson_inline bool any() const { return !_mm_testz_si128(*this, *this); }
@@ -40224,10 +40219,10 @@ namespace simd {
       return __lsx_vreplgr2vr_b(uint8_t(-(!!_value)));
     }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return __lsx_vpickve2gr_w(__lsx_vmskltz_b(*this), 0); }
     simdjson_inline bool any() const { return 0 == __lsx_vpickve2gr_hu(__lsx_vmsknz_b(*this), 0); }
@@ -42753,10 +42748,10 @@ namespace simd {
       return __lsx_vreplgr2vr_b(uint8_t(-(!!_value)));
     }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m128i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m128i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const { return __lsx_vpickve2gr_w(__lsx_vmskltz_b(*this), 0); }
     simdjson_inline bool any() const { return 0 == __lsx_vpickve2gr_hu(__lsx_vmsknz_b(*this), 0); }
@@ -46209,10 +46204,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return __lasx_xvreplgr2vr_b(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m256i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m256i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const {
       __m256i mask = __lasx_xvmskltz_b(*this);
@@ -48754,10 +48749,10 @@ namespace simd {
   struct simd8<bool>: base8<bool> {
     static simdjson_inline simd8<bool> splat(bool _value) { return __lasx_xvreplgr2vr_b(uint8_t(-(!!_value))); }
 
-    simdjson_inline simd8() : base8() {}
-    simdjson_inline simd8(const __m256i _value) : base8<bool>(_value) {}
+    simdjson_inline simd8<bool>() : base8() {}
+    simdjson_inline simd8<bool>(const __m256i _value) : base8<bool>(_value) {}
     // Splat constructor
-    simdjson_inline simd8(bool _value) : base8<bool>(splat(_value)) {}
+    simdjson_inline simd8<bool>(bool _value) : base8<bool>(splat(_value)) {}
 
     simdjson_inline int to_bitmask() const {
       __m256i mask = __lasx_xvmskltz_b(*this);
@@ -52144,13 +52139,13 @@ static simdjson_inline uint64_t _umul128(uint64_t ab, uint64_t cd, uint64_t *hi)
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);
@@ -54278,13 +54273,13 @@ static simdjson_inline uint64_t _umul128(uint64_t ab, uint64_t cd, uint64_t *hi)
 simdjson_inline internal::value128 full_multiplication(uint64_t value1, uint64_t value2) {
   internal::value128 answer;
 #if SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
-#if SIMDJSON_IS_ARM64
+#ifdef _M_ARM64
   // ARM64 has native support for 64-bit multiplications, no need to emultate
   answer.high = __umulh(value1, value2);
   answer.low = value1 * value2;
 #else
   answer.low = _umul128(value1, value2, &answer.high); // _umul128 not available on ARM64
-#endif // SIMDJSON_IS_ARM64
+#endif // _M_ARM64
 #else // SIMDJSON_REGULAR_VISUAL_STUDIO || SIMDJSON_IS_32BITS
   __uint128_t r = (static_cast<__uint128_t>(value1)) * value2;
   answer.low = uint64_t(r);

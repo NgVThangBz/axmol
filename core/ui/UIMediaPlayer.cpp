@@ -98,28 +98,13 @@ struct PrivateVideoDescriptor
 
                 if (!videoView->isKeepAspectRatioEnabled())
                 {
-                    const auto scale = Vec2(viewSize.x / videoSize.x, viewSize.y / videoSize.y);
-                    _vrender->setScale(scale.x, scale.y);
+                    _vrender->setScale(viewSize.x / videoSize.x, viewSize.y / videoSize.y);
 
                     auto* mediaController = videoView->getMediaController();
                     if (mediaController)
                     {
-                        if (mediaController->getOrientation() == MediaController::Orientation::RotatedLeft)
-                        {
-                            mediaController->setContentSize(videoSize *
-                                                            Vec2(viewSize.y / videoSize.x, viewSize.x / videoSize.y));
-                            mediaController->setRotation(-90);
-                        }
-                        else if (mediaController->getOrientation() == MediaController::Orientation::RotatedRight)
-                        {
-                            mediaController->setContentSize(videoSize *
-                                                            Vec2(viewSize.y / videoSize.x, viewSize.x / videoSize.y));
-                            mediaController->setRotation(90);
-                        }
-                        else
-                        {
-                            mediaController->setContentSize(videoSize * scale);
-                        }
+                        mediaController->setContentSize(videoSize *
+                                                        Vec2(viewSize.x / videoSize.x, viewSize.y / videoSize.y));
                     }
                 }
                 else
@@ -131,20 +116,7 @@ struct PrivateVideoDescriptor
                     auto* mediaController = videoView->getMediaController();
                     if (mediaController)
                     {
-                        if (mediaController->getOrientation() == MediaController::Orientation::RotatedLeft)
-                        {
-                            mediaController->setContentSize(Vec2(videoSize.y * aspectRatio, videoSize.x * aspectRatio));
-                            mediaController->setRotation(-90);
-                        }
-                        else if (mediaController->getOrientation() == MediaController::Orientation::RotatedRight)
-                        {
-                            mediaController->setContentSize(Vec2(videoSize.y * aspectRatio, videoSize.x * aspectRatio));
-                            mediaController->setRotation(90);
-                        }
-                        else
-                        {
-                            mediaController->setContentSize(videoSize * aspectRatio);
-                        }
+                        mediaController->setContentSize(videoSize * aspectRatio);
                     }
                 }
 
@@ -339,11 +311,6 @@ void createMediaControlTexture()
 }  // namespace
 
 static const float ZOOM_ACTION_TIME_STEP = 0.05f;
-
-void MediaController::setOrientation(Orientation orientation)
-{
-    _orientation = orientation;
-}
 
 MediaPlayerControl* MediaPlayerControl::create(SpriteFrame* frame)
 {
