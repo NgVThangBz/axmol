@@ -14,11 +14,6 @@
 - Version: 2.4.1
 - License: MIT
 
-## Box2D-optimized
-- Upstream: https://github.com/mtsamis/box2d-optimized
-- Version: 7ef46c1
-- License: MIT
-
 ## Bullet
 - [![Upstream](https://img.shields.io/github/v/release/bulletphysics/bullet3?label=Upstream)](https://github.com/bulletphysics/bullet3)
 - Version: 3.25
@@ -27,7 +22,7 @@
 
 ## c-ares
 - [![Upstream](https://img.shields.io/github/v/release/c-ares/c-ares?label=Upstream)](https://github.com/c-ares/c-ares)
-- Version: 1.28.1
+- Version: 1.29.0
 - License: MIT
 
 ## Chipmunk2D
@@ -52,7 +47,7 @@
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.7.1
+- Version: 8.8.0
 - License: Curl (MIT/X)
 
 ## FastLZ
@@ -97,7 +92,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.0.2
+- Version: 3.0.3
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -123,7 +118,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-d06beb0
+  - Version: 2.1-5790d25
   - License: MIT
 
 - tolua

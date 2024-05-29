@@ -1,10 +1,10 @@
-## axmol-2.1.3 ?? 2024
+## axmol-2.1.3 May.26 2024
 
 ### Significant changes relative to 2.1.2:
 
-
 - Implement cross-platform media controller for video playback by @rh101 in https://github.com/axmolengine/axmol/pull/1845
   - Adjust media control positioning if video aspect ratio is maintained by @rh101 in https://github.com/axmolengine/axmol/pull/1851
+  - Allow media controls to be rotated left or right by 90 degrees by @rh101 in https://github.com/axmolengine/axmol/pull/1910
 - Allow certain code modules to be removed from build process by @rh101 in https://github.com/axmolengine/axmol/pull/1769, i.e. remove 3d features by `-DAX_ENABLE_3D=OFF`
 - New logging system with general log level and colored support
   - Implement new axmol log system based on fmtlib by @halx99 in https://github.com/axmolengine/axmol/pull/1732
@@ -19,8 +19,9 @@
   - https://github.com/axmolengine/axmol/pull/1870
   - https://github.com/axmolengine/axmol/pull/1871
 - Add AXLOGD,AXLOGI,... functions for lua
+- Add axmol cmdline build option to specify build optimize flag: `-O0`(Debug), `-O1`(MinSizeRel), `-O2`(RelWithDebInfo), `-O3`(Release)
 
-### Break Changes
+### Breaking Changes
 
 - Rename `ax::Ref` ==> `ax::Object`
 - Remove `ax::log`, use `AXLOGD` instead
@@ -31,6 +32,11 @@
 - Move ax::ccNextPOT to ax::utils::nextPOT
 - Remove unused API: ax::LuaLog
 - Change parameter 'sharedRT' of RenderTexture::create to false
+
+### Mark as deprecated
+
+- `2d/TextFieldTTF`
+- `ui/UITextField`, use `ui/TextFieldEx` instead
 
 ### BugFixes
 
@@ -59,9 +65,14 @@
 - Fix 1k/fetch.cmake not working on powershell 5.1
 - Fix spine two color tint data not being copied across to backend buffer on first frame by @rh101 in https://github.com/axmolengine/axmol/pull/1875
 - Fix FileUtils issues on macOS by @smilediver in https://github.com/axmolengine/axmol/pull/1863
+- Fix memory corruption bug and resulting crash in the TextFieldTTF by @TyelorD in https://github.com/axmolengine/axmol/pull/1890
+- Fix shaders not copying to final build on macOS for non Xcode builds by @smilediver in https://github.com/axmolengine/axmol/pull/1908
+- Fix system font blurring by in @DelinWorks in https://github.com/axmolengine/axmol/pull/1907
+- Fix android ImGui crash due to invalid pointer by @rh101 in https://github.com/axmolengine/axmol/pull/1920
 
 ### Improvements
 
+- Update prebuilt tool `glslcc` to 1.9.5, macos-arm64 support and built for macos-10.15+
 - Improve MediaPlayer: handle video rotation properly
 - Disable c++20 char8_t
 - Improve build system, set rpath properly for platforms: linux, apple
@@ -75,7 +86,7 @@
 - Update TLD axmol.org -> axmol.dev
 - Rename folder thirdparty ==> 3rdparty
 - Update spine to 4.1-54fac9d
-- Set cmake minmal require to 3.29.0+ for supress xcode 15 duplicated linking warnings
+- Update axmol cmdline preferred cmake to 3.29.3+ for supress xcode 15 duplicated linking warnings
 - Remove unnecessary cmake option: `AX_VS_DEPLOYMENT_TARGET`
 - Make FileStream open file for write share flags same with cstd
 - Fix some compile warnings
@@ -89,25 +100,42 @@
 - Remove Info.plist from mac Resources by @martinking71 https://github.com/axmolengine/axmol/pull/1849
 - Add libvlc prebuilt entry CMakeLists.txt
 - Add ability to create console apps by @smilediver in https://github.com/axmolengine/axmol/pull/1859
+- Add support for ensuring sprite content size does not change on new texture by @rh101 in https://github.com/axmolengine/axmol/pull/1897
+- Remove obsolete `box2d-optimized` support by @aismann in https://github.com/axmolengine/axmol/pull/1913
+- Add macOS, Linux support for `tools/ci/genbindings.ps1`
+- Fix `axmol` cmdline not raise error when cmake build fail
+- Migrate wasm ci from appveyor to github actions
+- Set AX_USE_METAL and AX_USE_GL to 1 if defined by @smilediver in https://github.com/axmolengine/axmol/pull/1916
+- Update the CMake minimum version requirement to 3.23.0+ by @rh101 in https://github.com/axmolengine/axmol/pull/1918
+- Add x86_64 to example list of possible target architectures for android by @rh101 in https://github.com/axmolengine/axmol/pull/1919
+- Enable lua `bit` module for all lua versions supported by axmol
+- Fix passing non null terminated strings for null terminated params by @smilediver in https://github.com/axmolengine/axmol/pull/1924
+- Fix sol problem in emplace method by @paulocoutinhox in https://github.com/axmolengine/axmol/pull/1927
+- Fix descriptor typo by @paulocoutinhox in https://github.com/axmolengine/axmol/pull/1928
+- Do image processing to reverse premultiplied alpha in separate thread by @rh101 in https://github.com/axmolengine/axmol/pull/1929
 
-### sdks updates
 
-- emsdk: 3.1.53 ==> 3.1.59
+### sdks & tools updates
+
+- emsdk: 3.1.53 ==> 3.1.60
 - AGP: 8.2.1 ==> 8.2.2
 - androidx.media3: 1.0.2 ==> 1.2.1
+- glslcc: 1.9.4 ==> 1.9.5
 
 ### 3rdparty updates
 
-- simdjson: 3.7.0 ==> 3.9.1
+- simdjson: 3.7.0 ==> 3.9.2
 - flatbuffers: 2.0.8 ==> 24.3.25
 - curl: 8.6.0 ==> 8.7.1
 - glad: 2.0.5 ==> 2.0.6
 - yasio: 4.2.1 ==> 4.2.2
 - llhttp: 9.2.0 ==> 9.2.1
+- libwebp: 1.3.2 ==> 1.4.0
+- astcenc: 4.7.0 ==> 4.8.0
 - stb_image: 2.28 ==> 2.29
 - luajit: 2.1-9cc2e42 ==> 2.1-d06beb0
-- c-ares: 1.25.0 ==> 1.28.1
-- imgui: 1.90.4 ==> 1.90.5
+- c-ares: 1.25.0 ==> 1.29.0
+- imgui: 1.90.4 ==> 1.90.6
 
 ## axmol-2.1.2 Feb.25 2024
 
@@ -186,7 +214,7 @@
 - Fix build win32 with clang error
 - Fix ci build-site download unexpected artifacts from appveyor
 
-### Break changes
+### Breaking changes
 
 - Rename android entrypoint: `cocos_android_app_init` ==> `axmol_android_app_init`
 
@@ -334,7 +362,7 @@
   - RELEASE_KEY_PASSWORD ==> KEY_PASSWORD
 - Enable template projects' `aidl` by default for In-app purchases by @armanhossiny
 
-### Break changes
+### Breaking changes
 
 - Rename glview to correct representative name: `OpenGLView` ==> `GLView` by @paulocoutinhox
 

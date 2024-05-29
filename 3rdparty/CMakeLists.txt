@@ -1,7 +1,6 @@
 
 project(3rdparty)
 
-option(OPT_BOX2D_OPTIMIZED "" OFF)
 option(AX_WITH_JPEG "Build with internal jpeg support" ON)
 option(AX_WITH_WEBP "Build with internal webp support" ON)
 option(AX_WITH_CLIPPER2 "Build with internal Clipper2 support" ON)
@@ -240,8 +239,9 @@ if(ANDROID)
     add_subdirectory(android-specific/cpufeatures)
 endif()
 
+ax_add_3rd(zlib)
+
 if(NOT EMSCRIPTEN)
-    ax_add_3rd(zlib)
     option(AX_WITH_WEBSOCKET_PARSER "Build with websocket parser" ON)
     if (AX_WITH_WEBSOCKET_PARSER)
         ax_add_3rd(websocket-parser)
@@ -253,12 +253,7 @@ ax_add_3rd(png)
 
 if(AX_ENABLE_PHYSICS)
     set(box2d_opts "BOX2D_BUILD_UNIT_TESTS OFF" "BOX2D_BUILD_TESTBED OFF")
-    if(OPT_BOX2D_OPTIMIZED)
-        _1kfetch(box2d-optimized)
-        ax_add_3rd(${box2d-optimized_SOURCE_DIR} TARGETS box2d-optimized OPTIONS ${box2d_opts})
-    else()
-        ax_add_3rd(box2d OPTIONS ${box2d_opts})
-    endif()
+    ax_add_3rd(box2d OPTIONS ${box2d_opts})
 endif()
 
 if(AX_ENABLE_PHYSICS)
@@ -284,6 +279,7 @@ ax_add_3rd(freetype OPTIONS
     "FT_DISABLE_BROTLI TRUE"
     "FT_DISABLE_BZIP2 TRUE"
 )
+target_include_directories(freetype PRIVATE "${PNG_INCLUDE_DIR}")
 if (WINRT)
     target_compile_definitions(freetype PUBLIC "generic=GenericFromFreeTypeLibrary")
 endif()
