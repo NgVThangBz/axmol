@@ -233,14 +233,6 @@ public:
             LocalRefMapType localRefs;
             jfloatArray array =
                 (jfloatArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
-
-            if (array == nullptr)
-            {
-                t.env->DeleteLocalRef(t.classID);
-                deleteLocalRefs(t.env, localRefs);
-                return nullptr;
-            }
-
             jsize len = t.env->GetArrayLength(array);
             if (len <= 32)
             {
@@ -277,14 +269,6 @@ public:
             LocalRefMapType localRefs;
             jintArray array =
                 (jintArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
-
-            if (array == nullptr)
-            {
-                t.env->DeleteLocalRef(t.classID);
-                deleteLocalRefs(t.env, localRefs);
-                return nullptr;
-            }
-
             jsize len = t.env->GetArrayLength(array);
             if (len <= 32)
             {
@@ -321,14 +305,6 @@ public:
             LocalRefMapType localRefs;
             jfloatArray array =
                 (jfloatArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
-
-            if (array == nullptr)
-            {
-                t.env->DeleteLocalRef(t.classID);
-                deleteLocalRefs(t.env, localRefs);
-                return Vec3();
-            }
-
             jsize len = t.env->GetArrayLength(array);
             if (len == 3)
             {

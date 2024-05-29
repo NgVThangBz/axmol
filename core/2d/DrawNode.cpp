@@ -620,7 +620,7 @@ void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, const
     _customCommandTriangle.setVertexDrawInfo(0, _bufferCountTriangle);
 }
 
-void DrawNode::drawPolygonCorrect(const Vec2* verts,
+void DrawNode::drawPolygon(const Vec2* verts,
                            int count,
                            const Color4B& fillColor,
                            float borderWidth,
@@ -742,88 +742,6 @@ void DrawNode::drawPolygonCorrect(const Vec2* verts,
     _bufferCountTriangle += vertex_count;
     _customCommandTriangle.setVertexDrawInfo(0, _bufferCountTriangle);
     _dirtyTriangle = true;
-}
-void DrawNode::drawPolygon(const Vec2* verts,
-                           int count,
-                           const Color4B& fillColor,
-                           float borderWidth,
-                           const Color4B& borderColor)
-{
-    AXASSERT(count >= 0, "invalid count value");
-    bool outline = (borderColor.a > 0.0f && borderWidth > 0.0f);
-
-    auto triangle_count = outline ? (3 * count - 2) : (count - 2);
-    auto vertex_count   = 3 * triangle_count;
-    ensureCapacity(vertex_count);
-
-    V2F_C4B_T2F_Triangle* triangles = (V2F_C4B_T2F_Triangle*)(_bufferTriangle + _bufferCountTriangle);
-    V2F_C4B_T2F_Triangle* cursor    = triangles;
-    for (int i = 0; i < count - 2; i++)
-        {
-            V2F_C4B_T2F_Triangle tmp = {
-                {verts[0], fillColor, v2ToTex2F(Vec2::ZERO)},
-                {verts[i + 1], fillColor, v2ToTex2F(Vec2::ZERO)},
-                {verts[i + 2], fillColor, v2ToTex2F(Vec2::ZERO)},
-            };
-
-            *cursor++ = tmp;
-        }
-        if (outline)
-        {
-            struct ExtrudeVerts
-            {
-                Vec2 offset, n;
-            };
-            struct ExtrudeVerts* extrude = (struct ExtrudeVerts*)malloc(sizeof(struct ExtrudeVerts) * count);
-
-            for (int i = 0; i < count; i++)
-            {
-                Vec2 v0 = verts[(i - 1 + count) % count];
-                Vec2 v1 = verts[i];
-                Vec2 v2 = verts[(i + 1) % count];
-
-                Vec2 n1 = ((v1 - v0).getPerp()).getNormalized();
-                Vec2 n2 = ((v2 - v1).getPerp()).getNormalized();
-
-                Vec2 offset = (n1 + n2) * (1.0f / (Vec2::dot(n1, n2) + 1.0f));
-                extrude[i]  = {offset, n2};
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                int j   = (i + 1) % count;
-                Vec2 v0 = verts[i];
-                Vec2 v1 = verts[j];
-
-                Vec2 n0 = extrude[i].n;
-
-                Vec2 offset0 = extrude[i].offset;
-                Vec2 offset1 = extrude[j].offset;
-
-                Vec2 inner0 = v0 - offset0 * borderWidth;
-                Vec2 inner1 = v1 - offset1 * borderWidth;
-                Vec2 outer0 = v0 + offset0 * borderWidth;
-                Vec2 outer1 = v1 + offset1 * borderWidth;
-
-                V2F_C4B_T2F_Triangle tmp1 = {{inner0, borderColor, v2ToTex2F(-n0)},
-                                             {inner1, borderColor, v2ToTex2F(-n0)},
-                                             {outer1, borderColor, v2ToTex2F(n0)}};
-                *cursor++                 = tmp1;
-
-                V2F_C4B_T2F_Triangle tmp2 = {{inner0, borderColor, v2ToTex2F(-n0)},
-                                             {outer0, borderColor, v2ToTex2F(n0)},
-                                             {outer1, borderColor, v2ToTex2F(n0)}};
-                *cursor++                 = tmp2;
-            }
-
-            free(extrude);
-        }
-
-        _customCommandTriangle.updateVertexBuffer(triangles, _bufferCountTriangle * sizeof(V2F_C4B_T2F),
-                                                  vertex_count * sizeof(V2F_C4B_T2F));
-        _bufferCountTriangle += vertex_count;
-        _customCommandTriangle.setVertexDrawInfo(0, _bufferCountTriangle);
-        _dirtyTriangle = true;
 }
 
 void DrawNode::drawSolidRect(const Vec2& origin, const Vec2& destination, const Color4B& color)
