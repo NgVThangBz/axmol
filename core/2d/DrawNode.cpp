@@ -624,7 +624,8 @@ void DrawNode::drawPolygon(const Vec2* verts,
                            int count,
                            const Color4B& fillColor,
                            float borderWidth,
-                           const Color4B& borderColor)
+                           const Color4B& borderColor,
+                           bool isCorrect)
 {
     AXASSERT(count >= 0, "invalid count value");
 
@@ -637,7 +638,7 @@ void DrawNode::drawPolygon(const Vec2* verts,
     V2F_C4B_T2F_Triangle* triangles = (V2F_C4B_T2F_Triangle*)(_bufferTriangle + _bufferCountTriangle);
     V2F_C4B_T2F_Triangle* cursor    = triangles;
 
-    if (!_isConvex && count >= 3 && !isConvex(verts, count))
+    if (isCorrect && !_isConvex && count >= 3 && !isConvex(verts, count))
     {
         std::vector<p2t::Point> p2pointsStorage;
         p2pointsStorage.reserve(count);

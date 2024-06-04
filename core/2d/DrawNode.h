@@ -359,7 +359,8 @@ public:
                      int count,
                      const Color4B& fillColor,
                      float borderWidth,
-                     const Color4B& borderColor);
+                     const Color4B& borderColor,
+                     bool isCorrect = false);
 
     /** draw a triangle with color.
      *
