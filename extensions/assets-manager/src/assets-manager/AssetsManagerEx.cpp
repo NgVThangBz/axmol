@@ -2,7 +2,7 @@
  Copyright (c) 2014 cocos2d-x.org
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,21 +35,20 @@
 #    include "unzip.h"
 #endif
 #include <ioapi.h>
-#include "base/AsyncTaskPool.h"
 
 NS_AX_EXT_BEGIN
 
-#define TEMP_FOLDERNAME "_temp"
-#define VERSION_FILENAME "version.manifest"
-#define TEMP_MANIFEST_FILENAME "project.manifest.temp"
-#define MANIFEST_FILENAME "project.manifest"
+#define TEMP_FOLDERNAME            "_temp"
+#define VERSION_FILENAME           "version.manifest"
+#define TEMP_MANIFEST_FILENAME     "project.manifest.temp"
+#define MANIFEST_FILENAME          "project.manifest"
 
-#define BUFFER_SIZE 8192
-#define MAX_FILENAME 512
+#define BUFFER_SIZE                8192
+#define MAX_FILENAME               512
 
 #define DEFAULT_CONNECTION_TIMEOUT 45
 
-#define SAVE_POINT_INTERVAL 0.1
+#define SAVE_POINT_INTERVAL        0.1
 
 const std::string AssetsManagerEx::VERSION_ID  = "@version";
 const std::string AssetsManagerEx::MANIFEST_ID = "@manifest";
@@ -172,7 +171,7 @@ AssetsManagerEx::AssetsManagerEx(std::string_view manifestUrl, std::string_view 
 {
     // Init variables
     _eventDispatcher    = Director::getInstance()->getEventDispatcher();
-    std::string pointer = StringUtils::format("%p", this);
+    std::string pointer = fmt::format("{}", fmt::ptr(this));
     _eventName          = EventListenerAssetsManagerEx::LISTENER_ID + pointer;
     _fileUtils          = FileUtils::getInstance();
 
@@ -308,7 +307,7 @@ void AssetsManagerEx::loadLocalManifest(std::string_view /*manifestUrl*/)
             {
                 // Recreate storage, to empty the content
                 _fileUtils->removeDirectory(_storagePath);
-                _fileUtils->createDirectory(_storagePath);
+                _fileUtils->createDirectories(_storagePath);
                 AX_SAFE_RELEASE(cachedManifest);
             }
             else
@@ -323,7 +322,7 @@ void AssetsManagerEx::loadLocalManifest(std::string_view /*manifestUrl*/)
     // Fail to load local manifest
     if (!_localManifest->isLoaded())
     {
-        AXLOG("AssetsManagerEx : No local manifest file found error.\n");
+        AXLOGD("AssetsManagerEx : No local manifest file found error.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
     }
 }
@@ -372,12 +371,12 @@ void AssetsManagerEx::setStoragePath(std::string_view storagePath)
 {
     _storagePath = storagePath;
     adjustPath(_storagePath);
-    _fileUtils->createDirectory(_storagePath);
+    _fileUtils->createDirectories(_storagePath);
 
     _tempStoragePath = _storagePath;
     _tempStoragePath.append(TEMP_FOLDERNAME);
     adjustPath(_tempStoragePath);
-    _fileUtils->createDirectory(_tempStoragePath);
+    _fileUtils->createDirectories(_tempStoragePath);
 }
 
 void AssetsManagerEx::adjustPath(std::string& path)
@@ -394,7 +393,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
     size_t pos = zip.find_last_of("/\\");
     if (pos == std::string::npos)
     {
-        AXLOG("AssetsManagerEx : no root path specified for zip file %s\n", zip.data());
+        AXLOGD("AssetsManagerEx : no root path specified for zip file {}\n", zip);
         return false;
     }
     const std::string_view rootPath = zip.substr(0, pos + 1);
@@ -411,7 +410,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
     unzFile zipfile = unzOpen2(zip.data(), &zipFunctionOverrides);
     if (!zipfile)
     {
-        AXLOG("AssetsManagerEx : can not open downloaded zip file %s\n", zip.data());
+        AXLOGD("AssetsManagerEx : can not open downloaded zip file {}\n", zip);
         return false;
     }
 
@@ -419,7 +418,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
     unz_global_info global_info;
     if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
     {
-        AXLOG("AssetsManagerEx : can not read file global info of %s\n", zip.data());
+        AXLOGD("AssetsManagerEx : can not read file global info of {}\n", zip);
         unzClose(zipfile);
         return false;
     }
@@ -435,7 +434,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
         char fileName[MAX_FILENAME];
         if (unzGetCurrentFileInfo(zipfile, &fileInfo, fileName, MAX_FILENAME, NULL, 0, NULL, 0) != UNZ_OK)
         {
-            AXLOG("AssetsManagerEx : can not read compressed file info\n");
+            AXLOGD("AssetsManagerEx : can not read compressed file info\n");
             unzClose(zipfile);
             return false;
         }
@@ -448,10 +447,10 @@ bool AssetsManagerEx::decompress(std::string_view zip)
         {
             // There are not directory entry in some case.
             // So we need to create directory when decompressing file entry
-            if (!_fileUtils->createDirectory(basename(fullPath)))
+            if (!_fileUtils->createDirectories(basename(fullPath)))
             {
                 // Failed to create directory
-                AXLOG("AssetsManagerEx : can not create directory %s\n", fullPath.c_str());
+                AXLOGD("AssetsManagerEx : can not create directory {}\n", fullPath);
                 unzClose(zipfile);
                 return false;
             }
@@ -462,10 +461,10 @@ bool AssetsManagerEx::decompress(std::string_view zip)
             std::string_view dir = basename(fullPath);
             if (!_fileUtils->isDirectoryExist(dir))
             {
-                if (!_fileUtils->createDirectory(dir))
+                if (!_fileUtils->createDirectories(dir))
                 {
                     // Failed to create directory
-                    AXLOG("AssetsManagerEx : can not create directory %s\n", fullPath.c_str());
+                    AXLOGD("AssetsManagerEx : can not create directory {}\n", fullPath);
                     unzClose(zipfile);
                     return false;
                 }
@@ -474,7 +473,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
             // Open current file.
             if (unzOpenCurrentFile(zipfile) != UNZ_OK)
             {
-                AXLOG("AssetsManagerEx : can not extract file %s\n", fileName);
+                AXLOGD("AssetsManagerEx : can not extract file {}\n", fileName);
                 unzClose(zipfile);
                 return false;
             }
@@ -483,7 +482,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
             auto fsOut = FileUtils::getInstance()->openFileStream(fullPath, IFileStream::Mode::WRITE);
             if (!fsOut)
             {
-                AXLOG("AssetsManagerEx : can not create decompress destination file %s (errno: %d)\n", fullPath.c_str(),
+                AXLOGD("AssetsManagerEx : can not create decompress destination file {} (errno: {})\n", fullPath,
                       errno);
                 unzCloseCurrentFile(zipfile);
                 unzClose(zipfile);
@@ -497,7 +496,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
                 error = unzReadCurrentFile(zipfile, readBuffer, BUFFER_SIZE);
                 if (error < 0)
                 {
-                    AXLOG("AssetsManagerEx : can not read zip file %s, error code is %d\n", fileName, error);
+                    AXLOGD("AssetsManagerEx : can not read zip file {}, error code is {}\n", fileName, error);
                     fsOut.reset();
                     unzCloseCurrentFile(zipfile);
                     unzClose(zipfile);
@@ -520,7 +519,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
         {
             if (unzGoToNextFile(zipfile) != UNZ_OK)
             {
-                AXLOG("AssetsManagerEx : can not read next file for decompressing\n");
+                AXLOGD("AssetsManagerEx : can not read next file for decompressing\n");
                 unzClose(zipfile);
                 return false;
             }
@@ -561,15 +560,17 @@ void AssetsManagerEx::decompressDownloadedZip(std::string_view customId, std::st
         }
         delete dataInner;
     };
-    AsyncTaskPool::getInstance()->enqueue(AsyncTaskPool::TaskType::TASK_OTHER, std::move(decompressFinished),
-                                          (void*)asyncData, [this, asyncData]() {
-                                              // Decompress all compressed files
-                                              if (decompress(asyncData->zipFile))
-                                              {
-                                                  asyncData->succeed = true;
-                                              }
-                                              _fileUtils->removeFile(asyncData->zipFile);
-                                          });
+
+    Director::getInstance()->getJobSystem()->enqueue(
+        [this, asyncData]() {
+        // Decompress all compressed files
+        if (decompress(asyncData->zipFile))
+        {
+            asyncData->succeed = true;
+        }
+        _fileUtils->removeFile(asyncData->zipFile);
+    },
+        [decompressFinished, asyncData]() { decompressFinished(asyncData); });
 }
 
 void AssetsManagerEx::dispatchUpdateEvent(EventAssetsManagerEx::EventCode code,
@@ -630,7 +631,7 @@ void AssetsManagerEx::downloadVersion()
     // No version file found
     else
     {
-        AXLOG("AssetsManagerEx : No version file found, step skipped\n");
+        AXLOGD("AssetsManagerEx : No version file found, step skipped\n");
         _updateState = State::PREDOWNLOAD_MANIFEST;
         downloadManifest();
     }
@@ -645,7 +646,7 @@ void AssetsManagerEx::parseVersion()
 
     if (!_remoteManifest->isVersionLoaded())
     {
-        AXLOG("AssetsManagerEx : Fail to parse version file, step skipped\n");
+        AXLOGD("AssetsManagerEx : Fail to parse version file, step skipped\n");
         _updateState = State::PREDOWNLOAD_MANIFEST;
         downloadManifest();
     }
@@ -701,7 +702,7 @@ void AssetsManagerEx::downloadManifest()
     // No manifest file found
     else
     {
-        AXLOG("AssetsManagerEx : No manifest file found, check update failed\n");
+        AXLOGD("AssetsManagerEx : No manifest file found, check update failed\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_DOWNLOAD_MANIFEST);
         _updateState = State::UNCHECKED;
     }
@@ -716,7 +717,7 @@ void AssetsManagerEx::parseManifest()
 
     if (!_remoteManifest->isLoaded())
     {
-        AXLOG("AssetsManagerEx : Error parsing manifest file, %s", _tempManifestPath.c_str());
+        AXLOGD("AssetsManagerEx : Error parsing manifest file, {}", _tempManifestPath);
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_PARSE_MANIFEST);
         _updateState = State::UNCHECKED;
     }
@@ -764,8 +765,8 @@ void AssetsManagerEx::startUpdate()
         _totalWaitToDownload = _totalToDownload = (int)_downloadUnits.size();
         this->batchDownload();
 
-        std::string msg = StringUtils::format(
-            "Resuming from previous unfinished update, %d files remains to be finished.", _totalToDownload);
+        std::string msg = fmt::format(
+            "Resuming from previous unfinished update, {} files remains to be finished.", _totalToDownload);
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::UPDATE_PROGRESSION, "", msg);
     }
     else
@@ -777,7 +778,7 @@ void AssetsManagerEx::startUpdate()
             _fileUtils->removeDirectory(_tempStoragePath);
             AX_SAFE_RELEASE(_tempManifest);
             // Recreate temp storage path and save remote manifest
-            _fileUtils->createDirectory(_tempStoragePath);
+            _fileUtils->createDirectories(_tempStoragePath);
             _remoteManifest->saveToFile(_tempManifestPath);
         }
 
@@ -817,7 +818,7 @@ void AssetsManagerEx::startUpdate()
             _totalWaitToDownload = _totalToDownload = (int)_downloadUnits.size();
             this->batchDownload();
 
-            std::string msg = StringUtils::format("Start to update %d files from remote package.", _totalToDownload);
+            std::string msg = fmt::format("Start to update {} files from remote package.", _totalToDownload);
             dispatchUpdateEvent(EventAssetsManagerEx::EventCode::UPDATE_PROGRESSION, "", msg);
         }
     }
@@ -845,7 +846,7 @@ void AssetsManagerEx::updateSucceed()
             // Create directory
             if (relativePath.back() == '/')
             {
-                _fileUtils->createDirectory(dstPath);
+                _fileUtils->createDirectories(dstPath);
             }
             // Copy file
             else
@@ -877,19 +878,19 @@ void AssetsManagerEx::checkUpdate()
 {
     if (_updateEntry != UpdateEntry::NONE)
     {
-        AXLOGERROR("AssetsManagerEx::checkUpdate, updateEntry isn't NONE");
+        AXLOGE("AssetsManagerEx::checkUpdate, updateEntry isn't NONE");
         return;
     }
 
     if (!_inited)
     {
-        AXLOG("AssetsManagerEx : Manifests uninited.\n");
+        AXLOGD("AssetsManagerEx : Manifests uninited.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
         return;
     }
     if (!_localManifest->isLoaded())
     {
-        AXLOG("AssetsManagerEx : No local manifest file found error.\n");
+        AXLOGD("AssetsManagerEx : No local manifest file found error.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
         return;
     }
@@ -924,19 +925,19 @@ void AssetsManagerEx::update()
 {
     if (_updateEntry != UpdateEntry::NONE)
     {
-        AXLOGERROR("AssetsManagerEx::update, updateEntry isn't NONE");
+        AXLOGE("AssetsManagerEx::update, updateEntry isn't NONE");
         return;
     }
 
     if (!_inited)
     {
-        AXLOG("AssetsManagerEx : Manifests uninited.\n");
+        AXLOGD("AssetsManagerEx : Manifests uninited.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
         return;
     }
     if (!_localManifest->isLoaded())
     {
-        AXLOG("AssetsManagerEx : No local manifest file found error.\n");
+        AXLOGD("AssetsManagerEx : No local manifest file found error.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
         return;
     }
@@ -998,7 +999,7 @@ void AssetsManagerEx::updateAssets(const DownloadUnits& assets)
 {
     if (!_inited)
     {
-        AXLOG("AssetsManagerEx : Manifests uninited.\n");
+        AXLOGD("AssetsManagerEx : Manifests uninited.\n");
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_NO_LOCAL_MANIFEST);
         return;
     }
@@ -1031,7 +1032,7 @@ const DownloadUnits& AssetsManagerEx::getFailedAssets() const
 
 void AssetsManagerEx::downloadFailedAssets()
 {
-    AXLOG("AssetsManagerEx : Start update %lu failed assets.\n", static_cast<unsigned long>(_failedUnits.size()));
+    AXLOGD("AssetsManagerEx : Start update {} failed assets.\n", static_cast<unsigned long>(_failedUnits.size()));
     updateAssets(_failedUnits);
 }
 
@@ -1095,7 +1096,7 @@ void AssetsManagerEx::onError(const network::DownloadTask& task,
     // Skip version error occurred
     if (task.identifier == VERSION_ID)
     {
-        AXLOG("AssetsManagerEx : Fail to download version file, step skipped\n");
+        AXLOGD("AssetsManagerEx : Fail to download version file, step skipped\n");
         _updateState = State::PREDOWNLOAD_MANIFEST;
         downloadManifest();
     }
@@ -1257,7 +1258,7 @@ void AssetsManagerEx::queueDowload()
 
         _currConcurrentTask++;
         DownloadUnit& unit = _downloadUnits[key];
-        _fileUtils->createDirectory(basename(unit.storagePath));
+        _fileUtils->createDirectories(basename(unit.storagePath));
         _downloader->createDownloadFileTask(unit.srcUrl, unit.storagePath, unit.customId);
 
         _tempManifest->setAssetDownloadState(key, Manifest::DownloadState::DOWNLOADING);

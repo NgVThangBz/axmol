@@ -5,7 +5,7 @@
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
  *
- * https://axmolengine.github.io/
+ * https://axmol.dev/
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,10 @@
 #include "base/Director.h"
 #include "base/StencilStateManager.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
-ClippingNode::ClippingNode() : _stencil(nullptr), _stencilStateManager(new StencilStateManager()) {}
+ClippingNode::ClippingNode() : _stencilStateManager(new StencilStateManager()) {}
 
 ClippingNode::~ClippingNode()
 {
@@ -45,6 +46,11 @@ ClippingNode::~ClippingNode()
         _stencil->release();
     }
     AX_SAFE_DELETE(_stencilStateManager);
+
+    for (auto&& stencilProgramState : _originalStencilProgramState)
+    {
+        AX_SAFE_RELEASE(stencilProgramState.second);
+    }
 }
 
 ClippingNode* ClippingNode::create()
@@ -96,10 +102,6 @@ void ClippingNode::onEnter()
     {
         _stencil->onEnter();
     }
-    else
-    {
-        AXLOG("ClippingNode warning: _stencil is nil.");
-    }
 }
 
 void ClippingNode::onEnterTransitionDidFinish()
@@ -136,6 +138,8 @@ void ClippingNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32
 {
     if (!_visible || !hasContent())
         return;
+
+    AXASSERT(_stencil, "No stencil set");
 
     uint32_t flags = processParentFlags(parentTransform, parentFlags);
 
@@ -230,7 +234,7 @@ void ClippingNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32
 void ClippingNode::setGlobalZOrder(float globalZOrder)
 {
     Node::setGlobalZOrder(globalZOrder);
-    
+
     if (_stencil) {
         // Make sure our stencil stays on the same globalZOrder:
         _stencil->setGlobalZOrder(globalZOrder);
@@ -250,7 +254,7 @@ Node* ClippingNode::getStencil() const
     return _stencil;
 }
 
-void ClippingNode::setStencil(Node* stencil)
+void ClippingNode::setStencil(Node* stencil, bool uniqueChildStencils)
 {
     // early out if the stencil is already set
     if (_stencil == stencil)
@@ -276,6 +280,7 @@ void ClippingNode::setStencil(Node* stencil)
     AX_SAFE_RELEASE_NULL(_stencil);
 
     // initialise new stencil
+    _uniqueChildStencils = uniqueChildStencils;
     _stencil = stencil;
     AX_SAFE_RETAIN(_stencil);
     if (_stencil != nullptr && this->isRunning())
@@ -287,16 +292,28 @@ void ClippingNode::setStencil(Node* stencil)
         }
     }
 
+    // Clear all existing entries in _originalStencilProgramState since they belong to a different stencil
+    for (auto&& stencilProgramState : _originalStencilProgramState)
+    {
+        AX_SAFE_RELEASE(stencilProgramState.second);
+    }
+    _originalStencilProgramState.clear();
+
     if (_stencil != nullptr)
     {
         // Make sure our stencil stays on the same globalZOrder:
         _stencil->setGlobalZOrder(getGlobalZOrder());
-        
-        _originalStencilProgramState[_stencil] = _stencil->getProgramState();
-        auto& children                         = _stencil->getChildren();
+
+        auto* stencilProgramState = _stencil->getProgramState();
+        AX_SAFE_RETAIN(stencilProgramState);
+        _originalStencilProgramState[_stencil] = stencilProgramState;
+
+        auto& children = _stencil->getChildren();
         for (const auto& child : children)
         {
-            _originalStencilProgramState[child] = child->getProgramState();
+            auto* existingProgramState = child->getProgramState();
+            AX_SAFE_RETAIN(existingProgramState);
+            _originalStencilProgramState[child] = existingProgramState;
         }
     }
 }
@@ -334,8 +351,21 @@ void ClippingNode::setInverted(bool inverted)
 
 void ClippingNode::setProgramStateRecursively(Node* node, backend::ProgramState* programState)
 {
-    _originalStencilProgramState[node] = node->getProgramState();
-    node->setProgramState(programState);
+    if (_originalStencilProgramState.find(node) == _originalStencilProgramState.end())
+    {
+        auto* existingProgramState = node->getProgramState();
+        AX_SAFE_RETAIN(existingProgramState);
+        _originalStencilProgramState[node] = existingProgramState;
+    }
+
+    if (_uniqueChildStencils)
+    {
+        node->setProgramState(programState->clone(), true);
+    }
+    else
+    {
+        node->setProgramState(programState);
+    }
 
     auto& children = node->getChildren();
     for (const auto& child : children)
@@ -354,4 +384,4 @@ void ClippingNode::restoreAllProgramStates()
     }
 }
 
-NS_AX_END
+}

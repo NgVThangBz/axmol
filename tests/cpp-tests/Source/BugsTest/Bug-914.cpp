@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 // Import the interfaces
 #include "Bug-914.h"
 
-USING_NS_AX;
+using namespace ax;
 
 // on "init" you need to initialize your instance
 bool Bug914Layer::init()
@@ -73,7 +73,7 @@ bool Bug914Layer::init()
 
 void Bug914Layer::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
 {
-    ax::print("Number of touches: %d", (int)touches.size());
+    AXLOGD("Number of touches: {}", (int)touches.size());
 }
 
 void Bug914Layer::onTouchesBegan(const std::vector<Touch*>& touches, Event* event)

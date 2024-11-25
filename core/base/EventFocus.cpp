@@ -3,7 +3,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,11 @@
 
 #include "base/EventFocus.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 EventFocus::EventFocus(ui::Widget* widgetLoseFocus, ui::Widget* widgetGetFocus)
     : Event(Type::FOCUS), _widgetGetFocus(widgetGetFocus), _widgetLoseFocus(widgetLoseFocus)
 {}
 
-NS_AX_END
+}

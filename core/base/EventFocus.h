@@ -3,7 +3,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCEventFocus__
-#define __cocos2d_libs__CCEventFocus__
+#ifndef _AX_EVENTFOCUS_H_
+#define _AX_EVENTFOCUS_H_
 
 #include "base/Event.h"
 
@@ -34,7 +34,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -62,9 +63,9 @@ private:
     friend class EventListenerFocus;
 };
 
-NS_AX_END
+}
 
 // end of base group
 /// @}
 
-#endif /* defined(__cocos2d_libs__CCEventFocus__) */
+#endif /* defined(_AX_EVENTFOCUS_H_) */

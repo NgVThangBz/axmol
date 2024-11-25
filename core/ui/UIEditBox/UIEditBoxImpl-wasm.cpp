@@ -2,7 +2,7 @@
 
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@ THE SOFTWARE.
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WASM
 #    include "ui/UIHelper.h"
 #    include <emscripten/emscripten.h>
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -41,7 +42,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 void getInputOver(unsigned char* dataPtr, int dataLength)
 {
-    AXLOG("text {} ", dataPtr);
+    AXLOGD("text {} ", dataPtr);
     if (_activeEditBox)
     {
         if (_activeEditBox->isEditingMode())
@@ -56,7 +57,7 @@ EMSCRIPTEN_KEEPALIVE
 
 void getInputChange(unsigned char* dataPtr, int dataLength)
 {
-    AXLOG("text {} ", dataPtr);
+    AXLOGD("text {} ", dataPtr);
     if (_activeEditBox && _activeEditBox->isEditingMode())
     {
         _activeEditBox->editBoxEditingChanged(std::string_view{(char*)dataPtr});
@@ -153,7 +154,7 @@ void EditBoxImplWasm::setNativeVisible(bool visible)
 {
     EM_ASM({
         var input = Module.axmolSharedInput = Module.axmolSharedInput || document.createElement("input");
-        
+
         if ($0 == 0)
             input.style.display = "none";
         else
@@ -172,7 +173,7 @@ void EditBoxImplWasm::setNativeVisible(bool visible)
                     input.type = 'password';
                 }
             }
-            
+
             input.style.display = "";
             var canvas = document.getElementById('canvas');
             var inputParent = input.parentNode;
@@ -212,7 +213,7 @@ void EditBoxImplWasm::nativeOpenKeyboard()
     _activeEditBox = this;
 
     this->editBoxEditingDidBegin();
-    
+
     EM_ASM({
         var input = Module.axmolSharedInput = Module.axmolSharedInput || document.createElement("input");
         // sync input value from native and focus
@@ -314,6 +315,6 @@ void EditBoxImplWasm::createEditCtrl(EditBox::InputMode inputMode)
 
 }  // namespace ui
 
-NS_AX_END
+}
 
 #endif

@@ -5,7 +5,7 @@ Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@ THE SOFTWARE.
 #include "math/Math.h"
 #include "base/ScriptSupport.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Node;
 
@@ -445,6 +446,6 @@ private:
 // end of actions group
 /// @}
 
-NS_AX_END
+}
 
 #endif  // __ACTIONS_CCACTION_H__

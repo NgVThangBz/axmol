@@ -2,8 +2,9 @@
  Copyright (c) 2010 cocos2d-x.org
  Copyright (c) Microsoft Open Technologies, Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +34,8 @@
 #include "platform/PlatformMacros.h"
 #include "base/Types.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @addtogroup platform
@@ -107,7 +109,7 @@ private:
      *  @param dirPath The path of the directory, it must be an absolute path.
      *  @return True if the directory have been created successfully, false if not.
      */
-    virtual bool createDirectory(std::string_view dirPath) const override;
+    virtual bool createDirectories(std::string_view dirPath) const override;
 
     /**
      *  Removes a directory.
@@ -121,6 +123,6 @@ private:
 // end of platform group
 /// @}
 
-NS_AX_END
+}
 
 #endif  // __AX_FILEUTILS_WINRT_H__

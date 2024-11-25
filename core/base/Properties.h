@@ -2,6 +2,7 @@
  Copyright 2013 BlackBerry Inc.
  Copyright (c) 2015-2017 Chukong Technologies
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -20,8 +21,8 @@
  This file was modified to fit the cocos2d-x project
  */
 
-#ifndef __cocos2d_libs__CCProperties__
-#define __cocos2d_libs__CCProperties__
+#ifndef _AX_PROPERTIES_H_
+#define _AX_PROPERTIES_H_
 
 #include <string>
 #include <functional>
@@ -34,7 +35,8 @@
 #include "base/Types.h"
 #include "base/Vector.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Properties;
 class Vec2;
@@ -601,4 +603,4 @@ private:
 };
 }
 
-#endif  // __cocos2d_libs__CCProperties__
+#endif  // _AX_PROPERTIES_H_

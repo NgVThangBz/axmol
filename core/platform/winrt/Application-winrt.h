@@ -4,7 +4,7 @@ Copyright (c) Microsoft Open Technologies, Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
 #    include <string>
 #    include <functional>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class AX_DLL Application : public ApplicationBase
 {
@@ -100,7 +101,7 @@ protected:
     LARGE_INTEGER m_nFreq;
     LARGE_INTEGER m_nLast;
     LARGE_INTEGER m_nNow;
-    
+
     std::string m_resourceRootPath;
     std::string m_startupScriptFilename;
 
@@ -109,7 +110,7 @@ protected:
     static Application* sm_pSharedApplication;
 };
 
-NS_AX_END
+}
 
 #endif  // AX_TARGET_PLATFORM == AX_PLATFORM_WINRT
 

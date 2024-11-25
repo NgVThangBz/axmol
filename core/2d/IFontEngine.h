@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ typedef struct FT_FaceRec_* FT_Face;
 typedef struct FT_StrokerRec_* FT_Stroker;
 typedef struct FT_BBox_ FT_BBox;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @addtogroup _2d
@@ -57,4 +58,4 @@ public:
     virtual FontFaceInfo* lookupFontFaceForCodepoint(char32_t charCode) = 0;
 };
 
-NS_AX_END
+}

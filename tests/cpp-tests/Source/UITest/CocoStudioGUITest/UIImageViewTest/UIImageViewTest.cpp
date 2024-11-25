@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UIImageViewTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UIImageViewTests::UIImageViewTests()
@@ -77,7 +77,7 @@ bool UIImageViewTest::init()
 void UIImageViewTest::printWidgetResources(ax::Object* sender)
 {
     ax::ResourceData textureFile = _image->getRenderFile();
-    AXLOG("textureFile  Name : %s, Type: %d", textureFile.file.c_str(), textureFile.type);
+    AXLOGD("textureFile  Name : {}, Type: {}", textureFile.file, textureFile.type);
 }
 
 // UIImageViewTest_Scale9
@@ -208,7 +208,7 @@ bool UIImageViewTest_ContentSize::init()
                 imageView->setContentSize(Size(width, height));
 
                 imageViewChild->setPositionPercent(Vec2(AXRANDOM_0_1(), AXRANDOM_0_1()));
-                status->setString(StringUtils::format("child ImageView position percent: %f, %f",
+                status->setString(fmt::format("child ImageView position percent: {}, {}",
                                                       imageViewChild->getPositionPercent().x,
                                                       imageViewChild->getPositionPercent().y));
             }

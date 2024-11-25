@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #include "MotionStreakTest.h"
 #include "../testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 enum
 {
@@ -204,7 +204,7 @@ void Issue12226::onEnter()
 
     const uint32_t length = (radius * 0.95);
 
-    std::function<void(float)> updateMotionStreak = [=](float dt) {
+    std::function<void(float)> updateMotionStreak = [outer, length, this](float dt) {
         Vec2 position =
             Vec2(outer->getPositionX() + length * cosf(-1 * AX_DEGREES_TO_RADIANS(outer->getRotation() + 90.0f)),
                  outer->getPositionY() + length * sinf(-1 * AX_DEGREES_TO_RADIANS(outer->getRotation() + 90.0f)));

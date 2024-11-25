@@ -2,7 +2,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
 
 #include "3d/Plane.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 Plane::Plane() : _normal(0.f, 0.f, 1.f), _dist(0.f) {}
 
@@ -86,4 +87,4 @@ PointSide Plane::getSide(const Vec3& point) const
         return PointSide::IN_PLANE;
 }
 
-NS_AX_END
+}

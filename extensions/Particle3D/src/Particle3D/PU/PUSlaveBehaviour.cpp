@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,8 @@
 #include "Particle3D/PU/PUSlaveBehaviour.h"
 #include "base/Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 PUSlaveBehaviour::PUSlaveBehaviour() : masterParticle(nullptr) {}
 
@@ -61,4 +62,4 @@ void PUSlaveBehaviour::copyAttributesTo(PUBehaviour* behaviour)
     PUBehaviour::copyAttributesTo(behaviour);
 }
 
-NS_AX_END
+}

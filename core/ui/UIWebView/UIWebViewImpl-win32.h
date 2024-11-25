@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2014 cocos2d-x.org
  Author: Jeff Wang <wohaaitinciu@gmail.com>
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +24,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __COCOS2D__UI__WEBVIEWIMPL_WIN32_H_
-#define __COCOS2D__UI__WEBVIEWIMPL_WIN32_H_
+#ifndef _AXUI__WEBVIEWIMPL_WIN32_H_
+#define _AXUI__WEBVIEWIMPL_WIN32_H_
 
 #include "platform/PlatformMacros.h"
 
@@ -33,7 +34,8 @@
 #    include <string>
 #    include "StdC.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Data;
 class Renderer;
@@ -44,11 +46,12 @@ namespace ui
 class WebView;
 }
 
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 class Win32WebControl;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -90,8 +93,8 @@ private:
     WebView* _webView;
 };
 }  // namespace ui
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 #endif  // AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
 
-#endif  // __COCOS2D__UI__WEBVIEWIMPL_WIN32_H_
+#endif  // _AXUI__WEBVIEWIMPL_WIN32_H_

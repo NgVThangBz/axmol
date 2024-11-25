@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCValue__
-#define __cocos2d_libs__CCValue__
+#ifndef _AX_VALUE_H_
+#define _AX_VALUE_H_
 
 #include "platform/PlatformMacros.h"
 #include "base/Macros.h"
@@ -38,7 +38,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Value;
 
@@ -287,6 +288,6 @@ inline const ax::Value& optValue(const ValueMap& dictionary, std::string_view ke
 
 /** @} */
 
-NS_AX_END
+}
 
-#endif /* defined(__cocos2d_libs__CCValue__) */
+#endif /* defined(_AX_VALUE_H_) */

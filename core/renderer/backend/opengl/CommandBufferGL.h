@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -204,13 +204,17 @@ public:
      */
     void readPixels(RenderTarget* rt, std::function<void(const PixelBufferDescriptor&)> callback) override;
 
-protected:
+
+    /**
+    * For internal use only
+    */
     void readPixels(RenderTarget* rt,
                     int x,
                     int y,
                     uint32_t width,
                     uint32_t height,
                     uint32_t bytesPerRow,
+                    bool eglCacheHint,
                     PixelBufferDescriptor& pbd);
 
 protected:

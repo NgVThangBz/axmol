@@ -2,7 +2,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -72,12 +72,7 @@
 #include "CurrentLanguageTest/CurrentLanguageTest.h"
 #include "DataVisitorTest/DataVisitorTest.h"
 #include "NetworkTest/NetworkTest.h"
-#include "DrawPrimitivesTest/DrawPrimitivesTest.h"
-
-#if defined(AX_ENABLE_EXT_DRAWNODE)
-#include "DrawNodeExTest/DrawNodeExTest.h"
-#endif
-
+#include "DrawNodeTest/DrawNodeTest.h"
 #include "EffectsAdvancedTest/EffectsAdvancedTest.h"
 #include "EffectsTest/EffectsTest.h"
 #include "ExtensionsTest/ExtensionsTest.h"
@@ -124,7 +119,6 @@
 #include "UITest/UITest.h"
 #include "UserDefaultTest/UserDefaultTest.h"
 #include "VibrateTest/VibrateTest.h"
-#include "ZwoptexTest/ZwoptexTest.h"
 #include "SpriteFrameCacheTest/SpriteFrameCacheTest.h"
 #include "ZipTest/ZipTests.h"
 #if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)

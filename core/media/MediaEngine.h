@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,17 +27,12 @@
 #if !defined(AXME_NO_AXMOL)
 #    include "base/Logging.h"
 #    include "platform/PlatformMacros.h"
-#    define AXME_TRACE AXLOG
+#    define AXME_TRACE AXLOGD
 #else
 #    define AXME_TRACE printf
-#    define NS_AX_BEGIN \
-        namespace ax    \
-        {
-#    define NS_AX_END }
 #    define AX_BREAK_IF(cond) \
         if (cond)             \
         break
-#    define USING_NS_AX using namespace ax
 #endif
 
 // #define AXME_USE_IMFME 1
@@ -55,7 +50,8 @@
 
 using namespace std::string_view_literals;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 enum class MEMediaEventType
 {
@@ -98,11 +94,12 @@ enum class MEMediaState
 
 enum class MEVideoPixelFormat
 {
-    INVALID,
-    YUY2,
-    NV12,  // '420v' '420f'
+    INVALID = -1,
     RGB32,
     BGR32,
+    YUY2,
+    NV12,  // '420v' '420f'
+    I420
 };
 
 struct MEIntPoint
@@ -174,38 +171,11 @@ struct MEVideoFrame
     const size_t _dataLen;        // the video data len
     const uint8_t* _cbcrDataPointer;
     MEVideoPixelDesc _vpd;  // the video pixel desc
-    MEIntPoint _videoDim;   // the aligned frame size
+    MEIntPoint _videoDim;   // the video size
 #if defined(_DEBUG) || !defined(_NDEBUG)
     YCbCrBiPlanarPixelInfo _ycbcrDesc{};
 #endif
 };
-
-//
-// file uri helper: https://www.ietf.org/rfc/rfc3986.txt
-//
-static constexpr std::string_view LOCAL_FILE_URI_PREFIX = "file:///"sv;  // The localhost file prefix
-
-inline std::string& path2uri(std::string& path)
-{
-    // windows: file:///D:/xxx/xxx.mp4
-    // unix: file:///home/xxx/xxx.mp4
-    // android_asset:
-    //   - file:///android_asset/xxx/xxx.mp4
-    //   - asset://android_asset/xxx/xxx.mp4
-    if (!path.empty())
-    {
-        if (path[0] == '/')
-            path.insert(0, LOCAL_FILE_URI_PREFIX.data(), LOCAL_FILE_URI_PREFIX.length() - 1);
-        else
-        {
-            if (!cxx20::starts_with(path, "assets/"sv))  // not android asset
-                path.insert(0, LOCAL_FILE_URI_PREFIX.data(), LOCAL_FILE_URI_PREFIX.length());
-            else
-                path.replace(0, "assets/"sv.length(), "file:///android_asset/");
-        }
-    }
-    return path;
-}
 
 //
 // redisigned corss-platform MediaEngine, inspired from microsoft media foundation: IMFMediaEngine
@@ -242,4 +212,4 @@ public:
     virtual void destroyMediaEngine(MediaEngine* me) = 0;
 };
 
-NS_AX_END
+}

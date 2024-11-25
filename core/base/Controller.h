@@ -2,7 +2,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCController__
-#define __cocos2d_libs__CCController__
+#ifndef _AX_CONTROLLER_H_
+#define _AX_CONTROLLER_H_
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID || AX_TARGET_PLATFORM == AX_PLATFORM_IOS || \
      AX_TARGET_PLATFORM == AX_PLATFORM_MAC || AX_TARGET_PLATFORM == AX_PLATFORM_LINUX ||   \
      defined(_WIN32) /* win32 & winuwp */ || \
@@ -35,7 +35,8 @@ AX_TARGET_PLATFORM == AX_PLATFORM_WASM)
 #    include <vector>
 #    include <unordered_map>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class ControllerImpl;
 class EventListenerController;
@@ -249,6 +250,6 @@ private:
 // end group
 /// @}
 
-NS_AX_END
+}
 #endif
-#endif /* defined(__cocos2d_libs__CCController__) */
+#endif /* defined(_AX_CONTROLLER_H_) */

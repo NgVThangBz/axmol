@@ -4,8 +4,9 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +37,8 @@ THE SOFTWARE.
 
 #include <string>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Texture2D;
 class SpriteFrame;
@@ -320,6 +322,6 @@ private:
 // end of sprite_nodes group
 /// @}
 
-NS_AX_END
+}
 
 #endif  // __AX_ANIMATION_H__

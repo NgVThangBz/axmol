@@ -2,7 +2,7 @@
  Copyright (c) 2013 cocos2d-x.org
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -944,6 +944,58 @@ protected:
     ax::Sprite* _s2;
     ax::Sprite* _s3;
     ax::Sprite* _s4;
+};
+
+class SpriteWithImageDataTest1 : public SpriteTestDemo
+{
+public:
+    CREATE_FUNC(SpriteWithImageDataTest1);
+    SpriteWithImageDataTest1();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
+class SpriteWithImageDataTest2 : public SpriteTestDemo
+{
+public:
+    CREATE_FUNC(SpriteWithImageDataTest2);
+    SpriteWithImageDataTest2();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
+class SpriteWithImageDataTest3 : public SpriteTestDemo
+{
+public:
+    CREATE_FUNC(SpriteWithImageDataTest3);
+    SpriteWithImageDataTest3();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
+class ZwoptexTest : public TestCase
+{
+public:
+};
+
+class ZwoptexGenericTest : public ZwoptexTest
+{
+public:
+    CREATE_FUNC(ZwoptexGenericTest);
+
+    virtual ~ZwoptexGenericTest();
+
+    virtual void onEnter() override;
+    void flipSprites(float dt);
+    void startIn05Secs(float dt);
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+protected:
+    ax::Sprite* sprite1;
+    ax::Sprite* sprite2;
+    int counter;
 };
 
 #endif

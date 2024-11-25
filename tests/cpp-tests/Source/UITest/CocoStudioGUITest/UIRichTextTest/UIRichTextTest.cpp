@@ -2,7 +2,7 @@
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "cocostudio/ArmatureDataManager.h"
 #include "cocostudio/Armature.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UIRichTextTests::UIRichTextTests()
@@ -184,12 +184,12 @@ bool UIRichTextTest::init()
 
         std::string str1 = config->getValue("Chinese").asString();
         std::string str2 = config->getValue("Japanese").asString();
-        AXLOG("str1:%s ascii length = %d, utf8 length = %d, substr = %s", str1.c_str(),
+        AXLOGD("str1:{} ascii length = {}, utf8 length = {}, substr = {}", str1,
               static_cast<int32_t>(str1.length()), StringUtils::getCharacterCountInUTF8String(str1),
-              Helper::getSubStringOfUTF8String(str1, 0, 5).c_str());
-        AXLOG("str2:%s ascii length = %d, utf8 length = %d, substr = %s", str2.c_str(),
+              Helper::getSubStringOfUTF8String(str1, 0, 5));
+        AXLOGD("str2:{} ascii length = {}, utf8 length = {}, substr = {}", str2,
               static_cast<int32_t>(str2.length()), StringUtils::getCharacterCountInUTF8String(str2),
-              Helper::getSubStringOfUTF8String(str2, 0, 2).c_str());
+              Helper::getSubStringOfUTF8String(str2, 0, 2));
 
         // Add the alert
         Text* alert = Text::create("RichText", "fonts/Marker Felt.ttf", 30);

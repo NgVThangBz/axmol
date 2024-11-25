@@ -2,8 +2,9 @@
 Copyright (c) 2013 cocos2d-x.org
 Copyright (c) Microsoft Open Technologies, Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,9 +41,27 @@ THE SOFTWARE.
 #include <winrt/Windows.UI.Popups.h>
 #include <winrt/Windows.UI.Input.h>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static GLViewImpl* s_pEglView = nullptr;
+
+static EventMouse::MouseButton checkMouseButton(Windows::UI::Core::PointerEventArgs const& args)
+{
+    if (args.CurrentPoint().Properties().IsLeftButtonPressed())
+    {
+        return EventMouse::MouseButton::BUTTON_LEFT;
+    }
+    else if (args.CurrentPoint().Properties().IsRightButtonPressed())
+    {
+        return EventMouse::MouseButton::BUTTON_RIGHT;
+    }
+    else if (args.CurrentPoint().Properties().IsMiddleButtonPressed())
+    {
+        return EventMouse::MouseButton::BUTTON_MIDDLE;
+    }
+    return EventMouse::MouseButton::BUTTON_UNSET;
+}
 
 GLViewImpl* GLViewImpl::create(std::string_view viewName)
 {
@@ -208,32 +227,32 @@ void GLViewImpl::BackButtonListener(EventKeyboard::KeyCode keyCode, Event* event
 {
     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
     {
-        AXLOG("*********************************************************************");
-        AXLOG("GLViewImpl::BackButtonListener: Exiting application!");
-        AXLOG("");
-        AXLOG("If you want to listen for Windows Phone back button events,");
-        AXLOG("add a listener for EventKeyboard::KeyCode::KEY_ESCAPE");
-        AXLOG("Make sure you call stopPropagation() on the Event if you don't");
-        AXLOG("want your app to exit when the back button is pressed.");
-        AXLOG("");
-        AXLOG("For example, add the following to your scene...");
-        AXLOG("auto listener = EventListenerKeyboard::create();");
-        AXLOG("listener->onKeyReleased = AX_CALLBACK_2(HelloWorld::onKeyReleased, this);");
-        AXLOG("getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);");
-        AXLOG("");
-        AXLOG("void HelloWorld::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)");
-        AXLOG("{");
-        AXLOG("     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)");
-        AXLOG("     {");
-        AXLOG("         if (myAppShouldNotQuit) // or whatever logic you want...");
-        AXLOG("         {");
-        AXLOG("             event->stopPropagation();");
-        AXLOG("         }");
-        AXLOG("     }");
-        AXLOG("}");
-        AXLOG("");
-        AXLOG("You MUST call event->stopPropagation() if you don't want your app to quit!");
-        AXLOG("*********************************************************************");
+        AXLOGD("*********************************************************************");
+        AXLOGD("GLViewImpl::BackButtonListener: Exiting application!");
+        AXLOGD("");
+        AXLOGD("If you want to listen for Windows Phone back button events,");
+        AXLOGD("add a listener for EventKeyboard::KeyCode::KEY_ESCAPE");
+        AXLOGD("Make sure you call stopPropagation() on the Event if you don't");
+        AXLOGD("want your app to exit when the back button is pressed.");
+        AXLOGD("");
+        AXLOGD("For example, add the following to your scene...");
+        AXLOGD("auto listener = EventListenerKeyboard::create();");
+        AXLOGD("listener->onKeyReleased = AX_CALLBACK_2(HelloWorld::onKeyReleased, this);");
+        AXLOGD("getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);");
+        AXLOGD("");
+        AXLOGD("void HelloWorld::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)");
+        AXLOGD("{{");
+        AXLOGD("     if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)");
+        AXLOGD("     {{");
+        AXLOGD("         if (myAppShouldNotQuit) // or whatever logic you want...");
+        AXLOGD("         {{");
+        AXLOGD("             event->stopPropagation();");
+        AXLOGD("         }}");
+        AXLOGD("     }}");
+        AXLOGD("}}");
+        AXLOGD("");
+        AXLOGD("You MUST call event->stopPropagation() if you don't want your app to quit!");
+        AXLOGD("*********************************************************************");
 
         Director::getInstance()->end();
     }
@@ -322,22 +341,22 @@ void GLViewImpl::OnPointerReleased(Windows::UI::Core::PointerEventArgs const& ar
 
 void ax::GLViewImpl::OnMousePressed(Windows::UI::Core::PointerEventArgs const& args)
 {
-    Vec2 mousePosition = GetPointMouse(args);
+    Vec2 pt = GetPoint(args);
 
     // Emulated touch, if left mouse button
     if (args.CurrentPoint().Properties().IsLeftButtonPressed())
     {
         intptr_t id = 0;
-        Vec2 pt     = GetPoint(args);
         handleTouchesBegin(1, &id, &pt.x, &pt.y);
     }
 
+    float x = transformInputX(pt.x);
+    float y = transformInputY(pt.y);
     if (_lastMouseButtonPressed != EventMouse::MouseButton::BUTTON_UNSET)
     {
         EventMouse event(EventMouse::MouseEventType::MOUSE_UP);
 
-        event.setMouseButton(_lastMouseButtonPressed);
-        event.setCursorPosition(mousePosition.x, mousePosition.y);
+        event.setMouseInfo(x, y, _lastMouseButtonPressed);
         Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
     }
 
@@ -355,57 +374,41 @@ void ax::GLViewImpl::OnMousePressed(Windows::UI::Core::PointerEventArgs const& a
     {
         _lastMouseButtonPressed = EventMouse::MouseButton::BUTTON_MIDDLE;
     }
-    event.setMouseButton(_lastMouseButtonPressed);
-    event.setCursorPosition(mousePosition.x, mousePosition.y);
+    event.setMouseInfo(x, y, _lastMouseButtonPressed);
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 }
 
 void ax::GLViewImpl::OnMouseMoved(Windows::UI::Core::PointerEventArgs const& args)
 {
-    Vec2 mousePosition = GetPointMouse(args);
+    Vec2 pt = GetPoint(args);
 
     // Emulated touch, if left mouse button
     if (args.CurrentPoint().Properties().IsLeftButtonPressed())
     {
         intptr_t id = 0;
-        Vec2 pt     = GetPoint(args);
         handleTouchesMove(1, &id, &pt.x, &pt.y);
     }
 
     EventMouse event(EventMouse::MouseEventType::MOUSE_MOVE);
-    // Set current button
-    if (args.CurrentPoint().Properties().IsLeftButtonPressed())
-    {
-        event.setMouseButton(EventMouse::MouseButton::BUTTON_LEFT);
-    }
-    else if (args.CurrentPoint().Properties().IsRightButtonPressed())
-    {
-        event.setMouseButton(EventMouse::MouseButton::BUTTON_RIGHT);
-    }
-    else if (args.CurrentPoint().Properties().IsMiddleButtonPressed())
-    {
-        event.setMouseButton(EventMouse::MouseButton::BUTTON_MIDDLE);
-    }
-    event.setCursorPosition(mousePosition.x, mousePosition.y);
+
+    event.setMouseInfo(transformInputX(pt.x), transformInputY(pt.y), checkMouseButton(args));
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 }
 
 void ax::GLViewImpl::OnMouseReleased(Windows::UI::Core::PointerEventArgs const& args)
 {
-    Vec2 mousePosition = GetPointMouse(args);
+    Vec2 pt = GetPoint(args);
 
     // Emulated touch, if left mouse button
     if (_lastMouseButtonPressed == EventMouse::MouseButton::BUTTON_LEFT)
     {
         intptr_t id = 0;
-        Vec2 pt     = GetPoint(args);
         handleTouchesEnd(1, &id, &pt.x, &pt.y);
     }
 
     EventMouse event(EventMouse::MouseEventType::MOUSE_UP);
 
-    event.setMouseButton(_lastMouseButtonPressed);
-    event.setCursorPosition(mousePosition.x, mousePosition.y);
+    event.setMouseInfo(transformInputX(pt.x), transformInputY(pt.y), _lastMouseButtonPressed);
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 
     _lastMouseButtonPressed = EventMouse::MouseButton::BUTTON_UNSET;
@@ -413,12 +416,10 @@ void ax::GLViewImpl::OnMouseReleased(Windows::UI::Core::PointerEventArgs const& 
 
 void ax::GLViewImpl::OnMouseWheelChanged(Windows::UI::Core::PointerEventArgs const& args)
 {
-    Vec2 mousePosition = GetPointMouse(args);
+    Vec2 pt = GetPoint(args);
     EventMouse event(EventMouse::MouseEventType::MOUSE_SCROLL);
     // Because OpenGL and axmol uses different Y axis, we need to convert the coordinate here
-    float cursorX = (mousePosition.x - _viewPortRect.origin.x) / _scaleX;
-    float cursorY = (_viewPortRect.origin.y + _viewPortRect.size.height - mousePosition.y) / _scaleY;
-    float delta   = args.CurrentPoint().Properties().MouseWheelDelta();
+    float delta   = static_cast<float>(args.CurrentPoint().Properties().MouseWheelDelta());
     if (args.CurrentPoint().Properties().IsHorizontalMouseWheel())
     {
         event.setScrollData(delta / WHEEL_DELTA, 0.0f);
@@ -427,7 +428,7 @@ void ax::GLViewImpl::OnMouseWheelChanged(Windows::UI::Core::PointerEventArgs con
     {
         event.setScrollData(0.0f, -delta / WHEEL_DELTA);
     }
-    event.setCursorPosition(cursorX, cursorY);
+    event.setMouseInfo(transformInputX(pt.x), transformInputY(pt.y), checkMouseButton(args));
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 }
 
@@ -538,27 +539,14 @@ ax::Vec2 GLViewImpl::TransformToOrientation(Windows::Foundation::Point const& p)
         returnValue.y /= zoomFactor;
     }
 
-    // AXLOG("%.2f %.2f : %.2f %.2f", p.X, p.Y,returnValue.x, returnValue.y);
+    // AXLOGD("{:.2f} {:.2f} : {:.2f} {:.2f}", p.X, p.Y,returnValue.x, returnValue.y);
 
     return returnValue;
 }
 
 Vec2 GLViewImpl::GetPoint(Windows::UI::Core::PointerEventArgs const& args)
 {
-
     return TransformToOrientation(args.CurrentPoint().Position());
-}
-
-Vec2 GLViewImpl::GetPointMouse(Windows::UI::Core::PointerEventArgs const& args)
-{
-
-    Vec2 position = TransformToOrientation(args.CurrentPoint().Position());
-
-    // Because Windows and axmol uses different Y axis, we need to convert the coordinate here
-    position.x = (position.x - _viewPortRect.origin.x) / _scaleX;
-    position.y = (_viewPortRect.origin.y + _viewPortRect.size.height - position.y) / _scaleY;
-
-    return position;
 }
 
 void GLViewImpl::QueueBackKeyPress()
@@ -609,4 +597,4 @@ void GLViewImpl::queueOperation(AsyncOperation op, void* param)
         mQueueOperationCb(std::move(op), param);
 }
 
-NS_AX_END
+}

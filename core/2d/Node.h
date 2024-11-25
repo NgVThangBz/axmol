@@ -7,7 +7,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,8 @@
 #    include "physics/PhysicsBody.h"
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class GridBase;
 class Touch;
@@ -1827,7 +1828,7 @@ public:
      * @param applyChildren A boolean value to determine whether the mask bit should apply to its children or not.
      */
     void applyMaskOnEnter(bool applyChildren);
-    
+
     virtual void setProgramState(uint32_t programType) { setProgramStateWithRegistry(programType, nullptr); }
     void setProgramStateWithRegistry(uint32_t programType, Texture2D* texture);
 
@@ -1998,7 +1999,7 @@ protected:
 
     bool _usingNormalizedPosition;
     bool _normalizedPositionDirty;
-    
+
     bool _childFollowCameraMask;
     // camera mask, it is visible only when _cameraMask & current camera' camera flag is true
     unsigned short _cameraMask;
@@ -2069,6 +2070,6 @@ bool AX_DLL isScreenPointInRect(const Vec2& pt, const Camera* camera, const Mat4
 // end of _2d group
 /// @}
 
-NS_AX_END
+}
 
 #endif  // __CCNODE_H__

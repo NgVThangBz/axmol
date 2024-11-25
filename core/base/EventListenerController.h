@@ -3,7 +3,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__EventListenerController__
-#define __cocos2d_libs__EventListenerController__
+#ifndef _AX_EVENTLISTENERCONTROLLER_H_
+#define _AX_EVENTLISTENERCONTROLLER_H_
 
 #include "platform/PlatformMacros.h"
 #include "base/EventListener.h"
@@ -35,7 +35,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Event;
 class Controller;
@@ -72,9 +73,9 @@ protected:
     bool init();
 };
 
-NS_AX_END
+}
 
 // end of base group
 /// @}
 
-#endif /* defined(__cocos2d_libs__EventListenerController__) */
+#endif /* defined(_AX_EVENTLISTENERCONTROLLER_H_) */

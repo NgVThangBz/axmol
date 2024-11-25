@@ -2,12 +2,13 @@
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
+Copyright (c) 2011 HKASoftware
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-Copyright (c) 2011 HKASoftware
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +51,8 @@ THE SOFTWARE.
 #include "base/UTF8.h"
 #include "renderer/backend/ProgramState.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 const int FastTMXLayer::FAST_TMX_ORIENTATION_ORTHO = 0;
 const int FastTMXLayer::FAST_TMX_ORIENTATION_HEX   = 1;
@@ -324,7 +326,7 @@ void FastTMXLayer::setupTiles()
         break;
     case FAST_TMX_ORIENTATION_HEX:
     default:
-        AXLOGERROR("FastTMX does not support type %d", _layerOrientation);
+        AXLOGE("FastTMX does not support type {}", _layerOrientation);
         break;
     }
 
@@ -438,7 +440,7 @@ void FastTMXLayer::updatePrimitives()
         {
             auto command = new CustomCommand();
             command->setVertexBuffer(_vertexBuffer);
-  
+
 #ifdef AX_FAST_TILEMAP_32_BIT_INDICES
             CustomCommand::IndexFormat indexFormat = CustomCommand::IndexFormat::U_INT;
 #else
@@ -905,11 +907,11 @@ void FastTMXLayer::setupTileSprite(Sprite* sprite, const Vec2& pos, uint32_t gid
 {
     auto tempPosAt = getPositionAt(pos);
     auto tempSpriteContentSize = sprite->getContentSize();
-    
+
     sprite->setPositionZ((float)getVertexZForPos(pos));
     sprite->setOpacity(this->getOpacity());
 
-    // fix issue #1283 too;  put the anchor in the middle for ease of rotation. 
+    // fix issue #1283 too;  put the anchor in the middle for ease of rotation.
     sprite->setAnchorPoint(Vec2(0.5f, 0.5f));
     sprite->setPosition(tempPosAt.x + std::roundf(tempSpriteContentSize.height / 2),
                         tempPosAt.y + std::roundf(tempSpriteContentSize.width / 2));
@@ -961,7 +963,7 @@ void FastTMXLayer::setupTileSprite(Sprite* sprite, const Vec2& pos, uint32_t gid
 
 std::string FastTMXLayer::getDescription() const
 {
-    return StringUtils::format("<FastTMXLayer | tag = %d, size = %d,%d>", _tag, (int)_mapTileSize.width,
+    return fmt::format("<FastTMXLayer | tag = {}, size = {},{}>", _tag, (int)_mapTileSize.width,
                                (int)_mapTileSize.height);
 }
 
@@ -1050,4 +1052,4 @@ TMXTileAnimTask* TMXTileAnimTask::create(FastTMXLayer* layer, TMXTileAnimInfo* a
     return ret;
 }
 
-NS_AX_END
+}

@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 #include "../testResource.h"
 #include "cocostudio/CocosStudioExtension.h"
 
-USING_NS_AX;
+using namespace ax;
 
 enum
 {
@@ -1764,21 +1764,25 @@ void DemoEmissionShapeAlphaMask::onEnter()
     removeChild(_background, true);
     _background = nullptr;
 
-    _emitter = ParticleFireworks::createWithTotalParticles(8000);
+    _emitter = ParticleFireworks::createWithTotalParticles(6000);
     _emitter->retain();
     addChild(_emitter, 10);
     _emitter->setTexture(Director::getInstance()->getTextureCache()->addImage(s_stars1));
 
     _emitter->setBlendAdditive(true);
 
+    _emitter->setLife(1);
     _emitter->setGravity({0, 0});
     _emitter->setSpeed(0);
     _emitter->setSpeedVar(0);
 
-    _emitter->setStartSize(3);
+    _emitter->setStartColor(Color4F::WHITE);
+    _emitter->setEndColor(Color4F::WHITE);
+
+    _emitter->setStartSize(6);
     _emitter->setEndSize(3);
 
-    _emitter->setEmissionRate(1000);
+    _emitter->setEmissionRate(6000);
 
     _emitter->setEmissionShapes(true);
 
@@ -2377,7 +2381,7 @@ void ParticleBatchHybrid::switchRender(float dt)
     auto newParent = (usingBatch ? _parent2 : _parent1);
     newParent->addChild(_emitter);
 
-    ax::print("Particle: Using new parent: %s", usingBatch ? "CCNode" : "CCParticleBatchNode");
+    AXLOGD("Particle: Using new parent: {}", usingBatch ? "Node" : "ParticleBatchNode");
 }
 
 std::string ParticleBatchHybrid::title() const
@@ -2789,7 +2793,7 @@ void AddAndDeleteParticleSystems::removeSystem(float dt)
     ssize_t nChildrenCount = _batchNode->getChildren().size();
     if (nChildrenCount > 0)
     {
-        AXLOG("remove random system");
+        AXLOGD("remove random system");
         unsigned int uRand = rand() % (nChildrenCount - 1);
         _batchNode->removeChild(_batchNode->getChildren().at(uRand), true);
 
@@ -2801,7 +2805,7 @@ void AddAndDeleteParticleSystems::removeSystem(float dt)
 
         particleSystem->setPosition(Vec2(rand() % 300, rand() % 400));
 
-        AXLOG("add a new system");
+        AXLOGD("add a new system");
         unsigned int randZ = rand() % 100;
         _batchNode->addChild(particleSystem, randZ, -1);
     }

@@ -3,10 +3,12 @@ Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2009      Leonardo Kasperavičius
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
+Copyright (c) 2011 HKASoftware
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +46,8 @@ THE SOFTWARE.
 #include "renderer/backend/ProgramState.h"
 #include "2d/TweenFunction.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 ParticleSystemQuad::ParticleSystemQuad()
 {
@@ -694,7 +697,7 @@ void ParticleSystemQuad::setTotalParticles(int tp)
         _particleData.release();
         if (!_particleData.init(tp))
         {
-            AXLOG("Particle system: not enough memory");
+            AXLOGW("Particle system: not enough memory");
             return;
         }
         V3F_C4B_T2F_Quad* quadsNew = (V3F_C4B_T2F_Quad*)realloc(_quads, quadsSize);
@@ -720,7 +723,7 @@ void ParticleSystemQuad::setTotalParticles(int tp)
             if (indicesNew)
                 _indices = indicesNew;
 
-            AXLOG("Particle system: out of memory");
+            AXLOGW("Particle system: out of memory");
             return;
         }
 
@@ -738,7 +741,7 @@ void ParticleSystemQuad::setTotalParticles(int tp)
         initIndices();
         //        setupVBO();
 
-        // fixed https://axmolengine.github.io//issues/3990
+        // fixed https://axmol.dev//issues/3990
         // Updates texture coords.
         updateTexCoords();
     }
@@ -782,7 +785,7 @@ bool ParticleSystemQuad::allocMemory()
 
     if (!_quads || !_indices)
     {
-        AXLOG("axmol: Particle system: not enough memory");
+        AXLOGW("axmol: Particle system: not enough memory");
         AX_SAFE_FREE(_quads);
         AX_SAFE_FREE(_indices);
 
@@ -839,6 +842,6 @@ ParticleSystemQuad* ParticleSystemQuad::create()
 
 std::string ParticleSystemQuad::getDescription() const
 {
-    return StringUtils::format("<ParticleSystemQuad | Tag = %d, Total Particles = %d>", _tag, _totalParticles);
+    return fmt::format("<ParticleSystemQuad | Tag = {}, Total Particles = {}>", _tag, _totalParticles);
 }
-NS_AX_END
+}

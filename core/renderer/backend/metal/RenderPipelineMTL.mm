@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -308,22 +308,11 @@ void RenderPipelineMTL::chooseAttachmentFormat(const RenderTarget* renderTarget,
 {
     // Choose color attachment format
     auto rtMTL   = static_cast<const RenderTargetMTL*>(renderTarget);
-    auto rtflags = rtMTL->getTargetFlags();
     for (auto i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
-    {
-        colorAttachmentsFormat[i] =
-            bitmask::any(rtflags, getMRTColorFlag(i)) ? rtMTL->getColorAttachmentPixelFormat(i) : PixelFormat::NONE;
-    }
+        colorAttachmentsFormat[i] = rtMTL->getColorAttachmentPixelFormat(i);
 
-    if (bitmask::any(rtflags, RenderTargetFlag::DEPTH_AND_STENCIL))
-    {
-        depthFormat   = rtMTL->getDepthAttachmentPixelFormat();
-        stencilFormat = rtMTL->getStencilAttachmentPixelFormat();
-    }
-    else
-    {
-        depthFormat = stencilFormat = PixelFormat::NONE;
-    }
+    depthFormat   = rtMTL->getDepthAttachmentPixelFormat();
+    stencilFormat = rtMTL->getStencilAttachmentPixelFormat();
 }
 
 void RenderPipelineMTL::setBlendStateAndFormat(const BlendDescriptor& blendDescriptor)

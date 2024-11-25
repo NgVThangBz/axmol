@@ -4,7 +4,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,8 @@ THE SOFTWARE.
 #include "math/TransformUtils.h"
 #include "math/AffineTransform.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 void CGAffineToGL(const AffineTransform& t, float* m)
 {

@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,8 @@ THE SOFTWARE.
 
 static const char* deviceHelperClassName = "org.axmol.lib.AxmolEngine";
 
-NS_AX_BEGIN
+namespace ax
+{
 
 int Device::getDPI()
 {
@@ -88,7 +89,7 @@ public:
                                             "createTextBitmapShadowStroke",
                                             "([BLjava/lang/String;IIIIIIIIZFFFFZIIIIFZI)Z"))
         {
-            AXLOG("%s %d: error to get methodInfo", __FILE__, __LINE__);
+            AXLOGE("{} {}: error to get methodInfo", __FILE__, __LINE__);
             return false;
         }
 
@@ -211,9 +212,9 @@ void Device::selectionChanged()
     JniHelper::callStaticVoidMethod(deviceHelperClassName, "selectionChanged");
 }
 
-NS_AX_END
+}
 
-// this method is called by Cocos2dxBitmap
+// this method is called by BitmapHelper
 extern "C" {
 /**
  * this method is called by java code to init width, height and pixels data

@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +43,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Event;
 class EventTouch;
@@ -169,15 +171,17 @@ public:
      *  event dispatcher list.
      *
      * @param event The event needs to be dispatched.
+     * @param forced If the event should be sent out regardless of enabled state
      */
-    void dispatchEvent(Event* event);
+    void dispatchEvent(Event* event, bool forced = false);
 
     /** Dispatches a Custom Event with a event name an optional user data.
      *
      * @param eventName The name of the event which needs to be dispatched.
      * @param optionalUserData The optional user data, it's a void*, the default value is nullptr.
+     * @param forced If the event should be sent out regardless of enabled state
      */
-    void dispatchCustomEvent(std::string_view eventName, void* optionalUserData = nullptr);
+    void dispatchCustomEvent(std::string_view eventName, void* optionalUserData = nullptr, bool forced = false);
 
     /** Query whether the specified event listener id has been added.
      *
@@ -355,7 +359,7 @@ protected:
     std::set<std::string> _internalCustomListenerIDs;
 };
 
-NS_AX_END
+}
 
 // end of base group
 /// @}

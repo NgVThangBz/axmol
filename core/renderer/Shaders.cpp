@@ -5,7 +5,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,8 @@ THE SOFTWARE.
 ****************************************************************************/
 #include "renderer/Shaders.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 using namespace std::string_view_literals;
 
@@ -62,6 +63,7 @@ AX_DLL const std::string_view hsv_frag                             = "hsv_fs"sv;
 AX_DLL const std::string_view dualSampler_hsv_frag                 = "dualSampler_hsv_fs"sv;
 AX_DLL const std::string_view videoTextureYUY2_frag                = "videoTextureYUY2_fs"sv;
 AX_DLL const std::string_view videoTextureNV12_frag                = "videoTextureNV12_fs"sv;
+AX_DLL const std::string_view videoTextureI420_frag                = "videoTextureI420_fs"sv;
 AX_DLL const std::string_view lineColor_frag                       = "lineColor_fs"sv;
 AX_DLL const std::string_view lineColor_vert                       = "lineColor_vs"sv;
 AX_DLL const std::string_view color_frag                           = "color_fs"sv;
@@ -84,4 +86,4 @@ AX_DLL const std::string_view colorNormalTexture_frag_1            = "colorNorma
 AX_DLL const std::string_view positionNormalTexture_vert_1         = "positionNormalTexture_vs_1"sv;
 AX_DLL const std::string_view skinPositionNormalTexture_vert_1     = "skinPositionNormalTexture_vs_1"sv;
 
-NS_AX_END
+}

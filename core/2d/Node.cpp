@@ -7,7 +7,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,8 @@ THE SOFTWARE.
  */
 #define AX_HASH_NODE_NAME(name) (!name.empty() ? XXH3_64bits(name.data(), name.length()) : 0)
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // FIXME:: Yes, nodes might have a sort problem once every 30 days if the game runs at 60 FPS and each frame sprites are
 // reordered.
@@ -156,7 +157,7 @@ Node* Node::create()
 
 Node::~Node()
 {
-    AXLOGINFO("deallocing Node: %p - tag: %i", this, _tag);
+    AXLOGV("deallocing Node: {} - tag: {}", fmt::ptr(this), _tag);
 
     AX_SAFE_DELETE(_childrenIndexer);
 
@@ -240,7 +241,7 @@ void Node::cleanup()
 
 std::string Node::getDescription() const
 {
-    return StringUtils::format("<Node | Tag = %d", _tag);
+    return fmt::format("<Node | Tag = {}", _tag);
 }
 
 // MARK: getters / setters
@@ -521,7 +522,7 @@ void Node::getPosition(float* x, float* y) const
 
 void Node::setPosition(float x, float y)
 {
-    if (_position.x == x && _position.y == y)
+    if (_position.x == x && _position.y == y && !_usingNormalizedPosition)
         return;
 
     _position.x = x;
@@ -586,7 +587,7 @@ const Vec2& Node::getPositionNormalized() const
 /// position setter
 void Node::setPositionNormalized(const Vec2& position)
 {
-    if (_normalizedPosition.equals(position))
+    if (_normalizedPosition.equals(position) && _usingNormalizedPosition)
         return;
 
     _normalizedPosition      = position;
@@ -1005,13 +1006,13 @@ void Node::addChildHelper(Node* child, int localZOrder, int tag, std::string_vie
     this->insertChild(child, localZOrder);
 
     child->setParent(this);
-    
+
     if (_childFollowCameraMask)
     {
         child->setCameraMask(this->getCameraMask());
         child->applyMaskOnEnter(true);
     }
-    
+
     if (setTag)
     {
         child->setTag(tag);
@@ -1096,7 +1097,7 @@ void Node::removeChildByTag(int tag, bool cleanup /* = true */)
 
     if (child == nullptr)
     {
-        AXLOG("axmol: removeChildByTag(tag = %d): child not found!", tag);
+        AXLOGD("axmol: removeChildByTag(tag = {}): child not found!", tag);
     }
     else
     {
@@ -1112,7 +1113,7 @@ void Node::removeChildByName(std::string_view name, bool cleanup)
 
     if (child == nullptr)
     {
-        AXLOG("axmol: removeChildByName(name = %s): child not found!", name.data());
+        AXLOGD("axmol: removeChildByName(name = {}): child not found!", name);
     }
     else
     {
@@ -2281,4 +2282,4 @@ backend::ProgramState* Node::getProgramState() const
     return _programState;
 }
 
-NS_AX_END
+}

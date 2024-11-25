@@ -4,8 +4,9 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +35,8 @@ THE SOFTWARE.
 #include "base/UTF8.h"
 #include <stdarg.h>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static int _globalFontSize         = kItemSize;
 static std::string _globalFontName = "Marker Felt";
@@ -124,7 +126,7 @@ void MenuItem::setCallback(const ccMenuCallback& callback)
 
 std::string MenuItem::getDescription() const
 {
-    return StringUtils::format("<MenuItem | tag = %d>", _tag);
+    return fmt::format("<MenuItem | tag = {}>", _tag);
 }
 
 //
@@ -347,7 +349,7 @@ MenuItemFont::MenuItemFont() : _fontSize(0), _fontName("") {}
 
 MenuItemFont::~MenuItemFont()
 {
-    AXLOGINFO("In the destructor of MenuItemFont (%p).", this);
+    AXLOGV("In the destructor of MenuItemFont ({}).", fmt::ptr(this));
 }
 
 bool MenuItemFont::initWithString(std::string_view value, const ccMenuCallback& callback)
@@ -867,4 +869,4 @@ MenuItem* MenuItemToggle::getSelectedItem()
     return _subItems.at(_selectedIndex);
 }
 
-NS_AX_END
+}

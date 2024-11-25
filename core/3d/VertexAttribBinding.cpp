@@ -2,6 +2,7 @@
  Copyright 2013 BlackBerry Inc.
  Copyright (c) 2015-2017 Chukong Technologies
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -27,7 +28,8 @@
 #include "3d/3DProgramInfo.h"
 #include "3d/VertexAttribBinding.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static std::vector<VertexAttribBinding*> __vertexAttribBindingCache;
 
@@ -145,14 +147,14 @@ void VertexAttribBinding::setVertexAttribPointer(VertexLayout* vertexLayout,
     auto v = getVertexAttribValue(name);
     if (v)
     {
-        // AXLOG("axmol: set attribute '%s' location: %d, offset: %d", name.c_str(), v->location, offset);
+        // AXLOGD("set attribute '{}' location: {}, offset: {}", name, v->location, offset);
         vertexLayout->setAttrib(name, v->location, type, offset, normalized);
         _vertexAttribsFlags |= flag;
     }
     else
     {
-        // AXLOG("axmol: warning: Attribute not found: %s", name.c_str());
+        // AXLOGD("warning: Attribute not found: {}", name);
     }
 }
 
-NS_AX_END
+}

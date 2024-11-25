@@ -6,7 +6,7 @@
  Copyright (c) 2017-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,10 @@ THE SOFTWARE.
 #include "base/Console.h"
 #endif
 
-NS_AX_BEGIN
+#include "base/JobSystem.h"
+
+namespace ax
+{
 
 /**
  * @addtogroup base
@@ -397,6 +400,12 @@ public:
      */
     float getContentScaleFactor() const { return _contentScaleFactor; }
 
+
+    /** Gets the JobSystem associated with this director.
+     * @since axmol-2.1.4
+     */
+    JobSystem* getJobSystem() const { return _jobSystem; }
+
     /** Gets the Scheduler associated with this director.
      * @since v2.0
      */
@@ -595,6 +604,8 @@ protected:
      which inherit from it as default renderer context,you can have your own by inherit from it*/
     GLView* _glView = nullptr;
 
+    JobSystem* _jobSystem = nullptr;
+
     // texture cache belongs to this director
     TextureCache* _textureCache = nullptr;
 
@@ -682,4 +693,4 @@ protected:
 // end of base group
 /** @} */
 
-NS_AX_END
+}

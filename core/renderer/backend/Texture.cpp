@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,13 @@ void TextureBackend::updateTextureDescriptor(const ax::backend::TextureDescripto
     _textureType   = descriptor.textureType;
     _textureFormat = descriptor.textureFormat;
     _textureUsage  = descriptor.textureUsage;
-    _width         = descriptor.width;
-    _height        = descriptor.height;
+    _width        = (std::max)(descriptor.width, (uint32_t)1);
+    _height       = (std::max)(descriptor.height, (uint32_t)1);
+
+    if (_bitsPerPixel == 0)
+    {
+        _bitsPerPixel = (uint8_t)(8 * 4);
+    }
 }
 
 NS_AX_BACKEND_END

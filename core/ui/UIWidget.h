@@ -3,7 +3,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
  * @addtogroup ui
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 
 class EventListenerTouchOneByOne;
 class Camera;
@@ -270,7 +271,6 @@ public:
      * @lua NA
      */
     virtual void addCCSEventListener(const ccWidgetEventCallback& callback);
-    /**/
 
     /**
      * Changes the position (x,y) of the widget in OpenGL coordinates
@@ -281,6 +281,12 @@ public:
      * @param pos  The position (x,y) of the widget in OpenGL coordinates
      */
     virtual void setPosition(const Vec2& pos) override;
+
+    /** Sets the position (x,y) using values between 0 and 1.
+     *
+     * @param position The normalized position (x,y) of the node, using value between 0 and 1.
+     */
+    void setPositionNormalized(const Vec2& position) override;
 
     /**
      * Set the percent(x,y) of the widget in OpenGL coordinates
@@ -839,7 +845,7 @@ private:
 };
 }  // namespace ui
 
-NS_AX_END
+}
 // end of ui group
 /// @}
 

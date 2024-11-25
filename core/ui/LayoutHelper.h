@@ -1,5 +1,8 @@
 //
 // Copyright (c) 2014-2020 Simdsoft Limited - All Rights Reserved
+// Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+
+
 // This module is used by x-studio UI Editor to layout UI elements
 // It's very useful for programer to operate UI elements in runtime,
 // so, we publish it to here.
@@ -30,7 +33,7 @@
 
 #    define center_coord(__SZ__, __sz__, __achor__) (((__SZ__) - (__sz__) + 2 * (__sz__) * (__achor__)) * 0.5f)
 
-USING_NS_AX;
+using namespace ax;
 
 // inline Vec2 operator*(const Vec2& left, const ax::Vec2& right)
 //{

@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@
 #include <algorithm>
 #include "../testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 MeshRendererTests::MeshRendererTests()
 {
@@ -873,7 +873,7 @@ MeshRendererHitTest::MeshRendererHitTest()
         Rect rect = target->getBoundingBox();
         if (rect.containsPoint(touch->getLocation()))
         {
-            ax::print("mesh3d began... x = %f, y = %f", touch->getLocation().x, touch->getLocation().y);
+            AXLOGD("mesh3d began... x = {}, y = {}", touch->getLocation().x, touch->getLocation().y);
             target->setOpacity(100);
             return true;
         }
@@ -887,7 +887,7 @@ MeshRendererHitTest::MeshRendererHitTest()
 
     listener1->onTouchEnded = [=](Touch* touch, Event* event) {
         auto target = static_cast<MeshRenderer*>(event->getCurrentTarget());
-        ax::print("mesh3d onTouchesEnded.. ");
+        AXLOGD("mesh3d onTouchesEnded.. ");
         target->setOpacity(255);
     };
 
@@ -1026,9 +1026,6 @@ std::string AsyncLoadMeshRendererTest::subtitle() const
 
 void AsyncLoadMeshRendererTest::menuCallback_asyncLoadMesh(Object* sender)
 {
-    // Note that you must stop the tasks before leaving the scene.
-    AsyncTaskPool::getInstance()->stopTasks(AsyncTaskPool::TaskType::TASK_IO);
-
     auto node = getChildByTag(101);
     node->removeAllChildren();  // remove all loaded mesh
 
@@ -1037,7 +1034,7 @@ void AsyncLoadMeshRendererTest::menuCallback_asyncLoadMesh(Object* sender)
     int32_t index = 0;
     for (const auto& path : _paths)
     {
-        MeshRenderer::createAsync(path, AX_CALLBACK_2(AsyncLoadMeshRendererTest::asyncLoad_Callback, this), (void*)index++);
+        MeshRenderer::createAsync(path, AX_CALLBACK_2(AsyncLoadMeshRendererTest::asyncLoad_Callback, this), reinterpret_cast<void*>(static_cast<uintptr_t>(++index)));
     }
 }
 
@@ -2445,7 +2442,7 @@ Animate3DCallbackTest::Animate3DCallbackTest()
                 ((PUParticleSystem3D*)node)->startParticleSystem();
             }
 
-            ax::print("frame %d", info->frame);
+            AXLOGD("frame {}", info->frame);
         });
         Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(listener, -1);
     }
@@ -2545,7 +2542,7 @@ void CameraBackgroundClearTest::switch_CameraClearMode(ax::Object* sender)
     CameraBackgroundBrush::BrushType type = CameraBackgroundBrush::BrushType::NONE;
     if (!brush)
     {
-        AXLOG("No brash found!");
+        AXLOGD("No brash found!");
     }
     else
     {
@@ -2557,7 +2554,7 @@ void CameraBackgroundClearTest::switch_CameraClearMode(ax::Object* sender)
         _camera->setBackgroundBrush(CameraBackgroundBrush::createDepthBrush(1.f));
         _label->setString("Depth Clear Brush");
         // Test brush valid when set by user scene setting
-        AXLOG("Background brush valid status is : %s", _camera->isBrushValid() ? "true" : "false");
+        AXLOGD("Background brush valid status is : {}", _camera->isBrushValid() ? "true" : "false");
     }
     else if (type == CameraBackgroundBrush::BrushType::DEPTH)
     {
@@ -2761,13 +2758,13 @@ std::string MeshRendererPropertyTest::subtitle() const
 void MeshRendererPropertyTest::update(float delta) {}
 void MeshRendererPropertyTest::printMeshName(ax::Object* sender)
 {
-    AXLOG("MeshName Begin");
+    AXLOGD("MeshName Begin");
     Vector<Mesh*> meshes = _mesh->getMeshes();
     for (Mesh* mesh : meshes)
     {
-        ax::print("MeshName: %s ", mesh->getName().data());
+        AXLOGI("MeshName: {} ", mesh->getName());
     }
-    AXLOG("MeshName End");
+    AXLOGD("MeshName End");
 }
 void MeshRendererPropertyTest::removeUsedTexture(ax::Object* sender)
 {
@@ -2819,7 +2816,7 @@ Issue16155Test::Issue16155Test()
     addChild(mesh);
     removeChild(mesh);
 
-    ax::print("Issue 16155: Object count:%d. Run this test again. RC should be the same", rcBefore);
+    AXLOGI("Issue 16155: Object count:{}. Run this test again. RC should be the same", rcBefore);
 }
 
 std::string Issue16155Test::title() const

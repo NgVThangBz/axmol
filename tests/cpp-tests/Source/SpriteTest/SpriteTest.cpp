@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 #include "../testResource.h"
 #include "cocostudio/CocosStudioExtension.h"
 
-USING_NS_AX;
+using namespace ax;
 
 enum
 {
@@ -139,6 +139,10 @@ SpriteTests::SpriteTests()
     ADD_TEST_CASE(SpriteSlice9Test9);
     ADD_TEST_CASE(SpriteSlice9Test10);
     ADD_TEST_CASE(Issue17119);
+    ADD_TEST_CASE(SpriteWithImageDataTest1);
+    ADD_TEST_CASE(SpriteWithImageDataTest2);
+    ADD_TEST_CASE(SpriteWithImageDataTest3);
+    ADD_TEST_CASE(ZwoptexGenericTest);
 };
 
 //------------------------------------------------------------------
@@ -734,7 +738,7 @@ SpriteBatchNodeReorder::SpriteBatchNodeReorder()
 
         ssize_t currentIndex = child->getAtlasIndex();
         AXASSERT(prev == currentIndex - 1, "Child order failed");
-        ////----AXLOG("children %x - atlasIndex:%d", child, currentIndex);
+        ////----AXLOGD("children {:#x} - atlasIndex:{}", child, currentIndex);
         prev = currentIndex;
     }
 
@@ -744,7 +748,7 @@ SpriteBatchNodeReorder::SpriteBatchNodeReorder()
     {
         ssize_t currentIndex = sprite->getAtlasIndex();
         AXASSERT(prev == currentIndex - 1, "Child order failed");
-        ////----AXLOG("descendant %x - atlasIndex:%d", child, currentIndex);
+        ////----AXLOGD("descendant {:#x} - atlasIndex:{}", child, currentIndex);
         prev = currentIndex;
     }
 }
@@ -1489,10 +1493,10 @@ void SpriteFlip::flipSprites(float dt)
     bool x = sprite1->isFlippedX();
     bool y = sprite2->isFlippedY();
 
-    AXLOG("Pre: %g", sprite1->getContentSize().height);
+    AXLOGD("Pre: {}", sprite1->getContentSize().height);
     sprite1->setFlippedX(!x);
     sprite2->setFlippedY(!y);
-    AXLOG("Post: %g", sprite1->getContentSize().height);
+    AXLOGD("Post: {}", sprite1->getContentSize().height);
 }
 
 std::string SpriteFlip::title() const
@@ -1537,10 +1541,10 @@ void SpriteBatchNodeFlip::flipSprites(float dt)
     bool x = sprite1->isFlippedX();
     bool y = sprite2->isFlippedY();
 
-    AXLOG("Pre: %g", sprite1->getContentSize().height);
+    AXLOGD("Pre: {}", sprite1->getContentSize().height);
     sprite1->setFlippedX(!x);
     sprite2->setFlippedY(!y);
-    AXLOG("Post: %g", sprite1->getContentSize().height);
+    AXLOGD("Post: {}", sprite1->getContentSize().height);
 }
 
 std::string SpriteBatchNodeFlip::title() const
@@ -2600,7 +2604,7 @@ void SpriteHybrid::reparentSprite(float dt)
     if (_usingSpriteBatchNode)
         std::swap(p1, p2);
 
-    ////----AXLOG("New parent is: %x", p2);
+    ////----AXLOGD("New parent is: {:#x}", p2);
 
     auto& p1Children = p1->getChildren();
     for (const auto& node : p1Children)
@@ -4418,23 +4422,23 @@ void NodeSort::reorderSprite(float dt)
 {
     unschedule("reorder_sprite_key");
 
-    ax::print("Before reorder--");
+    AXLOGI("Before reorder--");
 
     auto& children = _node->getChildren();
 
     for (const auto& child : children)
     {
-        ax::print("tag %i z %i", (int)child->getTag(), (int)child->getLocalZOrder());
+        AXLOGI("tag {} z {}", (int)child->getTag(), (int)child->getLocalZOrder());
     }
     // z-4
     _node->reorderChild(_node->getChildren().at(0), -6);
 
     _node->sortAllChildren();
 
-    ax::print("After reorder--");
+    AXLOGI("After reorder--");
     for (const auto& child : children)
     {
-        ax::print("tag %i z %i", (int)child->getTag(), (int)child->getLocalZOrder());
+        AXLOGI("tag {} z {}", (int)child->getTag(), (int)child->getLocalZOrder());
     }
 }
 
@@ -4487,7 +4491,7 @@ void SpriteBatchNodeReorderSameIndex::reorderSprite(float dt)
 
     for (const auto& sprite : _batchNode->getDescendants())
     {
-        ax::print("tag %i", sprite->getTag());
+        AXLOGI("tag {}", sprite->getTag());
     }
 }
 
@@ -5890,4 +5894,203 @@ void Issue17119::update(float dt)
         _s3->setFlippedX(!flipped);
         _s4->setFlippedX(!flipped);
     }
+}
+
+//------------------------------------------------------------------
+//
+// SpriteWithImageDataTest1
+//
+//------------------------------------------------------------------
+
+SpriteWithImageDataTest1::SpriteWithImageDataTest1()
+{
+    Size s = Director::getInstance()->getVisibleSize();
+    
+    ax::Data imageData = FileUtils::getInstance()->getDataFromFile("Images/grossini.png");
+
+    Sprite* sprite = Sprite::create(imageData, "sprite_image_key_test_1");
+    AXASSERT(sprite != nullptr, "Sprite with image data and key failed");
+    addChild(sprite);
+    sprite->setPosition(s.width / 2 - s.width / 3, s.height / 2);
+
+    Sprite* sprite2 = Sprite::create(imageData, "sprite_image_key_test_1");
+    AXASSERT(sprite2->getTexture() == sprite->getTexture(), "Sprite with image data same key failed");
+    addChild(sprite2);
+    sprite2->setPosition(s.width / 2 + s.width / 3, s.height / 2);
+}
+
+std::string SpriteWithImageDataTest1::title() const
+{
+    return "Sprite with Image Data 1";
+}
+
+std::string SpriteWithImageDataTest1::subtitle() const
+{
+    return "data given";
+}
+
+//------------------------------------------------------------------
+//
+// SpriteWithImageDataTest2
+//
+//------------------------------------------------------------------
+
+SpriteWithImageDataTest2::SpriteWithImageDataTest2()
+{
+    ax::Data emptyImageData;
+
+    Sprite* sprite = Sprite::create(emptyImageData, "sprite_image_key_test_2");
+    AXASSERT(sprite == nullptr, "Sprite with empty image data failed");
+}
+
+std::string SpriteWithImageDataTest2::title() const
+{
+    return "Sprite with Image Data 2";
+}
+
+std::string SpriteWithImageDataTest2::subtitle() const
+{
+    return "no sprite due to data empty";
+}
+
+//------------------------------------------------------------------
+//
+// SpriteWithImageDataTest3
+//
+//------------------------------------------------------------------
+
+SpriteWithImageDataTest3::SpriteWithImageDataTest3()
+{
+    ax::Data imageData = FileUtils::getInstance()->getDataFromFile("Images/grossini.png");
+
+    Sprite* sprite = Sprite::create(imageData, "");
+    AXASSERT(sprite == nullptr, "Sprite with empty image key failed");
+}
+
+std::string SpriteWithImageDataTest3::title() const
+{
+    return "Sprite with Image Data 3";
+}
+
+std::string SpriteWithImageDataTest3::subtitle() const
+{
+    return "no sprite due to empty key";
+}
+
+//------------------------------------------------------------------
+//
+// ZwoptexGenericTest
+//
+//------------------------------------------------------------------
+void ZwoptexGenericTest::onEnter()
+{
+    ZwoptexTest::onEnter();
+
+    auto s = Director::getInstance()->getWinSize();
+
+    SpriteFrameCache::getInstance()->addSpriteFramesWithFile("zwoptex/grossini.plist");
+    SpriteFrameCache::getInstance()->addSpriteFramesWithFile("zwoptex/grossini-generic.plist");
+
+    auto layer1 = LayerColor::create(Color4B(255, 0, 0, 255), 85, 121);
+    layer1->setPosition(Vec2(s.width / 2 - 80 - (85.0f * 0.5f), s.height / 2 - (121.0f * 0.5f)));
+    addChild(layer1);
+
+    sprite1 =
+        Sprite::createWithSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName("grossini_dance_01.png"));
+    sprite1->setPosition(Vec2(s.width / 2 - 80, s.height / 2));
+    addChild(sprite1);
+
+    sprite1->setFlippedX(false);
+    sprite1->setFlippedY(false);
+
+    auto layer2 = LayerColor::create(Color4B(255, 0, 0, 255), 85, 121);
+    layer2->setPosition(Vec2(s.width / 2 + 80 - (85.0f * 0.5f), s.height / 2 - (121.0f * 0.5f)));
+    addChild(layer2);
+
+    sprite2 = Sprite::createWithSpriteFrame(
+        SpriteFrameCache::getInstance()->getSpriteFrameByName("grossini_dance_generic_01.png"));
+    sprite2->setPosition(Vec2(s.width / 2 + 80, s.height / 2));
+    addChild(sprite2);
+
+    sprite2->setFlippedX(false);
+    sprite2->setFlippedY(false);
+
+    schedule(AX_SCHEDULE_SELECTOR(ZwoptexGenericTest::startIn05Secs), 1.0f);
+
+    sprite1->retain();
+    sprite2->retain();
+
+    counter = 0;
+}
+
+void ZwoptexGenericTest::startIn05Secs(float dt)
+{
+    unschedule(AX_SCHEDULE_SELECTOR(ZwoptexGenericTest::startIn05Secs));
+    schedule(AX_SCHEDULE_SELECTOR(ZwoptexGenericTest::flipSprites), 0.5f);
+}
+
+static int spriteFrameIndex = 0;
+void ZwoptexGenericTest::flipSprites(float dt)
+{
+    counter++;
+
+    bool fx = false;
+    bool fy = false;
+    int i   = counter % 4;
+
+    switch (i)
+    {
+    case 0:
+        fx = false;
+        fy = false;
+        break;
+    case 1:
+        fx = true;
+        fy = false;
+        break;
+    case 2:
+        fx = false;
+        fy = true;
+        break;
+    case 3:
+        fx = true;
+        fy = true;
+        break;
+    }
+
+    sprite1->setFlippedX(fx);
+    sprite2->setFlippedX(fx);
+    sprite1->setFlippedY(fy);
+    sprite2->setFlippedY(fy);
+
+    if (++spriteFrameIndex > 14)
+    {
+        spriteFrameIndex = 1;
+    }
+
+    char str1[32] = {0};
+    char str2[32] = {0};
+    sprintf(str1, "grossini_dance_%02d.png", spriteFrameIndex);
+    sprintf(str2, "grossini_dance_generic_%02d.png", spriteFrameIndex);
+    sprite1->setSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName(str1));
+    sprite2->setSpriteFrame(SpriteFrameCache::getInstance()->getSpriteFrameByName(str2));
+}
+
+ZwoptexGenericTest::~ZwoptexGenericTest()
+{
+    sprite1->release();
+    sprite2->release();
+    auto cache = SpriteFrameCache::getInstance();
+    cache->removeSpriteFramesFromFile("zwoptex/grossini.plist");
+    cache->removeSpriteFramesFromFile("zwoptex/grossini-generic.plist");
+}
+
+std::string ZwoptexGenericTest::title() const
+{
+    return "Zwoptex Tests";
+}
+
+std::string ZwoptexGenericTest::subtitle() const
+{
+    return "Coordinate Formats, Rotation, Trimming, flipX/Y";
 }

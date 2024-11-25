@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,8 @@
 #    include "base/EventDispatcher.h"
 #    include "base/EventCustom.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 const float PHYSICS_INFINITY = FLT_MAX;
 extern const char* PHYSICSCONTACT_EVENT_NAME;
 
@@ -224,8 +225,8 @@ static void DrawCircle(cpVect p,
                        cpSpaceDebugColor fill,
                        cpDataPointer data)
 {
-    const Color4F fillColor(fill.r, fill.g, fill.b, fill.a);
-    const Color4F outlineColor(outline.r, outline.g, outline.b, outline.a);
+    const Color4B fillColor(fill.r, fill.g, fill.b, fill.a);
+    const Color4B outlineColor(outline.r, outline.g, outline.b, outline.a);
     DrawNode* drawNode = static_cast<DrawNode*>(data);
     float radius       = PhysicsHelper::cpfloat2float(r);
     Vec2 centre        = PhysicsHelper::cpv2vec2(p);
@@ -249,7 +250,7 @@ static void DrawFatSegment(cpVect a,
                            cpSpaceDebugColor /*fill*/,
                            cpDataPointer data)
 {
-    const Color4F outlineColor(outline.r, outline.g, outline.b, outline.a);
+    const Color4B outlineColor(outline.r, outline.g, outline.b, outline.a);
     DrawNode* drawNode = static_cast<DrawNode*>(data);
     drawNode->drawSegment(PhysicsHelper::cpv2vec2(a), PhysicsHelper::cpv2vec2(b),
                           PhysicsHelper::cpfloat2float(r == 0 ? _debugDrawThickness : r), outlineColor);
@@ -267,8 +268,8 @@ static void DrawPolygon(int count,
                         cpSpaceDebugColor fill,
                         cpDataPointer data)
 {
-    const Color4F fillColor(fill.r, fill.g, fill.b, fill.a);
-    const Color4F outlineColor(outline.r, outline.g, outline.b, outline.a);
+    const Color4B fillColor(fill.r, fill.g, fill.b, fill.a);
+    const Color4B outlineColor(outline.r, outline.g, outline.b, outline.a);
     DrawNode* drawNode = static_cast<DrawNode*>(data);
     int num            = count;
     Vec2* seg          = new Vec2[num];
@@ -282,7 +283,7 @@ static void DrawPolygon(int count,
 
 static void DrawDot(cpFloat /*size*/, cpVect pos, cpSpaceDebugColor color, cpDataPointer data)
 {
-    const Color4F dotColor(color.r, color.g, color.b, color.a);
+    const Color4B dotColor(color.r, color.g, color.b, color.a);
     DrawNode* drawNode = static_cast<DrawNode*>(data);
     drawNode->drawDot(PhysicsHelper::cpv2vec2(pos), _debugDrawThickness, dotColor);
 }
@@ -635,7 +636,7 @@ void PhysicsWorld::removeBody(PhysicsBody* body)
 {
     if (body->getWorld() != this)
     {
-        AXLOG("Physics Warning: this body doesn't belong to this world");
+        AXLOGD("Physics Warning: this body doesn't belong to this world");
         return;
     }
 
@@ -679,7 +680,7 @@ void PhysicsWorld::removeJoint(PhysicsJoint* joint, bool destroy)
     {
         if (joint->getWorld() != this && destroy)
         {
-            AXLOG(
+            AXLOGD(
                 "physics warning: the joint is not in this world, it won't be destroyed until the body it connects is "
                 "destroyed");
             return;
@@ -909,7 +910,7 @@ void PhysicsWorld::step(float delta)
 {
     if (_autoStep)
     {
-        AXLOG("Physics Warning: You need to close auto step( setAutoStep(false) ) first");
+        AXLOGD("Physics Warning: You need to close auto step( setAutoStep(false) ) first");
     }
     else
     {
@@ -973,7 +974,7 @@ void PhysicsWorld::update(float delta, bool userCall /* = false*/)
                 cpSpaceStep(_cpSpace, dt);
 #    else
                 cpHastySpaceStep(_cpSpace, dt);
-#    endif                
+#    endif
             }
         }
         else
@@ -1101,6 +1102,6 @@ void PhysicsWorld::setPreUpdateCallback(const std::function<void()>& callback)
     _preUpdateCallback = callback;
 }
 
-NS_AX_END
+}
 
 #endif  // defined(AX_ENABLE_PHYSICS)

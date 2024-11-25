@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -397,7 +397,7 @@ DriverBase* DriverBase::getInstance()
     return _instance;
 }
 
-void DriverBase::destroyInstance() 
+void DriverBase::destroyInstance()
 {
     AX_SAFE_DELETE(_instance);
 }
@@ -482,20 +482,17 @@ TextureBackend* DriverMTL::newTexture(const TextureDescriptor& descriptor)
     }
 }
 
-RenderTarget* DriverMTL::newDefaultRenderTarget(TargetBufferFlags rtf)
+RenderTarget* DriverMTL::newDefaultRenderTarget()
 {
     auto rtGL = new RenderTargetMTL(true);
-    rtGL->setTargetFlags(rtf);
     return rtGL;
 }
 
-RenderTarget* DriverMTL::newRenderTarget(TargetBufferFlags rtf,
-                                         TextureBackend* colorAttachment,
+RenderTarget* DriverMTL::newRenderTarget(TextureBackend* colorAttachment,
                                          TextureBackend* depthAttachment,
                                          TextureBackend* stencilAttachhment)
 {
     auto rtMTL = new RenderTargetMTL(false);
-    rtMTL->setTargetFlags(rtf);
     RenderTarget::ColorAttachment colors{{colorAttachment, 0}};
     rtMTL->setColorAttachment(colors);
     rtMTL->setDepthAttachment(depthAttachment);

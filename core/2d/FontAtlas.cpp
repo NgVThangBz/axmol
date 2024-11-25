@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -45,12 +45,13 @@
 
 #include "base/PaddedString.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 const int FontAtlas::CacheTextureWidth     = 512;
 const int FontAtlas::CacheTextureHeight    = 512;
-const char* FontAtlas::CMD_PURGE_FONTATLAS = "__cc_PURGE_FONTATLAS";
-const char* FontAtlas::CMD_RESET_FONTATLAS = "__cc_RESET_FONTATLAS";
+const char* FontAtlas::CMD_PURGE_FONTATLAS = "__ax_PURGE_FONTATLAS";
+const char* FontAtlas::CMD_RESET_FONTATLAS = "__ax_RESET_FONTATLAS";
 
 void FontAtlas::loadFontAtlas(std::string_view fontatlasFile, hlookup::string_map<FontAtlas*>& outAtlasMap)
 {
@@ -553,4 +554,4 @@ void FontAtlas::setAntiAliasTexParameters()
     }
 }
 
-NS_AX_END
+}

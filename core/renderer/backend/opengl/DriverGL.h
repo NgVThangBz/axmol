@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -70,9 +70,8 @@ public:
      */
     TextureBackend* newTexture(const TextureDescriptor& descriptor) override;
 
-    RenderTarget* newDefaultRenderTarget(TargetBufferFlags rtf) override;
-    RenderTarget* newRenderTarget(TargetBufferFlags rtf,
-                                  TextureBackend* colorAttachment,
+    RenderTarget* newDefaultRenderTarget() override;
+    RenderTarget* newRenderTarget(TextureBackend* colorAttachment,
                                   TextureBackend* depthAttachment,
                                   TextureBackend* stencilAttachhment) override;
 

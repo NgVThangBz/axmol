@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,8 @@
 #include "PlatformMacros.h"
 #include "renderer/Texture2D.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace backend
 {
@@ -74,4 +75,4 @@ PixelFormat convertDataToFormat(const unsigned char* data,
                                 size_t* outDataLen);
 };  // namespace PixelFormatUtils
 }  // namespace backend
-NS_AX_END
+}

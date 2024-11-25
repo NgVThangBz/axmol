@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 
 @class AVMediaSessionHandler;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class AvfMediaEngine : public MediaEngine
 {
@@ -103,6 +104,6 @@ struct AvfMediaEngineFactory : public MediaEngineFactory
     void destroyMediaEngine(MediaEngine* me) override { delete static_cast<AvfMediaEngine*>(me); }
 };
 
-NS_AX_END
+}
 
 #endif

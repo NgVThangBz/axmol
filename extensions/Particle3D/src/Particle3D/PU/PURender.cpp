@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,8 @@
 #include "3d/Mesh.h"
 #include "2d/Camera.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 void PURender::updateRender(PUParticle3D* /*particle*/, float /*deltaTime*/, bool /*firstParticle*/) {}
 
@@ -86,7 +87,7 @@ void PUParticle3DQuadRender::render(Renderer* renderer, const Mat4& transform, P
                                                       backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
         if (_vertexBuffer == nullptr)
         {
-            AXLOG("PUParticle3DQuadRender::render create vertex buffer failed");
+            AXLOGD("PUParticle3DQuadRender::render create vertex buffer failed");
             return;
         }
     }
@@ -98,7 +99,7 @@ void PUParticle3DQuadRender::render(Renderer* renderer, const Mat4& transform, P
                                                       backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
         if (_indexBuffer == nullptr)
         {
-            AXLOG("PUParticle3DQuadRender::render create index buffer failed");
+            AXLOGD("PUParticle3DQuadRender::render create index buffer failed");
             return;
         }
     }
@@ -508,7 +509,7 @@ void PUParticle3DModelRender::render(Renderer* renderer, const Mat4& transform, 
             MeshRenderer* mesh = MeshRenderer::create(_modelFile);
             if (mesh == nullptr)
             {
-                AXLOG("failed to load file %s", _modelFile.c_str());
+                AXLOGD("failed to load file {}", _modelFile);
                 continue;
             }
             mesh->setTexture(_texFile);
@@ -704,7 +705,7 @@ void PUParticle3DBoxRender::render(Renderer* renderer, const Mat4& transform, Pa
                                                       backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
         if (_vertexBuffer == nullptr)
         {
-            AXLOG("PUParticle3DBoxRender::render create vertex buffer failed");
+            AXLOGD("PUParticle3DBoxRender::render create vertex buffer failed");
             return;
         }
         _vertices.resize(8 * particleSystem->getParticleQuota());
@@ -714,7 +715,7 @@ void PUParticle3DBoxRender::render(Renderer* renderer, const Mat4& transform, Pa
                                                       backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
         if (_indexBuffer == nullptr)
         {
-            AXLOG("PUParticle3DBoxRender::render create index buffer failed");
+            AXLOGD("PUParticle3DBoxRender::render create index buffer failed");
             return;
         }
         _indices.resize(36 * particleSystem->getParticleQuota());
@@ -896,7 +897,7 @@ void PUSphereRender::render(Renderer* renderer, const Mat4& transform, ParticleS
                                                       backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
         if (_vertexBuffer == nullptr)
         {
-            AXLOG("PUSphereRender::render create vertex buffer failed");
+            AXLOGD("PUSphereRender::render create vertex buffer failed");
             return;
         }
         _vertices.resize(vertexCount * particleSystem->getParticleQuota());
@@ -906,7 +907,7 @@ void PUSphereRender::render(Renderer* renderer, const Mat4& transform, ParticleS
             backend::BufferUsage::DYNAMIC);
         if (_indexBuffer == nullptr)
         {
-            AXLOG("PUSphereRender::render create index buffer failed");
+            AXLOGD("PUSphereRender::render create index buffer failed");
             return;
         }
         _indices.resize(indexCount * particleSystem->getParticleQuota());
@@ -1041,4 +1042,4 @@ PUSphereRender* PUSphereRender::clone()
     return render;
 }
 
-NS_AX_END
+}

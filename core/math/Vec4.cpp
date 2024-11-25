@@ -1,6 +1,7 @@
 /**
  Copyright 2013 BlackBerry Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -27,24 +28,15 @@
 
 NS_AX_MATH_BEGIN
 
-Vec4::Vec4() : Vec4Base() {}
+#if defined(AX_DLLEXPORT) || defined(AX_DLLIMPORT)
+    const Vec4 Vec4::ZERO   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    const Vec4 Vec4::ONE    = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    const Vec4 Vec4::UNIT_X = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    const Vec4 Vec4::UNIT_Y = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    const Vec4 Vec4::UNIT_Z = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+    const Vec4 Vec4::UNIT_W = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+#endif
 
-Vec4::Vec4(float xx, float yy, float zz, float ww) : Vec4Base(xx, yy, zz, ww) {}
-
-Vec4::Vec4(const float* src)
-{
-    set(src);
-}
-
-Vec4::Vec4(const Vec4& p1, const Vec4& p2)
-{
-    set(p1, p2);
-}
-
-Vec4::Vec4(const Vec4& copy)
-{
-    set(copy);
-}
 
 Vec4 Vec4::fromColor(unsigned int color)
 {
@@ -82,7 +74,7 @@ float Vec4::angle(const Vec4& v1, const Vec4& v2)
 
 void Vec4::add(const Vec4& v1, const Vec4& v2, Vec4* dst)
 {
-    GP_ASSERT(dst);
+    AX_ASSERT(dst);
 
     dst->x = v1.x + v2.x;
     dst->y = v1.y + v2.y;
@@ -92,7 +84,7 @@ void Vec4::add(const Vec4& v1, const Vec4& v2, Vec4* dst)
 
 void Vec4::clamp(const Vec4& min, const Vec4& max)
 {
-    GP_ASSERT(!(min.x > max.x || min.y > max.y || min.z > max.z || min.w > max.w));
+    AX_ASSERT(!(min.x > max.x || min.y > max.y || min.z > max.z || min.w > max.w));
 
     // Clamp the x value.
     if (x < min.x)
@@ -121,8 +113,8 @@ void Vec4::clamp(const Vec4& min, const Vec4& max)
 
 void Vec4::clamp(const Vec4& v, const Vec4& min, const Vec4& max, Vec4* dst)
 {
-    GP_ASSERT(dst);
-    GP_ASSERT(!(min.x > max.x || min.y > max.y || min.z > max.z || min.w > max.w));
+    AX_ASSERT(dst);
+    AX_ASSERT(!(min.x > max.x || min.y > max.y || min.z > max.z || min.w > max.w));
 
     // Clamp the x value.
     dst->x = v.x;
@@ -219,55 +211,14 @@ Vec4 Vec4::getNormalized() const
     return v;
 }
 
-void Vec4::set(float xx, float yy, float zz, float ww)
-{
-    this->x = xx;
-    this->y = yy;
-    this->z = zz;
-    this->w = ww;
-}
-
-void Vec4::set(const float* array)
-{
-    GP_ASSERT(array);
-
-    x = array[0];
-    y = array[1];
-    z = array[2];
-    w = array[3];
-}
-
-void Vec4::set(const Vec4& v)
-{
-    this->x = v.x;
-    this->y = v.y;
-    this->z = v.z;
-    this->w = v.w;
-}
-
-void Vec4::set(const Vec4& p1, const Vec4& p2)
-{
-    x = p2.x - p1.x;
-    y = p2.y - p1.y;
-    z = p2.z - p1.z;
-    w = p2.w - p1.w;
-}
-
 void Vec4::subtract(const Vec4& v1, const Vec4& v2, Vec4* dst)
 {
-    GP_ASSERT(dst);
+    AX_ASSERT(dst);
 
     dst->x = v1.x - v2.x;
     dst->y = v1.y - v2.y;
     dst->z = v1.z - v2.z;
     dst->w = v1.w - v2.w;
 }
-
-const Vec4 Vec4::ZERO   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-const Vec4 Vec4::ONE    = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-const Vec4 Vec4::UNIT_X = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
-const Vec4 Vec4::UNIT_Y = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
-const Vec4 Vec4::UNIT_Z = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
-const Vec4 Vec4::UNIT_W = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 NS_AX_MATH_END

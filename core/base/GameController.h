@@ -2,7 +2,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCGameController__
-#define __cocos2d_libs__CCGameController__
+#ifndef _AX_GAMECONTROLLER_H_
+#define _AX_GAMECONTROLLER_H_
 /// @cond DO_NOT_SHOW
 
 #include "base/Controller.h"
@@ -32,4 +32,4 @@
 #include "base/EventListenerController.h"
 
 /// @endcond
-#endif /* defined(__cocos2d_libs__CCGameController__) */
+#endif /* defined(_AX_GAMECONTROLLER_H_) */

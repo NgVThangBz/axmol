@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,12 @@
 #include "Types.h"
 #include "base/Object.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class MeshVertexData;
 class MeshIndexData;
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 NS_AX_BACKEND_BEGIN
 

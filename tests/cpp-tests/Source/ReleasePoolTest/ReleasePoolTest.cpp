@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "ReleasePoolTest.h"
 
-USING_NS_AX;
+using namespace ax;
 
 ReleasePoolTests::ReleasePoolTests()
 {
@@ -36,12 +36,12 @@ class TestObject : public Object
 public:
     TestObject() : _name("") {}
 
-    TestObject(std::string name) : _name(name) { AXLOG("TestObject:%s is created", _name.c_str()); }
+    TestObject(std::string name) : _name(name) { AXLOGD("TestObject:{} is created", _name); }
 
     ~TestObject()
     {
         if (_name.size() > 0)
-            AXLOG("TestObject:%s is destroyed", _name.c_str());
+            AXLOGD("TestObject:{} is destroyed", _name);
     }
 
 private:

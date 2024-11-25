@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ static void* s_ctx                         = nullptr;
 
 static std::string g_apkPath;
 
-USING_NS_AX;
+using namespace ax;
 using namespace std;
 
 extern "C" {
@@ -127,7 +127,7 @@ const char* getApkPath()
 
 std::string getPackageNameJNI()
 {
-    return JniHelper::callStaticStringMethod(className, "getCocos2dxPackageName");
+    return JniHelper::callStaticStringMethod(className, "getPackageName");
 }
 
 int getObbAssetFileDescriptorJNI(const char* path, int64_t* startOffset, int64_t* size)

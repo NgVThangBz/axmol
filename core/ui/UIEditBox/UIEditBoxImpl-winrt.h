@@ -1,8 +1,9 @@
 /****************************************************************************
 Copyright (c) 2014 cocos2d-x.org
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +39,8 @@ using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Controls;
 using namespace Windows::UI::Xaml::Input;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui {
 
@@ -132,14 +134,14 @@ namespace ui {
     virtual void createNativeControl(const Rect& frame) override {  }
     virtual void setNativeFont(const char* pFontName, int fontSize) override;
     virtual void setNativeFontColor(const Color4B& color) override;
-    virtual void setNativePlaceholderFont(const char* pFontName, int fontSize) override { AXLOG("Warning! You can't change WinRT placeholder font"); }
-    virtual void setNativePlaceholderFontColor(const Color4B& color) override { AXLOG("Warning! You can't change WinRT placeholder font color"); }
+    virtual void setNativePlaceholderFont(const char* pFontName, int fontSize) override { AXLOGD("Warning! You can't change WinRT placeholder font"); }
+    virtual void setNativePlaceholderFontColor(const Color4B& color) override { AXLOGD("Warning! You can't change WinRT placeholder font color"); }
     virtual void setNativeInputMode(EditBox::InputMode inputMode) override;
     virtual void setNativeInputFlag(EditBox::InputFlag inputFlag) override;
-    virtual void setNativeReturnType(EditBox::KeyboardReturnType returnType) override { AXLOG("Warning! You can't change WinRT return type"); }
+    virtual void setNativeReturnType(EditBox::KeyboardReturnType returnType) override { AXLOGD("Warning! You can't change WinRT return type"); }
     virtual void setNativeTextHorizontalAlignment(ax::TextHAlignment alignment);
     virtual void setNativeText(const char* pText) override;
-    virtual void setNativePlaceHolder(const char* pText) override { AXLOG("Warning! You can't change WinRT placeholder text"); }
+    virtual void setNativePlaceHolder(const char* pText) override { AXLOGD("Warning! You can't change WinRT placeholder text"); }
     virtual void setNativeVisible(bool visible) override;
     virtual void updateNativeFrame(const Rect& rect) override; // TODO
     virtual const char* getNativeDefaultFontName() override { return "Segoe UI"; }
@@ -149,7 +151,7 @@ namespace ui {
 
   private:
     ax::Vec2 convertDesignCoordToXamlCoord(const ax::Vec2& designCoord);
-    virtual void doAnimationWhenKeyboardMove(float duration, float distance) override { AXLOG("Warning! doAnimationWhenKeyboardMove not supported on WinRT"); }
+    virtual void doAnimationWhenKeyboardMove(float duration, float distance) override { AXLOGD("Warning! doAnimationWhenKeyboardMove not supported on WinRT"); }
 
     winrt::agile_ref<Windows::Foundation::IInspectable> _system_control_agile;
     winrt::com_ptr<EditBoxWinRT> _system_control{};
@@ -158,9 +160,9 @@ namespace ui {
 
 } // namespace ui
 
-NS_AX_END
+}
 
-#endif // CC_PLATFORM_WINRT
+#endif // AX_PLATFORM_WINRT
 
 #endif // #ifdef __UIEditBoxIMPLWINRT_H__
 

@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,9 +31,10 @@
 
 #include <algorithm>
 
-NS_AX_BEGIN
+namespace ax
+{
 
-const std::string EventListenerTouchOneByOne::LISTENER_ID = "__cc_touch_one_by_one";
+const std::string EventListenerTouchOneByOne::LISTENER_ID = "__ax_touch_one_by_one";
 
 EventListenerTouchOneByOne::EventListenerTouchOneByOne()
     : onTouchBegan(nullptr)
@@ -44,7 +46,7 @@ EventListenerTouchOneByOne::EventListenerTouchOneByOne()
 
 EventListenerTouchOneByOne::~EventListenerTouchOneByOne()
 {
-    AXLOGINFO("In the destructor of EventListenerTouchOneByOne, %p", this);
+    AXLOGV("In the destructor of EventListenerTouchOneByOne, {}", fmt::ptr(this));
 }
 
 bool EventListenerTouchOneByOne::init()
@@ -118,7 +120,7 @@ EventListenerTouchOneByOne* EventListenerTouchOneByOne::clone()
 
 /////////
 
-const std::string EventListenerTouchAllAtOnce::LISTENER_ID = "__cc_touch_all_at_once";
+const std::string EventListenerTouchAllAtOnce::LISTENER_ID = "__ax_touch_all_at_once";
 
 EventListenerTouchAllAtOnce::EventListenerTouchAllAtOnce()
     : onTouchesBegan(nullptr), onTouchesMoved(nullptr), onTouchesEnded(nullptr), onTouchesCancelled(nullptr)
@@ -126,7 +128,7 @@ EventListenerTouchAllAtOnce::EventListenerTouchAllAtOnce()
 
 EventListenerTouchAllAtOnce::~EventListenerTouchAllAtOnce()
 {
-    AXLOGINFO("In the destructor of EventListenerTouchAllAtOnce, %p", this);
+    AXLOGV("In the destructor of EventListenerTouchAllAtOnce, {}", fmt::ptr(this));
 }
 
 bool EventListenerTouchAllAtOnce::init()
@@ -184,4 +186,4 @@ EventListenerTouchAllAtOnce* EventListenerTouchAllAtOnce::clone()
     return ret;
 }
 
-NS_AX_END
+}

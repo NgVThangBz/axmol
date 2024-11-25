@@ -2,8 +2,9 @@
  Copyright (C) 2013 Henry van Merode. All rights reserved.
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +33,12 @@
 #include <list>
 #include <map>
 
+#include "base/Logging.h"
 #include "base/Object.h"
 #include "Particle3D/PU/PUScriptLexer.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 struct PUConcreteNode;
 
@@ -82,6 +85,6 @@ private:
                                                    PUScriptTokenList::const_iterator end);
 };
 
-NS_AX_END
+}
 
 #endif /* defined(__cocos2d_libs__CCScriptParser__) */

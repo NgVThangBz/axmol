@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 #include "doctest.h"
 #include "AppDelegate.h"
 
-USING_NS_AX;
+using namespace ax;
 
 static Vec2 gWindowSize = Vec2(1024, 768);
 
@@ -95,12 +95,14 @@ void AppDelegate::applicationWillEnterForeground()
 
 
 int AppDelegate::run(int argc, char** argv) {
-    printf("Running unit tests...\n");
+    AXLOGI("Running unit tests...\n");
     fflush(stdout);
-    printf("Default resource path: %s\n", FileUtils::getInstance()->getDefaultResourceRootPath().c_str());
-    printf("Writable path: %s\n", FileUtils::getInstance()->getWritablePath().c_str());
-    for (auto& path: FileUtils::getInstance()->getSearchPaths())
-        printf("Search path: %s\n", path.c_str());
+    AXLOGI("Default resource path: {}\n", FileUtils::getInstance()->getDefaultResourceRootPath());
+    AXLOGI("Writable path: {}\n", FileUtils::getInstance()->getWritablePath());
+    {
+        for (auto& path : FileUtils::getInstance()->getSearchPaths())
+            AXLOGI("Search path: {}\n", path);
+    }
     fflush(stdout);
 
     ax::Director::getInstance()->init();

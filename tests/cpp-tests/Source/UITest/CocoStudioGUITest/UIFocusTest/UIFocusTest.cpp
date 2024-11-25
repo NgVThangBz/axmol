@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 
 #include "UIFocusTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UIFocusTests::UIFocusTests()
@@ -163,7 +163,7 @@ void UIFocusTestBase::onFocusChanged(ax::ui::Widget* widgetLostFocus, ax::ui::Wi
 
     if (widgetLostFocus && widgetGetFocus)
     {
-        AXLOG("on focus change, %d widget get focus, %d widget lose focus", widgetGetFocus->getTag(),
+        AXLOGD("on focus change, {} widget get focus, {} widget lose focus", widgetGetFocus->getTag(),
               widgetLostFocus->getTag());
     }
 }

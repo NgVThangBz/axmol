@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@
 #include "Particle3D/PU/PUAffector.h"
 #include "Particle3D/PU/PUForceField.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class AX_EX_DLL PUForceFieldAffector : public PUAffector
 {
@@ -156,6 +157,6 @@ protected:
     Vec3 _basePosition;
     bool _suppressGeneration;  // Prevents re-generation of the complete forcefield after a change.
 };
-NS_AX_END
+}
 
 #endif

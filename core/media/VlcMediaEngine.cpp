@@ -8,7 +8,7 @@ sudo apt install ubuntu-restricted-extras
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ sudo apt install ubuntu-restricted-extras
 
 #    include "VlcMediaEngine.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static constexpr auto VLC_OUTPUT_FORMAT = ax::MEVideoPixelFormat::NV12;
 
@@ -185,7 +186,7 @@ void VlcMediaEngine::libvlc_handle_event(const libvlc_event_t* event, void* user
 
 VlcMediaEngine::VlcMediaEngine()
 {
-    AXLOG("libvlc-version: %s", libvlc_get_version());
+    AXLOGD("libvlc-version: {}", libvlc_get_version());
 
     // too late set vlc plugins path at hete, vlc maybe read it at DllMain
     //_putenv_s("VLC_PLUGIN_PATH", R"(D:\dev\axmol\3rdparty\vlc\win\lib)");
@@ -457,7 +458,7 @@ bool VlcMediaEngine::transferVideoFrame()
         return false;
 
     std::unique_lock<std::mutex> lck(_frameBuffer1Mtx);
-    if (UTILS_LIKELY(!_frameBuffer1.empty()))
+    if (AX_LIKELY(!_frameBuffer1.empty()))
     {
         _frameBuffer2.swap(_frameBuffer1);
         lck.unlock();  // unlock immidiately before invoke user callback (maybe upload buffer to GPU)
@@ -475,6 +476,6 @@ bool VlcMediaEngine::transferVideoFrame()
     return false;
 }
 
-NS_AX_END
+}
 
 #endif

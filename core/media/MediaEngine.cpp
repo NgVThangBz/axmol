@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,8 @@ std::unique_ptr<T> static_pointer_cast(std::unique_ptr<U>&& r)
 
 }  // namespace axstd
 
-NS_AX_BEGIN
+namespace ax
+{
 
 std::unique_ptr<MediaEngineFactory> MediaEngineFactory::create()
 {
@@ -66,7 +67,7 @@ std::unique_ptr<MediaEngineFactory> MediaEngineFactory::create()
 #    if WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP && !defined(AXME_USE_IMFME)
 #        if defined(AX_ENABLE_MFMEDIA)
     return axstd::static_pointer_cast<MediaEngineFactory>(std::make_unique<WmfMediaEngineFactory>());
-#        elif (AX_ENABLE_VLC_MEDIA)
+#        elif defined(AX_ENABLE_VLC_MEDIA)
     return axstd::static_pointer_cast<MediaEngineFactory>(std::make_unique<VlcMediaEngineFactory>());
 #        endif
 #    else
@@ -83,4 +84,4 @@ std::unique_ptr<MediaEngineFactory> MediaEngineFactory::create()
 #endif
 }
 
-NS_AX_END
+}

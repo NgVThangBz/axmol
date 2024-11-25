@@ -2,7 +2,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@
 #include "3d/MeshRenderer.h"
 #include "2d/Camera.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 Particle3DQuadRender::Particle3DQuadRender()
     : _texture(nullptr), _programState(nullptr), _indexBuffer(nullptr), _vertexBuffer(nullptr), _texFile("")
@@ -82,7 +83,7 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
                                                       backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
         if (_vertexBuffer == nullptr)
         {
-            AXLOG("Particle3DQuadRender::render create vertex buffer failed");
+            AXLOGD("Particle3DQuadRender::render create vertex buffer failed");
             return;
         }
     }
@@ -94,7 +95,7 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
                                                       backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
         if (_indexBuffer == nullptr)
         {
-            AXLOG("Particle3DQuadRender::render create index buffer failed");
+            AXLOGD("Particle3DQuadRender::render create index buffer failed");
             return;
         }
     }
@@ -288,7 +289,7 @@ void Particle3DModelRender::render(Renderer* renderer, const Mat4& transform, Pa
             MeshRenderer* mesh = MeshRenderer::create(_modelFile);
             if (mesh == nullptr)
             {
-                AXLOG("failed to load file %s", _modelFile.c_str());
+                AXLOGD("failed to load file {}", _modelFile);
                 continue;
             }
             mesh->setTexture(_texFile);
@@ -391,4 +392,4 @@ void Particle3DRender::setBlendFunc(const BlendFunc& blendFunc)
     _stateBlock.setBlendFunc(blendFunc);
 }
 
-NS_AX_END
+}

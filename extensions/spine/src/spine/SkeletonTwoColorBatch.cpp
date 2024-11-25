@@ -39,7 +39,7 @@
 #include "renderer/Shaders.h"
 #include "xxhash.h"
 
-USING_NS_AX;
+using namespace ax;
 #define EVENT_AFTER_DRAW_RESET_POSITION "director_after_draw"
 using std::max;
 #define INITIAL_SIZE (10000)
@@ -110,7 +110,7 @@ namespace spine {
 		if (_triangles.indexCount % 3 != 0) {
 			int count = _triangles.indexCount;
 			_triangles.indexCount = count / 3 * 3;
-			AXLOGERROR("Resize indexCount from %d to %d, size must be multiple times of 3", count, _triangles.indexCount);
+			AXLOGE("Resize indexCount from {} to {}, size must be multiple times of 3", count, _triangles.indexCount);
 		}
 
 		_mv = mv;

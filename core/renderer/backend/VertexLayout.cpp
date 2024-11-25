@@ -1,7 +1,8 @@
 /****************************************************************************
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +37,7 @@ void VertexLayout::setAttrib(std::string_view name,
 {
     if (index == -1)
     {
-        AXLOGWARN("The vertex attribute '%s' vfmt=%d not exist, unused/optimized?", name.data(), static_cast<int>(format));
+        AXLOGW("The vertex attribute '{}' vfmt={} not exist, unused/optimized?", name, static_cast<int>(format));
         return;
     }
 

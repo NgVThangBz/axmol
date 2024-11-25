@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,8 @@ THE SOFTWARE.
 
 #include "ntcvt/ntcvt.hpp"
 
-#define DECLARE_GUARD (void)0  // std::lock_guard<std::recursive_mutex> mutexGuard(_mutex)
-
-NS_AX_BEGIN
+namespace ax
+{
 
 #define AX_MAX_PATH 512
 
@@ -87,7 +86,7 @@ FileUtils* FileUtils::getInstance()
         {
             delete s_sharedFileUtils;
             s_sharedFileUtils = nullptr;
-            AXLOG("ERROR: Could not init CCFileUtilsWin32");
+            AXLOGE("ERROR: Could not init FileUtilsWin32");
         }
     }
     return s_sharedFileUtils;
@@ -163,13 +162,11 @@ int64_t FileUtilsWin32::getFileSize(std::string_view filepath) const
 
 std::string FileUtilsWin32::getWritablePath() const
 {
-    DECLARE_GUARD;
     return getNativeWritableAbsolutePath();
 }
 
 std::string FileUtilsWin32::getNativeWritableAbsolutePath() const
 {
-    DECLARE_GUARD;
     if (_writablePath.length())
     {
         return _writablePath;
@@ -234,7 +231,7 @@ bool FileUtilsWin32::renameFile(std::string_view oldfullpath, std::string_view n
     {
         if (!DeleteFile(_wNew.c_str()))
         {
-            AXLOGERROR("Fail to delete file %s !Error code is 0x%x", newfullpath.data(), GetLastError());
+            AXLOGE("Fail to delete file {} !Error code is 0x{:x}", newfullpath, GetLastError());
         }
     }
 
@@ -244,7 +241,7 @@ bool FileUtilsWin32::renameFile(std::string_view oldfullpath, std::string_view n
     }
     else
     {
-        AXLOGERROR("Fail to rename file %s to %s !Error code is 0x%x", oldfullpath.data(), newfullpath.data(),
+        AXLOGE("Fail to rename file {} to {} !Error code is 0x{:x}", oldfullpath, newfullpath,
                    GetLastError());
         return false;
     }
@@ -265,7 +262,7 @@ bool FileUtilsWin32::renameFile(std::string_view path, std::string_view oldname,
     return renameFile(_old, _new);
 }
 
-bool FileUtilsWin32::createDirectory(std::string_view dirPath) const
+bool FileUtilsWin32::createDirectories(std::string_view dirPath) const
 {
     AXASSERT(!dirPath.empty(), "Invalid path");
 
@@ -274,52 +271,29 @@ bool FileUtilsWin32::createDirectory(std::string_view dirPath) const
 
     std::wstring path = ntcvt::from_chars(dirPath);
 
-    // Split the path
-    size_t start = 0;
-    size_t found = path.find_first_of(L"/\\", start);
-    std::wstring subpath;
-    std::vector<std::wstring> dirs;
-
-    if (found != std::wstring::npos)
-    {
-        while (true)
-        {
-            subpath = path.substr(start, found - start + 1);
-            if (!subpath.empty())
-                dirs.emplace_back(subpath);
-            start = found + 1;
-            found = path.find_first_of(L"/\\", start);
-            if (found == std::wstring::npos)
-            {
-                if (start < path.length())
-                {
-                    dirs.emplace_back(path.substr(start));
-                }
-                break;
-            }
-        }
-    }
-
+    bool fail = false;
     if ((GetFileAttributesW(path.c_str())) == INVALID_FILE_ATTRIBUTES)
     {
-        subpath = L"";
-        for (unsigned int i = 0, size = dirs.size(); i < size; ++i)
-        {
-            subpath += dirs[i];
-
-            std::string utf8Path = ntcvt::from_chars(subpath);
-            if (!isDirectoryExist(utf8Path))
+        axstd::splitpath_cb(
+            &path.front(), [](wchar_t* ptr) { return *ptr != '\0'; },
+            [&dirPath, &fail](const wchar_t* subpath) {
+            auto attribs = GetFileAttributesW(subpath);
+            if (attribs == INVALID_FILE_ATTRIBUTES)
             {
-                BOOL ret = CreateDirectoryW(subpath.c_str(), NULL);
+                BOOL ret = CreateDirectoryW(subpath, NULL);
                 if (!ret && ERROR_ALREADY_EXISTS != GetLastError())
                 {
-                    AXLOGERROR("Fail create directory %s !Error code is 0x%x", utf8Path.c_str(), GetLastError());
-                    return false;
+                    fail = true;
+                    AXLOGE("Fail create directory {} !Error code is 0x{:x}", dirPath, GetLastError());
                 }
             }
-        }
+            else
+                fail = !(attribs & FILE_ATTRIBUTE_DIRECTORY);
+
+            return fail;
+        });
     }
-    return true;
+    return !fail;
 }
 
 bool FileUtilsWin32::removeFile(std::string_view filepath) const
@@ -332,7 +306,7 @@ bool FileUtilsWin32::removeFile(std::string_view filepath) const
     }
     else
     {
-        AXLOGERROR("Fail remove file %s !Error code is 0x%x", filepath.data(), GetLastError());
+        AXLOGE("Fail remove file {} !Error code is 0x{:x}", filepath, GetLastError());
         return false;
     }
 }
@@ -381,4 +355,4 @@ bool FileUtilsWin32::removeDirectory(std::string_view dirPath) const
     return false;
 }
 
-NS_AX_END
+}

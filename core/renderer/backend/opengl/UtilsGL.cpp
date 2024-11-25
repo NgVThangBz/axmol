@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -230,7 +230,7 @@ GLint UtilsGL::toGLMinFilter(SamplerFilter minFilter, bool hasMipmaps, bool isPo
 {
     if (hasMipmaps && !isPow2)
     {
-        AXLOG("Change minification filter to either NEAREST or LINEAR since non-power-of-two texture occur in %s %s %d",
+        AXLOGD("Change minification filter to either NEAREST or LINEAR since non-power-of-two texture occur in {} {} {}",
               __FILE__, __FUNCTION__, __LINE__);
         if (SamplerFilter::LINEAR == minFilter)
             return GL_LINEAR;
@@ -264,7 +264,7 @@ GLint UtilsGL::toGLAddressMode(SamplerAddressMode addressMode, bool isPow2)
     GLint ret = GL_REPEAT;
     if (!isPow2 && (addressMode != SamplerAddressMode::CLAMP_TO_EDGE))
     {
-        AXLOG("Change texture wrap mode to CLAMP_TO_EDGE since non-power-of-two texture occur in %s %s %d", __FILE__,
+        AXLOGD("Change texture wrap mode to CLAMP_TO_EDGE since non-power-of-two texture occur in {} {} {}", __FILE__,
               __FUNCTION__, __LINE__);
         return GL_CLAMP_TO_EDGE;
     }
@@ -292,7 +292,7 @@ void UtilsGL::toGLTypes(PixelFormat textureFormat,
                         GLenum& type,
                         bool& isCompressed)
 {
-    if (UTILS_LIKELY(textureFormat < PixelFormat::COUNT))
+    if (AX_LIKELY(textureFormat < PixelFormat::COUNT))
     {
         auto& info     = s_textureFormats[(int)textureFormat];
         internalFormat = info.internalFmt;

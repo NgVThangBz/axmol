@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace network
 {
@@ -51,7 +52,7 @@ class HttpClient;
  * @since v2.0.2.
  * @lua NA
  */
-class AX_DLL HttpResponse : public ax::Object
+class AX_DLL HttpResponse : public TSFRefCountedBase
 {
     friend class HttpClient;
 
@@ -162,7 +163,7 @@ private:
                 auto redirectUrl = iter->second;
                 if (_responseCode == 302)
                     getHttpRequest()->setRequestType(HttpRequest::Type::GET);
-                AXLOG("Process url redirect (%d): %s", _responseCode, redirectUrl.c_str());
+                AXLOGD("Process url redirect ({}): {}", _responseCode, redirectUrl);
                 return setLocation(redirectUrl, true);
             }
         }
@@ -282,7 +283,7 @@ protected:
 
 }  // namespace network
 
-NS_AX_END
+}
 
 // end group
 /// @}

@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,8 @@ static unsigned short quadIndices9[] = {
 
 const static float PRECISION = 10.0f;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 PolygonInfo::PolygonInfo() : _isVertsOwner(true), _rect(Rect::ZERO), _filename("")
 {
@@ -388,7 +389,7 @@ std::vector<ax::Vec2> AutoPolygon::marchSquare(const Rect& rect, const Vec2& sta
             }
             break;
         default:
-            AXLOG("this shouldn't happen.");
+            AXLOGD("this shouldn't happen.");
         }
         // little optimization
         //  if previous direction is same as current direction,
@@ -577,7 +578,7 @@ std::vector<Vec2> AutoPolygon::expand(const std::vector<Vec2>& points, const ax:
         }
         else
         {
-            AXLOG("Clipper2 detect a hole!");
+            AXLOGW("Clipper2 detect a hole!");
         }
     }
 
@@ -728,4 +729,4 @@ PolygonInfo AutoPolygon::generatePolygon(std::string_view filename, const Rect& 
     return ap.generateTriangles(rect, epsilon, threshold);
 }
 
-NS_AX_END
+}

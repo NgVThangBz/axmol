@@ -3,7 +3,7 @@
  Copyright (c) 2010 Sangwoo Im
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -793,7 +793,7 @@ void ScrollView::onTouchMoved(Touch* touch, Event* /*event*/)
 
             if (!_touchMoved && fabs(convertDistanceFromPointToInch(dis)) < MOVE_INCH)
             {
-                // AXLOG("Invalid movement, distance = [%f, %f], disInch = %f", moveDistance.x, moveDistance.y);
+                // AXLOGD("Invalid movement, distance = [{}, {}], disInch = {}", moveDistance.x, moveDistance.y);
                 return;
             }
 

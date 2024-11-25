@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 
 #include "platform/PlatformMacros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 template <class T>
 class RenderCommandPool
@@ -42,7 +43,7 @@ public:
     {
         //        if( 0 != _usedPool.size())
         //        {
-        //            AXLOG("All RenderCommand should not be used when Pool is released!");
+        //            AXLOGD("All RenderCommand should not be used when Pool is released!");
         //        }
         _freePool.clear();
         for (auto&& allocatedPoolBlock : _allocatedPoolBlocks)
@@ -70,7 +71,7 @@ public:
     {
         //        if(_usedPool.find(ptr) == _usedPool.end())
         //        {
-        //            AXLOG("push Back Wrong command!");
+        //            AXLOGD("push Back Wrong command!");
         //            return;
         //        }
 
@@ -95,7 +96,7 @@ private:
     // std::set<T*> _usedPool;
 };
 
-NS_AX_END
+}
 
 /// @endcond
 #endif

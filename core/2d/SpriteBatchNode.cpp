@@ -7,7 +7,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,8 @@ THE SOFTWARE.
 #include "renderer/backend/ProgramState.h"
 #include "renderer/backend/DriverBase.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /*
  * creation with Texture2D
@@ -443,13 +444,13 @@ void SpriteBatchNode::increaseAtlasCapacity()
     // this is likely computationally expensive
     ssize_t quantity = (_textureAtlas->getCapacity() + 1) * 4 / 3;
 
-    AXLOG("axmol: SpriteBatchNode: resizing TextureAtlas capacity from [%d] to [%d].",
+    AXLOGD("SpriteBatchNode: resizing TextureAtlas capacity from [{}] to [{}].",
           static_cast<int>(_textureAtlas->getCapacity()), static_cast<int>(quantity));
 
     if (!_textureAtlas->resizeCapacity(quantity))
     {
         // serious problems
-        AXLOGWARN("axmol: WARNING: Not enough memory to resize the atlas");
+        AXLOGW("WARNING: Not enough memory to resize the atlas");
         AXASSERT(false, "Not enough memory to resize the atlas");
     }
 }
@@ -462,7 +463,7 @@ void SpriteBatchNode::reserveCapacity(ssize_t newCapacity)
     if (!_textureAtlas->resizeCapacity(newCapacity))
     {
         // serious problems
-        AXLOGWARN("axmol: WARNING: Not enough memory to resize the atlas");
+        AXLOGW("WARNING: Not enough memory to resize the atlas");
         AXASSERT(false, "Not enough memory to resize the atlas");
     }
 }
@@ -784,7 +785,7 @@ SpriteBatchNode* SpriteBatchNode::addSpriteWithoutQuad(Sprite* child, int z, int
 
 std::string SpriteBatchNode::getDescription() const
 {
-    return StringUtils::format("<SpriteBatchNode | tag = %d>", _tag);
+    return fmt::format("<SpriteBatchNode | tag = {}>", _tag);
 }
 
-NS_AX_END
+}

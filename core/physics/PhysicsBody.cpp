@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,8 @@ static void internalBodyUpdateVelocity(cpBody* body, cpVect gravity, cpFloat dam
     cpBodySetTorque(body, 0.0f);
 }
 
-NS_AX_BEGIN
+namespace ax
+{
 extern const float PHYSICS_INFINITY;
 
 const std::string PhysicsBody::COMPONENT_NAME = "PhysicsBody";
@@ -603,7 +604,7 @@ void PhysicsBody::setVelocity(const Vec2& velocity)
 {
     if (cpBodyGetType(_cpBody) == CP_BODY_TYPE_STATIC)
     {
-        AXLOG("physics warning: you can't set velocity for a static body.");
+        AXLOGD("physics warning: you can't set velocity for a static body.");
         return;
     }
 
@@ -629,7 +630,7 @@ void PhysicsBody::setAngularVelocity(float velocity)
 {
     if (cpBodyGetType(_cpBody) == CP_BODY_TYPE_STATIC)
     {
-        AXLOG("physics warning: you can't set angular velocity for a static body.");
+        AXLOGD("physics warning: you can't set angular velocity for a static body.");
         return;
     }
 
@@ -1021,6 +1022,6 @@ void PhysicsBody::removeFromPhysicsWorld()
     }
 }
 
-NS_AX_END
+}
 
 #endif  // defined(AX_ENABLE_PHYSICS)

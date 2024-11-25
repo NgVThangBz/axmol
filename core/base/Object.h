@@ -4,7 +4,7 @@ Copyright (c) 2013-2017 Chukong Technologies
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
  * @addtogroup base
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 
 class Object;
 
@@ -163,15 +164,38 @@ typedef void (Object::*SEL_CallFuncO)(Object*);
 typedef void (Object::*SEL_MenuHandler)(Object*);
 typedef void (Object::*SEL_SCHEDULE)(float);
 
-#define AX_CALLFUNC_SELECTOR(_SELECTOR) static_cast<ax::SEL_CallFunc>(&_SELECTOR)
-#define AX_CALLFUNCN_SELECTOR(_SELECTOR) static_cast<ax::SEL_CallFuncN>(&_SELECTOR)
+#define AX_CALLFUNC_SELECTOR(_SELECTOR)   static_cast<ax::SEL_CallFunc>(&_SELECTOR)
+#define AX_CALLFUNCN_SELECTOR(_SELECTOR)  static_cast<ax::SEL_CallFuncN>(&_SELECTOR)
 #define AX_CALLFUNCND_SELECTOR(_SELECTOR) static_cast<ax::SEL_CallFuncND>(&_SELECTOR)
-#define AX_CALLFUNCO_SELECTOR(_SELECTOR) static_cast<ax::SEL_CallFuncO>(&_SELECTOR)
-#define AX_MENU_SELECTOR(_SELECTOR) static_cast<ax::SEL_MenuHandler>(&_SELECTOR)
-#define AX_SCHEDULE_SELECTOR(_SELECTOR) static_cast<ax::SEL_SCHEDULE>(&_SELECTOR)
+#define AX_CALLFUNCO_SELECTOR(_SELECTOR)  static_cast<ax::SEL_CallFuncO>(&_SELECTOR)
+#define AX_MENU_SELECTOR(_SELECTOR)       static_cast<ax::SEL_MenuHandler>(&_SELECTOR)
+#define AX_SCHEDULE_SELECTOR(_SELECTOR)   static_cast<ax::SEL_SCHEDULE>(&_SELECTOR)
 
-NS_AX_END
+}
 // end of base group
 /** @} */
+
+namespace axstd
+{
+template <typename _Ty, typename Enable = void>
+struct is_ref_counted : std::false_type
+{};
+
+template <typename... _Types>
+struct is_ref_counted_helper
+{};
+
+template <typename _Ty>
+struct is_ref_counted<_Ty,
+                      std::conditional_t<false,
+                                         is_ref_counted_helper<decltype(std::declval<_Ty>().retain()),
+                                                               decltype(std::declval<_Ty>().release()),
+                                                               decltype(std::declval<_Ty>().getReferenceCount())>,
+                                         void>> : public std::true_type
+{};
+
+template <typename _Ty>
+inline constexpr bool is_ref_counted_v = is_ref_counted<std::remove_pointer_t<_Ty>>::value;
+}  // namespace axstd
 
 #endif  // __BASE_CCREF_H__

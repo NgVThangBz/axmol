@@ -1,7 +1,8 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-
- https://axmolengine.github.io/
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ 
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +25,7 @@
 
 #include "RenderTextureTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 RenderTextureTests::RenderTextureTests()
@@ -115,7 +116,7 @@ void RenderTextureSave::saveImageWithPremultipliedAlpha(ax::Object* sender)
     _target->saveToFile(png, Image::Format::PNG, true, callback);
     // Add this function to avoid crash if we switch to a new scene.
     Director::getInstance()->getRenderer()->render();
-    AXLOG("Image saved %s", png);
+    AXLOGD("Image saved {}", png);
 
     counter++;
 }
@@ -141,7 +142,7 @@ void RenderTextureSave::saveImageWithNonPremultipliedAlpha(ax::Object* sender)
 
     // Add this function to avoid crash if we switch to a new scene.
     Director::getInstance()->getRenderer()->render();
-    AXLOG("Image saved %s", png);
+    AXLOGD("Image saved {}", png);
 
     counter++;
 }
@@ -421,7 +422,7 @@ void RenderTextureZbuffer::renderScreenShot()
     this->addChild(sprite, 999999);
     sprite->setColor(Color3B::GREEN);
 
-    sprite->runAction(Sequence::create(FadeTo::create(2, 0), Hide::create(), nullptr));
+    sprite->runAction(Sequence::create(FadeTo::create(2, 0), RemoveSelf::create(), nullptr));
 }
 
 RenderTexturePartTest::RenderTexturePartTest()

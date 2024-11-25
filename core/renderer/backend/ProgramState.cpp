@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -123,6 +123,25 @@ void TextureInfo::assign(TextureInfo&& other)
 #if AX_ENABLE_CACHE_TEXTURE_DATA
         location       = other.location;
         other.location = -1;
+#endif
+    }
+}
+
+void TextureInfo::assign(int slot, int index, backend::TextureBackend* texture)
+{
+    if (textures.size() != 1 or textures[0] != texture or slots[0] != slot or indexs[0] != index)
+    {
+        releaseTextures();
+        indexs.resize(1);
+        indexs[0] = index;
+        slots.resize(1);
+        slots[0] = slot;
+        textures.resize(1);
+        textures[0] = texture;
+        AX_SAFE_RETAIN(texture);
+
+#if AX_ENABLE_CACHE_TEXTURE_DATA
+        location = -1;
 #endif
     }
 }
@@ -261,6 +280,7 @@ void ProgramState::setFragmentUniform(int location, const void* data, std::size_
 }
 #endif
 
+#ifndef AX_CORE_PROFILE
 void ProgramState::setVertexAttrib(std::string_view name,
                                    std::size_t index,
                                    VertexFormat format,
@@ -277,7 +297,7 @@ void ProgramState::setVertexStride(uint32_t stride)
     ensureVertexLayoutMutable();
     _vertexLayout->setStride(stride);
 }
-
+#endif
 void ProgramState::validateSharedVertexLayout(VertexLayoutType vlt)
 {
     if (!_ownVertexLayout && !_vertexLayout->isValid())
@@ -361,7 +381,7 @@ void ProgramState::setTexture(int location,
         return;
 
     auto& info = textureInfo[location];
-    info       = {{slot}, {index}, {texture}};
+    info.assign(slot, index, texture);
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     info.location = location;

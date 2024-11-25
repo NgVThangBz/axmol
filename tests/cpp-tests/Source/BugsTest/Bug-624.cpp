@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 
 #include "Bug-624.h"
 
-USING_NS_AX;
+using namespace ax;
 
 ////////////////////////////////////////////////////////
 //
@@ -74,7 +74,7 @@ void Bug624Layer::switchLayer(float dt)
 
 void Bug624Layer::onAcceleration(Acceleration* acc, Event* event)
 {
-    ax::print("Layer1 accel");
+    AXLOGD("Layer1 accel");
 }
 
 ////////////////////////////////////////////////////////
@@ -120,5 +120,5 @@ void Bug624Layer2::switchLayer(float dt)
 
 void Bug624Layer2::onAcceleration(Acceleration* acc, Event* event)
 {
-    ax::print("Layer2 accel");
+    AXLOGD("Layer2 accel");
 }

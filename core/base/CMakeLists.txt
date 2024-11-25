@@ -39,7 +39,6 @@ set(_AX_BASE_HEADER
     base/Event.h
     base/Types.h
     base/Enums.h
-    base/AsyncTaskPool.h
     base/Random.h
     base/Object.h
     base/Profiling.h
@@ -81,10 +80,11 @@ set(_AX_BASE_HEADER
     base/IMEDispatcher.h
     base/PaddedString.h
     base/JsonWriter.h
+    base/JobSystem.h
     )
 
 set(_AX_BASE_SRC
-    base/AsyncTaskPool.cpp
+    base/JobSystem.cpp
     base/AutoreleasePool.cpp
     base/Configuration.cpp
     base/Logging.cpp
@@ -138,6 +138,11 @@ set(_AX_BASE_SRC
     base/astc.cpp
     ${_AX_BASE_SPECIFIC_SRC}
     )
+
+if(NOT AX_CORE_PROFILE)
+    set(_AX_BASE_HEADER ${_AX_BASE_HEADER} base/AsyncTaskPool.h)
+    set(_AX_BASE_SRC ${_AX_BASE_SRC} base/AsyncTaskPool.cpp)
+endif()
 
 if(AX_ENABLE_CONSOLE)
     set(_AX_BASE_HEADER ${_AX_BASE_HEADER} base/Console.h)

@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 #include "base/Touch.h"
 #include "base/Director.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 void* GLViewImpl::_pixelFormat      = kEAGLColorFormatRGB565;
 int GLViewImpl::_depthFormat        = GL_DEPTH_COMPONENT16;
@@ -292,4 +293,4 @@ void GLViewImpl::queueOperation(void (*op)(void*), void* param)
     }];
 }
 
-NS_AX_END
+}

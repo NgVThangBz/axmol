@@ -541,7 +541,7 @@ int lua_ax_studio_ActionFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionFrame)");
     return 0;
 }
 
@@ -755,7 +755,7 @@ int lua_ax_studio_ActionMoveFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionMoveFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionMoveFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionMoveFrame)");
     return 0;
 }
 
@@ -1059,7 +1059,7 @@ int lua_ax_studio_ActionScaleFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionScaleFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionScaleFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionScaleFrame)");
     return 0;
 }
 
@@ -1277,7 +1277,7 @@ int lua_ax_studio_ActionRotationFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionRotationFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionRotationFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionRotationFrame)");
     return 0;
 }
 
@@ -1484,7 +1484,7 @@ int lua_ax_studio_ActionFadeFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionFadeFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionFadeFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionFadeFrame)");
     return 0;
 }
 
@@ -1691,7 +1691,7 @@ int lua_ax_studio_ActionTintFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionTintFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTintFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTintFrame)");
     return 0;
 }
 
@@ -2578,7 +2578,7 @@ int lua_ax_studio_ActionObject_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionObject_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionObject)");
+    AXLOGV("luabindings: finalizing LUA object (ActionObject)");
     return 0;
 }
 
@@ -2950,7 +2950,7 @@ int lua_ax_studio_ActionManagerEx_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_studio_ActionManagerEx_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionManagerEx)");
+    AXLOGV("luabindings: finalizing LUA object (ActionManagerEx)");
     return 0;
 }
 
@@ -3144,7 +3144,7 @@ int lua_ax_studio_BaseData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_BaseData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BaseData)");
+    AXLOGV("luabindings: finalizing LUA object (BaseData)");
     return 0;
 }
 
@@ -3324,7 +3324,7 @@ int lua_ax_studio_DisplayData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_DisplayData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DisplayData)");
+    AXLOGV("luabindings: finalizing LUA object (DisplayData)");
     return 0;
 }
 
@@ -3468,7 +3468,7 @@ int lua_ax_studio_SpriteDisplayData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_SpriteDisplayData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpriteDisplayData)");
+    AXLOGV("luabindings: finalizing LUA object (SpriteDisplayData)");
     return 0;
 }
 
@@ -3561,7 +3561,7 @@ int lua_ax_studio_ArmatureDisplayData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ArmatureDisplayData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ArmatureDisplayData)");
+    AXLOGV("luabindings: finalizing LUA object (ArmatureDisplayData)");
     return 0;
 }
 
@@ -3653,7 +3653,7 @@ int lua_ax_studio_ParticleDisplayData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ParticleDisplayData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleDisplayData)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleDisplayData)");
     return 0;
 }
 
@@ -3892,7 +3892,7 @@ int lua_ax_studio_BoneData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_BoneData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BoneData)");
+    AXLOGV("luabindings: finalizing LUA object (BoneData)");
     return 0;
 }
 
@@ -4134,7 +4134,7 @@ int lua_ax_studio_ArmatureData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ArmatureData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ArmatureData)");
+    AXLOGV("luabindings: finalizing LUA object (ArmatureData)");
     return 0;
 }
 
@@ -4279,7 +4279,7 @@ int lua_ax_studio_FrameData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_FrameData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FrameData)");
+    AXLOGV("luabindings: finalizing LUA object (FrameData)");
     return 0;
 }
 
@@ -4519,7 +4519,7 @@ int lua_ax_studio_MovementBoneData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_MovementBoneData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MovementBoneData)");
+    AXLOGV("luabindings: finalizing LUA object (MovementBoneData)");
     return 0;
 }
 
@@ -4714,7 +4714,7 @@ int lua_ax_studio_MovementData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_MovementData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MovementData)");
+    AXLOGV("luabindings: finalizing LUA object (MovementData)");
     return 0;
 }
 
@@ -4955,7 +4955,7 @@ int lua_ax_studio_AnimationData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_AnimationData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AnimationData)");
+    AXLOGV("luabindings: finalizing LUA object (AnimationData)");
     return 0;
 }
 
@@ -5147,7 +5147,7 @@ int lua_ax_studio_ContourData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ContourData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ContourData)");
+    AXLOGV("luabindings: finalizing LUA object (ContourData)");
     return 0;
 }
 
@@ -5388,7 +5388,7 @@ int lua_ax_studio_TextureData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_TextureData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TextureData)");
+    AXLOGV("luabindings: finalizing LUA object (TextureData)");
     return 0;
 }
 
@@ -5794,7 +5794,7 @@ int lua_ax_studio_Tween_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_Tween_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Tween)");
+    AXLOGV("luabindings: finalizing LUA object (Tween)");
     return 0;
 }
 
@@ -6792,7 +6792,7 @@ int lua_ax_studio_DisplayManager_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_DisplayManager_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DisplayManager)");
+    AXLOGV("luabindings: finalizing LUA object (DisplayManager)");
     return 0;
 }
 
@@ -8581,7 +8581,7 @@ int lua_ax_studio_Bone_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_Bone_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Bone)");
+    AXLOGV("luabindings: finalizing LUA object (Bone)");
     return 0;
 }
 
@@ -8670,7 +8670,7 @@ int lua_ax_studio_BatchNode_create(lua_State* tolua_S)
 }
 static int lua_ax_studio_BatchNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BatchNode)");
+    AXLOGV("luabindings: finalizing LUA object (BatchNode)");
     return 0;
 }
 
@@ -9549,7 +9549,7 @@ int lua_ax_studio_ArmatureAnimation_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ArmatureAnimation_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ArmatureAnimation)");
+    AXLOGV("luabindings: finalizing LUA object (ArmatureAnimation)");
     return 0;
 }
 
@@ -10691,7 +10691,7 @@ int lua_ax_studio_ArmatureDataManager_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_studio_ArmatureDataManager_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ArmatureDataManager)");
+    AXLOGV("luabindings: finalizing LUA object (ArmatureDataManager)");
     return 0;
 }
 
@@ -11920,7 +11920,7 @@ int lua_ax_studio_Armature_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_Armature_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Armature)");
+    AXLOGV("luabindings: finalizing LUA object (Armature)");
     return 0;
 }
 
@@ -12319,7 +12319,7 @@ int lua_ax_studio_Skin_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_Skin_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Skin)");
+    AXLOGV("luabindings: finalizing LUA object (Skin)");
     return 0;
 }
 
@@ -12944,7 +12944,7 @@ int lua_ax_studio_ComAttribute_create(lua_State* tolua_S)
 }
 static int lua_ax_studio_ComAttribute_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComAttribute)");
+    AXLOGV("luabindings: finalizing LUA object (ComAttribute)");
     return 0;
 }
 
@@ -14432,7 +14432,7 @@ int lua_ax_studio_ComAudio_create(lua_State* tolua_S)
 }
 static int lua_ax_studio_ComAudio_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComAudio)");
+    AXLOGV("luabindings: finalizing LUA object (ComAudio)");
     return 0;
 }
 
@@ -14586,7 +14586,7 @@ int lua_ax_studio_ComController_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ComController_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComController)");
+    AXLOGV("luabindings: finalizing LUA object (ComController)");
     return 0;
 }
 
@@ -14787,7 +14787,7 @@ int lua_ax_studio_ComRender_create(lua_State* tolua_S)
 }
 static int lua_ax_studio_ComRender_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComRender)");
+    AXLOGV("luabindings: finalizing LUA object (ComRender)");
     return 0;
 }
 
@@ -15125,7 +15125,7 @@ int lua_ax_studio_GUIReader_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_studio_GUIReader_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (GUIReader)");
+    AXLOGV("luabindings: finalizing LUA object (GUIReader)");
     return 0;
 }
 
@@ -15471,7 +15471,7 @@ int lua_ax_studio_SceneReader_sceneReaderVersion(lua_State* tolua_S)
 }
 static int lua_ax_studio_SceneReader_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SceneReader)");
+    AXLOGV("luabindings: finalizing LUA object (SceneReader)");
     return 0;
 }
 
@@ -15495,53 +15495,6 @@ int lua_register_ax_studio_SceneReader(lua_State* tolua_S)
     return 1;
 }
 
-int lua_ax_studio_ActionTimelineCache_purge(lua_State* tolua_S)
-{
-    int argc = 0;
-    cocostudio::timeline::ActionTimelineCache* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ccs.ActionTimelineCache",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (cocostudio::timeline::ActionTimelineCache*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_studio_ActionTimelineCache_purge'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_studio_ActionTimelineCache_purge'", nullptr);
-            return 0;
-        }
-        cobj->purge();
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ccs.ActionTimelineCache:purge",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_studio_ActionTimelineCache_purge'.",&tolua_err);
-#endif
-
-    return 0;
-}
 int lua_ax_studio_ActionTimelineCache_init(lua_State* tolua_S)
 {
     int argc = 0;
@@ -16067,7 +16020,7 @@ int lua_ax_studio_ActionTimelineCache_createAction(lua_State* tolua_S)
 }
 static int lua_ax_studio_ActionTimelineCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTimelineCache)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTimelineCache)");
     return 0;
 }
 
@@ -16077,7 +16030,6 @@ int lua_register_ax_studio_ActionTimelineCache(lua_State* tolua_S)
     tolua_cclass(tolua_S,"ActionTimelineCache","ccs.ActionTimelineCache","",nullptr);
 
     tolua_beginmodule(tolua_S,"ActionTimelineCache");
-        tolua_function(tolua_S,"purge",lua_ax_studio_ActionTimelineCache_purge);
         tolua_function(tolua_S,"init",lua_ax_studio_ActionTimelineCache_init);
         tolua_function(tolua_S,"removeAction",lua_ax_studio_ActionTimelineCache_removeAction);
         tolua_function(tolua_S,"createActionFromJson",lua_ax_studio_ActionTimelineCache_createActionFromJson);
@@ -16824,7 +16776,7 @@ int lua_ax_studio_Frame_clone(lua_State* tolua_S)
 }
 static int lua_ax_studio_Frame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Frame)");
+    AXLOGV("luabindings: finalizing LUA object (Frame)");
     return 0;
 }
 
@@ -17026,7 +16978,7 @@ int lua_ax_studio_VisibleFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_VisibleFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (VisibleFrame)");
+    AXLOGV("luabindings: finalizing LUA object (VisibleFrame)");
     return 0;
 }
 
@@ -17217,7 +17169,7 @@ int lua_ax_studio_TextureFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_TextureFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TextureFrame)");
+    AXLOGV("luabindings: finalizing LUA object (TextureFrame)");
     return 0;
 }
 
@@ -17408,7 +17360,7 @@ int lua_ax_studio_RotationFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_RotationFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RotationFrame)");
+    AXLOGV("luabindings: finalizing LUA object (RotationFrame)");
     return 0;
 }
 
@@ -17696,7 +17648,7 @@ int lua_ax_studio_SkewFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_SkewFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SkewFrame)");
+    AXLOGV("luabindings: finalizing LUA object (SkewFrame)");
     return 0;
 }
 
@@ -17792,7 +17744,7 @@ int lua_ax_studio_RotationSkewFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_RotationSkewFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RotationSkewFrame)");
+    AXLOGV("luabindings: finalizing LUA object (RotationSkewFrame)");
     return 0;
 }
 
@@ -18175,7 +18127,7 @@ int lua_ax_studio_PositionFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_PositionFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (PositionFrame)");
+    AXLOGV("luabindings: finalizing LUA object (PositionFrame)");
     return 0;
 }
 
@@ -18517,7 +18469,7 @@ int lua_ax_studio_ScaleFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ScaleFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ScaleFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ScaleFrame)");
     return 0;
 }
 
@@ -18711,7 +18663,7 @@ int lua_ax_studio_AnchorPointFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_AnchorPointFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AnchorPointFrame)");
+    AXLOGV("luabindings: finalizing LUA object (AnchorPointFrame)");
     return 0;
 }
 
@@ -19293,7 +19245,7 @@ int lua_ax_studio_InnerActionFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_InnerActionFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (InnerActionFrame)");
+    AXLOGV("luabindings: finalizing LUA object (InnerActionFrame)");
     return 0;
 }
 
@@ -19492,7 +19444,7 @@ int lua_ax_studio_ColorFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ColorFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ColorFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ColorFrame)");
     return 0;
 }
 
@@ -19683,7 +19635,7 @@ int lua_ax_studio_AlphaFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_AlphaFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AlphaFrame)");
+    AXLOGV("luabindings: finalizing LUA object (AlphaFrame)");
     return 0;
 }
 
@@ -19921,7 +19873,7 @@ int lua_ax_studio_EventFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_EventFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventFrame)");
+    AXLOGV("luabindings: finalizing LUA object (EventFrame)");
     return 0;
 }
 
@@ -20113,7 +20065,7 @@ int lua_ax_studio_ZOrderFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ZOrderFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ZOrderFrame)");
+    AXLOGV("luabindings: finalizing LUA object (ZOrderFrame)");
     return 0;
 }
 
@@ -20304,7 +20256,7 @@ int lua_ax_studio_BlendFuncFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_BlendFuncFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BlendFuncFrame)");
+    AXLOGV("luabindings: finalizing LUA object (BlendFuncFrame)");
     return 0;
 }
 
@@ -20495,7 +20447,7 @@ int lua_ax_studio_PlayableFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_PlayableFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (PlayableFrame)");
+    AXLOGV("luabindings: finalizing LUA object (PlayableFrame)");
     return 0;
 }
 
@@ -21227,7 +21179,7 @@ int lua_ax_studio_Timeline_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_Timeline_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Timeline)");
+    AXLOGV("luabindings: finalizing LUA object (Timeline)");
     return 0;
 }
 
@@ -21481,7 +21433,7 @@ int lua_ax_studio_ActionTimelineData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionTimelineData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTimelineData)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTimelineData)");
     return 0;
 }
 
@@ -23164,7 +23116,7 @@ int lua_ax_studio_ActionTimeline_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionTimeline_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTimeline)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTimeline)");
     return 0;
 }
 
@@ -23538,7 +23490,7 @@ int lua_ax_studio_ActionTimelineNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ActionTimelineNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTimelineNode)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTimelineNode)");
     return 0;
 }
 
@@ -24590,7 +24542,7 @@ int lua_ax_studio_BoneNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_BoneNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BoneNode)");
+    AXLOGV("luabindings: finalizing LUA object (BoneNode)");
     return 0;
 }
 
@@ -24906,7 +24858,7 @@ int lua_ax_studio_SkeletonNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_SkeletonNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SkeletonNode)");
+    AXLOGV("luabindings: finalizing LUA object (SkeletonNode)");
     return 0;
 }
 
@@ -25230,7 +25182,7 @@ int lua_ax_studio_ComExtensionData_constructor(lua_State* tolua_S)
 
 static int lua_ax_studio_ComExtensionData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComExtensionData)");
+    AXLOGV("luabindings: finalizing LUA object (ComExtensionData)");
     return 0;
 }
 

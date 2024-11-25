@@ -1,6 +1,6 @@
 /****************************************************************************
  Copyright (c) 2019 Xiamen Yaji Software Co., Ltd.
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
 
 #include "base/Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace GLBlendConst
 {
@@ -63,4 +64,4 @@ const int CLAMP_TO_EDGE          = 0x812F;  // GL_CLAMP_TO_EDGE
 const int MIRROR_REPEAT          = 0x8370;  // GL_MIRRORED_REPEAT
 }  // namespace GLTexParamConst
 
-NS_AX_END
+}

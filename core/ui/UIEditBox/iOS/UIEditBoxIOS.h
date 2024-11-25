@@ -5,7 +5,7 @@
  Copyright (c) 2015 Mazyad Alabduljaleel
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 
 @interface UIEditBoxImplIOS_objc : NSObject <UITextFieldDelegate, UITextViewDelegate>
 
-@property(nonatomic, retain) UIView<UITextInput, CCUITextInput>* textInput;
+@property(nonatomic, retain) UIView<UITextInput, AXUITextInput>* textInput;
 @property(nonatomic, assign) void* editBox;
 @property(nonatomic, assign) NSString* text;
 @property(nonatomic, assign) CGRect frameRect;

@@ -2,8 +2,9 @@
  Copyright (c) 2014 cocos2d-x.org
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +34,8 @@
 #    include "platform/android/jni/JniHelper.h"
 #    include "base/EventController.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class ControllerImpl
 {
@@ -53,7 +55,7 @@ public:
     static void onConnected(std::string_view deviceName, int deviceId)
     {
         // Check whether the controller is already connected.
-        AXLOG("onConnected %s,%d", deviceName.data(), deviceId);
+        AXLOGD("onConnected {},{}", deviceName, deviceId);
 
         auto iter = findController(deviceName, deviceId);
         if (iter != Controller::s_allController.end())
@@ -70,12 +72,12 @@ public:
 
     static void onDisconnected(std::string_view deviceName, int deviceId)
     {
-        AXLOG("onDisconnected %s,%d", deviceName.data(), deviceId);
+        AXLOGD("onDisconnected {},{}", deviceName, deviceId);
 
         auto iter = findController(deviceName, deviceId);
         if (iter == Controller::s_allController.end())
         {
-            AXLOGERROR("Could not find the controller!");
+            AXLOGE("Could not find the controller!");
             return;
         }
 
@@ -93,7 +95,7 @@ public:
         auto iter = findController(deviceName, deviceId);
         if (iter == Controller::s_allController.end())
         {
-            AXLOG("onButtonEvent:connect new controller.");
+            AXLOGD("onButtonEvent:connect new controller.");
             onConnected(deviceName, deviceId);
             iter = findController(deviceName, deviceId);
         }
@@ -106,7 +108,7 @@ public:
         auto iter = findController(deviceName, deviceId);
         if (iter == Controller::s_allController.end())
         {
-            AXLOG("onAxisEvent:connect new controller.");
+            AXLOGD("onAxisEvent:connect new controller.");
             onConnected(deviceName, deviceId);
             iter = findController(deviceName, deviceId);
         }
@@ -163,7 +165,7 @@ void Controller::receiveExternalKeyEvent(int externalKeyCode, bool receive)
                                     externalKeyCode, receive);
 }
 
-NS_AX_END
+}
 
 extern "C" {
 
@@ -172,7 +174,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_GameControllerAdapter_nativeController
                                                                                              jstring deviceName,
                                                                                              jint controllerID)
 {
-    AXLOG("controller id: %d connected!", controllerID);
+    AXLOGD("controller id: {} connected!", controllerID);
     ax::ControllerImpl::onConnected(ax::JniHelper::jstring2string(deviceName), controllerID);
 }
 
@@ -181,7 +183,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_GameControllerAdapter_nativeController
                                                                                                 jstring deviceName,
                                                                                                 jint controllerID)
 {
-    AXLOG("controller id: %d disconnected!", controllerID);
+    AXLOGD("controller id: {} disconnected!", controllerID);
     ax::ControllerImpl::onDisconnected(ax::JniHelper::jstring2string(deviceName), controllerID);
 }
 

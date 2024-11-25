@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UILayoutTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UILayoutTests::UILayoutTests()
@@ -299,7 +299,7 @@ bool UILayoutTest_BackGroundImage::init()
 void UILayoutTest_BackGroundImage::printWidgetResources(ax::Object* sender)
 {
     ax::ResourceData textureFile = _layout->getRenderFile();
-    AXLOG("textureFile  Name : %s, Type: %d", textureFile.file.c_str(), textureFile.type);
+    AXLOGD("textureFile  Name : {}, Type: {}", textureFile.file, textureFile.type);
 }
 
 // UILayoutTest_BackGroundImage_Scale9
@@ -885,7 +885,7 @@ bool UILayoutComponentTest::init()
         _uiLayer->addChild(_baseLayer);
 
         Button* button = Button::create("cocosui/animationbuttonnormal.png");
-        AXLOG("content size should be greater than 0:  width = %f, height = %f", button->getContentSize().width,
+        AXLOGD("content size should be greater than 0:  width = {}, height = {}", button->getContentSize().width,
               button->getContentSize().height);
         button->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f));
         button->addTouchEventListener(AX_CALLBACK_2(UILayoutComponentTest::touchEvent, this));

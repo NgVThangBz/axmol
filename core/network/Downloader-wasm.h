@@ -1,8 +1,8 @@
 /****************************************************************************
- Copyright (c) 2015-2016 Chukong Technologies Inc.
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- http://www.cocos2d-x.org
+
+ https://axmol.dev
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -50,9 +50,9 @@ namespace ax { namespace network
         int _id;
 
         DownloaderHints hints;
-        
+
         std::unordered_map<unsigned int, DownloadTaskEmscripten*> _taskMap;
-        
+
         static void onError(emscripten_fetch_t *fetch);
 
         static void onProgress(emscripten_fetch_t *fetch);
@@ -62,5 +62,5 @@ namespace ax { namespace network
         static void onLoad(emscripten_fetch_t *fetch);
     };
 
-}}  // namespace cocos2d::network
+}}  // namespace ax::network
 

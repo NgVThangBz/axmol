@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 
-USING_NS_AX;
+using namespace ax;
 
 bool Bug14327Layer::init()
 {
@@ -94,23 +94,23 @@ void Bug14327Layer::update(float dt)
 
 void Bug14327Layer::editBoxEditingDidBegin(ax::ui::EditBox* editBox)
 {
-    ax::print("editBox %p DidBegin !", editBox);
+    AXLOGD("editBox {} DidBegin !", fmt::ptr(editBox));
 }
 
 void Bug14327Layer::editBoxEditingDidEndWithAction(ax::ui::EditBox* editBox,
                                                    ax::ui::EditBoxDelegate::EditBoxEndAction EditBoxEndAction)
 {
-    ax::print("editBox %p DidEnd !", editBox);
+    AXLOGD("editBox {} DidEnd !", fmt::ptr(editBox));
 }
 
 void Bug14327Layer::editBoxTextChanged(ax::ui::EditBox* editBox, std::string_view text)
 {
-    ax::print("editBox %p TextChanged, text: %s ", editBox, text.data());
+    AXLOGD("editBox {} TextChanged, text: {} ", fmt::ptr(editBox), text);
 }
 
 void Bug14327Layer::editBoxReturn(ui::EditBox* editBox)
 {
-    ax::print("editBox %p was returned !", editBox);
+    AXLOGD("editBox {} was returned !", fmt::ptr(editBox));
 }
 
 #endif

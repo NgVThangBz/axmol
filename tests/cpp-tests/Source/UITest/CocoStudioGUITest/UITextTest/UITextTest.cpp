@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UITextTest.h"
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 using namespace ax::ui;
 
@@ -148,14 +148,14 @@ bool UILabelTest_Effect::init()
         // create the label stroke and shadow
         Text* outline_label = Text::create();
         outline_label->setString("Outline");
-        AXLOG("content size without outline: %f %f", outline_label->getContentSize().width,
+        AXLOGD("content size without outline: {} {}", outline_label->getContentSize().width,
               outline_label->getContentSize().height);
         outline_label->enableOutline(Color4B::GREEN, 4);
         outline_label->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - shadow_label->getContentSize().height - 50));
 
         _uiLayer->addChild(outline_label);
-        AXLOG("content size after applying outline: %f %f", outline_label->getContentSize().width,
+        AXLOGD("content size after applying outline: {} {}", outline_label->getContentSize().width,
               outline_label->getContentSize().height);
 
         // create buttons to disable effect and add
@@ -166,7 +166,7 @@ bool UILabelTest_Effect::init()
         disableOutlineBtn->setPressedActionEnabled(true);
         disableOutlineBtn->addClickEventListener([=](Object*) {
             outline_label->disableEffect(LabelEffect::OUTLINE);
-            AXLOG("content size after disable outline: %f %f", outline_label->getContentSize().width,
+            AXLOGD("content size after disable outline: {} {}", outline_label->getContentSize().width,
                   outline_label->getContentSize().height);
         });
         this->addChild(disableOutlineBtn);

@@ -1,8 +1,7 @@
 /****************************************************************************
- Copyright (c) 2015-2016 Chukong Technologies Inc.
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- http://www.cocos2d-x.org
+ https://axmol.dev
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +90,7 @@ namespace ax { namespace network {
 
             DownloadTaskEmscripten *coTask = new DownloadTaskEmscripten(fetch->id);
             coTask->task = task;
-            
+
             AXLOGD("DownloaderEmscripten::createCoTask id: {}", coTask->id);
             _taskMap.insert(make_pair(coTask->id, coTask));
         }
@@ -112,7 +111,7 @@ namespace ax { namespace network {
             std::vector<unsigned char> buf(reinterpret_cast<const uint8_t*>(fetch->data), reinterpret_cast<const uint8_t*>(fetch->data) + size);
             emscripten_fetch_close(fetch);
             coTask->fetch = fetch = NULL;
-            
+
             downloader->_taskMap.erase(iter);
             downloader->onTaskFinish(*coTask->task,
                 DownloadTask::ERROR_NO_ERROR,
@@ -120,7 +119,7 @@ namespace ax { namespace network {
                 "",
                 buf
             );
-            
+
             coTask->task.reset();
         }
 
@@ -139,7 +138,7 @@ namespace ax { namespace network {
             DownloadTaskEmscripten *coTask = iter->second;
             vector<unsigned char> buf;
             downloader->_taskMap.erase(iter);
-            
+
             string storagePath = coTask->task->storagePath;
             int errCode = DownloadTask::ERROR_NO_ERROR;
             int errCodeInternal = 0;
@@ -173,7 +172,7 @@ namespace ax { namespace network {
                 dir = storagePath.substr(0, found + 1);
                 if (false == util->isDirectoryExist(dir))
                 {
-                    if (false == util->createDirectory(dir))
+                    if (false == util->createDirectories(dir))
                     {
                         errCode = DownloadTask::ERROR_CREATE_DIR_FAILED;
                         errCodeInternal = 0;
@@ -229,10 +228,8 @@ namespace ax { namespace network {
             }
 
             DownloadTaskEmscripten *coTask = iter->second;
-            function<int64_t(void*, int64_t)> transferDataToBuffer; // just a placeholder
-            // int dl = dlNow - coTask->bytesReceived;
             coTask->bytesReceived = dlNow;
-            downloader->onTaskProgress(*coTask->task, transferDataToBuffer);
+            downloader->onTaskProgress(*coTask->task);
         }
 
         void DownloaderEmscripten::onError(emscripten_fetch_t *fetch)
@@ -262,4 +259,4 @@ namespace ax { namespace network {
             coTask->task.reset();
         }
     }
-}  // namespace cocos2d::network
+}  // namespace ax::network

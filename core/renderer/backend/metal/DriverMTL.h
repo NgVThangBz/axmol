@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -81,11 +81,11 @@ public:
     /* The max vertex attribs, it's not how many device supports which may be lower. */
     static constexpr uint32_t MAX_VERTEX_ATTRIBS = 16;
 
-    /* The vertex data buffers binding index start, the glslcc(SPIRV-Cross), default UBO binding index is 0, 
+    /* The vertex data buffers binding index start, the glslcc(SPIRV-Cross), default UBO binding index is 0,
     scope is per stage in MSL
      */
     static constexpr uint32_t VBO_BINDING_INDEX_START = 0;
-    
+
     /* The vertex instancing buffer binding index */
     static constexpr uint32_t VBO_INSTANCING_BINDING_INDEX = VBO_BINDING_INDEX_START + 1;
 
@@ -149,9 +149,8 @@ public:
      */
     TextureBackend* newTexture(const TextureDescriptor& descriptor) override;
 
-    RenderTarget* newDefaultRenderTarget(TargetBufferFlags rtf) override;
-    RenderTarget* newRenderTarget(TargetBufferFlags rtf,
-                                  TextureBackend* colorAttachment,
+    RenderTarget* newDefaultRenderTarget() override;
+    RenderTarget* newRenderTarget(TextureBackend* colorAttachment,
                                   TextureBackend* depthAttachment,
                                   TextureBackend* stencilAttachhment) override;
 

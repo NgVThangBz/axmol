@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -313,7 +313,8 @@ static CCAccelerometerDispatcher* s_pAccelerometerDispatcher;
 
 //
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static float getDevicePixelRatio(int& sdpi) {
     float scale = 1.0f;
@@ -342,11 +343,11 @@ int Device::getDPI()
         float scale = getDevicePixelRatio(sdpi);
         return static_cast<int>(scale * sdpi);
     }
-    
+
     return dpi;
 }
 
-float Device::getPixelRatio() 
+float Device::getPixelRatio()
 {
     int ignored_sdpi;
     return getDevicePixelRatio(ignored_sdpi);
@@ -761,4 +762,4 @@ void Device::selectionChanged()
 #endif
 }
 
-NS_AX_END
+}

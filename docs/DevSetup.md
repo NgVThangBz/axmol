@@ -62,16 +62,16 @@ The `axmol build` command will auto-setup the general toolsets, so you'll be abl
 - Linux: `axmol build`
 - OSX:
   - for Intel (x64): `axmol build -p osx -a x64 -c` (generate a xcodeproj, open with XCode to setup the code sign cert and build)
-  - for Apple Silicon (arm64): `axmol build -p ios -a arm64 -c` (generate a xcodeproj, open with XCode to setup the code sign cert and build)
+  - for Apple Silicon (arm64): `axmol build -p osx -a arm64 -c` (generate a xcodeproj, open with XCode to setup the code sign cert and build)
 - Android: `axmol build -p android -a arm64` (can run on Windows, Linux and macOS, and script will auto setup Android SDK)
 - iOS:
   - for devices: `axmol build -p ios -a arm64 -c` (generate a xcodeproj, open with XCode to setup the code sign cert and build)
   - for simulators:
-      - for Intel (x64): `axmol build -p ios -a x64 -c`
-      - for Apple Silicon (arm64): `axmol build -p ios -a arm64 -c`
+      - for Intel (x64): `axmol build -p ios -a x64 -sdk simulator -c`
+      - for Apple Silicon (arm64): `axmol build -p ios -a arm64 -sdk simulator -c`
 - tvOS:
   - for devices: `axmol build -p tvos -a arm64 -c` (generate a xcodeproj, open with XCode to setup code sign cert and build)
-  - for simulator: `axmol build -p tvos -a x64`
+  - for simulator: `axmol build -p tvos -a x64 -sdk simulator`
 - WASM: `axmol build -p wasm` (it can run on Windows 8.1+, Linux and macOS, it requires a preinstalled [python3](https://www.python.org/) in env `PATH`)
 
 
@@ -161,7 +161,7 @@ Please see the [Windows workflow guide](https://github.com/axmolengine/axmol/iss
 
 ### Android (Android Studio)
 
-  1. Install [Android Studio 2023.1.1+](https://developer.android.com/studio).
+  1. Install [Android Studio 2024.1.2+](https://developer.android.com/studio).
   2. When starting Android Studio for the first time, it will guide you through the installation of the SDK and other tools. Please make sure that you do install them.
   3. Start Android Studio and choose [Open an existing Android Studio Project] and select your project. For example, the existing `cpp-test` project located in `axmol\tests\cpp-tests\proj.android`.
   4. Start Android Studio and open 'Tools' -> 'SDKManager', then switch to 'SDK Tools', check the 'Show Package Details' field, and choose the following tools clicking the button 'Apply' to install them:  
@@ -201,8 +201,10 @@ Note: if you use non-SDK provided CMake, you will need to download `ninja` from 
   5. Generate the relevant XCode project using one of the following commands:
      - for iOS arm64:  
      ```axmol build -p ios -a arm64 -c```
+     - for iOS simulator arm64:  
+     ```axmol build -p ios -a arm64 -sdk simulator -c```
      - for iOS simulator x86_64:  
-     ```axmol build -p ios -a x64 -c```
+     ```axmol build -p ios -a x64 -sdk simulator -c```
      - for tvOS arm64:  
      ```axmol build -p tvos -a arm64 -c```
      - for tvOS simulator x86_64:  

@@ -41,7 +41,9 @@ _1klink("${sample-assets_SOURCE_DIR}/unit-tests/Content" "${CMAKE_CURRENT_LIST_D
 
 set(GAME_SOURCE
     Source/AppDelegate.cpp
-    Source/doctest.cpp
+    Source/TestUtils.cpp
+
+    Source/core/2d/NodeTests.cpp
 
     Source/core/base/MapTests.cpp
     Source/core/base/UTF8Tests.cpp
@@ -49,6 +51,7 @@ set(GAME_SOURCE
     Source/core/base/ValueTests.cpp
     Source/core/base/VectorTests.cpp
 
+    Source/core/math/FastRNGTests.cpp
     Source/core/math/MathUtilTests.cpp
 
     Source/core/network/UriTests.cpp
@@ -73,13 +76,9 @@ elseif(WINDOWS)
 endif()
 
 if(ANDROID)
-    list(APPEND GAME_HEADER
-         Source/JNITest/JNITest.h
-         )
     list(APPEND GAME_SOURCE
-         Source/JNITest/JNITest.cpp
-         proj.android/app/jni/main.cpp
-         )
+        proj.android/app/jni/main.cpp
+    )
 elseif(LINUX)
     list(APPEND GAME_SOURCE
          proj.linux/main.cpp
@@ -161,16 +160,14 @@ else()
     config_android_shared_libs("org.axmol.lib" "${CMAKE_CURRENT_SOURCE_DIR}/proj.android/app/src")
 endif()
 
+target_link_libraries(${APP_NAME} doctest)
+
 target_link_libraries(${APP_NAME} ${_AX_CORE_LIB})
 
 target_include_directories(${APP_NAME} PRIVATE ${GAME_INC_DIRS})
 
 if (AX_ENABLE_EXT_EFFEKSEER)
     target_compile_definitions(${APP_NAME} PRIVATE AX_ENABLE_EXT_EFFEKSEER=1)
-endif()
-
-if (AX_ENABLE_EXT_DRAWNODEEX)
-    target_compile_definitions(${APP_NAME} PRIVATE AX_ENABLE_EXT_DRAWNODE=1)
 endif()
 
 # mark app resources

@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 #include "NewEventDispatcherTest.h"
 #include "testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 namespace {
 
@@ -186,7 +186,7 @@ void TouchableSpriteTest::onEnter()
 
         if (rect.containsPoint(locationInNode))
         {
-            ax::print("sprite began... x = %f, y = %f", locationInNode.x, locationInNode.y);
+            AXLOGD("sprite began... x = {}, y = {}", locationInNode.x, locationInNode.y);
             target->setOpacity(180);
             return true;
         }
@@ -200,7 +200,7 @@ void TouchableSpriteTest::onEnter()
 
     listener1->onTouchEnded = [=](Touch* touch, Event* event) {
         auto target = static_cast<Sprite*>(event->getCurrentTarget());
-        ax::print("sprite onTouchesEnded.. ");
+        AXLOGD("sprite onTouchesEnded.. ");
         target->setOpacity(255);
         if (target == sprite2)
         {
@@ -222,7 +222,7 @@ void TouchableSpriteTest::onEnter()
 
         _eventDispatcher->removeEventListenersForType(EventListener::Type::TOUCH_ONE_BY_ONE);
 
-        auto nextItem = MenuItemFont::create("Next", [=](Object* sender) { getTestSuite()->enterNextTest(); });
+        auto nextItem = MenuItemFont::create("Next", [this](Object* sender) { getTestSuite()->enterNextTest(); });
 
         nextItem->setFontSizeObj(16);
         nextItem->setPosition(VisibleRect::right() + Vec2(-100.0f, -30.0f));
@@ -289,7 +289,7 @@ protected:
 
             if (rect.containsPoint(locationInNode))
             {
-                ax::print("TouchableSprite: onTouchBegan ...");
+                AXLOGD("TouchableSprite: onTouchBegan ...");
                 this->setColor(Color3B::RED);
                 return true;
             }
@@ -297,7 +297,7 @@ protected:
         };
 
         listener->onTouchEnded = [this](Touch* touch, Event* event) {
-            ax::print("TouchableSprite: onTouchEnded ...");
+            AXLOGD("TouchableSprite: onTouchEnded ...");
             this->setColor(Color3B::WHITE);
 
             if (_removeListenerOnTouchEnded)
@@ -416,7 +416,7 @@ void RemoveListenerWhenDispatching::onEnter()
     std::shared_ptr<bool> enable(new bool(true));
     // Enable/Disable item
     auto toggleItem = MenuItemToggle::createWithCallback(
-        [=](Object* sender) {
+        [this, enable, listener1, statusLabel, sprite1](Object* sender) {
             if (*enable)
             {
                 _eventDispatcher->removeEventListener(listener1);
@@ -465,25 +465,23 @@ void CustomEventTest::onEnter()
     statusLabel->setPosition(origin + Vec2(size.width / 2, size.height - 90));
     addChild(statusLabel);
 
-    _listener = EventListenerCustom::create("game_custom_event1", [=](EventCustom* event) {
+    _listener = EventListenerCustom::create("game_custom_event1", [statusLabel](EventCustom* event) {
         std::string str("Custom event 1 received, ");
-        char* buf = static_cast<char*>(event->getUserData());
+        auto& buf = *static_cast<std::string*>(event->getUserData());
         str += buf;
         str += " times";
-        statusLabel->setString(str.c_str());
+        statusLabel->setString(str);
     });
 
     _eventDispatcher->addEventListenerWithFixedPriority(_listener, 1);
 
-    auto sendItem = MenuItemFont::create("Send Custom Event 1", [=](Object* sender) {
+    auto sendItem = MenuItemFont::create("Send Custom Event 1", [this](Object* /*sender*/) {
         static int count = 0;
         ++count;
-        char* buf = new char[10];
-        sprintf(buf, "%d", count);
+        auto str = fmt::to_string(count);
         EventCustom event("game_custom_event1");
-        event.setUserData(buf);
+        event.setUserData(&str);
         _eventDispatcher->dispatchEvent(&event);
-        AX_SAFE_DELETE_ARRAY(buf);
     });
     sendItem->setPosition(origin + Vec2(size.width / 2, size.height / 2));
 
@@ -493,7 +491,7 @@ void CustomEventTest::onEnter()
 
     _listener2 = EventListenerCustom::create("game_custom_event2", [=](EventCustom* event) {
         std::string str("Custom event 2 received, ");
-        char* buf = static_cast<char*>(event->getUserData());
+        auto& buf = *static_cast<std::string*>(event->getUserData());
         str += buf;
         str += " times";
         statusLabel2->setString(str.c_str());
@@ -501,15 +499,13 @@ void CustomEventTest::onEnter()
 
     _eventDispatcher->addEventListenerWithFixedPriority(_listener2, 1);
 
-    auto sendItem2 = MenuItemFont::create("Send Custom Event 2", [=](Object* sender) {
+    auto sendItem2 = MenuItemFont::create("Send Custom Event 2", [this](Object* /*sender*/) {
         static int count = 0;
         ++count;
-        char* buf = new char[10];
-        sprintf(buf, "%d", count);
+        auto buf = fmt::to_string(count);
         EventCustom event("game_custom_event2");
-        event.setUserData(buf);
+        event.setUserData(&buf);
         _eventDispatcher->dispatchEvent(&event);
-        AX_SAFE_DELETE_ARRAY(buf);
     });
     sendItem2->setPosition(origin + Vec2(size.width / 2, size.height / 2 - 40));
 
@@ -664,7 +660,7 @@ void SpriteAccelerationEventTest::onEnter()
 
         auto ptNow = sprite->getPosition();
 
-        ax::print("acc: x = %lf, y = %lf", acc->x, acc->y);
+        AXLOGD("acc: x = {}, y = {}", acc->x, acc->y);
 
         ptNow.x += acc->x * 9.81f;
         ptNow.y += acc->y * 9.81f;
@@ -722,7 +718,7 @@ void RemoveAndRetainNodeTest::onEnter()
 
         if (rect.containsPoint(locationInNode))
         {
-            ax::print("sprite began... x = %f, y = %f", locationInNode.x, locationInNode.y);
+            AXLOGD("sprite began... x = {}, y = {}", locationInNode.x, locationInNode.y);
             target->setOpacity(180);
             return true;
         }
@@ -736,7 +732,7 @@ void RemoveAndRetainNodeTest::onEnter()
 
     listener1->onTouchEnded = [=](Touch* touch, Event* event) {
         auto target = static_cast<Sprite*>(event->getCurrentTarget());
-        ax::print("sprite onTouchesEnded.. ");
+        AXLOGD("sprite onTouchesEnded.. ");
         target->setOpacity(255);
     };
 
@@ -803,7 +799,7 @@ void RemoveListenerAfterAddingTest::onEnter()
         this->addChild(menu);
     };
 
-    auto item2 = MenuItemFont::create("Click Me 2", [=](Object* sender) {
+    auto item2 = MenuItemFont::create("Click Me 2", [this, addNextButton](Object* sender) {
         auto listener          = EventListenerTouchOneByOne::create();
         listener->onTouchBegan = [](Touch* touch, Event* event) -> bool {
             AXASSERT(false, "Should not come here!");
@@ -818,7 +814,7 @@ void RemoveListenerAfterAddingTest::onEnter()
 
     item2->setPosition(VisibleRect::center() + Vec2(0.0f, 40.0f));
 
-    auto item3 = MenuItemFont::create("Click Me 3", [=](Object* sender) {
+    auto item3 = MenuItemFont::create("Click Me 3", [this, addNextButton](Object* /*sender*/) {
         auto listener          = EventListenerTouchOneByOne::create();
         listener->onTouchBegan = [](Touch* touch, Event* event) -> bool {
             AXASSERT(false, "Should not come here!");
@@ -985,7 +981,7 @@ GlobalZTouchTest::GlobalZTouchTest() : _sprite(nullptr), _accum(0)
 
         if (rect.containsPoint(locationInNode))
         {
-            ax::print("sprite began... x = %f, y = %f", locationInNode.x, locationInNode.y);
+            AXLOGD("sprite began... x = {}, y = {}", locationInNode.x, locationInNode.y);
             target->setOpacity(180);
             return true;
         }
@@ -999,7 +995,7 @@ GlobalZTouchTest::GlobalZTouchTest() : _sprite(nullptr), _accum(0)
 
     listener->onTouchEnded = [=](Touch* touch, Event* event) {
         auto target = static_cast<Sprite*>(event->getCurrentTarget());
-        ax::print("sprite onTouchesEnded.. ");
+        AXLOGD("sprite onTouchesEnded.. ");
         target->setOpacity(255);
     };
 
@@ -1060,7 +1056,7 @@ StopPropagationTest::StopPropagationTest()
     auto touchOneByOneListener = EventListenerTouchOneByOne::create();
     touchOneByOneListener->setSwallowTouches(true);
 
-    touchOneByOneListener->onTouchBegan = [=](Touch* touch, Event* event) {
+    touchOneByOneListener->onTouchBegan = [this](Touch* touch, Event* event) {
         // Skip if don't touch top half screen.
         if (!this->isPointInTopHalfAreaOfScreen(touch->getLocation()))
             return false;
@@ -1085,7 +1081,7 @@ StopPropagationTest::StopPropagationTest()
     };
 
     auto touchAllAtOnceListener            = EventListenerTouchAllAtOnce::create();
-    touchAllAtOnceListener->onTouchesBegan = [=](const std::vector<Touch*>& touches, Event* event) {
+    touchAllAtOnceListener->onTouchesBegan = [this](const std::vector<Touch*>& touches, Event* event) {
         // Skip if don't touch top half screen.
         if (this->isPointInTopHalfAreaOfScreen(touches[0]->getLocation()))
             return;
@@ -1101,7 +1097,7 @@ StopPropagationTest::StopPropagationTest()
         event->stopPropagation();
     };
 
-    touchAllAtOnceListener->onTouchesEnded = [=](const std::vector<Touch*>& touches, Event* event) {
+    touchAllAtOnceListener->onTouchesEnded = [this](const std::vector<Touch*>& touches, Event* event) {
         // Skip if don't touch top half screen.
         if (this->isPointInTopHalfAreaOfScreen(touches[0]->getLocation()))
             return;
@@ -1222,14 +1218,14 @@ PauseResumeTargetTest::PauseResumeTargetTest()
     sprite3->setPosition(Vec2(0, 0));
     sprite2->addChild(sprite3, -1);
 
-    auto popup = MenuItemFont::create("Popup", [=](Object* sender) {
+    auto popup = MenuItemFont::create("Popup", [this, sprite3](Object* sender) {
         sprite3->getListener()->setEnabled(false);
         _eventDispatcher->pauseEventListenersForTarget(this, true);
 
         auto colorLayer = LayerColor::create(Color4B(0, 0, 255, 100));
         this->addChild(colorLayer, 99999);
 
-        auto closeItem = MenuItemFont::create("close", [=](Object* sender) {
+        auto closeItem = MenuItemFont::create("close", [this, colorLayer, sprite3](Object* /*sender*/) {
             colorLayer->removeFromParent();
             _eventDispatcher->resumeEventListenersForTarget(this, true);
             sprite3->getListener()->setEnabled(true);
@@ -1279,7 +1275,7 @@ PauseResumeTargetTest2::PauseResumeTargetTest2()
     _touchableSprite->setPosition(origin + Vec2(size.width / 2, size.height / 2) + Vec2(-80.0f, 40.0f));
     addChild(_touchableSprite);
 
-    _itemPauseTouch = MenuItemFont::create("pauseTouch", [=](Object* sender) {
+    _itemPauseTouch = MenuItemFont::create("pauseTouch", [this](Object* /*sender*/) {
         _itemPauseTouch->setEnabled(false);
         _itemResumeTouch->setEnabled(true);
 
@@ -1289,7 +1285,7 @@ PauseResumeTargetTest2::PauseResumeTargetTest2()
     _itemPauseTouch->setAnchorPoint(Vec2::ANCHOR_MIDDLE_RIGHT);
     _itemPauseTouch->setPosition(VisibleRect::right() + Vec2(-150.0f, 0.0f));
 
-    _itemResumeTouch = MenuItemFont::create("resumeTouch", [=](Object* sender) {
+    _itemResumeTouch = MenuItemFont::create("resumeTouch", [this](Object* /*sender*/) {
         _itemPauseTouch->setEnabled(true);
         _itemResumeTouch->setEnabled(false);
 
@@ -1299,7 +1295,7 @@ PauseResumeTargetTest2::PauseResumeTargetTest2()
     _itemResumeTouch->setAnchorPoint(Vec2::ANCHOR_MIDDLE_RIGHT);
     _itemResumeTouch->setPosition(VisibleRect::right() + Vec2(0, 0));
 
-    _itemAddToScene = MenuItemFont::create("addToScene", [=](Object* sender) {
+    _itemAddToScene = MenuItemFont::create("addToScene", [this](Object* /*sender*/) {
         _itemAddToScene->setEnabled(false);
         _itemRemoveFromScene->setEnabled(true);
 
@@ -1309,7 +1305,7 @@ PauseResumeTargetTest2::PauseResumeTargetTest2()
     _itemAddToScene->setAnchorPoint(Vec2::ANCHOR_MIDDLE_RIGHT);
     _itemAddToScene->setPosition(VisibleRect::right() + Vec2(-150.0f, -50.0f));
 
-    _itemRemoveFromScene = MenuItemFont::create("removeFromScene", [=](Object* sender) {
+    _itemRemoveFromScene = MenuItemFont::create("removeFromScene", [this](Object* /*sender*/) {
         _itemAddToScene->setEnabled(true);
         _itemRemoveFromScene->setEnabled(false);
         _touchableSprite->removeFromParentAndCleanup(false);
@@ -1359,21 +1355,21 @@ PauseResumeTargetTest3::PauseResumeTargetTest3()
     _touchableSprite->setPosition(origin + Vec2(size.width / 2, size.height / 2) + Vec2(-80.0f, 40.0f));
     addChild(_touchableSprite);
 
-    auto item = MenuItemFont::create("addListener", [=](Object* sender) {
+    auto item = MenuItemFont::create("addListener", [this](Object* sender) {
         MenuItemFont* senderItem = static_cast<MenuItemFont*>(sender);
         senderItem->setEnabled(false);
 
         auto listener = EventListenerTouchOneByOne::create();
         listener->setSwallowTouches(true);
 
-        listener->onTouchBegan = [=](Touch* touch, Event* event) {
+        listener->onTouchBegan = [this](Touch* touch, Event* event) {
             Vec2 locationInNode = _touchableSprite->convertToNodeSpace(touch->getLocation());
             Size s              = _touchableSprite->getContentSize();
             Rect rect           = Rect(0, 0, s.width, s.height);
 
             if (rect.containsPoint(locationInNode))
             {
-                ax::print("TouchableSprite: onTouchBegan ...");
+                AXLOGD("TouchableSprite: onTouchBegan ...");
                 _touchableSprite->setColor(Color3B::RED);
                 return true;
             }
@@ -1381,7 +1377,7 @@ PauseResumeTargetTest3::PauseResumeTargetTest3()
         };
 
         listener->onTouchEnded = [this](Touch* touch, Event* event) {
-            ax::print("TouchableSprite: onTouchEnded ...");
+            AXLOGD("TouchableSprite: onTouchEnded ...");
             _touchableSprite->setColor(Color3B::WHITE);
         };
 
@@ -1433,7 +1429,7 @@ Issue4129::Issue4129() : _bugFixed(false)
 
         _eventDispatcher->removeAllEventListeners();
 
-        auto nextItem = MenuItemFont::create("Reset", [=](Object* sender) {
+        auto nextItem = MenuItemFont::create("Reset", [this](Object* /*sender*/) {
             AXASSERT(_bugFixed, "This issue was not fixed!");
             getTestSuite()->restartCurrTest();
         });
@@ -1447,7 +1443,7 @@ Issue4129::Issue4129() : _bugFixed(false)
         this->addChild(menu2);
 
         // Simulate to dispatch 'come to background' event
-        _eventDispatcher->dispatchCustomEvent(EVENT_COME_TO_BACKGROUND);
+        _eventDispatcher->dispatchCustomEvent(EVENT_COME_TO_BACKGROUND, nullptr, true);
     });
 
     removeAllTouchItem->setFontSizeObj(16);
@@ -1632,7 +1628,7 @@ RegisterAndUnregisterWhileEventHanldingTest::RegisterAndUnregisterWhileEventHanl
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     Size size   = Director::getInstance()->getVisibleSize();
 
-    auto callback1 = [=](DanglingNodePointersTestSprite* sprite) {
+    auto callback1 = [this, origin, size](DanglingNodePointersTestSprite* sprite) {
         auto callback2 = [](DanglingNodePointersTestSprite* sprite) {
             AXASSERT(false, "This should never get called!");
         };
@@ -1673,12 +1669,12 @@ WindowEventsTest::WindowEventsTest()
     auto dispatcher = Director::getInstance()->getEventDispatcher();
     dispatcher->addCustomEventListener(GLViewImpl::EVENT_WINDOW_RESIZED, [](EventCustom* event) {
         // TODO: need to create resizeable window
-        ax::print("<<< WINDOW RESIZED! >>> ");
+        AXLOGD("<<< WINDOW RESIZED! >>> ");
     });
     dispatcher->addCustomEventListener(GLViewImpl::EVENT_WINDOW_FOCUSED,
-                                       [](EventCustom* event) { ax::print("<<< WINDOW FOCUSED! >>> "); });
+                                       [](EventCustom* event) { AXLOGD("<<< WINDOW FOCUSED! >>> "); });
     dispatcher->addCustomEventListener(GLViewImpl::EVENT_WINDOW_UNFOCUSED,
-                                       [](EventCustom* event) { ax::print("<<< WINDOW BLURRED! >>> "); });
+                                       [](EventCustom* event) { AXLOGD("<<< WINDOW BLURRED! >>> "); });
 #endif
 }
 
@@ -1710,7 +1706,7 @@ Issue8194::Issue8194()
         getEventDispatcher()->addCustomEventListener(Director::EVENT_AFTER_UPDATE, [this](ax::EventCustom* event) {
             if (nodesAdded)
             {
-                // AXLOG("Fire Issue8194 Event");
+                // AXLOGD("Fire Issue8194 Event");
                 getEventDispatcher()->dispatchCustomEvent("Issue8194");
 
                 // clear test nodes and listeners

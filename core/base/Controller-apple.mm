@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -117,7 +117,8 @@ static GCControllerConnectionEventHandler* __instance = nil;
 
 @end
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class ControllerImpl
 {
@@ -140,7 +141,32 @@ void Controller::startDiscoveryController()
         observerConnection:^(GCController* gcController) {
           auto controller                  = new Controller();
           controller->_impl->_gcController = gcController;
-          controller->_deviceName          = [gcController.vendorName UTF8String];
+
+          // get the player index
+          GCControllerPlayerIndex playerIndex = gcController.playerIndex;
+          if (playerIndex == GCControllerPlayerIndexUnset) {
+              // apple support up to 4 players
+              // ref: https://developer.apple.com/documentation/gamecontroller/gccontrollerplayerindex
+              for (int i = 0; i < 4; ++i) {
+                  bool indexInUse = false;
+
+                  for (GCController *existingController in [GCController controllers]) {
+                      if (existingController.playerIndex == i) {
+                          indexInUse = true;
+                          break;
+                      }
+                  }
+
+                  if (!indexInUse) {
+                      gcController.playerIndex = static_cast<GCControllerPlayerIndex>(i);
+                      playerIndex = static_cast<GCControllerPlayerIndex>(i);
+                      break;
+                  }
+              }
+          }
+
+          controller->_deviceId = static_cast<int>(playerIndex);
+          controller->_deviceName = [gcController.vendorName UTF8String];
 
           s_allController.push_back(controller);
 
@@ -334,6 +360,6 @@ bool Controller::isConnected() const
 
 void Controller::receiveExternalKeyEvent(int externalKeyCode, bool receive) {}
 
-NS_AX_END
+}
 
 #endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS)

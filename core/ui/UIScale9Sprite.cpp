@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +26,8 @@
 
 #include "ui/UIScale9Sprite.h"
 #include "2d/Sprite.h"
-#include "2d/SpriteFrameCache.h"
 #include "base/Vector.h"
 #include "base/Director.h"
-#include "base/UTF8.h"
-#include "renderer/Shaders.h"
-#include "platform/Image.h"
-#include "base/NinePatchImageParser.h"
-#include "2d/DrawNode.h"
-#include "2d/Camera.h"
-#include "renderer/Renderer.h"
-#include "renderer/backend/ProgramStateRegistry.h"
 
 using namespace ax::ui;
 
@@ -395,7 +386,7 @@ void Scale9Sprite::setScale9Enabled(bool enabled)
 {
     if (_renderMode == RenderMode::POLYGON)
     {
-        AXLOGWARN("Scale9Sprite::setScale9Enabled() can't be called when using POLYGON render modes");
+        AXLOGW("Scale9Sprite::setScale9Enabled() can't be called when using POLYGON render modes");
         return;
     }
 
@@ -474,7 +465,7 @@ void Scale9Sprite::setRenderingType(Scale9Sprite::RenderingType type)
 {
     if (_renderMode == RenderMode::POLYGON)
     {
-        AXLOGWARN("Scale9Sprite::setRenderingType() can't be called when using POLYGON render modes");
+        AXLOGW("Scale9Sprite::setRenderingType() can't be called when using POLYGON render modes");
         return;
     }
     if (_renderingType != type)

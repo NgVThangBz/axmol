@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -139,11 +139,11 @@ static id s_sharedDirectorCaller;
     {
         ax::Director* director = ax::Director::getInstance();
 #if AX_GLES_PROFILE
-        EAGLContext* cocos2dxContext = [(EAGLView*)director->getGLView()->getEAGLView() context];
-        if (cocos2dxContext != [EAGLContext currentContext])
+        EAGLContext* context = [(EAGLView*)director->getGLView()->getEAGLView() context];
+        if (context != [EAGLContext currentContext])
             glFlush();
 
-        [EAGLContext setCurrentContext:cocos2dxContext];
+        [EAGLContext setCurrentContext:context];
 #endif
         CFTimeInterval dt = ((CADisplayLink*)displayLink).timestamp - lastDisplayTime;
         lastDisplayTime   = ((CADisplayLink*)displayLink).timestamp;

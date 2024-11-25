@@ -2,7 +2,7 @@
  Copyright (c) 2015 Mazyad Alabduljaleel
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,10 @@
 #import <UIKit/UIKit.h>
 #import "ui/UIEditBox/iOS/UITextInput.h"
 
-@interface UITextField (CCUITextInput) <CCUITextInput>
+@interface UITextField (AXUITextInput) <AXUITextInput>
 @end
 
 /** Trick to load category objects without using -ObjC flag
  *  http://stackoverflow.com/questions/2567498/objective-c-categories-in-static-library
  */
-extern void LoadUITextFieldCCUITextInputCategory();
+extern void LoadUITextFieldAXUITextInputCategory();

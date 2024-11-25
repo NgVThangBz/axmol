@@ -4,7 +4,7 @@ Copyright (c) Microsoft Open Technologies, Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@ using namespace Windows::Networking::Connectivity;
 using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Controls;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 bool isWindowsPhone()
 {
@@ -281,7 +282,7 @@ bool createMappedCacheFile(const std::string& srcFilePath, std::string& cacheFil
 void destroyMappedCacheFile(const std::string& key)
 {
     auto value = UserDefault::getInstance()->getStringForKey(key.c_str());
-    
+
     if (!value.empty()) {
         FileUtils::getInstance()->removeFile(value);
     }
@@ -289,4 +290,4 @@ void destroyMappedCacheFile(const std::string& key)
     UserDefault::getInstance()->setStringForKey(key.c_str(), "");
 }
 
-NS_AX_END
+}

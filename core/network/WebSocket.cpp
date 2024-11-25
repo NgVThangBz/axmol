@@ -2,7 +2,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@ using namespace yasio;
 
 #define WS_MAX_PAYLOAD_LENGTH (1 << 24)  // 16M
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace network
 {
@@ -386,17 +387,17 @@ int WebSocket::on_frame_end(websocket_parser* parser)
             ws->_eventQueue.emplace_back(new MessageEvent{std::move(ws->_receivedData), ws->_opcode == WS_OP_BINARY});
             break;
         case WS_OP_CLOSE:
-            AXLOG("WS: control frame: CLOSE");
+            AXLOGD("WS: control frame: CLOSE");
             break;
         case WS_OP_PING:
-            AXLOG("WS: control frame: PING");
+            AXLOGD("WS: control frame: PING");
             WebSocketProtocol::sendFrame(*ws, ws->_receivedData.data(), ws->_receivedData.size(),
                                          ws::detail::opcode::pong);
             break;
         case WS_OP_PONG:
-            AXLOG("WS: control frame: PONG");
+            AXLOGD("WS: control frame: PONG");
             if (ws->_receivedData.size() != 4 || 0 != memcmp(ws->_receivedData.data(), "WSWS", 4))
-                AXLOG("WS: Unsolicited PONG frame from server (possible keep-alive)\n\n");
+                AXLOGD("WS: Unsolicited PONG frame from server (possible keep-alive)\n\n");
             break;
         }
     }
@@ -449,13 +450,13 @@ void WebSocket::close()
                 _syncCloseState = std::make_shared<std::promise<int>>();
                 int status      = _syncCloseState->get_future().get();
                 _syncCloseState.reset();
-                AXLOG("WebSocket close with status: %d", status);
+                AXLOGD("WebSocket close with status: {}", status);
             }
             else
             {
                 _service->stop();  // stop internal service for sync close
                 _state = State::CLOSED;
-                AXLOG("WebSocket::close: connection not ready!");
+                AXLOGW("WebSocket::close: connection not ready!");
             }
         }
         else
@@ -646,4 +647,4 @@ void WebSocket::handleNetworkEvent(yasio::io_event* event)
 
 }  // namespace network
 
-NS_AX_END
+}

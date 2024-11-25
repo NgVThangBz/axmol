@@ -8,7 +8,7 @@
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
  *
- * https://axmolengine.github.io/
+ * https://axmol.dev/
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,8 @@
 #include "renderer/Shaders.h"
 #include "renderer/backend/ProgramState.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 ParticleBatchNode::ParticleBatchNode()
 {
@@ -459,13 +460,13 @@ void ParticleBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t
 
 void ParticleBatchNode::increaseAtlasCapacityTo(ssize_t quantity)
 {
-    AXLOG("axmol: ParticleBatchNode: resizing TextureAtlas capacity from [%d] to [%d].",
+    AXLOGD("axmol: ParticleBatchNode: resizing TextureAtlas capacity from [{}] to [{}].",
           (int)_textureAtlas->getCapacity(), (int)quantity);
 
     if (!_textureAtlas->resizeCapacity(quantity))
     {
         // serious problems
-        AXLOGWARN("axmol: WARNING: Not enough memory to resize the atlas");
+        AXLOGW("axmol: WARNING: Not enough memory to resize the atlas");
         AXASSERT(false, "XXX: ParticleBatchNode #increaseAtlasCapacity SHALL handle this assert");
     }
 }
@@ -561,4 +562,4 @@ const BlendFunc& ParticleBatchNode::getBlendFunc() const
     return _blendFunc;
 }
 
-NS_AX_END
+}

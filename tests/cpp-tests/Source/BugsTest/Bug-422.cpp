@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 
 #include "Bug-422.h"
 
-USING_NS_AX;
+using namespace ax;
 
 bool Bug422Layer::init()
 {
@@ -53,12 +53,12 @@ void Bug422Layer::reset()
     // and then a new node will be allocated occupying the memory.
     // => CRASH BOOM BANG
     auto node = getChildByTag(localtag - 1);
-    ax::print("Menu: %p", node);
+    AXLOGD("Menu: {}", fmt::ptr(node));
     removeChild(node, true);
     //    [self removeChildByTag:localtag-1 cleanup:NO];
 
     auto item1 = MenuItemFont::create("One", AX_CALLBACK_1(Bug422Layer::menuCallback, this));
-    ax::print("MenuItemFont: %p", item1);
+    AXLOGD("MenuItemFont: {}", fmt::ptr(item1));
     MenuItem* item2 = MenuItemFont::create("Two", AX_CALLBACK_1(Bug422Layer::menuCallback, this));
     auto menu       = Menu::create(item1, item2, nullptr);
     menu->alignItemsVertically();
@@ -76,7 +76,7 @@ void Bug422Layer::check(Node* t)
     auto& children = t->getChildren();
     for (const auto& child : children)
     {
-        ax::print("%p, rc: %d", child, child->getReferenceCount());
+        AXLOGD("{}, rc: {}", fmt::ptr(child), child->getReferenceCount());
         check(child);
     }
 }

@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@ THE SOFTWARE.
 
 using namespace std;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 std::string TextureCache::s_etc1AlphaFileSuffix = "@alpha";
 
@@ -66,7 +67,7 @@ TextureCache::TextureCache() : _loadingThread(nullptr), _needQuit(false), _async
 
 TextureCache::~TextureCache()
 {
-    AXLOGINFO("deallocing TextureCache: %p", this);
+    AXLOGD("deallocing TextureCache: {}", fmt::ptr(this));
 
     for (auto&& texture : _textures)
         texture.second->release();
@@ -76,7 +77,7 @@ TextureCache::~TextureCache()
 
 std::string TextureCache::getDescription() const
 {
-    return StringUtils::format("<TextureCache | Number of textures = %d>", static_cast<int>(_textures.size()));
+    return fmt::format("<TextureCache | Number of textures = {}>", static_cast<int>(_textures.size()));
 }
 
 struct TextureCache::AsyncStruct
@@ -361,7 +362,7 @@ void TextureCache::addImageAsyncCallBack(float /*dt*/)
             else
             {
                 texture = nullptr;
-                AXLOG("axmol: failed to call TextureCache::addImageAsync(%s)", asyncStruct->filename.c_str());
+                AXLOGW("axmol: failed to call TextureCache::addImageAsync({})", asyncStruct->filename);
             }
         }
 
@@ -491,7 +492,7 @@ Texture2D* TextureCache::addImage(std::string_view path, PixelFormat format)
             }
             else
             {
-                AXLOG("axmol: Couldn't create texture for file:%s in TextureCache", path.data());
+                AXLOGW("Couldn't create texture for file:{} in TextureCache", path);
                 AX_SAFE_RELEASE(texture);
                 texture = nullptr;
             }
@@ -531,7 +532,7 @@ Texture2D* TextureCache::addImage(Image* image, std::string_view key, PixelForma
         if (it != _textures.end())
         {
             texture = it->second;
-            break;
+            return texture;
         }
 
         texture = new Texture2D();
@@ -543,7 +544,7 @@ Texture2D* TextureCache::addImage(Image* image, std::string_view key, PixelForma
         {
             AX_SAFE_RELEASE(texture);
             texture = nullptr;
-            AXLOG("axmol: initWithImage failed!");
+            AXLOGD("initWithImage failed!");
         }
 
     } while (0);
@@ -551,6 +552,58 @@ Texture2D* TextureCache::addImage(Image* image, std::string_view key, PixelForma
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     VolatileTextureMgr::addImage(texture, image);
 #endif
+
+    return texture;
+}
+
+Texture2D* TextureCache::addImage(const Data& imageData, std::string_view key)
+{
+    AXASSERT(!imageData.isNull() && !key.empty(), "TextureCache: imageData MUST not be empty and key not empty");
+
+    Texture2D * texture = nullptr;
+
+    do
+    {
+        auto it = _textures.find(key);
+        if (it != _textures.end()) {
+            texture = it->second;
+            break;
+        }
+
+        Image* image = new Image();
+        AX_BREAK_IF(nullptr == image);
+
+        bool bRet = image->initWithImageData(imageData.getBytes(), imageData.getSize());
+        AX_BREAK_IF(!bRet);
+
+        texture = new Texture2D();
+
+        if (texture)
+        {
+            if (texture->initWithImage(image))
+            {
+
+#if AX_ENABLE_CACHE_TEXTURE_DATA
+                VolatileTextureMgr::addImage(texture, image);
+#endif
+                _textures.emplace(key, texture);
+            }
+            else
+            {
+                AX_SAFE_RELEASE(texture);
+                texture = nullptr;
+                AXLOGW("initWithImage failed!");
+            }
+        }
+        else
+        {
+            AXLOGW("Allocating memory for Texture2D failed!");
+        }
+
+        AX_SAFE_RELEASE(image);
+
+    } while (0);
+
 
     return texture;
 }
@@ -611,7 +664,7 @@ void TextureCache::removeUnusedTextures()
         Texture2D* tex = it->second;
         if (tex->getReferenceCount() == 1)
         {
-            AXLOG("axmol: TextureCache: removing unused texture: %s", it->first.c_str());
+            AXLOGD("TextureCache: removing unused texture: {}", it->first);
 
             tex->release();
             it = _textures.erase(it);
@@ -785,7 +838,7 @@ void VolatileTextureMgr::addImageTexture(Texture2D* tt, std::string_view imageFi
         return;
     }
 
-    VolatileTexture* vt = findVolotileTexture(tt);
+    VolatileTexture* vt = getOrAddVolatileTexture(tt);
 
     vt->_cashedImageType = VolatileTexture::kImageFile;
     vt->_fileName        = imageFileName;
@@ -797,14 +850,18 @@ void VolatileTextureMgr::addImage(Texture2D* tt, Image* image)
     if (tt == nullptr || image == nullptr)
         return;
 
-    VolatileTexture* vt = findVolotileTexture(tt);
-    image->retain();
-    vt->_uiImage         = image;
-    vt->_cashedImageType = VolatileTexture::kImage;
-    vt->_pixelFormat     = tt->getPixelFormat();
+    VolatileTexture* vt = getOrAddVolatileTexture(tt);
+
+    if(vt->_uiImage != image) {
+        AX_SAFE_RELEASE(vt->_uiImage);
+        image->retain();
+        vt->_uiImage         = image;
+        vt->_cashedImageType = VolatileTexture::kImage;
+        vt->_pixelFormat     = tt->getPixelFormat();
+    }
 }
 
-VolatileTexture* VolatileTextureMgr::findVolotileTexture(Texture2D* tt)
+VolatileTexture* VolatileTextureMgr::getOrAddVolatileTexture(Texture2D* tt)
 {
     VolatileTexture* vt = nullptr;
     for (const auto& texture : _textures)
@@ -837,7 +894,7 @@ void VolatileTextureMgr::addDataTexture(Texture2D* tt,
         return;
     }
 
-    VolatileTexture* vt = findVolotileTexture(tt);
+    VolatileTexture* vt = getOrAddVolatileTexture(tt);
 
     vt->_cashedImageType = VolatileTexture::kImageData;
     vt->_textureData     = data;
@@ -853,7 +910,7 @@ void VolatileTextureMgr::addStringTexture(Texture2D* tt, std::string_view text, 
         return;
     }
 
-    VolatileTexture* vt = findVolotileTexture(tt);
+    VolatileTexture* vt = getOrAddVolatileTexture(tt);
 
     vt->_cashedImageType = VolatileTexture::kString;
     vt->_text            = text;
@@ -877,7 +934,7 @@ void VolatileTextureMgr::removeTexture(Texture2D* t)
 void VolatileTextureMgr::reloadAllTextures()
 {
     _isReloading = true;
-    AXLOG("reload all texture");
+    AXLOGD("reload all texture");
 
     for (auto&& texture : _textures)
     {
@@ -926,15 +983,12 @@ void VolatileTextureMgr::reloadTexture(Texture2D* texture, std::string_view file
     if (!texture)
         return;
 
-    Image* image = new Image();
-    Data data    = FileUtils::getInstance()->getDataFromFile(filename);
+    Image image;
 
-    if (image->initWithImageData(data.getBytes(), data.getSize()))
-        texture->initWithImage(image, pixelFormat);
-
-    AX_SAFE_DELETE(image);
+    if (image.initWithImageFile(filename))
+        texture->initWithImage(&image, pixelFormat);
 }
 
 #endif  // AX_ENABLE_CACHE_TEXTURE_DATA
 
-NS_AX_END
+}

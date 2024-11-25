@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,6 @@ struct DepthStencilDescriptor
     StencilDescriptor frontFaceStencil;
     void addFlag(DepthStencilFlags flag) { this->flags |= flag; }
     void removeFlag(DepthStencilFlags flag) { this->flags &= ~flag; }
-    // must match current render target
     DepthStencilFlags flags = DepthStencilFlags::ALL;
 };
 

@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include "platform/PlatformMacros.h"
 #include "math/Vec3.h"
 #include "jni/jni.hpp"
+#include "base/axstd.h"
 
 namespace jni
 {
@@ -61,7 +62,8 @@ struct TypeSignature<std::string>
 };
 }  // namespace jni
 
-NS_AX_BEGIN
+namespace ax
+{
 
 typedef struct JniMethodInfo_
 {
@@ -220,12 +222,11 @@ public:
 
     /**
     @brief Call of Java static float* method
-    @return address of JniMethodInfo if there are proper JniMethodInfo; otherwise nullptr.
+    @return axstd::pod_vector
     */
     template <typename... Ts>
-    static float* callStaticFloatArrayMethod(const char* className, const char* methodName, Ts&&... xs)
+    static axstd::pod_vector<float> callStaticFloatArrayMethod(const char* className, const char* methodName, Ts&&... xs)
     {
-        static float ret[32];
         ax::JniMethodInfo t;
         const char* signature = jni::TypeSignature<jni::Array<jfloat>(std::decay_t<Ts>...)>{}();
         if (ax::JniHelper::getStaticMethodInfo(t, className, methodName, signature))
@@ -233,35 +234,40 @@ public:
             LocalRefMapType localRefs;
             jfloatArray array =
                 (jfloatArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
-            jsize len = t.env->GetArrayLength(array);
-            if (len <= 32)
+
+            if (array == nullptr)
             {
-                jfloat* elems = t.env->GetFloatArrayElements(array, 0);
-                if (elems)
-                {
-                    memcpy(ret, elems, sizeof(float) * len);
-                    t.env->ReleaseFloatArrayElements(array, elems, 0);
-                };
+                t.env->DeleteLocalRef(t.classID);
+                deleteLocalRefs(t.env, localRefs);
+                return {};
             }
+
+            jsize len = t.env->GetArrayLength(array);
+            axstd::pod_vector<float> result(len);
+            jfloat* elems = t.env->GetFloatArrayElements(array, 0);
+            if (elems)
+            {
+                memcpy(result.data(), elems, sizeof(float) * len);
+                t.env->ReleaseFloatArrayElements(array, elems, 0);
+            };
             t.env->DeleteLocalRef(t.classID);
             deleteLocalRefs(t.env, localRefs);
-            return &ret[0];
+            return result;
         }
         else
         {
             reportError(className, methodName, signature);
         }
-        return nullptr;
+        return {};
     }
 
     /**
     @brief Call of Java static int* method
-    @return address of JniMethodInfo if there are proper JniMethodInfo; otherwise nullptr.
+    @return axstd::pod_vector
     */
     template <typename... Ts>
-    static int* callStaticIntArrayMethod(const char* className, const char* methodName, Ts&&... xs)
+    static axstd::pod_vector<int32_t> callStaticIntArrayMethod(const char* className, const char* methodName, Ts&&... xs)
     {
-        static int ret[32];
         ax::JniMethodInfo t;
         const char* signature = jni::TypeSignature<jni::Array<jint>(std::decay_t<Ts>...)>{}();
         if (ax::JniHelper::getStaticMethodInfo(t, className, methodName, signature))
@@ -269,25 +275,31 @@ public:
             LocalRefMapType localRefs;
             jintArray array =
                 (jintArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
-            jsize len = t.env->GetArrayLength(array);
-            if (len <= 32)
+
+            if (array == nullptr)
             {
-                jint* elems = t.env->GetIntArrayElements(array, 0);
-                if (elems)
-                {
-                    memcpy(ret, elems, sizeof(int) * len);
-                    t.env->ReleaseIntArrayElements(array, elems, 0);
-                };
+                t.env->DeleteLocalRef(t.classID);
+                deleteLocalRefs(t.env, localRefs);
+                return {};
             }
+
+            jsize len = t.env->GetArrayLength(array);
+            axstd::pod_vector<int32_t> result(len);
+            jint* elems = t.env->GetIntArrayElements(array, 0);
+            if (elems)
+            {
+                memcpy(result.data(), elems, sizeof(int32_t) * len);
+                t.env->ReleaseIntArrayElements(array, elems, 0);
+            };
             t.env->DeleteLocalRef(t.classID);
             deleteLocalRefs(t.env, localRefs);
-            return &ret[0];
+            return result;
         }
         else
         {
             reportError(className, methodName, signature);
         }
-        return nullptr;
+        return {};
     }
 
     /**
@@ -305,6 +317,14 @@ public:
             LocalRefMapType localRefs;
             jfloatArray array =
                 (jfloatArray)t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
+
+            if (array == nullptr)
+            {
+                t.env->DeleteLocalRef(t.classID);
+                deleteLocalRefs(t.env, localRefs);
+                return Vec3();
+            }
+
             jsize len = t.env->GetArrayLength(array);
             if (len == 3)
             {
@@ -510,6 +530,6 @@ private:
     static void reportError(const char* className, const char* methodName, const char* signature);
 };
 
-NS_AX_END
+}
 
 #endif  // __ANDROID_JNI_HELPER_H__

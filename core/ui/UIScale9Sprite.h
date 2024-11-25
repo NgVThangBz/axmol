@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +24,19 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__UIScale9Sprite__
-#define __cocos2d_libs__UIScale9Sprite__
+#ifndef _AXUI_SCALE9SPRITE_H_
+#define _AXUI_SCALE9SPRITE_H_
 
 #include "2d/Sprite.h"
 #include "2d/SpriteFrame.h"
-#include "2d/SpriteBatchNode.h"
-#include "platform/PlatformMacros.h"
 #include "ui/GUIExport.h"
-#include "renderer/TrianglesCommand.h"
 
 /**
  * @addtogroup ui
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 class DrawNode;
 class Texture2D;
 
@@ -562,4 +560,4 @@ protected:
 // end of ui group
 /// @}
 
-#endif /* defined(__cocos2d_libs__UIScale9Sprite__) */
+#endif /* defined(_AXUI_SCALE9SPRITE_H_) */

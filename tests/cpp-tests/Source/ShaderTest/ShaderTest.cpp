@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
 #include "renderer/Shaders.h"
 #include "renderer/backend/DriverBase.h"
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 
 #define SET_UNIFORM(ps, name, value)                          \
@@ -398,7 +398,7 @@ SpriteBlur* SpriteBlur::create(const char* pszFileName)
 {
     SpriteBlur* pRet = new SpriteBlur();
     bool result      = pRet->initWithFile("");
-    ax::print("Test call Sprite::initWithFile with bad file name result is : %s", result ? "true" : "false");
+    AXLOGD("Test call Sprite::initWithFile with bad file name result is : {}", result ? "true" : "false");
 
     if (pRet->initWithFile(pszFileName))
     {

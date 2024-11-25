@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -68,6 +68,7 @@ struct AX_DLL TextureInfo
 
     void assign(const TextureInfo& other);
     void assign(TextureInfo&& other);
+    void assign(int slot, int index, backend::TextureBackend* texture);
 
     void retainTextures();
     void releaseTextures();
@@ -305,17 +306,17 @@ public:
     * so batch ID was set to -1 indicate batch was disabled
     */
     void updateBatchId();
-
+#ifndef AX_CORE_PROFILE
     /*
      * Follow API is deprecated, use getMutableVertexLayout instead
      */
-    AX_DEPRECATED_ATTRIBUTE void setVertexAttrib(std::string_view name,
+    AX_DEPRECATED(2.1) void setVertexAttrib(std::string_view name,
                                                  std::size_t index,
                                                  VertexFormat format,
                                                  std::size_t offset,
                                                  bool needToBeNormallized);
-    AX_DEPRECATED_ATTRIBUTE void setVertexStride(uint32_t stride);
-
+    AX_DEPRECATED(2.1) void setVertexStride(uint32_t stride);
+#endif
     /** Custom shader program's vertex layout maybe not setup
      * so engine specific render node(such as Sprite) should invoke this API when ProgramState changed
      */

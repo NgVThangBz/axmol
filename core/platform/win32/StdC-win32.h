@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -84,7 +84,8 @@ typedef SSIZE_T ssize_t;
 // Structure timeval has define in winsock.h, include windows.h for it.
 #include <Windows.h>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 struct timezone
 {
@@ -94,7 +95,7 @@ struct timezone
 
 int AX_DLL gettimeofday(struct timeval*, struct timezone*);
 
-NS_AX_END
+}
 
 // Conflicted with ParticleSystem::PositionType::RELATIVE, so we need to undef it.
 #ifdef RELATIVE

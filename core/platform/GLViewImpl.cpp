@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -75,6 +75,15 @@ THE SOFTWARE.
 #    endif
 #endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_MAC)
 
+#if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
+#    ifndef GLFW_EXPOSE_NATIVE_X11
+#        define GLFW_EXPOSE_NATIVE_X11
+#    endif
+#    ifndef GLFW_EXPOSE_NATIVE_WAYLAND
+#        define GLFW_EXPOSE_NATIVE_WAYLAND
+#    endif
+#endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
+
 #if (AX_TARGET_PLATFORM != AX_PLATFORM_WASM)
 #    include <GLFW/glfw3native.h>
 #endif
@@ -83,7 +92,8 @@ THE SOFTWARE.
 #    include <emscripten/html5.h>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class GLFWEventHandler
 {
@@ -106,11 +116,11 @@ public:
             _view->onGLFWMouseMoveCallBack(window, x, y);
     }
 #if defined(__EMSCRIPTEN__)
-    static int onWebTouchCallback(int eventType, const EmscriptenTouchEvent* touchEvent, void* /*userData*/)
+    static EM_BOOL onWebTouchCallback(int eventType, const EmscriptenTouchEvent* touchEvent, void* /*userData*/)
     {
         if (_view)
             _view->onWebTouchCallback(eventType, touchEvent);
-        return 0;
+        return EM_FALSE;
     }
 #endif
 
@@ -331,6 +341,24 @@ static keyCodeItem g_keyCodeStructArray[] = {
 // implement GLViewImpl
 //////////////////////////////////////////////////////////////////////////
 
+static EventMouse::MouseButton checkMouseButton(GLFWwindow* window)
+{
+    EventMouse::MouseButton mouseButton{EventMouse::MouseButton::BUTTON_UNSET};
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    {
+        mouseButton = static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_LEFT);
+    }
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+    {
+        mouseButton = static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_RIGHT);
+    }
+    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        mouseButton = static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_MIDDLE);
+    }
+    return mouseButton;
+}
+
 GLViewImpl::GLViewImpl(bool initglfw)
     : _captured(false)
     , _isInRetinaMonitor(false)
@@ -359,7 +387,7 @@ GLViewImpl::GLViewImpl(bool initglfw)
 
 GLViewImpl::~GLViewImpl()
 {
-    AXLOGI("deallocing GLViewImpl: {}", fmt::ptr(this));
+    AXLOGD("deallocing GLViewImpl: {}", fmt::ptr(this));
     GLFWEventHandler::setGLViewImpl(nullptr);
     glfwTerminate();
 }
@@ -381,6 +409,27 @@ void* GLViewImpl::getNSGLContext()
     return (void*)glfwGetNSGLContext(_mainWindow);
 }  // stevetranby: added
 #endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_MAC)
+
+#if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
+void* GLViewImpl::getX11Window()
+{
+    return (void*)glfwGetX11Window(_mainWindow);
+}
+void* GLViewImpl::getX11Display()
+{
+    return (void*)glfwGetX11Display();
+}
+/* TODO: Implement AX_PLATFORM_LINUX_WAYLAND
+void* GLViewImpl::getWaylandWindow()
+{
+    return (void*)glfwGetWaylandWindow(_mainWindow);
+}
+void* GLViewImpl::getWaylandDisplay()
+{
+    return (void*)glfwGetWaylandDisplay();
+}
+*/
+#endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
 
 GLViewImpl* GLViewImpl::create(std::string_view viewName)
 {
@@ -498,12 +547,22 @@ bool GLViewImpl::initWithRect(std::string_view viewName, const ax::Rect& rect, f
         return false;
     }
 
+    /*
+     *  Note that the created window and context may differ from what you requested,
+     *  as not all parameters and hints are
+     *  [hard constraints](@ref window_hints_hard).  This includes the size of the
+     *  window, especially for full screen windows.  To retrieve the actual
+     *  attributes of the created window and context, use queries like @ref
+     *  glfwGetWindowAttrib and @ref glfwGetWindowSize.
+     *
+     *  see declaration glfwCreateWindow
+     */
     int actualWidth, actualHeight;
     glfwGetWindowSize(_mainWindow, &actualWidth, &actualHeight);
-    if (static_cast<int>(windowSize.width) != actualWidth || static_cast<int>(windowSize.height) != actualHeight)
-    {
-        windowSize.set(static_cast<float>(actualWidth), static_cast<float>(actualHeight));
-    }
+    if (static_cast<int>(windowSize.width) != actualWidth)
+        windowSize.x = static_cast<float>(actualWidth);
+    if (static_cast<int>(windowSize.height) != actualHeight)
+        windowSize.y = static_cast<float>(actualHeight);
 
 #if defined(AX_USE_METAL)
     int fbWidth, fbHeight;
@@ -516,7 +575,7 @@ bool GLViewImpl::initWithRect(std::string_view viewName, const ax::Rect& rect, f
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
     if (!device)
     {
-        AXLOG("Doesn't support metal.");
+        AXLOGD("Doesn't support metal.");
         return false;
     }
 
@@ -536,29 +595,20 @@ bool GLViewImpl::initWithRect(std::string_view viewName, const ax::Rect& rect, f
     glfwMakeContextCurrent(_mainWindow);
     glfwSetWindowUserPointer(_mainWindow, backend::__gl);
 #endif
-    /*
-     *  Note that the created window and context may differ from what you requested,
-     *  as not all parameters and hints are
-     *  [hard constraints](@ref window_hints_hard).  This includes the size of the
-     *  window, especially for full screen windows.  To retrieve the actual
-     *  attributes of the created window and context, use queries like @ref
-     *  glfwGetWindowAttrib and @ref glfwGetWindowSize.
-     *
-     *  see declaration glfwCreateWindow
-     */
+    
 #if !defined(__APPLE__)
     handleWindowSize(static_cast<int>(windowSize.width), static_cast<int>(windowSize.height));
 #else
     // sense retina
-    setFrameSize(rect.size.width, rect.size.height);
+    setFrameSize(windowSize.width / frameZoomFactor, windowSize.height / frameZoomFactor);
 #endif
 
     glfwSetMouseButtonCallback(_mainWindow, GLFWEventHandler::onGLFWMouseCallBack);
     glfwSetCursorPosCallback(_mainWindow, GLFWEventHandler::onGLFWMouseMoveCallBack);
 #if defined(__EMSCRIPTEN__)
     // clang-format off
-    _isTouchDevice = !!EM_ASM_INT(return (('ontouchstart' in window) || 
-        (navigator.maxTouchPoints > 0) || 
+    _isTouchDevice = !!EM_ASM_INT(return (('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
         (navigator.msMaxTouchPoints > 0)) ? 1 : 0;
     );
     if (_isTouchDevice)
@@ -1011,11 +1061,11 @@ void GLViewImpl::onGLFWError(int errorID, const char* errorDesc)
 {
     if (_mainWindow)
     {
-        _glfwError = StringUtils::format("GLFWError #%d Happen, %s", errorID, errorDesc);
+        _glfwError = fmt::format("GLFWError #{} Happen, {}", errorID, errorDesc);
     }
     else
     {
-        _glfwError.append(StringUtils::format("GLFWError #%d Happen, %s\n", errorID, errorDesc));
+        _glfwError.append(fmt::format("GLFWError #{} Happen, {}\n", errorID, errorDesc));
     }
     AXLOGE("{}", _glfwError);
 }
@@ -1048,22 +1098,19 @@ void GLViewImpl::onGLFWMouseCallBack(GLFWwindow* /*window*/, int button, int act
         }
     }
 
-    // Because OpenGL and axmol uses different Y axis, we need to convert the coordinate here
-    float cursorX = (_mouseX - _viewPortRect.origin.x) / _scaleX;
-    float cursorY = (_viewPortRect.origin.y + _viewPortRect.size.height - _mouseY) / _scaleY;
+    float cursorX = transformInputX(_mouseX);
+    float cursorY = transformInputY(_mouseY);
 
     if (GLFW_PRESS == action)
     {
         EventMouse event(EventMouse::MouseEventType::MOUSE_DOWN);
-        event.setCursorPosition(cursorX, cursorY);
-        event.setMouseButton(static_cast<ax::EventMouse::MouseButton>(button));
+        event.setMouseInfo(cursorX, cursorY, static_cast<ax::EventMouse::MouseButton>(button));
         Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
     }
     else if (GLFW_RELEASE == action)
     {
         EventMouse event(EventMouse::MouseEventType::MOUSE_UP);
-        event.setCursorPosition(cursorX, cursorY);
-        event.setMouseButton(static_cast<ax::EventMouse::MouseButton>(button));
+        event.setMouseInfo(cursorX, cursorY, static_cast<ax::EventMouse::MouseButton>(button));
         Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
     }
 }
@@ -1093,25 +1140,13 @@ void GLViewImpl::onGLFWMouseMoveCallBack(GLFWwindow* window, double x, double y)
         }
     }
 
-    // Because OpenGL and axmol uses different Y axis, we need to convert the coordinate here
-    float cursorX = (_mouseX - _viewPortRect.origin.x) / _scaleX;
-    float cursorY = (_viewPortRect.origin.y + _viewPortRect.size.height - _mouseY) / _scaleY;
+    float cursorX = transformInputX(_mouseX);
+    float cursorY = transformInputY(_mouseY);
 
     EventMouse event(EventMouse::MouseEventType::MOUSE_MOVE);
     // Set current button
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-    {
-        event.setMouseButton(static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_LEFT));
-    }
-    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-    {
-        event.setMouseButton(static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_RIGHT));
-    }
-    else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
-    {
-        event.setMouseButton(static_cast<ax::EventMouse::MouseButton>(GLFW_MOUSE_BUTTON_MIDDLE));
-    }
-    event.setCursorPosition(cursorX, cursorY);
+    EventMouse::MouseButton mouseButton{EventMouse::MouseButton::BUTTON_UNSET};
+    event.setMouseInfo(cursorX, cursorY, checkMouseButton(window));
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 }
 
@@ -1163,14 +1198,13 @@ void GLViewImpl::onWebTouchCallback(int eventType, const EmscriptenTouchEvent* t
 }
 #endif
 
-void GLViewImpl::onGLFWMouseScrollCallback(GLFWwindow* /*window*/, double x, double y)
+void GLViewImpl::onGLFWMouseScrollCallback(GLFWwindow* window, double x, double y)
 {
     EventMouse event(EventMouse::MouseEventType::MOUSE_SCROLL);
-    // Because OpenGL and axmol uses different Y axis, we need to convert the coordinate here
-    float cursorX = (_mouseX - _viewPortRect.origin.x) / _scaleX;
-    float cursorY = (_viewPortRect.origin.y + _viewPortRect.size.height - _mouseY) / _scaleY;
+    float cursorX = transformInputX(_mouseX);
+    float cursorY = transformInputY(_mouseY);
     event.setScrollData((float)x, -(float)y);
-    event.setCursorPosition(cursorX, cursorY);
+    event.setMouseInfo(cursorX, cursorY, checkMouseButton(window));
     Director::getInstance()->getEventDispatcher()->dispatchEvent(&event);
 }
 
@@ -1408,4 +1442,4 @@ bool GLViewImpl::loadGL()
 
 #endif
 
-NS_AX_END  // end of namespace ax;
+}  // namespace ax

@@ -4,7 +4,7 @@ Copyright (c) 2012 		cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 extern AX_DLL const std::string_view positionColor_vert;
 extern AX_DLL const std::string_view positionColor_frag;
@@ -73,6 +74,7 @@ extern AX_DLL const std::string_view dualSampler_hsv_frag;
 
 extern AX_DLL const std::string_view videoTextureYUY2_frag;
 extern AX_DLL const std::string_view videoTextureNV12_frag;
+extern AX_DLL const std::string_view videoTextureI420_frag;
 
 /* below is 3d shaders */
 extern AX_DLL const std::string_view lineColor_frag;
@@ -101,7 +103,7 @@ extern AX_DLL const std::string_view colorNormalTexture_frag_1;
 extern AX_DLL const std::string_view positionNormalTexture_vert_1;
 extern AX_DLL const std::string_view skinPositionNormalTexture_vert_1;
 
-NS_AX_END
+}
 /**
  end of support group
  @}

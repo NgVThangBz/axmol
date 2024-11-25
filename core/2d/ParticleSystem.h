@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@ THE SOFTWARE.
 #include "2d/SpriteFrameCache.h"
 #include "math/FastRNG.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class ParticleBatchNode;
 
@@ -1214,7 +1215,7 @@ public:
 
     /** Adds an emission shape to the system.
      * The index is automatically incremented on each addition.
-     * 
+     *
      * @param shape Shape descriptor object.
      */
     void addEmissionShape(EmissionShape shape);
@@ -1227,7 +1228,7 @@ public:
 
     /** Adds an emission shape of type mask to the system.
      * The mask should be added using the ParticleEmissionMaskCache class.
-     * 
+     *
      * @param maskId The id of the mask, FOURCC starts with '#', such as "#abcd"
      * @param pos Position of the emission shape in local space.
      * @param overrideSize Size of the emission mask in pixels, leave ZERO to use texture size.
@@ -1240,18 +1241,18 @@ public:
                                          Vec2 scale        = Vec2::ONE,
                                          float angle       = 0.0F);
 
-    /** Adds an emission shape of type point to the system. 
+    /** Adds an emission shape of type point to the system.
      * @param pos Position of the emission shape in local space.
      */
     static EmissionShape createPointShape(Vec2 pos);
 
-    /** Adds an emission shape of type Rectangle to the system. 
+    /** Adds an emission shape of type Rectangle to the system.
      * @param pos Position of the emission shape in local space.
      * @param size Size of the rectangle.
      */
     static EmissionShape createRectShape(Vec2 pos, Size size);
 
-    /** Adds an emission shape of type Rectangular Torus to the system. 
+    /** Adds an emission shape of type Rectangular Torus to the system.
      * @param pos Position of the emission shape in local space.
      * @param innerSize Inner size offset of the rectangle.
      * @param outerSize Outer size of the rectangle.
@@ -1690,6 +1691,6 @@ private:
 // end of _2d group
 /// @}
 
-NS_AX_END
+}
 
 #endif  //__CCPARTICLE_SYSTEM_H__

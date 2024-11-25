@@ -2,8 +2,9 @@
  Copyright (c) 2014      PlayFirst Inc.
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +34,8 @@
 #include <functional>
 #include <type_traits>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * Utility/support macros. Defined to enable RefPtr<T> to contain types like 'const T' because we do not
@@ -45,7 +47,7 @@ NS_AX_BEGIN
     {                                                                 \
         if (ptr)                                                      \
         {                                                             \
-            const_cast<Object*>(static_cast<const Object*>(ptr))->retain(); \
+            (ptr)->retain(); \
         }                                                             \
                                                                       \
     } while (0);
@@ -56,7 +58,7 @@ NS_AX_BEGIN
     {                                                                  \
         if (ptr)                                                       \
         {                                                              \
-            const_cast<Object*>(static_cast<const Object*>(ptr))->release(); \
+            (ptr)->release(); \
         }                                                              \
                                                                        \
     } while (0);
@@ -67,7 +69,7 @@ NS_AX_BEGIN
     {                                                                  \
         if (ptr)                                                       \
         {                                                              \
-            const_cast<Object*>(static_cast<const Object*>(ptr))->release(); \
+            (ptr)->release(); \
             ptr = nullptr;                                             \
         }                                                              \
                                                                        \
@@ -81,10 +83,10 @@ struct ReferencedObject
 };
 
 /**
- * Wrapper class which maintains a strong reference to a cocos2dx ax::Object* type object.
+ * Wrapper class which maintains a strong reference to a axmol ax::Object* type object.
  * Similar in concept to a boost smart pointer.
  *
- * Enables the use of the RAII idiom with Cocos2dx objects and helps automate some of the more
+ * Enables the use of the RAII idiom with axmol objects and helps automate some of the more
  * mundane tasks of pointer initialization and cleanup.
  *
  * The class itself is modelled on C++ 11 std::shared_ptr, and trys to keep some of the methods
@@ -118,9 +120,9 @@ public:
     {
         if (other._ptr != _ptr)
         {
-            AX_REF_PTR_SAFE_RETAIN(other._ptr);
             AX_REF_PTR_SAFE_RELEASE(_ptr);
             _ptr = other._ptr;
+            AX_REF_PTR_SAFE_RETAIN(_ptr);
         }
 
         return *this;
@@ -250,7 +252,7 @@ private:
     T* _ptr;
 
     // NOTE: We can ensure T is derived from ax::Object at compile time here.
-    static_assert(std::is_base_of<Object, typename std::remove_const<T>::type>::value, "T must be derived from Object");
+    static_assert(axstd::is_ref_counted_v<typename std::remove_const<T>::type>, "T must be derived from Object");
 };
 
 template <class T>
@@ -332,7 +334,7 @@ RefPtr<T> dynamic_pointer_cast(const RefPtr<U>& r)
 #undef AX_REF_PTR_SAFE_RELEASE
 #undef AX_REF_PTR_SAFE_RELEASE_NULL
 
-NS_AX_END
+}
 
 /// @endcond
 #endif  // __AX_REF_PTR_H__

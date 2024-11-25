@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,8 @@ THE SOFTWARE.
 
 using namespace std;
 
-#define DECLARE_GUARD (void)0  // std::lock_guard<std::recursive_mutex> mutexGuard(_mutex)
-
-NS_AX_BEGIN
+namespace ax
+{
 
 static std::string _checkPath(const char* path) {
     std::string ret;
@@ -62,7 +61,7 @@ FileUtils* FileUtils::getInstance()
         {
             delete s_sharedFileUtils;
             s_sharedFileUtils = nullptr;
-            AXLOG("ERROR: Could not init CCFileUtilsLinux");
+            AXLOGE("ERROR: Could not init FileUtilsLinux");
         }
     }
     return s_sharedFileUtils;
@@ -72,8 +71,6 @@ FileUtilsLinux::FileUtilsLinux() {}
 
 bool FileUtilsLinux::init()
 {
-    DECLARE_GUARD;
-
     // application path
     if (s_exeDir.empty()) {
         s_exeDir = _checkPath("/proc/self/exe");
@@ -122,7 +119,6 @@ bool FileUtilsLinux::init()
 
 string FileUtilsLinux::getWritablePath() const
 {
-    DECLARE_GUARD;
     return getNativeWritableAbsolutePath();
 }
 
@@ -144,4 +140,4 @@ bool FileUtilsLinux::isFileExistInternal(std::string_view path) const
     return (stat(path.data(), &sts) == 0) && S_ISREG(sts.st_mode);
 }
 
-NS_AX_END
+}

@@ -5,7 +5,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,8 @@ THE SOFTWARE.
 #include "renderer/backend/RenderTarget.h"
 #include "2d/Camera.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 // implementation of GridBase
 
 bool GridBase::initWithSize(const Vec2& gridSize)
@@ -150,7 +151,7 @@ void GridBase::updateBlendState()
 
 GridBase::~GridBase()
 {
-    AXLOGINFO("deallocing GridBase: %p", this);
+    AXLOGV("deallocing GridBase: {}", fmt::ptr(this));
 
     AX_SAFE_RELEASE(_renderTarget);
 
@@ -219,7 +220,7 @@ void GridBase::beforeDraw()
         _oldRenderTarget = renderer->getRenderTarget();
         AX_SAFE_RELEASE(_renderTarget);
         _renderTarget =
-            backend::DriverBase::getInstance()->newRenderTarget(TargetBufferFlags::COLOR, _texture->getBackendTexture());
+            backend::DriverBase::getInstance()->newRenderTarget(_texture->getBackendTexture());
         renderer->setRenderTarget(_renderTarget);
     };
     renderer->addCallbackCommand(beforeDrawCommandFunc);
@@ -796,4 +797,4 @@ void TiledGrid3D::updateVertexAndTexCoordinate()
     _drawCommand.updateIndexBuffer(_indices, gradSize * 6 * sizeof(unsigned short));
 }
 
-NS_AX_END
+}

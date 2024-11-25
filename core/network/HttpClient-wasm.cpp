@@ -5,7 +5,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@
 #include <emscripten.h>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace network
 {
@@ -69,20 +70,20 @@ namespace network
     , _clearRequestPredicate(nullptr)
     , _clearResponsePredicate(nullptr)
     {
-        AXLOG("In the constructor of HttpClient!");
+        AXLOGD("In the constructor of HttpClient!");
         increaseThreadCount();
     }
 
     HttpClient::~HttpClient()
     {
-        AXLOG("HttpClient destructor");
+        AXLOGD("HttpClient destructor");
     }
 
     void HttpClient::destroyInstance()
     {
         if (nullptr == _httpClient)
         {
-            AXLOG("HttpClient singleton is nullptr");
+            AXLOGD("HttpClient singleton is nullptr");
         }
 
         auto thiz = _httpClient;
@@ -109,7 +110,7 @@ namespace network
 
     void HttpClient::setSSLVerification(std::string_view caFile)
     {
-        AXLOG("HttpClient::setSSLVerification not required on Emscripten");
+        AXLOGD("HttpClient::setSSLVerification not required on Emscripten");
         // _sslCaFilename = caFile;
     }
 
@@ -205,7 +206,7 @@ namespace network
             if (pos != std::string::npos)
             {
                 if (cxx20::ic::starts_with(header, "user-agent")) {
-                    AXLOGWARN("Ignore user-agent for wasm to avoid cause error: Refused to set unsafe header \"User-Agent\"");
+                    AXLOGW("Ignore user-agent for wasm to avoid cause error: Refused to set unsafe header \"User-Agent\"");
                     continue;
                 }
                 auto key = header.substr(0, pos);
@@ -352,4 +353,4 @@ namespace network
 
 } // namespace network
 
-NS_AX_END
+}

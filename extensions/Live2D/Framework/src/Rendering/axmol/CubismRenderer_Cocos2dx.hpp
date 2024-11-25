@@ -41,7 +41,7 @@
 #include <OpenGL/gl.h>
 #endif
 
-USING_NS_AX;
+using namespace ax;
 
 //------------ LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
@@ -366,7 +366,7 @@ private:
     backend::TextureBackend* _lastColorBuffer;                         ///< モデル描画直前のフレームバッファ
     backend::TextureBackend* _lastDepthBuffer;
     backend::TextureBackend* _lastStencilBuffer;
-    ax::RenderTargetFlag _lastRenderTargetFlag;
+    //ax::RenderTargetFlag _lastRenderTargetFlag;
     backend::RenderTarget* _lastRenderTarget;
     csmRectF _lastViewport;                 ///< モデル描画直前のビューポート
 };

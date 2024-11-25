@@ -1,8 +1,9 @@
 /****************************************************************************
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,8 @@ THE SOFTWARE.
 #include "ui/UITextAtlas.h"
 #include "2d/Label.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -100,7 +102,7 @@ void TextAtlas::setProperty(std::string_view stringValue,
 
     updateContentSizeWithTextureSize(_labelAtlasRenderer->getContentSize());
     _labelAtlasRendererAdaptDirty = true;
-    //    AXLOG("cs w %f, h %f", _contentSize.width, _contentSize.height);
+    //    AXLOGD("cs w {}, h {}", _contentSize.width, _contentSize.height);
 }
 
 void TextAtlas::setString(std::string_view value)
@@ -113,7 +115,7 @@ void TextAtlas::setString(std::string_view value)
     _labelAtlasRenderer->setString(value);
     updateContentSizeWithTextureSize(_labelAtlasRenderer->getContentSize());
     _labelAtlasRendererAdaptDirty = true;
-    //    AXLOG("cssss w %f, h %f", _contentSize.width, _contentSize.height);
+    //    AXLOGD("cssss w {}, h {}", _contentSize.width, _contentSize.height);
 }
 
 std::string_view TextAtlas::getString() const
@@ -202,4 +204,4 @@ ResourceData TextAtlas::getRenderFile()
 }
 
 }  // namespace ui
-NS_AX_END
+}

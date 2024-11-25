@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@ THE SOFTWARE.
 #include <string>
 #include <chrono>
 
-NS_AX_BEGIN
+namespace ax
+{
 class Rect;
 
 class Application : public ApplicationBase
@@ -63,10 +64,10 @@ public:
      @return Current application instance pointer.
      */
     static Application* getInstance();
-
+#ifndef AX_CORE_PROFILE
     /** @deprecated Use getInstance() instead */
-    AX_DEPRECATED_ATTRIBUTE static Application* sharedApplication();
-
+    AX_DEPRECATED(2.1) static Application* sharedApplication();
+#endif
     /* override functions */
     virtual LanguageType getCurrentLanguage() override;
 
@@ -100,4 +101,4 @@ protected:
     static Application* sm_pSharedApplication;
 };
 
-NS_AX_END
+}

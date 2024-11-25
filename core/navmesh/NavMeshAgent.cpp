@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@
 #    include "2d/Scene.h"
 #    include <algorithm>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 NavMeshAgentParam::NavMeshAgentParam()
     : radius(0.6f)
@@ -423,6 +424,6 @@ Vec3 NavMeshAgent::getVelocity() const
     return Vec3::ZERO;
 }
 
-NS_AX_END
+}
 
 #endif  // AX_ENABLE_NAVMESH

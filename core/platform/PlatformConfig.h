@@ -4,7 +4,7 @@ Copyright (c) 2013-2017 Chukong Technologies
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -161,6 +161,28 @@ Linux: Desktop GL/Vulkan
 #    if !defined(AX_USE_GL)
 #        define AX_USE_GL 1
 #    endif
+#endif
+
+// ## SIMD detections
+#if !defined(AX_NEON_INTRINSICS)
+#    if (AX_TARGET_PLATFORM != AX_PLATFORM_WASM)
+#        if defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM) || defined(__ARM_NEON__)
+#            define AX_NEON_INTRINSICS 1
+#        endif
+#    endif
+#endif
+
+#ifdef AX_SSE_INTRINSICS
+// axmol math ISA require SSE2 at latest
+#    if defined(__SSE4_1__)
+#        include <smmintrin.h>
+#    else
+#        include <emmintrin.h>
+#    endif
+typedef __m128 _xm128_t;
+#elif defined(AX_NEON_INTRINSICS)
+#    include <arm_neon.h>
+typedef float32x4_t _xm128_t;
 #endif
 
 /// @endcond

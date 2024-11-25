@@ -3,7 +3,7 @@
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@
 
 #include "base/EventController.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 EventController::EventController(ControllerEventType type, Controller* controller, int keyCode)
     : Event(Type::GAME_CONTROLLER)
@@ -44,4 +45,4 @@ EventController::EventController(ControllerEventType type, Controller* controlle
     , _isConnected(isConnected)
 {}
 
-NS_AX_END
+}

@@ -5,6 +5,7 @@
 #include "renderer/backend/VertexLayout.h"
 #include "renderer/backend/DriverBase.h"
 #include "renderer/backend/RenderTarget.h"
+#include "renderer/backend/ProgramManager.h"
 #include "lua-bindings/manual/tolua_fix.h"
 #include "lua-bindings/manual/LuaBasicConversions.h"
 
@@ -1026,7 +1027,7 @@ int lua_ax_backend_Program_getBuiltinProgram(lua_State* tolua_S)
 }
 static int lua_ax_backend_Program_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Program)");
+    AXLOGV("luabindings: finalizing LUA object (Program)");
     return 0;
 }
 
@@ -1234,7 +1235,7 @@ int lua_ax_backend_VertexLayout_constructor(lua_State* tolua_S)
 
 static int lua_ax_backend_VertexLayout_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (VertexLayout)");
+    AXLOGV("luabindings: finalizing LUA object (VertexLayout)");
     return 0;
 }
 
@@ -1827,7 +1828,7 @@ int lua_ax_backend_ProgramState_constructor(lua_State* tolua_S)
 
 static int lua_ax_backend_ProgramState_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ProgramState)");
+    AXLOGV("luabindings: finalizing LUA object (ProgramState)");
     return 0;
 }
 
@@ -2413,7 +2414,7 @@ int lua_ax_backend_TextureBackend_getHeight(lua_State* tolua_S)
 }
 static int lua_ax_backend_TextureBackend_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TextureBackend)");
+    AXLOGV("luabindings: finalizing LUA object (TextureBackend)");
     return 0;
 }
 
@@ -2537,7 +2538,7 @@ int lua_ax_backend_Texture2DBackend_getHeight(lua_State* tolua_S)
 }
 static int lua_ax_backend_Texture2DBackend_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Texture2DBackend)");
+    AXLOGV("luabindings: finalizing LUA object (Texture2DBackend)");
     return 0;
 }
 
@@ -2633,7 +2634,7 @@ int lua_ax_backend_TextureCubemapBackend_updateFaceData(lua_State* tolua_S)
 }
 static int lua_ax_backend_TextureCubemapBackend_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TextureCubemapBackend)");
+    AXLOGV("luabindings: finalizing LUA object (TextureCubemapBackend)");
     return 0;
 }
 
@@ -2677,21 +2678,18 @@ int lua_ax_backend_DriverBase_newDefaultRenderTarget(lua_State* tolua_S)
 #endif
 
     argc = lua_gettop(tolua_S)-1;
-    if (argc == 1) 
+    if (argc == 0) 
     {
-        ax::backend::TargetBufferFlags arg0;
-
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "axb.DriverBase:newDefaultRenderTarget");
         if(!ok)
         {
             tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_DriverBase_newDefaultRenderTarget'", nullptr);
             return 0;
         }
-        auto&& ret = cobj->newDefaultRenderTarget(arg0);
+        auto&& ret = cobj->newDefaultRenderTarget();
         object_to_luaval<ax::backend::RenderTarget>(tolua_S, "axb.RenderTarget",(ax::backend::RenderTarget*)ret);
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.DriverBase:newDefaultRenderTarget",argc, 1);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.DriverBase:newDefaultRenderTarget",argc, 0);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -2727,11 +2725,22 @@ int lua_ax_backend_DriverBase_newRenderTarget(lua_State* tolua_S)
 #endif
 
     argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_DriverBase_newRenderTarget'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->newRenderTarget();
+        object_to_luaval<ax::backend::RenderTarget>(tolua_S, "axb.RenderTarget",(ax::backend::RenderTarget*)ret);
+        return 1;
+    }
     if (argc == 1) 
     {
-        ax::backend::TargetBufferFlags arg0;
+        ax::backend::TextureBackend* arg0;
 
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "axb.DriverBase:newRenderTarget");
+        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 2, "axb.TextureBackend",&arg0, "axb.DriverBase:newRenderTarget");
         if(!ok)
         {
             tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_DriverBase_newRenderTarget'", nullptr);
@@ -2743,10 +2752,10 @@ int lua_ax_backend_DriverBase_newRenderTarget(lua_State* tolua_S)
     }
     if (argc == 2) 
     {
-        ax::backend::TargetBufferFlags arg0;
+        ax::backend::TextureBackend* arg0;
         ax::backend::TextureBackend* arg1;
 
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "axb.DriverBase:newRenderTarget");
+        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 2, "axb.TextureBackend",&arg0, "axb.DriverBase:newRenderTarget");
 
         ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 3, "axb.TextureBackend",&arg1, "axb.DriverBase:newRenderTarget");
         if(!ok)
@@ -2760,11 +2769,11 @@ int lua_ax_backend_DriverBase_newRenderTarget(lua_State* tolua_S)
     }
     if (argc == 3) 
     {
-        ax::backend::TargetBufferFlags arg0;
+        ax::backend::TextureBackend* arg0;
         ax::backend::TextureBackend* arg1;
         ax::backend::TextureBackend* arg2;
 
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "axb.DriverBase:newRenderTarget");
+        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 2, "axb.TextureBackend",&arg0, "axb.DriverBase:newRenderTarget");
 
         ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 3, "axb.TextureBackend",&arg1, "axb.DriverBase:newRenderTarget");
 
@@ -2778,30 +2787,7 @@ int lua_ax_backend_DriverBase_newRenderTarget(lua_State* tolua_S)
         object_to_luaval<ax::backend::RenderTarget>(tolua_S, "axb.RenderTarget",(ax::backend::RenderTarget*)ret);
         return 1;
     }
-    if (argc == 4) 
-    {
-        ax::backend::TargetBufferFlags arg0;
-        ax::backend::TextureBackend* arg1;
-        ax::backend::TextureBackend* arg2;
-        ax::backend::TextureBackend* arg3;
-
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "axb.DriverBase:newRenderTarget");
-
-        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 3, "axb.TextureBackend",&arg1, "axb.DriverBase:newRenderTarget");
-
-        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 4, "axb.TextureBackend",&arg2, "axb.DriverBase:newRenderTarget");
-
-        ok &= luaval_to_object<ax::backend::TextureBackend>(tolua_S, 5, "axb.TextureBackend",&arg3, "axb.DriverBase:newRenderTarget");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_DriverBase_newRenderTarget'", nullptr);
-            return 0;
-        }
-        auto&& ret = cobj->newRenderTarget(arg0, arg1, arg2, arg3);
-        object_to_luaval<ax::backend::RenderTarget>(tolua_S, "axb.RenderTarget",(ax::backend::RenderTarget*)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.DriverBase:newRenderTarget",argc, 1);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.DriverBase:newRenderTarget",argc, 0);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -3551,7 +3537,7 @@ int lua_ax_backend_DriverBase_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_backend_DriverBase_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DriverBase)");
+    AXLOGV("luabindings: finalizing LUA object (DriverBase)");
     return 0;
 }
 
@@ -3583,6 +3569,471 @@ int lua_register_ax_backend_DriverBase(lua_State* tolua_S)
     auto typeName = typeid(ax::backend::DriverBase).name(); // rtti is literal storage
     g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "axb.DriverBase";
     g_typeCast[typeName] = "axb.DriverBase";
+    return 1;
+}
+
+int lua_ax_backend_ProgramManager_getBuiltinProgram(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_getBuiltinProgram'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        unsigned int arg0;
+
+        ok &= luaval_to_uint32(tolua_S, 2,&arg0, "axb.ProgramManager:getBuiltinProgram");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_getBuiltinProgram'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getBuiltinProgram(arg0);
+        object_to_luaval<ax::backend::Program>(tolua_S, "axb.Program",(ax::backend::Program*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.ProgramManager:getBuiltinProgram",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_getBuiltinProgram'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_registerCustomProgram(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_registerCustomProgram'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 2) 
+    {
+        std::string_view arg0;
+        std::string_view arg1;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axb.ProgramManager:registerCustomProgram");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_registerCustomProgram'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->registerCustomProgram(arg0, arg1);
+        #pragma warning NO CONVERSION FROM NATIVE FOR unsigned long long;
+        return 1;
+    }
+    if (argc == 3) 
+    {
+        std::string_view arg0;
+        std::string_view arg1;
+        ax::backend::VertexLayoutType arg2;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_int32(tolua_S, 4,(int *)&arg2, "axb.ProgramManager:registerCustomProgram");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_registerCustomProgram'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->registerCustomProgram(arg0, arg1, arg2);
+        #pragma warning NO CONVERSION FROM NATIVE FOR unsigned long long;
+        return 1;
+    }
+    if (argc == 4) 
+    {
+        std::string_view arg0;
+        std::string_view arg1;
+        ax::backend::VertexLayoutType arg2;
+        bool arg3;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_int32(tolua_S, 4,(int *)&arg2, "axb.ProgramManager:registerCustomProgram");
+
+        ok &= luaval_to_boolean(tolua_S, 5,&arg3, "axb.ProgramManager:registerCustomProgram");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_registerCustomProgram'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->registerCustomProgram(arg0, arg1, arg2, arg3);
+        #pragma warning NO CONVERSION FROM NATIVE FOR unsigned long long;
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.ProgramManager:registerCustomProgram",argc, 2);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_registerCustomProgram'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_loadProgram(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+#if _AX_DEBUG >= 1
+    if (!cobj)
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_loadProgram'", nullptr);
+        return 0;
+    }
+#endif
+    argc = lua_gettop(tolua_S)-1;
+    do{
+        if (argc == 2) {
+            std::string_view arg0;
+            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axb.ProgramManager:loadProgram");
+
+            if (!ok) { break; }
+            std::string_view arg1;
+            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axb.ProgramManager:loadProgram");
+
+            if (!ok) { break; }
+            ax::backend::Program* ret = cobj->loadProgram(arg0, arg1);
+            object_to_luaval<ax::backend::Program>(tolua_S, "axb.Program",(ax::backend::Program*)ret);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 3) {
+            std::string_view arg0;
+            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axb.ProgramManager:loadProgram");
+
+            if (!ok) { break; }
+            std::string_view arg1;
+            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axb.ProgramManager:loadProgram");
+
+            if (!ok) { break; }
+            ax::backend::VertexLayoutType arg2;
+            ok &= luaval_to_int32(tolua_S, 4,(int *)&arg2, "axb.ProgramManager:loadProgram");
+
+            if (!ok) { break; }
+            ax::backend::Program* ret = cobj->loadProgram(arg0, arg1, arg2);
+            object_to_luaval<ax::backend::Program>(tolua_S, "axb.Program",(ax::backend::Program*)ret);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 1) {
+            unsigned long long arg0;
+            #pragma warning NO CONVERSION TO NATIVE FOR unsigned long long
+		ok = false;
+
+            if (!ok) { break; }
+            ax::backend::Program* ret = cobj->loadProgram(arg0);
+            object_to_luaval<ax::backend::Program>(tolua_S, "axb.Program",(ax::backend::Program*)ret);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "axb.ProgramManager:loadProgram",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_loadProgram'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_unloadProgram(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_unloadProgram'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        ax::backend::Program* arg0;
+
+        ok &= luaval_to_object<ax::backend::Program>(tolua_S, 2, "axb.Program",&arg0, "axb.ProgramManager:unloadProgram");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_unloadProgram'", nullptr);
+            return 0;
+        }
+        cobj->unloadProgram(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.ProgramManager:unloadProgram",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_unloadProgram'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_unloadUnusedPrograms(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_unloadUnusedPrograms'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_unloadUnusedPrograms'", nullptr);
+            return 0;
+        }
+        cobj->unloadUnusedPrograms();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.ProgramManager:unloadUnusedPrograms",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_unloadUnusedPrograms'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_unloadAllPrograms(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::backend::ProgramManager* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::backend::ProgramManager*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_backend_ProgramManager_unloadAllPrograms'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_unloadAllPrograms'", nullptr);
+            return 0;
+        }
+        cobj->unloadAllPrograms();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axb.ProgramManager:unloadAllPrograms",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_unloadAllPrograms'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_backend_ProgramManager_getInstance(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_getInstance'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::backend::ProgramManager::getInstance();
+        object_to_luaval<ax::backend::ProgramManager>(tolua_S, "axb.ProgramManager",(ax::backend::ProgramManager*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "axb.ProgramManager:getInstance",argc, 0);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_getInstance'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_backend_ProgramManager_destroyInstance(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"axb.ProgramManager",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_backend_ProgramManager_destroyInstance'", nullptr);
+            return 0;
+        }
+        ax::backend::ProgramManager::destroyInstance();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "axb.ProgramManager:destroyInstance",argc, 0);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_backend_ProgramManager_destroyInstance'.",&tolua_err);
+#endif
+    return 0;
+}
+static int lua_ax_backend_ProgramManager_finalize(lua_State* tolua_S)
+{
+    AXLOGV("luabindings: finalizing LUA object (ProgramManager)");
+    return 0;
+}
+
+int lua_register_ax_backend_ProgramManager(lua_State* tolua_S)
+{
+    tolua_usertype(tolua_S,"axb.ProgramManager");
+    tolua_cclass(tolua_S,"ProgramManager","axb.ProgramManager","",nullptr);
+
+    tolua_beginmodule(tolua_S,"ProgramManager");
+        tolua_function(tolua_S,"getBuiltinProgram",lua_ax_backend_ProgramManager_getBuiltinProgram);
+        tolua_function(tolua_S,"registerCustomProgram",lua_ax_backend_ProgramManager_registerCustomProgram);
+        tolua_function(tolua_S,"loadProgram",lua_ax_backend_ProgramManager_loadProgram);
+        tolua_function(tolua_S,"unloadProgram",lua_ax_backend_ProgramManager_unloadProgram);
+        tolua_function(tolua_S,"unloadUnusedPrograms",lua_ax_backend_ProgramManager_unloadUnusedPrograms);
+        tolua_function(tolua_S,"unloadAllPrograms",lua_ax_backend_ProgramManager_unloadAllPrograms);
+        tolua_function(tolua_S,"getInstance", lua_ax_backend_ProgramManager_getInstance);
+        tolua_function(tolua_S,"destroyInstance", lua_ax_backend_ProgramManager_destroyInstance);
+    tolua_endmodule(tolua_S);
+    auto typeName = typeid(ax::backend::ProgramManager).name(); // rtti is literal storage
+    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "axb.ProgramManager";
+    g_typeCast[typeName] = "axb.ProgramManager";
     return 1;
 }
 TOLUA_API int register_all_ax_backend(lua_State* tolua_S)
@@ -3619,6 +4070,7 @@ TOLUA_API int register_all_ax_backend(lua_State* tolua_S)
 	lua_register_ax_backend_Texture2DBackend(tolua_S);
 	lua_register_ax_backend_TextureCubemapBackend(tolua_S);
 	lua_register_ax_backend_DriverBase(tolua_S);
+	lua_register_ax_backend_ProgramManager(tolua_S);
 
 	tolua_endmodule(tolua_S);
 	return 1;

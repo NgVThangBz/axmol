@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 #include "renderer/backend/DriverBase.h"
 #include "renderer/backend/PixelFormatUtils.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 unsigned char* getImageData(Image* img, backend::PixelFormat& ePixFmt)
 {
@@ -271,4 +272,4 @@ bool TextureCube::reloadTexture()
     return init(_imgPath[0], _imgPath[1], _imgPath[2], _imgPath[3], _imgPath[4], _imgPath[5]);
 }
 
-NS_AX_END
+}

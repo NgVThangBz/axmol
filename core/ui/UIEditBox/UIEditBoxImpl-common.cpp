@@ -3,8 +3,9 @@
  Copyright (c) 2012 James Chen
  Copyright (c) 2013-2015 zilongshanren
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +42,8 @@ static const int AX_EDIT_BOX_PADDING = 5;
 #    define PASSWORD_CHAR "\u25CF"
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static Vec2 applyPadding(const Vec2& sizeToCorrect)
 {
@@ -313,7 +315,7 @@ void EditBoxImplCommon::setVisible(bool visible)
 void EditBoxImplCommon::setContentSize(const Vec2& size)
 {
     _contentSize = applyPadding(size);
-    AXLOG("[Edit text] content size = (%f, %f)", _contentSize.width, _contentSize.height);
+    AXLOGD("[Edit text] content size = ({}, {})", _contentSize.width, _contentSize.height);
     placeInactiveLabels(_contentSize);
 }
 
@@ -445,4 +447,4 @@ void EditBoxImplCommon::editBoxEditingChanged(std::string_view text)
 
 }  // namespace ui
 
-NS_AX_END
+}

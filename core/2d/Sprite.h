@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
 #include "renderer/CustomCommand.h"
 #include "2d/AutoPolygon.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class SpriteBatchNode;
 class SpriteFrame;
@@ -152,6 +153,15 @@ public:
      * @return  An autoreleased sprite object.
      */
     static Sprite* create(std::string_view filename, const Rect& rect);
+
+    /**
+     * Creates a sprite with an image data and an image key.
+     *
+     * @param   imageData A Data of the image fil.
+     * @param   key       The unique key for the image in the cache.
+     * @return  An autoreleased sprite object.
+     */
+    static Sprite* create(const ax::Data& imageData, std::string_view key);
 
     /**
      * Creates a sprite with a Texture2D object.
@@ -619,6 +629,20 @@ public:
      */
     virtual bool initWithFile(std::string_view filename, const Rect& rect);
 
+    /**
+     * Initializes a sprite with an image data, and a key for the cache.
+     *
+     * This method will load the image data to Texture2D,
+     * then use Texture2D to create a sprite.
+     * After initialization, the offset will be (0,0).
+     *
+     * @param   imageData The image data
+     * @param   key       The key for cache.
+     * @return  True if the sprite is initialized properly, false otherwise.
+     * @lua     init
+     */
+    virtual bool initWithImageData(const ax::Data& imageData, std::string_view key);
+
     virtual void setVertexLayout();
 
     void setProgramState(uint32_t type) override;
@@ -720,4 +744,4 @@ private:
 // end of sprite_nodes group
 /// @}
 
-NS_AX_END
+}

@@ -6,7 +6,7 @@
  Copyright (c) 2019-2020 simdsoft.com, @HALX99
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@
 #include "platform/FileUtils.h"
 #include "xsxml/xsxml.hpp"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /// xsxml SAX2 handler
 class SAX2Hander
@@ -150,7 +151,7 @@ bool SAXParser::parseIntrusive(char* xmlData, size_t dataLength, ParseOption opt
     }
     catch (xsxml::parse_error& e)
     {
-        AXLOG("axmol: SAXParser: Error parsing xml: %s at %s", e.what(), e.where<char>());
+        AXLOGE("SAXParser: Error parsing xml: {} at {}", e.what(), e.where<char>());
         return false;
     }
 
@@ -175,4 +176,4 @@ void SAXParser::setDelegator(SAXDelegator* delegator)
     _delegator = delegator;
 }
 
-NS_AX_END
+}

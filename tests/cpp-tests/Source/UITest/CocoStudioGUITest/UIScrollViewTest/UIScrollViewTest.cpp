@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UIScrollViewTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UIScrollViewTests::UIScrollViewTests()
@@ -820,13 +820,13 @@ bool UIScrollViewStopScrollingTest::init()
             switch (e)
             {
             case ui::ScrollView::EventType::SCROLLING_BEGAN:
-                AXLOG("scrolling began!");
+                AXLOGD("scrolling began!");
                 break;
             case ui::ScrollView::EventType::SCROLLING_ENDED:
-                AXLOG("scrolling ended!");
+                AXLOGD("scrolling ended!");
                 break;
             case ui::ScrollView::EventType::AUTOSCROLL_ENDED:
-                AXLOG("auto-scrolling ended!");
+                AXLOGD("auto-scrolling ended!");
                 break;
             default:
                 break;

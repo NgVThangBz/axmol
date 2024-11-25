@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,8 @@ THE SOFTWARE.
 Misc free functions
 */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Sprite;
 class Image;
@@ -423,6 +424,8 @@ AX_DLL std::string urlEncode(std::string_view s);
 
 AX_DLL std::string urlDecode(std::string_view st);
 
+AX_DLL std::string& filePathToUrl(std::string&& path);
+
 /**
  * Encodes bytes into a 64base buffer
  * @returns base64 encoded string
@@ -469,6 +472,6 @@ AX_DLL uint32_t fourccValue(std::string_view str);
 
 }  // namespace utils
 
-NS_AX_END
+}
 
 #endif  // __SUPPORT_AX_UTILS_H__

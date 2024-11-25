@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -40,9 +40,10 @@
 #include <memory>
 #include <vector>
 
-NS_AX_BEGIN
+namespace ax
+{
 struct PipelineDescriptor;
-NS_AX_END
+}
 
 NS_AX_BACKEND_BEGIN
 

@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,8 @@ THE SOFTWARE.
 
 using namespace std;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // ideas taken from:
 //     . The ocean spray in your face [Jeff Lander]
@@ -659,7 +660,7 @@ bool ParticleSystem::initWithDictionary(const ValueMap& dictionary, std::string_
                 _yCoordFlipped = optValue(dictionary, "yCoordFlipped").asInt(1);
 
                 if (!this->_texture)
-                    AXLOGWARN("axmol: Warning: ParticleSystemQuad system without a texture");
+                    AXLOGW("axmol: Warning: ParticleSystemQuad system without a texture");
             }
             ret = true;
         }
@@ -675,7 +676,7 @@ bool ParticleSystem::initWithTotalParticles(int numberOfParticles)
 
     if (!_particleData.init(_totalParticles))
     {
-        AXLOG("Particle system: not enough memory");
+        AXLOGW("Particle system: not enough memory");
         this->release();
         return false;
     }
@@ -909,7 +910,7 @@ void ParticleSystem::addParticles(int count, int animationIndex, int animationCe
         }
 
         if (_isEmitterAnimated || _isLoopAnimated)
-            std::fill_n(_particleData.animTimeDelta + start, _particleCount - start, 0);
+            std::fill_n(_particleData.animTimeDelta + start, _particleCount - start, 0.f);
     }
 
     // color
@@ -1698,7 +1699,7 @@ void ParticleSystem::update(float dt)
                 }
             }
             if (_isLoopAnimated && _animations.empty())
-                std::fill_n(_particleData.animTimeDelta, _particleCount, 0);
+                std::fill_n(_particleData.animTimeDelta, _particleCount, 0.f);
         }
 
         for (int i = 0; i < _particleCount; ++i)
@@ -2308,19 +2309,14 @@ void ParticleEmissionMaskCache::bakeEmissionMask(std::string_view maskId,
             if (inbetweenSamples > 1)
             {
                 float a = data[(y * w + x) * 4 + 3] / 255.0F;
-                if (a >= alphaThreshold && !inverted)
-                    for (float i = 0; i < 1.0F; i += 1.0F / inbetweenSamples)
-                        points.emplace_back(Vec2{float(x + i), float(h - y + i)});
-                if (a < alphaThreshold && inverted)
+                if (a >= alphaThreshold && !inverted || a < alphaThreshold && inverted)
                     for (float i = 0; i < 1.0F; i += 1.0F / inbetweenSamples)
                         points.emplace_back(Vec2{float(x + i), float(h - y + i)});
             }
             else
             {
                 float a = data[(y * w + x) * 4 + 3] / 255.0F;
-                if (a >= alphaThreshold && !inverted)
-                    points.emplace_back(Vec2{float(x), float(h - y)});
-                if (a < alphaThreshold && inverted)
+                if (a >= alphaThreshold && !inverted || a < alphaThreshold && inverted)
                     points.emplace_back(Vec2{float(x), float(h - y)});
             }
         }
@@ -2337,7 +2333,7 @@ void ParticleEmissionMaskCache::bakeEmissionMask(std::string_view maskId,
 
     iter->second = desc;
 
-    AXLOG("Particle emission mask '%u' baked (%dx%d), %zu samples generated taking %.2fmb of memory.",
+    AXLOGD("Particle emission mask '{}' baked ({}x{}), {} samples generated taking {:.2f}mb of memory.",
           (unsigned int)htonl(fourccId), w, h, desc.points.size(), desc.points.size() * 8 / 1e+6);
 }
 
@@ -2379,4 +2375,4 @@ void ParticleEmissionMaskCache::removeAllMasks()
     this->masks.clear();
 }
 
-NS_AX_END
+}

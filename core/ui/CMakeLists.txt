@@ -84,9 +84,13 @@ elseif(APPLE)
 elseif(LINUX)
     set(_AX_UI_SPECIFIC_HEADER
         ui/UIEditBox/UIEditBoxImpl-linux.h
+        ui/UIWebView/UIWebView.h
+        ui/UIWebView/UIWebViewImpl-linux.h
         )
     set(_AX_UI_SPECIFIC_SRC
         ui/UIEditBox/UIEditBoxImpl-linux.cpp
+        ui/UIWebView/UIWebViewImpl-linux.cpp
+        ui/UIWebView/UIWebView.cpp
         )
 elseif(EMSCRIPTEN)
     set(_AX_UI_SPECIFIC_SRC
@@ -104,7 +108,7 @@ elseif(ANDROID)
         # it's special for android, not a common file
         ui/UIWebView/UIWebView.cpp
         )
- 
+
 endif()
 
 if(AX_ENABLE_MEDIA)

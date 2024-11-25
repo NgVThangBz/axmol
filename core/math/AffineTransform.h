@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@ THE SOFTWARE.
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**@{
  Affine transform
@@ -112,7 +113,7 @@ AX_DLL Mat4 TransformConcat(const Mat4& t1, const Mat4& t2);
 
 extern AX_DLL const AffineTransform AffineTransformIdentity;
 
-NS_AX_END
+}
 
 // end of base transform
 /// @}

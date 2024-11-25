@@ -1,7 +1,7 @@
 /****************************************************************************
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@ THE SOFTWARE.
 #include "UITextFieldEx.h"
 #include "base/Director.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP
 #    define axbeep(t) MessageBeep(t)
@@ -71,7 +72,7 @@ static bool _containsTouchPoint(ax::Node* target, ax::Touch* touch)
 
     bool contains = (rc.containsPoint(pt));
 
-    // AXLOG("check %#x coordinate:(%f, %f), contains:%d", target, pt.x, pt.y, contains);
+    // AXLOGD("check {:#x} coordinate:({}, {}), contains:{}", target, pt.x, pt.y, contains);
     return contains;
 }
 
@@ -85,7 +86,7 @@ static bool engine_inj_containsPoint(ax::Node* target, const ax::Vec2& worldPoin
 
     bool contains = (rc.containsPoint(pt));
 
-    // AXLOG("check %#x coordinate:(%f, %f), contains:%d", target, pt.x, pt.y, contains);
+    // AXLOGD("check {:#x} coordinate:({}, {}), contains:{}", target, pt.x, pt.y, contains);
     return contains;
 }
 
@@ -522,7 +523,7 @@ void TextFieldEx::keyboardDidHide(IMEKeyboardNotificationInfo& /*info*/)
 
 void TextFieldEx::openIME(void)
 {
-    AXLOG("TextFieldEx:: openIME");
+    AXLOGD("TextFieldEx:: openIME");
     this->attachWithIME();
     __updateCursorPosition();
     __showCursor();
@@ -533,7 +534,7 @@ void TextFieldEx::openIME(void)
 
 void TextFieldEx::closeIME(void)
 {
-    AXLOG("TextFieldEx:: closeIME");
+    AXLOGD("TextFieldEx:: closeIME");
     __hideCursor();
     this->detachWithIME();
 
@@ -1046,5 +1047,5 @@ void TextFieldEx::__moveCursorTo(float x)
 }
 };  // namespace ui
 
-NS_AX_END
+}
 

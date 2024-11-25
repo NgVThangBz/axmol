@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,8 @@
 #    include <errno.h>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static size_t ov_fread_r(void* buffer, size_t element_size, size_t element_count, void* handle)
 {
@@ -74,7 +75,7 @@ bool AudioDecoderOgg::open(std::string_view fullPath)
     auto fs = FileUtils::getInstance()->openFileStream(fullPath, IFileStream::Mode::READ).release();
     if (!fs)
     {
-        ALOGE("Trouble with ogg(1): %s\n", strerror(errno));
+        AXLOGE("Trouble with ogg(1): {}\n", strerror(errno));
         return false;
     }
 
@@ -115,6 +116,6 @@ bool AudioDecoderOgg::seek(uint32_t frameOffset)
 {
     return 0 == ov_pcm_seek(&_vf, frameOffset);
 }
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 #undef LOG_TAG

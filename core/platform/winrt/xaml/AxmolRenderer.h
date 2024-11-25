@@ -1,5 +1,5 @@
 /*
-* cocos2d-x   https://axmolengine.github.io/
+* cocos2d-x   https://axmol.dev/
 *
 * Copyright (c) 2010-2014 - cocos2d-x community
 * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
@@ -34,8 +34,8 @@ class AxmolRenderer
 public:
     AxmolRenderer(int width,
                   int height,
-                  float dpi, 
-        Windows::Graphics::Display::DisplayOrientations orientation, 
+                  float dpi,
+        Windows::Graphics::Display::DisplayOrientations orientation,
         Windows::UI::Core::CoreDispatcher const& dispatcher, Windows::UI::Xaml::Controls::Panel const& panel);
     AxmolRenderer(const AxmolRenderer&) = delete;
     ~AxmolRenderer();

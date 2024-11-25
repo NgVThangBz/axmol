@@ -9,11 +9,12 @@
 #include "RefPtr.h"
 #include "2d/Node.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 class Node;
 class Scene;
 
-NS_AX_END
+}
 
 NS_AX_EXT_BEGIN
 
@@ -65,8 +66,12 @@ class Inspector
 
     void setAutoAddToScenes(bool autoAdd);
 
-    std::string_view getFontPath() { return _fontPath; }
+    std::string_view getFontPath() const { return _fontPath; }
+    float getFontSize() const { return _fontSize; }
+    std::string_view getFontGlyphId() const { return _fontGlyphId; }
     void setFontPath(std::string_view fontPath);
+    void setFontSize(float fontSize);
+    void setFontGlyphId(std::string_view glyphId);
 
   private:
     void init();
@@ -84,6 +89,8 @@ class Inspector
 
     bool _autoAddToScenes = false;
     std::string _fontPath;
+    float _fontSize;
+    std::string _fontGlyphId;
 };
 
 NS_AX_EXT_END

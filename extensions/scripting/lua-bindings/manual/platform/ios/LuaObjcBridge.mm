@@ -2,7 +2,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@
 #include "lua-bindings/manual/platform/ios/LuaObjcBridge.h"
 #include <Foundation/Foundation.h>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 void LuaObjcBridge::luaopen_luaoc(lua_State* L)
 {
@@ -286,4 +287,4 @@ void LuaObjcBridge::pushValue(lua_State* L, void* val)
     }
 }
 
-NS_AX_END
+}

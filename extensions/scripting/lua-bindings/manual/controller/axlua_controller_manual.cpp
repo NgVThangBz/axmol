@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -138,7 +138,7 @@ static int toaxlua_EventListenerController_clone(lua_State* tolua_S)
         return 1;
     }
 
-    AXLOG("'clone' has wrong number of arguments: %d, was expecting %d\n", argc, 0);
+    AXLOGD("'clone' has wrong number of arguments: {}, was expecting {}\n", argc, 0);
     return 0;
 
 #    if _AX_DEBUG >= 1
@@ -280,7 +280,7 @@ static int toaxlua_EventListenerController_registerScriptHandler(lua_State* tolu
         return 0;
     }
 
-    AXLOG("'registerScriptHandler' has wrong number of arguments: %d, was expecting %d\n", argc, 2);
+    AXLOGD("'registerScriptHandler' has wrong number of arguments: {}, was expecting {}\n", argc, 2);
     return 0;
 
 #    if _AX_DEBUG >= 1
@@ -349,7 +349,7 @@ static int toaxlua_Controller_getKeyStatus(lua_State* tolua_S)
         return 1;
     }
 
-    AXLOG("'clone' has wrong number of arguments: %d, was expecting %d\n", argc, 0);
+    AXLOGD("'clone' has wrong number of arguments: {}, was expecting {}\n", argc, 0);
     return 0;
 
 #    if _AX_DEBUG >= 1

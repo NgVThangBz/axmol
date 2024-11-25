@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ static std::string getFixedBaseUrl(std::string_view baseUrl)
 
 extern "C" {
 /*
- * Class:     org_cocos2dx_lib_Cocos2dxWebViewHelper
+ * Class:     org_axmol_lib_WebViewHelper
  * Method:    shouldStartLoading
  * Signature: (ILjava/lang/String;)Z
  */
@@ -98,7 +98,7 @@ JNIEXPORT jboolean JNICALL Java_org_axmol_lib_WebViewHelper_shouldStartLoading(J
 }
 
 /*
- * Class:     org_cocos2dx_lib_Cocos2dxWebViewHelper
+ * Class:     org_axmol_lib_WebViewHelper
  * Method:    didFinishLoading
  * Signature: (ILjava/lang/String;)V
  */
@@ -115,7 +115,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_WebViewHelper_didFinishLoading(JNIEnv*
 }
 
 /*
- * Class:     org_cocos2dx_lib_Cocos2dxWebViewHelper
+ * Class:     org_axmol_lib_WebViewHelper
  * Method:    didFailLoading
  * Signature: (ILjava/lang/String;)V
  */
@@ -132,7 +132,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_WebViewHelper_didFailLoading(JNIEnv* e
 }
 
 /*
- * Class:     org_cocos2dx_lib_Cocos2dxWebViewHelper
+ * Class:     org_axmol_lib_WebViewHelper
  * Method:    onJsCallback
  * Signature: (ILjava/lang/String;)V
  */
@@ -183,7 +183,8 @@ std::string getUrlStringByFileName(std::string_view fileName)
 }
 }  // namespace
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -208,7 +209,7 @@ void WebViewImpl::loadData(const Data& data,
                            std::string_view baseURL)
 {
     std::string dataString(reinterpret_cast<char*>(data.getBytes()), static_cast<unsigned int>(data.getSize()));
-    JniHelper::callStaticVoidMethod(className, "setJavascriptInterfaceScheme", _viewTag, dataString, MIMEType, encoding,
+    JniHelper::callStaticVoidMethod(className, "loadData", _viewTag, dataString, MIMEType, encoding,
                                     baseURL);
 }
 
@@ -367,4 +368,4 @@ void WebViewImpl::setBounces(bool bounces)
     // empty function as this was mainly a fix for iOS
 }
 }  // namespace ui
-NS_AX_END  // namespace ax
+}  // namespace ax

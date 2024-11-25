@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +46,8 @@
 
 using namespace std;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // Helpers
 
@@ -198,7 +200,7 @@ Mesh* Mesh::create(const std::vector<float>& positions,
     int perVertexSizeInFloat = 0;
     std::vector<float> vertices;
     std::vector<MeshVertexAttrib> attribs;
-    
+
     MeshVertexAttrib att;
     att.type = backend::VertexFormat::FLOAT3;
 
@@ -853,4 +855,4 @@ backend::Buffer* Mesh::getIndexBuffer() const
 {
     return _meshIndexData->getIndexBuffer();
 }
-NS_AX_END
+}

@@ -1,7 +1,6 @@
 #include "lua-bindings/auto/axlua_base_auto.hpp"
-#include "cocos2d.h"
+#include "axmol.h"
 #include "2d/ProtectedNode.h"
-#include "base/AsyncTaskPool.h"
 #include "lua-bindings/manual/ComponentLua.h"
 #include "renderer/Renderer.h"
 #include "renderer/PipelineDescriptor.h"
@@ -152,7 +151,7 @@ int lua_ax_base_Object_getReferenceCount(lua_State* tolua_S)
 }
 static int lua_ax_base_Object_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Object)");
+    AXLOGV("luabindings: finalizing LUA object (Object)");
     return 0;
 }
 
@@ -365,7 +364,7 @@ int lua_ax_base_EventListener_isEnabled(lua_State* tolua_S)
 }
 static int lua_ax_base_EventListener_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListener)");
+    AXLOGV("luabindings: finalizing LUA object (EventListener)");
     return 0;
 }
 
@@ -425,7 +424,7 @@ int lua_ax_base_EventListenerCustom_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerCustom_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerCustom)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerCustom)");
     return 0;
 }
 
@@ -707,7 +706,7 @@ int lua_ax_base_ShaderCache_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_base_ShaderCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ShaderCache)");
+    AXLOGV("luabindings: finalizing LUA object (ShaderCache)");
     return 0;
 }
 
@@ -2651,7 +2650,7 @@ int lua_ax_base_Texture2D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Texture2D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Texture2D)");
+    AXLOGV("luabindings: finalizing LUA object (Texture2D)");
     return 0;
 }
 
@@ -3289,7 +3288,7 @@ int lua_ax_base_Touch_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Touch_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Touch)");
+    AXLOGV("luabindings: finalizing LUA object (Touch)");
     return 0;
 }
 
@@ -3548,7 +3547,7 @@ int lua_ax_base_Event_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Event_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Event)");
+    AXLOGV("luabindings: finalizing LUA object (Event)");
     return 0;
 }
 
@@ -3706,7 +3705,7 @@ int lua_ax_base_EventTouch_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventTouch_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventTouch)");
+    AXLOGV("luabindings: finalizing LUA object (EventTouch)");
     return 0;
 }
 
@@ -3771,7 +3770,7 @@ int lua_ax_base_EventKeyboard_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventKeyboard_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventKeyboard)");
+    AXLOGV("luabindings: finalizing LUA object (EventKeyboard)");
     return 0;
 }
 
@@ -4307,7 +4306,7 @@ int lua_ax_base_Component_create(lua_State* tolua_S)
 }
 static int lua_ax_base_Component_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Component)");
+    AXLOGV("luabindings: finalizing LUA object (Component)");
     return 0;
 }
 
@@ -11756,7 +11755,7 @@ int lua_ax_base_Node_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Node_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Node)");
+    AXLOGV("luabindings: finalizing LUA object (Node)");
     return 0;
 }
 
@@ -12573,7 +12572,7 @@ int lua_ax_base_Scene_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Scene_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Scene)");
+    AXLOGV("luabindings: finalizing LUA object (Scene)");
     return 0;
 }
 
@@ -14343,7 +14342,7 @@ int lua_ax_base_GLView_getGLContextAttrs(lua_State* tolua_S)
 }
 static int lua_ax_base_GLView_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (GLView)");
+    AXLOGV("luabindings: finalizing LUA object (GLView)");
     return 0;
 }
 
@@ -17805,7 +17804,7 @@ int lua_ax_base_Director_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_base_Director_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Director)");
+    AXLOGV("luabindings: finalizing LUA object (Director)");
     return 0;
 }
 
@@ -18239,7 +18238,7 @@ int lua_ax_base_Timer_update(lua_State* tolua_S)
 }
 static int lua_ax_base_Timer_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Timer)");
+    AXLOGV("luabindings: finalizing LUA object (Timer)");
     return 0;
 }
 
@@ -18500,7 +18499,7 @@ int lua_ax_base_Scheduler_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Scheduler_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Scheduler)");
+    AXLOGV("luabindings: finalizing LUA object (Scheduler)");
     return 0;
 }
 
@@ -18519,267 +18518,6 @@ int lua_register_ax_base_Scheduler(lua_State* tolua_S)
     auto typeName = typeid(ax::Scheduler).name(); // rtti is literal storage
     g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "ax.Scheduler";
     g_typeCast[typeName] = "ax.Scheduler";
-    return 1;
-}
-
-int lua_ax_base_AsyncTaskPool_stopTasks(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::AsyncTaskPool* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.AsyncTaskPool",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::AsyncTaskPool*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_AsyncTaskPool_stopTasks'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 1) 
-    {
-        ax::AsyncTaskPool::TaskType arg0;
-
-        ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.AsyncTaskPool:stopTasks");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_AsyncTaskPool_stopTasks'", nullptr);
-            return 0;
-        }
-        cobj->stopTasks(arg0);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AsyncTaskPool:stopTasks",argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_AsyncTaskPool_stopTasks'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_AsyncTaskPool_enqueue(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::AsyncTaskPool* cobj = nullptr;
-    bool ok  = true;
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.AsyncTaskPool",0,&tolua_err)) goto tolua_lerror;
-#endif
-    cobj = (ax::AsyncTaskPool*)tolua_tousertype(tolua_S,1,0);
-#if _AX_DEBUG >= 1
-    if (!cobj)
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_AsyncTaskPool_enqueue'", nullptr);
-        return 0;
-    }
-#endif
-    argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            ax::AsyncTaskPool::TaskType arg0;
-            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.AsyncTaskPool:enqueue");
-
-            if (!ok) { break; }
-            std::function<void ()> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->enqueue(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 4) {
-            ax::AsyncTaskPool::TaskType arg0;
-            ok &= luaval_to_int32(tolua_S, 2,(int *)&arg0, "ax.AsyncTaskPool:enqueue");
-
-            if (!ok) { break; }
-            std::function<void (void *)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            void* arg2;
-            #pragma warning NO CONVERSION TO NATIVE FOR void*
-		ok = false;
-
-            if (!ok) { break; }
-            std::function<void ()> arg3;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->enqueue(arg0, arg1, arg2, arg3);
-            lua_settop(tolua_S, 1);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.AsyncTaskPool:enqueue",argc, 4);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_AsyncTaskPool_enqueue'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_AsyncTaskPool_getInstance(lua_State* tolua_S)
-{
-    int argc = 0;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S,1,"ax.AsyncTaskPool",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_AsyncTaskPool_getInstance'", nullptr);
-            return 0;
-        }
-        auto&& ret = ax::AsyncTaskPool::getInstance();
-        object_to_luaval<ax::AsyncTaskPool>(tolua_S, "ax.AsyncTaskPool",(ax::AsyncTaskPool*)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.AsyncTaskPool:getInstance",argc, 0);
-    return 0;
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_AsyncTaskPool_getInstance'.",&tolua_err);
-#endif
-    return 0;
-}
-int lua_ax_base_AsyncTaskPool_destroyInstance(lua_State* tolua_S)
-{
-    int argc = 0;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S,1,"ax.AsyncTaskPool",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    argc = lua_gettop(tolua_S) - 1;
-
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_AsyncTaskPool_destroyInstance'", nullptr);
-            return 0;
-        }
-        ax::AsyncTaskPool::destroyInstance();
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.AsyncTaskPool:destroyInstance",argc, 0);
-    return 0;
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_AsyncTaskPool_destroyInstance'.",&tolua_err);
-#endif
-    return 0;
-}
-int lua_ax_base_AsyncTaskPool_constructor(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::AsyncTaskPool* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_AsyncTaskPool_constructor'", nullptr);
-            return 0;
-        }
-        cobj = new ax::AsyncTaskPool();
-        tolua_pushusertype(tolua_S,(void*)cobj,"ax.AsyncTaskPool");
-        tolua_register_gc(tolua_S,lua_gettop(tolua_S));
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AsyncTaskPool:AsyncTaskPool",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_AsyncTaskPool_constructor'.",&tolua_err);
-#endif
-
-    return 0;
-}
-
-static int lua_ax_base_AsyncTaskPool_finalize(lua_State* tolua_S)
-{
-    printf("luabindings: finalizing LUA object (AsyncTaskPool)");
-    return 0;
-}
-
-int lua_register_ax_base_AsyncTaskPool(lua_State* tolua_S)
-{
-    tolua_usertype(tolua_S,"ax.AsyncTaskPool");
-    tolua_cclass(tolua_S,"AsyncTaskPool","ax.AsyncTaskPool","",nullptr);
-
-    tolua_beginmodule(tolua_S,"AsyncTaskPool");
-        tolua_function(tolua_S,"new",lua_ax_base_AsyncTaskPool_constructor);
-        tolua_function(tolua_S,"stopTasks",lua_ax_base_AsyncTaskPool_stopTasks);
-        tolua_function(tolua_S,"enqueue",lua_ax_base_AsyncTaskPool_enqueue);
-        tolua_function(tolua_S,"getInstance", lua_ax_base_AsyncTaskPool_getInstance);
-        tolua_function(tolua_S,"destroyInstance", lua_ax_base_AsyncTaskPool_destroyInstance);
-    tolua_endmodule(tolua_S);
-    auto typeName = typeid(ax::AsyncTaskPool).name(); // rtti is literal storage
-    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "ax.AsyncTaskPool";
-    g_typeCast[typeName] = "ax.AsyncTaskPool";
     return 1;
 }
 
@@ -19511,7 +19249,7 @@ int lua_ax_base_Action_setFlags(lua_State* tolua_S)
 }
 static int lua_ax_base_Action_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Action)");
+    AXLOGV("luabindings: finalizing LUA object (Action)");
     return 0;
 }
 
@@ -19642,7 +19380,7 @@ int lua_ax_base_FiniteTimeAction_setDuration(lua_State* tolua_S)
 }
 static int lua_ax_base_FiniteTimeAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FiniteTimeAction)");
+    AXLOGV("luabindings: finalizing LUA object (FiniteTimeAction)");
     return 0;
 }
 
@@ -19985,7 +19723,7 @@ int lua_ax_base_Speed_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Speed_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Speed)");
+    AXLOGV("luabindings: finalizing LUA object (Speed)");
     return 0;
 }
 
@@ -20401,7 +20139,7 @@ int lua_ax_base_Follow_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Follow_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Follow)");
+    AXLOGV("luabindings: finalizing LUA object (Follow)");
     return 0;
 }
 
@@ -21255,7 +20993,7 @@ int lua_ax_base_Image_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Image_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Image)");
+    AXLOGV("luabindings: finalizing LUA object (Image)");
     return 0;
 }
 
@@ -21818,7 +21556,7 @@ int lua_ax_base_PolygonInfo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_PolygonInfo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (PolygonInfo)");
+    AXLOGV("luabindings: finalizing LUA object (PolygonInfo)");
     return 0;
 }
 
@@ -21886,7 +21624,7 @@ int lua_ax_base_AutoPolygon_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_AutoPolygon_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AutoPolygon)");
+    AXLOGV("luabindings: finalizing LUA object (AutoPolygon)");
     return 0;
 }
 
@@ -23330,7 +23068,7 @@ int lua_ax_base_SpriteFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SpriteFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpriteFrame)");
+    AXLOGV("luabindings: finalizing LUA object (SpriteFrame)");
     return 0;
 }
 
@@ -23848,7 +23586,7 @@ int lua_ax_base_AnimationFrame_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_AnimationFrame_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AnimationFrame)");
+    AXLOGV("luabindings: finalizing LUA object (AnimationFrame)");
     return 0;
 }
 
@@ -24921,7 +24659,7 @@ int lua_ax_base_Animation_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Animation_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Animation)");
+    AXLOGV("luabindings: finalizing LUA object (Animation)");
     return 0;
 }
 
@@ -25154,7 +24892,7 @@ int lua_ax_base_ActionInterval_initWithDuration(lua_State* tolua_S)
 }
 static int lua_ax_base_ActionInterval_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionInterval)");
+    AXLOGV("luabindings: finalizing LUA object (ActionInterval)");
     return 0;
 }
 
@@ -25317,7 +25055,7 @@ int lua_ax_base_Sequence_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Sequence_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Sequence)");
+    AXLOGV("luabindings: finalizing LUA object (Sequence)");
     return 0;
 }
 
@@ -25564,7 +25302,7 @@ int lua_ax_base_Repeat_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Repeat_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Repeat)");
+    AXLOGV("luabindings: finalizing LUA object (Repeat)");
     return 0;
 }
 
@@ -25808,7 +25546,7 @@ int lua_ax_base_RepeatForever_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_RepeatForever_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RepeatForever)");
+    AXLOGV("luabindings: finalizing LUA object (RepeatForever)");
     return 0;
 }
 
@@ -25972,7 +25710,7 @@ int lua_ax_base_Spawn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Spawn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Spawn)");
+    AXLOGV("luabindings: finalizing LUA object (Spawn)");
     return 0;
 }
 
@@ -26171,7 +25909,7 @@ int lua_ax_base_RotateTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_RotateTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RotateTo)");
+    AXLOGV("luabindings: finalizing LUA object (RotateTo)");
     return 0;
 }
 
@@ -26386,7 +26124,7 @@ int lua_ax_base_RotateBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_RotateBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RotateBy)");
+    AXLOGV("luabindings: finalizing LUA object (RotateBy)");
     return 0;
 }
 
@@ -26562,7 +26300,7 @@ int lua_ax_base_MoveBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MoveBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MoveBy)");
+    AXLOGV("luabindings: finalizing LUA object (MoveBy)");
     return 0;
 }
 
@@ -26738,7 +26476,7 @@ int lua_ax_base_MoveTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MoveTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MoveTo)");
+    AXLOGV("luabindings: finalizing LUA object (MoveTo)");
     return 0;
 }
 
@@ -26893,7 +26631,7 @@ int lua_ax_base_SkewTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SkewTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SkewTo)");
+    AXLOGV("luabindings: finalizing LUA object (SkewTo)");
     return 0;
 }
 
@@ -27048,7 +26786,7 @@ int lua_ax_base_SkewBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SkewBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SkewBy)");
+    AXLOGV("luabindings: finalizing LUA object (SkewBy)");
     return 0;
 }
 
@@ -27208,7 +26946,7 @@ int lua_ax_base_JumpBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_JumpBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (JumpBy)");
+    AXLOGV("luabindings: finalizing LUA object (JumpBy)");
     return 0;
 }
 
@@ -27368,7 +27106,7 @@ int lua_ax_base_JumpTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_JumpTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (JumpTo)");
+    AXLOGV("luabindings: finalizing LUA object (JumpTo)");
     return 0;
 }
 
@@ -27481,7 +27219,7 @@ int lua_ax_base_BezierBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_BezierBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BezierBy)");
+    AXLOGV("luabindings: finalizing LUA object (BezierBy)");
     return 0;
 }
 
@@ -27593,7 +27331,7 @@ int lua_ax_base_BezierTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_BezierTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BezierTo)");
+    AXLOGV("luabindings: finalizing LUA object (BezierTo)");
     return 0;
 }
 
@@ -27821,7 +27559,7 @@ int lua_ax_base_ScaleTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ScaleTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ScaleTo)");
+    AXLOGV("luabindings: finalizing LUA object (ScaleTo)");
     return 0;
 }
 
@@ -27959,7 +27697,7 @@ int lua_ax_base_ScaleBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ScaleBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ScaleBy)");
+    AXLOGV("luabindings: finalizing LUA object (ScaleBy)");
     return 0;
 }
 
@@ -28108,7 +27846,7 @@ int lua_ax_base_Blink_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Blink_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Blink)");
+    AXLOGV("luabindings: finalizing LUA object (Blink)");
     return 0;
 }
 
@@ -28258,7 +27996,7 @@ int lua_ax_base_FadeTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeTo)");
+    AXLOGV("luabindings: finalizing LUA object (FadeTo)");
     return 0;
 }
 
@@ -28403,7 +28141,7 @@ int lua_ax_base_FadeIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeIn)");
+    AXLOGV("luabindings: finalizing LUA object (FadeIn)");
     return 0;
 }
 
@@ -28548,7 +28286,7 @@ int lua_ax_base_FadeOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeOut)");
+    AXLOGV("luabindings: finalizing LUA object (FadeOut)");
     return 0;
 }
 
@@ -28726,7 +28464,7 @@ int lua_ax_base_TintTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TintTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TintTo)");
+    AXLOGV("luabindings: finalizing LUA object (TintTo)");
     return 0;
 }
 
@@ -28886,7 +28624,7 @@ int lua_ax_base_TintBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TintBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TintBy)");
+    AXLOGV("luabindings: finalizing LUA object (TintBy)");
     return 0;
 }
 
@@ -28981,7 +28719,7 @@ int lua_ax_base_DelayTime_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_DelayTime_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DelayTime)");
+    AXLOGV("luabindings: finalizing LUA object (DelayTime)");
     return 0;
 }
 
@@ -29269,7 +29007,7 @@ int lua_ax_base_Animate_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Animate_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Animate)");
+    AXLOGV("luabindings: finalizing LUA object (Animate)");
     return 0;
 }
 
@@ -29519,7 +29257,7 @@ int lua_ax_base_TargetedAction_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TargetedAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TargetedAction)");
+    AXLOGV("luabindings: finalizing LUA object (TargetedAction)");
     return 0;
 }
 
@@ -29689,7 +29427,7 @@ int lua_ax_base_ActionFloat_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ActionFloat_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionFloat)");
+    AXLOGV("luabindings: finalizing LUA object (ActionFloat)");
     return 0;
 }
 
@@ -31136,7 +30874,7 @@ int lua_ax_base_Properties_parseColor(lua_State* tolua_S)
 }
 static int lua_ax_base_Properties_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Properties)");
+    AXLOGV("luabindings: finalizing LUA object (Properties)");
     return 0;
 }
 
@@ -32087,7 +31825,7 @@ int lua_ax_base_UserDefault_setFileName(lua_State* tolua_S)
 }
 static int lua_ax_base_UserDefault_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (UserDefault)");
+    AXLOGV("luabindings: finalizing LUA object (UserDefault)");
     return 0;
 }
 
@@ -32173,55 +31911,42 @@ int lua_ax_base_FileUtils_getStringFromFile(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_getStringFromFile'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getStringFromFile");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (std::string)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->getStringFromFile(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getStringFromFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getStringFromFile'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getStringFromFile");
-
-            if (!ok) { break; }
-            std::string ret = cobj->getStringFromFile(arg0);
-            lua_pushlstring(tolua_S,ret.c_str(),ret.length());
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:getStringFromFile",argc, 1);
+        auto&& ret = cobj->getStringFromFile(arg0);
+        lua_pushlstring(tolua_S,ret.c_str(),ret.length());
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:getStringFromFile",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33094,63 +32819,45 @@ int lua_ax_base_FileUtils_writeStringToFile(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_writeStringToFile'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 3) {
-            std::string arg0;
-            ok &= luaval_to_std_string(tolua_S, 2,&arg0, "ax.FileUtils:writeStringToFile");
+    if (argc == 2) 
+    {
+        std::string_view arg0;
+        std::string_view arg1;
 
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeStringToFile");
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:writeStringToFile");
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg2;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->writeStringToFile(arg0, arg1, arg2);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeStringToFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_writeStringToFile'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:writeStringToFile");
-
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeStringToFile");
-
-            if (!ok) { break; }
-            bool ret = cobj->writeStringToFile(arg0, arg1);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:writeStringToFile",argc, 2);
+        auto&& ret = cobj->writeStringToFile(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:writeStringToFile",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33165,63 +32872,45 @@ int lua_ax_base_FileUtils_writeValueMapToFile(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_writeValueMapToFile'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 3) {
-            ax::ValueMap arg0;
-            ok &= luaval_to_ccvaluemap(tolua_S, 2, &arg0, "ax.FileUtils:writeValueMapToFile");
+    if (argc == 2) 
+    {
+        ax::ValueMap arg0;
+        std::string_view arg1;
 
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueMapToFile");
+        ok &= luaval_to_ccvaluemap(tolua_S, 2, &arg0, "ax.FileUtils:writeValueMapToFile");
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg2;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->writeValueMapToFile(arg0, arg1, arg2);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueMapToFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_writeValueMapToFile'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 2) {
-            ax::ValueMap arg0;
-            ok &= luaval_to_ccvaluemap(tolua_S, 2, &arg0, "ax.FileUtils:writeValueMapToFile");
-
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueMapToFile");
-
-            if (!ok) { break; }
-            bool ret = cobj->writeValueMapToFile(arg0, arg1);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:writeValueMapToFile",argc, 2);
+        auto&& ret = cobj->writeValueMapToFile(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:writeValueMapToFile",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33236,63 +32925,45 @@ int lua_ax_base_FileUtils_writeValueVectorToFile(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_writeValueVectorToFile'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 3) {
-            ax::ValueVector arg0;
-            ok &= luaval_to_ccvaluevector(tolua_S, 2, &arg0, "ax.FileUtils:writeValueVectorToFile");
+    if (argc == 2) 
+    {
+        ax::ValueVector arg0;
+        std::string_view arg1;
 
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueVectorToFile");
+        ok &= luaval_to_ccvaluevector(tolua_S, 2, &arg0, "ax.FileUtils:writeValueVectorToFile");
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg2;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->writeValueVectorToFile(arg0, arg1, arg2);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueVectorToFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_writeValueVectorToFile'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 2) {
-            ax::ValueVector arg0;
-            ok &= luaval_to_ccvaluevector(tolua_S, 2, &arg0, "ax.FileUtils:writeValueVectorToFile");
-
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:writeValueVectorToFile");
-
-            if (!ok) { break; }
-            bool ret = cobj->writeValueVectorToFile(arg0, arg1);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:writeValueVectorToFile",argc, 2);
+        auto&& ret = cobj->writeValueVectorToFile(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:writeValueVectorToFile",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33357,69 +33028,6 @@ int lua_ax_base_FileUtils_isFileExist(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
-#endif
-    cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
-#if _AX_DEBUG >= 1
-    if (!cobj)
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_isFileExist'", nullptr);
-        return 0;
-    }
-#endif
-    argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isFileExist");
-
-            if (!ok) { break; }
-            std::function<void (bool)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->isFileExist(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isFileExist");
-
-            if (!ok) { break; }
-            bool ret = cobj->isFileExist(arg0);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:isFileExist",argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_isFileExist'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_FileUtils_getFileExtension(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::FileUtils* cobj = nullptr;
-    bool ok  = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -33435,7 +33043,7 @@ int lua_ax_base_FileUtils_getFileExtension(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     if (!cobj) 
     {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_getFileExtension'", nullptr);
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_isFileExist'", nullptr);
         return 0;
     }
 #endif
@@ -33445,22 +33053,22 @@ int lua_ax_base_FileUtils_getFileExtension(lua_State* tolua_S)
     {
         std::string_view arg0;
 
-        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getFileExtension");
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isFileExist");
         if(!ok)
         {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getFileExtension'", nullptr);
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_isFileExist'", nullptr);
             return 0;
         }
-        auto&& ret = cobj->getFileExtension(arg0);
-        lua_pushlstring(tolua_S,ret.c_str(),ret.length());
+        auto&& ret = cobj->isFileExist(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:getFileExtension",argc, 1);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:isFileExist",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
     tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getFileExtension'.",&tolua_err);
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_isFileExist'.",&tolua_err);
 #endif
 
     return 0;
@@ -33520,55 +33128,42 @@ int lua_ax_base_FileUtils_isDirectoryExist(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_isDirectoryExist'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isDirectoryExist");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->isDirectoryExist(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isDirectoryExist");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_isDirectoryExist'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:isDirectoryExist");
-
-            if (!ok) { break; }
-            bool ret = cobj->isDirectoryExist(arg0);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:isDirectoryExist",argc, 1);
+        auto&& ret = cobj->isDirectoryExist(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:isDirectoryExist",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33578,65 +33173,52 @@ int lua_ax_base_FileUtils_isDirectoryExist(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_base_FileUtils_createDirectory(lua_State* tolua_S)
+int lua_ax_base_FileUtils_createDirectories(lua_State* tolua_S)
 {
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_createDirectory'", nullptr);
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_createDirectories'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:createDirectory");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->createDirectory(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:createDirectories");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_createDirectories'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:createDirectory");
-
-            if (!ok) { break; }
-            bool ret = cobj->createDirectory(arg0);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:createDirectory",argc, 1);
+        auto&& ret = cobj->createDirectories(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:createDirectories",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
     tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_createDirectory'.",&tolua_err);
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_createDirectories'.",&tolua_err);
 #endif
 
     return 0;
@@ -33646,55 +33228,42 @@ int lua_ax_base_FileUtils_removeDirectory(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_removeDirectory'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeDirectory");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->removeDirectory(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeDirectory");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_removeDirectory'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeDirectory");
-
-            if (!ok) { break; }
-            bool ret = cobj->removeDirectory(arg0);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:removeDirectory",argc, 1);
+        auto&& ret = cobj->removeDirectory(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:removeDirectory",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33709,55 +33278,42 @@ int lua_ax_base_FileUtils_removeFile(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_removeFile'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeFile");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (bool)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->removeFile(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_removeFile'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:removeFile");
-
-            if (!ok) { break; }
-            bool ret = cobj->removeFile(arg0);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:removeFile",argc, 1);
+        auto&& ret = cobj->removeFile(arg0);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:removeFile",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33789,54 +33345,6 @@ int lua_ax_base_FileUtils_renameFile(lua_State* tolua_S)
 #endif
     argc = lua_gettop(tolua_S)-1;
     do{
-        if (argc == 4) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            std::string_view arg2;
-            ok &= luaval_to_std_string_view(tolua_S, 4,&arg2, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            std::function<void (bool)> arg3;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->renameFile(arg0, arg1, arg2, arg3);
-            lua_settop(tolua_S, 1);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 3) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            std::string_view arg1;
-            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            std::string_view arg2;
-            ok &= luaval_to_std_string_view(tolua_S, 4,&arg2, "ax.FileUtils:renameFile");
-
-            if (!ok) { break; }
-            bool ret = cobj->renameFile(arg0, arg1, arg2);
-            tolua_pushboolean(tolua_S,(bool)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    do{
         if (argc == 2) {
             std::string_view arg0;
             ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:renameFile");
@@ -33862,16 +33370,12 @@ int lua_ax_base_FileUtils_renameFile(lua_State* tolua_S)
             ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FileUtils:renameFile");
 
             if (!ok) { break; }
-            std::function<void (bool)> arg2;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
+            std::string_view arg2;
+            ok &= luaval_to_std_string_view(tolua_S, 4,&arg2, "ax.FileUtils:renameFile");
 
             if (!ok) { break; }
-            cobj->renameFile(arg0, arg1, arg2);
-            lua_settop(tolua_S, 1);
+            bool ret = cobj->renameFile(arg0, arg1, arg2);
+            tolua_pushboolean(tolua_S,(bool)ret);
             return 1;
         }
     }while(0);
@@ -33891,55 +33395,42 @@ int lua_ax_base_FileUtils_getFileSize(lua_State* tolua_S)
     int argc = 0;
     ax::FileUtils* cobj = nullptr;
     bool ok  = true;
+
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
+
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
 #endif
+
     cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
+
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!cobj) 
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_getFileSize'", nullptr);
         return 0;
     }
 #endif
+
     argc = lua_gettop(tolua_S)-1;
-    do{
-        if (argc == 2) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getFileSize");
+    if (argc == 1) 
+    {
+        std::string_view arg0;
 
-            if (!ok) { break; }
-            std::function<void (long long)> arg1;
-            do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-
-            if (!ok) { break; }
-            cobj->getFileSize(arg0, arg1);
-            lua_settop(tolua_S, 1);
-            return 1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getFileSize");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getFileSize'", nullptr);
+            return 0;
         }
-    }while(0);
-    ok  = true;
-    do{
-        if (argc == 1) {
-            std::string_view arg0;
-            ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getFileSize");
-
-            if (!ok) { break; }
-            long long ret = cobj->getFileSize(arg0);
-            tolua_pushnumber(tolua_S,(lua_Number)ret);
-            return 1;
-        }
-    }while(0);
-    ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.FileUtils:getFileSize",argc, 1);
+        auto&& ret = cobj->getFileSize(arg0);
+        tolua_pushnumber(tolua_S,(lua_Number)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:getFileSize",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -33999,63 +33490,6 @@ int lua_ax_base_FileUtils_listFiles(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_base_FileUtils_listFilesAsync(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::FileUtils* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_listFilesAsync'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 2) 
-    {
-        std::string_view arg0;
-        std::function<void (std::vector<std::string>)> arg1;
-
-        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:listFilesAsync");
-
-        do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_listFilesAsync'", nullptr);
-            return 0;
-        }
-        cobj->listFilesAsync(arg0, arg1);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:listFilesAsync",argc, 2);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_listFilesAsync'.",&tolua_err);
-#endif
-
-    return 0;
-}
 int lua_ax_base_FileUtils_listFilesRecursively(lua_State* tolua_S)
 {
     int argc = 0;
@@ -34105,63 +33539,6 @@ int lua_ax_base_FileUtils_listFilesRecursively(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     tolua_lerror:
     tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_listFilesRecursively'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_FileUtils_listFilesRecursivelyAsync(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::FileUtils* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::FileUtils*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_FileUtils_listFilesRecursivelyAsync'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 2) 
-    {
-        std::string_view arg0;
-        std::function<void (std::vector<std::string>)> arg1;
-
-        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:listFilesRecursivelyAsync");
-
-        do {
-			// Lambda binding for lua is not supported.
-			assert(false);
-		} while(0)
-		;
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_listFilesRecursivelyAsync'", nullptr);
-            return 0;
-        }
-        cobj->listFilesRecursivelyAsync(arg0, arg1);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FileUtils:listFilesRecursivelyAsync",argc, 2);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_listFilesRecursivelyAsync'.",&tolua_err);
 #endif
 
     return 0;
@@ -34375,7 +33752,7 @@ int lua_ax_base_FileUtils_writeBinaryToFile(lua_State* tolua_S)
 #endif
     return 0;
 }
-int lua_ax_base_FileUtils_getFileShortName(lua_State* tolua_S)
+int lua_ax_base_FileUtils_getPathExtension(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -34393,21 +33770,129 @@ int lua_ax_base_FileUtils_getFileShortName(lua_State* tolua_S)
     if (argc == 1)
     {
         std::string_view arg0;
-        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getFileShortName");
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getPathExtension");
         if(!ok)
         {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getFileShortName'", nullptr);
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getPathExtension'", nullptr);
             return 0;
         }
-        auto&& ret = ax::FileUtils::getFileShortName(arg0);
+        auto&& ret = ax::FileUtils::getPathExtension(arg0);
         lua_pushlstring(tolua_S,ret.c_str(),ret.length());
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FileUtils:getFileShortName",argc, 1);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FileUtils:getPathExtension",argc, 1);
     return 0;
 #if _AX_DEBUG >= 1
     tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getFileShortName'.",&tolua_err);
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getPathExtension'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_base_FileUtils_getPathBaseName(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 1)
+    {
+        std::string_view arg0;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getPathBaseName");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getPathBaseName'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::FileUtils::getPathBaseName(arg0);
+        lua_pushlstring(tolua_S,ret.c_str(),ret.length());
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FileUtils:getPathBaseName",argc, 1);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getPathBaseName'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_base_FileUtils_getPathBaseNameNoExtension(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 1)
+    {
+        std::string_view arg0;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getPathBaseNameNoExtension");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getPathBaseNameNoExtension'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::FileUtils::getPathBaseNameNoExtension(arg0);
+        lua_pushlstring(tolua_S,ret.c_str(),ret.length());
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FileUtils:getPathBaseNameNoExtension",argc, 1);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getPathBaseNameNoExtension'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_base_FileUtils_getPathDirName(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"ax.FileUtils",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 1)
+    {
+        std::string_view arg0;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FileUtils:getPathDirName");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FileUtils_getPathDirName'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::FileUtils::getPathDirName(arg0);
+        lua_pushlstring(tolua_S,ret.c_str(),ret.length());
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FileUtils:getPathDirName",argc, 1);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_FileUtils_getPathDirName'.",&tolua_err);
 #endif
     return 0;
 }
@@ -34449,7 +33934,7 @@ int lua_ax_base_FileUtils_isAbsolutePathInternal(lua_State* tolua_S)
 }
 static int lua_ax_base_FileUtils_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FileUtils)");
+    AXLOGV("luabindings: finalizing LUA object (FileUtils)");
     return 0;
 }
 
@@ -34483,24 +33968,24 @@ int lua_register_ax_base_FileUtils(lua_State* tolua_S)
         tolua_function(tolua_S,"writeValueVectorToFile",lua_ax_base_FileUtils_writeValueVectorToFile);
         tolua_function(tolua_S,"getValueVectorFromFile",lua_ax_base_FileUtils_getValueVectorFromFile);
         tolua_function(tolua_S,"isFileExist",lua_ax_base_FileUtils_isFileExist);
-        tolua_function(tolua_S,"getFileExtension",lua_ax_base_FileUtils_getFileExtension);
         tolua_function(tolua_S,"isAbsolutePath",lua_ax_base_FileUtils_isAbsolutePath);
         tolua_function(tolua_S,"isDirectoryExist",lua_ax_base_FileUtils_isDirectoryExist);
-        tolua_function(tolua_S,"createDirectory",lua_ax_base_FileUtils_createDirectory);
+        tolua_function(tolua_S,"createDirectories",lua_ax_base_FileUtils_createDirectories);
         tolua_function(tolua_S,"removeDirectory",lua_ax_base_FileUtils_removeDirectory);
         tolua_function(tolua_S,"removeFile",lua_ax_base_FileUtils_removeFile);
         tolua_function(tolua_S,"renameFile",lua_ax_base_FileUtils_renameFile);
         tolua_function(tolua_S,"getFileSize",lua_ax_base_FileUtils_getFileSize);
         tolua_function(tolua_S,"listFiles",lua_ax_base_FileUtils_listFiles);
-        tolua_function(tolua_S,"listFilesAsync",lua_ax_base_FileUtils_listFilesAsync);
         tolua_function(tolua_S,"listFilesRecursively",lua_ax_base_FileUtils_listFilesRecursively);
-        tolua_function(tolua_S,"listFilesRecursivelyAsync",lua_ax_base_FileUtils_listFilesRecursivelyAsync);
         tolua_function(tolua_S,"isFileExistInternal",lua_ax_base_FileUtils_isFileExistInternal);
         tolua_function(tolua_S,"isDirectoryExistInternal",lua_ax_base_FileUtils_isDirectoryExistInternal);
         tolua_function(tolua_S,"getInstance", lua_ax_base_FileUtils_getInstance);
         tolua_function(tolua_S,"destroyInstance", lua_ax_base_FileUtils_destroyInstance);
         tolua_function(tolua_S,"writeBinaryToFile", lua_ax_base_FileUtils_writeBinaryToFile);
-        tolua_function(tolua_S,"getFileShortName", lua_ax_base_FileUtils_getFileShortName);
+        tolua_function(tolua_S,"getPathExtension", lua_ax_base_FileUtils_getPathExtension);
+        tolua_function(tolua_S,"getPathBaseName", lua_ax_base_FileUtils_getPathBaseName);
+        tolua_function(tolua_S,"getPathBaseNameNoExtension", lua_ax_base_FileUtils_getPathBaseNameNoExtension);
+        tolua_function(tolua_S,"getPathDirName", lua_ax_base_FileUtils_getPathDirName);
         tolua_function(tolua_S,"isAbsolutePathInternal", lua_ax_base_FileUtils_isAbsolutePathInternal);
     tolua_endmodule(tolua_S);
     auto typeName = typeid(ax::FileUtils).name(); // rtti is literal storage
@@ -34511,7 +33996,7 @@ int lua_register_ax_base_FileUtils(lua_State* tolua_S)
 
 static int lua_ax_base_EventAcceleration_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventAcceleration)");
+    AXLOGV("luabindings: finalizing LUA object (EventAcceleration)");
     return 0;
 }
 
@@ -34617,7 +34102,7 @@ int lua_ax_base_EventCustom_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventCustom_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventCustom)");
+    AXLOGV("luabindings: finalizing LUA object (EventCustom)");
     return 0;
 }
 
@@ -35387,6 +34872,23 @@ int lua_ax_base_EventDispatcher_dispatchEvent(lua_State* tolua_S)
         lua_settop(tolua_S, 1);
         return 1;
     }
+    if (argc == 2) 
+    {
+        ax::Event* arg0;
+        bool arg1;
+
+        ok &= luaval_to_object<ax::Event>(tolua_S, 2, "ax.Event",&arg0, "ax.EventDispatcher:dispatchEvent");
+
+        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.EventDispatcher:dispatchEvent");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventDispatcher_dispatchEvent'", nullptr);
+            return 0;
+        }
+        cobj->dispatchEvent(arg0, arg1);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventDispatcher:dispatchEvent",argc, 1);
     return 0;
 
@@ -35452,6 +34954,27 @@ int lua_ax_base_EventDispatcher_dispatchCustomEvent(lua_State* tolua_S)
             return 0;
         }
         cobj->dispatchCustomEvent(arg0, arg1);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 3) 
+    {
+        std::string_view arg0;
+        void* arg1;
+        bool arg2;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.EventDispatcher:dispatchCustomEvent");
+
+        #pragma warning NO CONVERSION TO NATIVE FOR void*
+		ok = false;
+
+        ok &= luaval_to_boolean(tolua_S, 4,&arg2, "ax.EventDispatcher:dispatchCustomEvent");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventDispatcher_dispatchCustomEvent'", nullptr);
+            return 0;
+        }
+        cobj->dispatchCustomEvent(arg0, arg1, arg2);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -35554,7 +35077,7 @@ int lua_ax_base_EventDispatcher_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventDispatcher_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventDispatcher)");
+    AXLOGV("luabindings: finalizing LUA object (EventDispatcher)");
     return 0;
 }
 
@@ -35633,7 +35156,7 @@ int lua_ax_base_EventFocus_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventFocus_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventFocus)");
+    AXLOGV("luabindings: finalizing LUA object (EventFocus)");
     return 0;
 }
 
@@ -35744,7 +35267,7 @@ int lua_ax_base_EventListenerAcceleration_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerAcceleration_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerAcceleration)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerAcceleration)");
     return 0;
 }
 
@@ -35849,7 +35372,7 @@ int lua_ax_base_EventListenerFocus_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerFocus_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerFocus)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerFocus)");
     return 0;
 }
 
@@ -35954,7 +35477,7 @@ int lua_ax_base_EventListenerKeyboard_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerKeyboard_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerKeyboard)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerKeyboard)");
     return 0;
 }
 
@@ -36120,7 +35643,7 @@ int lua_ax_base_EventMouse_getScrollY(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_base_EventMouse_setCursorPosition(lua_State* tolua_S)
+int lua_ax_base_EventMouse_setMouseInfo(lua_State* tolua_S)
 {
     int argc = 0;
     ax::EventMouse* cobj = nullptr;
@@ -36140,35 +35663,38 @@ int lua_ax_base_EventMouse_setCursorPosition(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     if (!cobj) 
     {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_EventMouse_setCursorPosition'", nullptr);
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_EventMouse_setMouseInfo'", nullptr);
         return 0;
     }
 #endif
 
     argc = lua_gettop(tolua_S)-1;
-    if (argc == 2) 
+    if (argc == 3) 
     {
         double arg0;
         double arg1;
+        ax::EventMouse::MouseButton arg2;
 
-        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.EventMouse:setCursorPosition");
+        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.EventMouse:setMouseInfo");
 
-        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.EventMouse:setCursorPosition");
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.EventMouse:setMouseInfo");
+
+        ok &= luaval_to_int32(tolua_S, 4,(int *)&arg2, "ax.EventMouse:setMouseInfo");
         if(!ok)
         {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventMouse_setCursorPosition'", nullptr);
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventMouse_setMouseInfo'", nullptr);
             return 0;
         }
-        cobj->setCursorPosition(arg0, arg1);
+        cobj->setMouseInfo(arg0, arg1, arg2);
         lua_settop(tolua_S, 1);
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventMouse:setCursorPosition",argc, 2);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventMouse:setMouseInfo",argc, 3);
     return 0;
 
 #if _AX_DEBUG >= 1
     tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventMouse_setCursorPosition'.",&tolua_err);
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventMouse_setMouseInfo'.",&tolua_err);
 #endif
 
     return 0;
@@ -36266,100 +35792,6 @@ int lua_ax_base_EventMouse_getMouseButton(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     tolua_lerror:
     tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventMouse_getMouseButton'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_EventMouse_getCursorX(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::EventMouse* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.EventMouse",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::EventMouse*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_EventMouse_getCursorX'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventMouse_getCursorX'", nullptr);
-            return 0;
-        }
-        auto&& ret = cobj->getCursorX();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventMouse:getCursorX",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventMouse_getCursorX'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_EventMouse_getCursorY(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::EventMouse* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.EventMouse",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::EventMouse*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_EventMouse_getCursorY'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_EventMouse_getCursorY'", nullptr);
-            return 0;
-        }
-        auto&& ret = cobj->getCursorY();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.EventMouse:getCursorY",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_EventMouse_getCursorY'.",&tolua_err);
 #endif
 
     return 0;
@@ -36735,7 +36167,7 @@ int lua_ax_base_EventMouse_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventMouse_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventMouse)");
+    AXLOGV("luabindings: finalizing LUA object (EventMouse)");
     return 0;
 }
 
@@ -36749,11 +36181,9 @@ int lua_register_ax_base_EventMouse(lua_State* tolua_S)
         tolua_function(tolua_S,"setScrollData",lua_ax_base_EventMouse_setScrollData);
         tolua_function(tolua_S,"getScrollX",lua_ax_base_EventMouse_getScrollX);
         tolua_function(tolua_S,"getScrollY",lua_ax_base_EventMouse_getScrollY);
-        tolua_function(tolua_S,"setCursorPosition",lua_ax_base_EventMouse_setCursorPosition);
+        tolua_function(tolua_S,"setMouseInfo",lua_ax_base_EventMouse_setMouseInfo);
         tolua_function(tolua_S,"setMouseButton",lua_ax_base_EventMouse_setMouseButton);
         tolua_function(tolua_S,"getMouseButton",lua_ax_base_EventMouse_getMouseButton);
-        tolua_function(tolua_S,"getCursorX",lua_ax_base_EventMouse_getCursorX);
-        tolua_function(tolua_S,"getCursorY",lua_ax_base_EventMouse_getCursorY);
         tolua_function(tolua_S,"getLocation",lua_ax_base_EventMouse_getLocation);
         tolua_function(tolua_S,"getPreviousLocation",lua_ax_base_EventMouse_getPreviousLocation);
         tolua_function(tolua_S,"getStartLocation",lua_ax_base_EventMouse_getStartLocation);
@@ -36854,7 +36284,7 @@ int lua_ax_base_EventListenerMouse_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerMouse_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerMouse)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerMouse)");
     return 0;
 }
 
@@ -36875,7 +36305,7 @@ int lua_register_ax_base_EventListenerMouse(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerController_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerController)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerController)");
     return 0;
 }
 
@@ -37075,7 +36505,7 @@ int lua_ax_base_EventListenerTouchOneByOne_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerTouchOneByOne_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerTouchOneByOne)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerTouchOneByOne)");
     return 0;
 }
 
@@ -37182,7 +36612,7 @@ int lua_ax_base_EventListenerTouchAllAtOnce_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventListenerTouchAllAtOnce_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventListenerTouchAllAtOnce)");
+    AXLOGV("luabindings: finalizing LUA object (EventListenerTouchAllAtOnce)");
     return 0;
 }
 
@@ -37557,7 +36987,7 @@ int lua_ax_base_EventController_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EventController_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EventController)");
+    AXLOGV("luabindings: finalizing LUA object (EventController)");
     return 0;
 }
 
@@ -37924,7 +37354,7 @@ int lua_ax_base_ActionCamera_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ActionCamera_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionCamera)");
+    AXLOGV("luabindings: finalizing LUA object (ActionCamera)");
     return 0;
 }
 
@@ -38103,7 +37533,7 @@ int lua_ax_base_OrbitCamera_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_OrbitCamera_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (OrbitCamera)");
+    AXLOGV("luabindings: finalizing LUA object (OrbitCamera)");
     return 0;
 }
 
@@ -38315,7 +37745,7 @@ int lua_ax_base_CardinalSplineTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CardinalSplineTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CardinalSplineTo)");
+    AXLOGV("luabindings: finalizing LUA object (CardinalSplineTo)");
     return 0;
 }
 
@@ -38375,7 +37805,7 @@ int lua_ax_base_CardinalSplineBy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CardinalSplineBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CardinalSplineBy)");
+    AXLOGV("luabindings: finalizing LUA object (CardinalSplineBy)");
     return 0;
 }
 
@@ -38448,7 +37878,7 @@ int lua_ax_base_CatmullRomTo_initWithDuration(lua_State* tolua_S)
 }
 static int lua_ax_base_CatmullRomTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CatmullRomTo)");
+    AXLOGV("luabindings: finalizing LUA object (CatmullRomTo)");
     return 0;
 }
 
@@ -38521,7 +37951,7 @@ int lua_ax_base_CatmullRomBy_initWithDuration(lua_State* tolua_S)
 }
 static int lua_ax_base_CatmullRomBy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CatmullRomBy)");
+    AXLOGV("luabindings: finalizing LUA object (CatmullRomBy)");
     return 0;
 }
 
@@ -38638,7 +38068,7 @@ int lua_ax_base_ActionEase_initWithAction(lua_State* tolua_S)
 }
 static int lua_ax_base_ActionEase_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionEase)");
+    AXLOGV("luabindings: finalizing LUA object (ActionEase)");
     return 0;
 }
 
@@ -38847,7 +38277,7 @@ int lua_ax_base_EaseRateAction_create(lua_State* tolua_S)
 }
 static int lua_ax_base_EaseRateAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseRateAction)");
+    AXLOGV("luabindings: finalizing LUA object (EaseRateAction)");
     return 0;
 }
 
@@ -38943,7 +38373,7 @@ int lua_ax_base_EaseExponentialIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseExponentialIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseExponentialIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseExponentialIn)");
     return 0;
 }
 
@@ -39037,7 +38467,7 @@ int lua_ax_base_EaseExponentialOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseExponentialOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseExponentialOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseExponentialOut)");
     return 0;
 }
 
@@ -39131,7 +38561,7 @@ int lua_ax_base_EaseExponentialInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseExponentialInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseExponentialInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseExponentialInOut)");
     return 0;
 }
 
@@ -39225,7 +38655,7 @@ int lua_ax_base_EaseSineIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseSineIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseSineIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseSineIn)");
     return 0;
 }
 
@@ -39319,7 +38749,7 @@ int lua_ax_base_EaseSineOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseSineOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseSineOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseSineOut)");
     return 0;
 }
 
@@ -39413,7 +38843,7 @@ int lua_ax_base_EaseSineInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseSineInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseSineInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseSineInOut)");
     return 0;
 }
 
@@ -39434,7 +38864,7 @@ int lua_register_ax_base_EaseSineInOut(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBounce_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBounce)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBounce)");
     return 0;
 }
 
@@ -39526,7 +38956,7 @@ int lua_ax_base_EaseBounceIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBounceIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBounceIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBounceIn)");
     return 0;
 }
 
@@ -39620,7 +39050,7 @@ int lua_ax_base_EaseBounceOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBounceOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBounceOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBounceOut)");
     return 0;
 }
 
@@ -39714,7 +39144,7 @@ int lua_ax_base_EaseBounceInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBounceInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBounceInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBounceInOut)");
     return 0;
 }
 
@@ -39808,7 +39238,7 @@ int lua_ax_base_EaseBackIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBackIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBackIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBackIn)");
     return 0;
 }
 
@@ -39902,7 +39332,7 @@ int lua_ax_base_EaseBackOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBackOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBackOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBackOut)");
     return 0;
 }
 
@@ -39996,7 +39426,7 @@ int lua_ax_base_EaseBackInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBackInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBackInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBackInOut)");
     return 0;
 }
 
@@ -40090,7 +39520,7 @@ int lua_ax_base_EaseQuadraticActionIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuadraticActionIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuadraticActionIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuadraticActionIn)");
     return 0;
 }
 
@@ -40184,7 +39614,7 @@ int lua_ax_base_EaseQuadraticActionOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuadraticActionOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuadraticActionOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuadraticActionOut)");
     return 0;
 }
 
@@ -40278,7 +39708,7 @@ int lua_ax_base_EaseQuadraticActionInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuadraticActionInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuadraticActionInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuadraticActionInOut)");
     return 0;
 }
 
@@ -40372,7 +39802,7 @@ int lua_ax_base_EaseQuarticActionIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuarticActionIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuarticActionIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuarticActionIn)");
     return 0;
 }
 
@@ -40466,7 +39896,7 @@ int lua_ax_base_EaseQuarticActionOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuarticActionOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuarticActionOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuarticActionOut)");
     return 0;
 }
 
@@ -40560,7 +39990,7 @@ int lua_ax_base_EaseQuarticActionInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuarticActionInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuarticActionInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuarticActionInOut)");
     return 0;
 }
 
@@ -40654,7 +40084,7 @@ int lua_ax_base_EaseQuinticActionIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuinticActionIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuinticActionIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuinticActionIn)");
     return 0;
 }
 
@@ -40748,7 +40178,7 @@ int lua_ax_base_EaseQuinticActionOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuinticActionOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuinticActionOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuinticActionOut)");
     return 0;
 }
 
@@ -40842,7 +40272,7 @@ int lua_ax_base_EaseQuinticActionInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseQuinticActionInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseQuinticActionInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseQuinticActionInOut)");
     return 0;
 }
 
@@ -40936,7 +40366,7 @@ int lua_ax_base_EaseCircleActionIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCircleActionIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCircleActionIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCircleActionIn)");
     return 0;
 }
 
@@ -41030,7 +40460,7 @@ int lua_ax_base_EaseCircleActionOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCircleActionOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCircleActionOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCircleActionOut)");
     return 0;
 }
 
@@ -41124,7 +40554,7 @@ int lua_ax_base_EaseCircleActionInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCircleActionInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCircleActionInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCircleActionInOut)");
     return 0;
 }
 
@@ -41218,7 +40648,7 @@ int lua_ax_base_EaseCubicActionIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCubicActionIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCubicActionIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCubicActionIn)");
     return 0;
 }
 
@@ -41312,7 +40742,7 @@ int lua_ax_base_EaseCubicActionOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCubicActionOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCubicActionOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCubicActionOut)");
     return 0;
 }
 
@@ -41406,7 +40836,7 @@ int lua_ax_base_EaseCubicActionInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseCubicActionInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseCubicActionInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseCubicActionInOut)");
     return 0;
 }
 
@@ -41502,7 +40932,7 @@ int lua_ax_base_EaseIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseIn)");
     return 0;
 }
 
@@ -41598,7 +41028,7 @@ int lua_ax_base_EaseOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseOut)");
     return 0;
 }
 
@@ -41694,7 +41124,7 @@ int lua_ax_base_EaseInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseInOut)");
     return 0;
 }
 
@@ -41879,7 +41309,7 @@ int lua_ax_base_EaseElastic_initWithAction(lua_State* tolua_S)
 }
 static int lua_ax_base_EaseElastic_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseElastic)");
+    AXLOGV("luabindings: finalizing LUA object (EaseElastic)");
     return 0;
 }
 
@@ -41989,7 +41419,7 @@ int lua_ax_base_EaseElasticIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseElasticIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseElasticIn)");
+    AXLOGV("luabindings: finalizing LUA object (EaseElasticIn)");
     return 0;
 }
 
@@ -42098,7 +41528,7 @@ int lua_ax_base_EaseElasticOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseElasticOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseElasticOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseElasticOut)");
     return 0;
 }
 
@@ -42207,7 +41637,7 @@ int lua_ax_base_EaseElasticInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseElasticInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseElasticInOut)");
+    AXLOGV("luabindings: finalizing LUA object (EaseElasticInOut)");
     return 0;
 }
 
@@ -42360,7 +41790,7 @@ int lua_ax_base_EaseBezierAction_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_EaseBezierAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (EaseBezierAction)");
+    AXLOGV("luabindings: finalizing LUA object (EaseBezierAction)");
     return 0;
 }
 
@@ -42382,7 +41812,7 @@ int lua_register_ax_base_EaseBezierAction(lua_State* tolua_S)
 
 static int lua_ax_base_ActionInstant_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionInstant)");
+    AXLOGV("luabindings: finalizing LUA object (ActionInstant)");
     return 0;
 }
 
@@ -42472,7 +41902,7 @@ int lua_ax_base_Show_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Show_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Show)");
+    AXLOGV("luabindings: finalizing LUA object (Show)");
     return 0;
 }
 
@@ -42564,7 +41994,7 @@ int lua_ax_base_Hide_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Hide_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Hide)");
+    AXLOGV("luabindings: finalizing LUA object (Hide)");
     return 0;
 }
 
@@ -42656,7 +42086,7 @@ int lua_ax_base_ToggleVisibility_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ToggleVisibility_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ToggleVisibility)");
+    AXLOGV("luabindings: finalizing LUA object (ToggleVisibility)");
     return 0;
 }
 
@@ -42811,7 +42241,7 @@ int lua_ax_base_RemoveSelf_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_RemoveSelf_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RemoveSelf)");
+    AXLOGV("luabindings: finalizing LUA object (RemoveSelf)");
     return 0;
 }
 
@@ -42956,7 +42386,7 @@ int lua_ax_base_FlipX_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FlipX_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FlipX)");
+    AXLOGV("luabindings: finalizing LUA object (FlipX)");
     return 0;
 }
 
@@ -43101,7 +42531,7 @@ int lua_ax_base_FlipY_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FlipY_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FlipY)");
+    AXLOGV("luabindings: finalizing LUA object (FlipY)");
     return 0;
 }
 
@@ -43246,7 +42676,7 @@ int lua_ax_base_Place_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Place_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Place)");
+    AXLOGV("luabindings: finalizing LUA object (Place)");
     return 0;
 }
 
@@ -43352,7 +42782,7 @@ int lua_ax_base_CallFunc_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CallFunc_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CallFunc)");
+    AXLOGV("luabindings: finalizing LUA object (CallFunc)");
     return 0;
 }
 
@@ -43473,7 +42903,7 @@ int lua_ax_base_GridAction_initWithDuration(lua_State* tolua_S)
 }
 static int lua_ax_base_GridAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (GridAction)");
+    AXLOGV("luabindings: finalizing LUA object (GridAction)");
     return 0;
 }
 
@@ -43541,7 +42971,7 @@ int lua_ax_base_Grid3DAction_getGridRect(lua_State* tolua_S)
 }
 static int lua_ax_base_Grid3DAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Grid3DAction)");
+    AXLOGV("luabindings: finalizing LUA object (Grid3DAction)");
     return 0;
 }
 
@@ -43561,7 +42991,7 @@ int lua_register_ax_base_Grid3DAction(lua_State* tolua_S)
 
 static int lua_ax_base_TiledGrid3DAction_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TiledGrid3DAction)");
+    AXLOGV("luabindings: finalizing LUA object (TiledGrid3DAction)");
     return 0;
 }
 
@@ -43651,7 +43081,7 @@ int lua_ax_base_StopGrid_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_StopGrid_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (StopGrid)");
+    AXLOGV("luabindings: finalizing LUA object (StopGrid)");
     return 0;
 }
 
@@ -43795,7 +43225,7 @@ int lua_ax_base_ReuseGrid_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ReuseGrid_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ReuseGrid)");
+    AXLOGV("luabindings: finalizing LUA object (ReuseGrid)");
     return 0;
 }
 
@@ -44149,7 +43579,7 @@ int lua_ax_base_Waves3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Waves3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Waves3D)");
+    AXLOGV("luabindings: finalizing LUA object (Waves3D)");
     return 0;
 }
 
@@ -44351,7 +43781,7 @@ int lua_ax_base_FlipX3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FlipX3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FlipX3D)");
+    AXLOGV("luabindings: finalizing LUA object (FlipX3D)");
     return 0;
 }
 
@@ -44447,7 +43877,7 @@ int lua_ax_base_FlipY3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FlipY3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FlipY3D)");
+    AXLOGV("luabindings: finalizing LUA object (FlipY3D)");
     return 0;
 }
 
@@ -44850,7 +44280,7 @@ int lua_ax_base_Lens3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Lens3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Lens3D)");
+    AXLOGV("luabindings: finalizing LUA object (Lens3D)");
     return 0;
 }
 
@@ -45316,7 +44746,7 @@ int lua_ax_base_Ripple3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Ripple3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Ripple3D)");
+    AXLOGV("luabindings: finalizing LUA object (Ripple3D)");
     return 0;
 }
 
@@ -45482,7 +44912,7 @@ int lua_ax_base_Shaky3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Shaky3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Shaky3D)");
+    AXLOGV("luabindings: finalizing LUA object (Shaky3D)");
     return 0;
 }
 
@@ -45836,7 +45266,7 @@ int lua_ax_base_Liquid_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Liquid_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Liquid)");
+    AXLOGV("luabindings: finalizing LUA object (Liquid)");
     return 0;
 }
 
@@ -46204,7 +45634,7 @@ int lua_ax_base_Waves_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Waves_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Waves)");
+    AXLOGV("luabindings: finalizing LUA object (Waves)");
     return 0;
 }
 
@@ -46664,7 +46094,7 @@ int lua_ax_base_Twirl_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Twirl_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Twirl)");
+    AXLOGV("luabindings: finalizing LUA object (Twirl)");
     return 0;
 }
 
@@ -47541,7 +46971,7 @@ int lua_ax_base_ActionManager_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ActionManager_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionManager)");
+    AXLOGV("luabindings: finalizing LUA object (ActionManager)");
     return 0;
 }
 
@@ -47615,7 +47045,7 @@ int lua_ax_base_PageTurn3D_create(lua_State* tolua_S)
 }
 static int lua_ax_base_PageTurn3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (PageTurn3D)");
+    AXLOGV("luabindings: finalizing LUA object (PageTurn3D)");
     return 0;
 }
 
@@ -47763,7 +47193,7 @@ int lua_ax_base_ProgressTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ProgressTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ProgressTo)");
+    AXLOGV("luabindings: finalizing LUA object (ProgressTo)");
     return 0;
 }
 
@@ -47918,7 +47348,7 @@ int lua_ax_base_ProgressFromTo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ProgressFromTo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ProgressFromTo)");
+    AXLOGV("luabindings: finalizing LUA object (ProgressFromTo)");
     return 0;
 }
 
@@ -48078,7 +47508,7 @@ int lua_ax_base_ShakyTiles3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ShakyTiles3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ShakyTiles3D)");
+    AXLOGV("luabindings: finalizing LUA object (ShakyTiles3D)");
     return 0;
 }
 
@@ -48238,7 +47668,7 @@ int lua_ax_base_ShatteredTiles3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ShatteredTiles3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ShatteredTiles3D)");
+    AXLOGV("luabindings: finalizing LUA object (ShatteredTiles3D)");
     return 0;
 }
 
@@ -48443,7 +47873,7 @@ int lua_ax_base_ShuffleTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ShuffleTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ShuffleTiles)");
+    AXLOGV("luabindings: finalizing LUA object (ShuffleTiles)");
     return 0;
 }
 
@@ -48747,7 +48177,7 @@ int lua_ax_base_FadeOutTRTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeOutTRTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeOutTRTiles)");
+    AXLOGV("luabindings: finalizing LUA object (FadeOutTRTiles)");
     return 0;
 }
 
@@ -48847,7 +48277,7 @@ int lua_ax_base_FadeOutBLTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeOutBLTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeOutBLTiles)");
+    AXLOGV("luabindings: finalizing LUA object (FadeOutBLTiles)");
     return 0;
 }
 
@@ -48943,7 +48373,7 @@ int lua_ax_base_FadeOutUpTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeOutUpTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeOutUpTiles)");
+    AXLOGV("luabindings: finalizing LUA object (FadeOutUpTiles)");
     return 0;
 }
 
@@ -49039,7 +48469,7 @@ int lua_ax_base_FadeOutDownTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FadeOutDownTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FadeOutDownTiles)");
+    AXLOGV("luabindings: finalizing LUA object (FadeOutDownTiles)");
     return 0;
 }
 
@@ -49310,7 +48740,7 @@ int lua_ax_base_TurnOffTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TurnOffTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TurnOffTiles)");
+    AXLOGV("luabindings: finalizing LUA object (TurnOffTiles)");
     return 0;
 }
 
@@ -49666,7 +49096,7 @@ int lua_ax_base_WavesTiles3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_WavesTiles3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (WavesTiles3D)");
+    AXLOGV("luabindings: finalizing LUA object (WavesTiles3D)");
     return 0;
 }
 
@@ -50024,7 +49454,7 @@ int lua_ax_base_JumpTiles3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_JumpTiles3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (JumpTiles3D)");
+    AXLOGV("luabindings: finalizing LUA object (JumpTiles3D)");
     return 0;
 }
 
@@ -50178,7 +49608,7 @@ int lua_ax_base_SplitRows_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SplitRows_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SplitRows)");
+    AXLOGV("luabindings: finalizing LUA object (SplitRows)");
     return 0;
 }
 
@@ -50328,7 +49758,7 @@ int lua_ax_base_SplitCols_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SplitCols_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SplitCols)");
+    AXLOGV("luabindings: finalizing LUA object (SplitCols)");
     return 0;
 }
 
@@ -50451,7 +49881,7 @@ int lua_ax_base_ActionTween_create(lua_State* tolua_S)
 }
 static int lua_ax_base_ActionTween_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionTween)");
+    AXLOGV("luabindings: finalizing LUA object (ActionTween)");
     return 0;
 }
 
@@ -50603,7 +50033,7 @@ int lua_ax_base_ActionCoroutine_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ActionCoroutine_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ActionCoroutine)");
+    AXLOGV("luabindings: finalizing LUA object (ActionCoroutine)");
     return 0;
 }
 
@@ -51257,7 +50687,7 @@ int lua_ax_base_AtlasNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_AtlasNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AtlasNode)");
+    AXLOGV("luabindings: finalizing LUA object (AtlasNode)");
     return 0;
 }
 
@@ -51371,6 +50801,23 @@ int lua_ax_base_ClippingNode_setStencil(lua_State* tolua_S)
             return 0;
         }
         cobj->setStencil(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 2) 
+    {
+        ax::Node* arg0;
+        bool arg1;
+
+        ok &= luaval_to_object<ax::Node>(tolua_S, 2, "ax.Node",&arg0, "ax.ClippingNode:setStencil");
+
+        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.ClippingNode:setStencil");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_ClippingNode_setStencil'", nullptr);
+            return 0;
+        }
+        cobj->setStencil(arg0, arg1);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -51722,7 +51169,7 @@ int lua_ax_base_ClippingNode_create(lua_State* tolua_S)
 }
 static int lua_ax_base_ClippingNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ClippingNode)");
+    AXLOGV("luabindings: finalizing LUA object (ClippingNode)");
     return 0;
 }
 
@@ -51989,7 +51436,7 @@ int lua_ax_base_ClippingRectangleNode_create(lua_State* tolua_S)
 }
 static int lua_ax_base_ClippingRectangleNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ClippingRectangleNode)");
+    AXLOGV("luabindings: finalizing LUA object (ClippingRectangleNode)");
     return 0;
 }
 
@@ -52057,6 +51504,29 @@ int lua_ax_base_DrawNode_drawPoint(lua_State* tolua_S)
         lua_settop(tolua_S, 1);
         return 1;
     }
+    if (argc == 4) 
+    {
+        ax::Vec2 arg0;
+        double arg1;
+        ax::Color4B arg2;
+        ax::DrawNode::PointType arg3;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPoint");
+
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPoint");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawPoint");
+
+        ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPoint");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawPoint'", nullptr);
+            return 0;
+        }
+        cobj->drawPoint(arg0, arg1, arg2, arg3);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawPoint",argc, 3);
     return 0;
 
@@ -52110,6 +51580,84 @@ int lua_ax_base_DrawNode_drawLine(lua_State* tolua_S)
             return 0;
         }
         cobj->drawLine(arg0, arg1, arg2);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 4) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Color4B arg2;
+        double arg3;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawLine");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawLine");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawLine'", nullptr);
+            return 0;
+        }
+        cobj->drawLine(arg0, arg1, arg2, arg3);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 5) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Color4B arg2;
+        double arg3;
+        ax::DrawNode::EndType arg4;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawLine");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawLine");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawLine'", nullptr);
+            return 0;
+        }
+        cobj->drawLine(arg0, arg1, arg2, arg3, arg4);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 6) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Color4B arg2;
+        double arg3;
+        ax::DrawNode::EndType arg4;
+        ax::DrawNode::EndType arg5;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawLine");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawLine");
+
+        ok &= luaval_to_int32(tolua_S, 7,(int *)&arg5, "ax.DrawNode:drawLine");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawLine'", nullptr);
+            return 0;
+        }
+        cobj->drawLine(arg0, arg1, arg2, arg3, arg4, arg5);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -52173,6 +51721,38 @@ int lua_ax_base_DrawNode_drawRect(lua_State* tolua_S)
     }while(0);
     ok  = true;
     do{
+        if (argc == 6) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Vec2 arg1;
+            ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Vec2 arg2;
+            ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Vec2 arg3;
+            ok &= luaval_to_vec2(tolua_S, 5, &arg3, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Color4B arg4;
+            ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            cobj->drawRect(arg0, arg1, arg2, arg3, arg4, arg5);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
         if (argc == 3) {
             ax::Vec2 arg0;
             ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawRect");
@@ -52187,6 +51767,30 @@ int lua_ax_base_DrawNode_drawRect(lua_State* tolua_S)
 
             if (!ok) { break; }
             cobj->drawRect(arg0, arg1, arg2);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 4) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Vec2 arg1;
+            ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            ax::Color4B arg2;
+            ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            double arg3;
+            ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawRect");
+
+            if (!ok) { break; }
+            cobj->drawRect(arg0, arg1, arg2, arg3);
             lua_settop(tolua_S, 1);
             return 1;
         }
@@ -52385,6 +51989,194 @@ int lua_ax_base_DrawNode_drawCircle(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_DrawNode_drawStar(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::DrawNode* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawStar'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 5) 
+    {
+        ax::Vec2 arg0;
+        double arg1;
+        double arg2;
+        unsigned int arg3;
+        ax::Color4B arg4;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawStar");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawStar");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawStar'", nullptr);
+            return 0;
+        }
+        cobj->drawStar(arg0, arg1, arg2, arg3, arg4);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 6) 
+    {
+        ax::Vec2 arg0;
+        double arg1;
+        double arg2;
+        unsigned int arg3;
+        ax::Color4B arg4;
+        double arg5;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawStar");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawStar");
+
+        ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawStar");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawStar'", nullptr);
+            return 0;
+        }
+        cobj->drawStar(arg0, arg1, arg2, arg3, arg4, arg5);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawStar",argc, 5);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawStar'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_base_DrawNode_drawSolidStar(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::DrawNode* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawSolidStar'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 6) 
+    {
+        ax::Vec2 arg0;
+        double arg1;
+        double arg2;
+        unsigned int arg3;
+        ax::Color4B arg4;
+        ax::Color4B arg5;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidStar");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawSolidStar");
+
+        ok &=luaval_to_color4b(tolua_S, 7, &arg5, "ax.DrawNode:drawSolidStar");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSolidStar'", nullptr);
+            return 0;
+        }
+        cobj->drawSolidStar(arg0, arg1, arg2, arg3, arg4, arg5);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 7) 
+    {
+        ax::Vec2 arg0;
+        double arg1;
+        double arg2;
+        unsigned int arg3;
+        ax::Color4B arg4;
+        ax::Color4B arg5;
+        double arg6;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidStar");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawSolidStar");
+
+        ok &=luaval_to_color4b(tolua_S, 7, &arg5, "ax.DrawNode:drawSolidStar");
+
+        ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawSolidStar");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSolidStar'", nullptr);
+            return 0;
+        }
+        cobj->drawSolidStar(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawSolidStar",argc, 6);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawSolidStar'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_DrawNode_drawQuadBezier(lua_State* tolua_S)
 {
     int argc = 0;
@@ -52434,6 +52226,35 @@ int lua_ax_base_DrawNode_drawQuadBezier(lua_State* tolua_S)
             return 0;
         }
         cobj->drawQuadBezier(arg0, arg1, arg2, arg3, arg4);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 6) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Vec2 arg2;
+        unsigned int arg3;
+        ax::Color4B arg4;
+        double arg5;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawQuadBezier");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawQuadBezier");
+
+        ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawQuadBezier");
+
+        ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawQuadBezier");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawQuadBezier");
+
+        ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawQuadBezier");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawQuadBezier'", nullptr);
+            return 0;
+        }
+        cobj->drawQuadBezier(arg0, arg1, arg2, arg3, arg4, arg5);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -52499,6 +52320,38 @@ int lua_ax_base_DrawNode_drawCubicBezier(lua_State* tolua_S)
             return 0;
         }
         cobj->drawCubicBezier(arg0, arg1, arg2, arg3, arg4, arg5);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 7) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Vec2 arg2;
+        ax::Vec2 arg3;
+        unsigned int arg4;
+        ax::Color4B arg5;
+        double arg6;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawCubicBezier");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawCubicBezier");
+
+        ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawCubicBezier");
+
+        ok &= luaval_to_vec2(tolua_S, 5, &arg3, "ax.DrawNode:drawCubicBezier");
+
+        ok &= luaval_to_uint32(tolua_S, 6,&arg4, "ax.DrawNode:drawCubicBezier");
+
+        ok &=luaval_to_color4b(tolua_S, 7, &arg5, "ax.DrawNode:drawCubicBezier");
+
+        ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawCubicBezier");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawCubicBezier'", nullptr);
+            return 0;
+        }
+        cobj->drawCubicBezier(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -52614,6 +52467,55 @@ int lua_ax_base_DrawNode_drawSolidRect(lua_State* tolua_S)
         lua_settop(tolua_S, 1);
         return 1;
     }
+    if (argc == 4) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Color4B arg2;
+        double arg3;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidRect");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidRect");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidRect");
+
+        ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidRect");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSolidRect'", nullptr);
+            return 0;
+        }
+        cobj->drawSolidRect(arg0, arg1, arg2, arg3);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 5) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        ax::Color4B arg2;
+        double arg3;
+        ax::Color4B arg4;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidRect");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidRect");
+
+        ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidRect");
+
+        ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidRect");
+
+        ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawSolidRect");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSolidRect'", nullptr);
+            return 0;
+        }
+        cobj->drawSolidRect(arg0, arg1, arg2, arg3, arg4);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawSolidRect",argc, 3);
     return 0;
 
@@ -52726,6 +52628,54 @@ int lua_ax_base_DrawNode_drawSolidCircle(lua_State* tolua_S)
     }while(0);
     ok  = true;
     do{
+        if (argc == 10) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            unsigned int arg3;
+            ok &= luaval_to_uint32(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            double arg4;
+            ok &= luaval_to_number(tolua_S, 6,&arg4, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            ax::Color4B arg6;
+            ok &=luaval_to_color4b(tolua_S, 8, &arg6, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            double arg7;
+            ok &= luaval_to_number(tolua_S, 9,&arg7, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            ax::Color4B arg8;
+            ok &=luaval_to_color4b(tolua_S, 10, &arg8, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            bool arg9;
+            ok &= luaval_to_boolean(tolua_S, 11,&arg9, "ax.DrawNode:drawSolidCircle");
+
+            if (!ok) { break; }
+            cobj->drawSolidCircle(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
         if (argc == 5) {
             ax::Vec2 arg0;
             ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidCircle");
@@ -52768,6 +52718,265 @@ int lua_ax_base_DrawNode_drawPie(lua_State* tolua_S)
     int argc = 0;
     ax::DrawNode* cobj = nullptr;
     bool ok  = true;
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
+#endif
+    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
+#if _AX_DEBUG >= 1
+    if (!cobj)
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawPie'", nullptr);
+        return 0;
+    }
+#endif
+    argc = lua_gettop(tolua_S)-1;
+    do{
+        if (argc == 8) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg3;
+            ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg4;
+            ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg6;
+            ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg7;
+            ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 9) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg3;
+            ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg4;
+            ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg6;
+            ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg7;
+            ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::DrawNode::DrawMode arg8;
+            ok &= luaval_to_int32(tolua_S, 10,(int *)&arg8, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 9) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg3;
+            ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg4;
+            ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg6;
+            ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg7;
+            ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg8;
+            ok &=luaval_to_color4b(tolua_S, 10, &arg8, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 10) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg3;
+            ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg4;
+            ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg6;
+            ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg7;
+            ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg8;
+            ok &=luaval_to_color4b(tolua_S, 10, &arg8, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::DrawNode::DrawMode arg9;
+            ok &= luaval_to_int32(tolua_S, 11,(int *)&arg9, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 11) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg1;
+            ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg2;
+            ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg3;
+            ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            int arg4;
+            ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg6;
+            ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg7;
+            ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::Color4B arg8;
+            ok &=luaval_to_color4b(tolua_S, 10, &arg8, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            ax::DrawNode::DrawMode arg9;
+            ok &= luaval_to_int32(tolua_S, 11,(int *)&arg9, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            double arg10;
+            ok &= luaval_to_number(tolua_S, 12,&arg10, "ax.DrawNode:drawPie");
+
+            if (!ok) { break; }
+            cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.DrawNode:drawPie",argc, 9);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawPie'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_base_DrawNode_setIsConvex(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::DrawNode* cobj = nullptr;
+    bool ok  = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -52783,56 +52992,32 @@ int lua_ax_base_DrawNode_drawPie(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     if (!cobj) 
     {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawPie'", nullptr);
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_setIsConvex'", nullptr);
         return 0;
     }
 #endif
 
     argc = lua_gettop(tolua_S)-1;
-    if (argc == 9) 
+    if (argc == 1) 
     {
-        ax::Vec2 arg0;
-        double arg1;
-        double arg2;
-        int arg3;
-        int arg4;
-        double arg5;
-        double arg6;
-        ax::Color4B arg7;
-        ax::DrawNode::DrawMode arg8;
+        bool arg0;
 
-        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_number(tolua_S, 3,&arg1, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_int32(tolua_S, 5,(int *)&arg3, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_number(tolua_S, 8,&arg6, "ax.DrawNode:drawPie");
-
-        ok &=luaval_to_color4b(tolua_S, 9, &arg7, "ax.DrawNode:drawPie");
-
-        ok &= luaval_to_int32(tolua_S, 10,(int *)&arg8, "ax.DrawNode:drawPie");
+        ok &= luaval_to_boolean(tolua_S, 2,&arg0, "ax.DrawNode:setIsConvex");
         if(!ok)
         {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawPie'", nullptr);
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_setIsConvex'", nullptr);
             return 0;
         }
-        cobj->drawPie(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        cobj->setIsConvex(arg0);
         lua_settop(tolua_S, 1);
         return 1;
     }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawPie",argc, 9);
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:setIsConvex",argc, 1);
     return 0;
 
 #if _AX_DEBUG >= 1
     tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawPie'.",&tolua_err);
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_setIsConvex'.",&tolua_err);
 #endif
 
     return 0;
@@ -52886,6 +53071,61 @@ int lua_ax_base_DrawNode_drawSegment(lua_State* tolua_S)
         lua_settop(tolua_S, 1);
         return 1;
     }
+    if (argc == 5) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        double arg2;
+        ax::Color4B arg3;
+        ax::DrawNode::EndType arg4;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawSegment");
+
+        ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawSegment");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSegment'", nullptr);
+            return 0;
+        }
+        cobj->drawSegment(arg0, arg1, arg2, arg3, arg4);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    if (argc == 6) 
+    {
+        ax::Vec2 arg0;
+        ax::Vec2 arg1;
+        double arg2;
+        ax::Color4B arg3;
+        ax::DrawNode::EndType arg4;
+        ax::DrawNode::EndType arg5;
+
+        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_number(tolua_S, 4,&arg2, "ax.DrawNode:drawSegment");
+
+        ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_int32(tolua_S, 6,(int *)&arg4, "ax.DrawNode:drawSegment");
+
+        ok &= luaval_to_int32(tolua_S, 7,(int *)&arg5, "ax.DrawNode:drawSegment");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawSegment'", nullptr);
+            return 0;
+        }
+        cobj->drawSegment(arg0, arg1, arg2, arg3, arg4, arg5);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawSegment",argc, 4);
     return 0;
 
@@ -52901,56 +53141,203 @@ int lua_ax_base_DrawNode_drawTriangle(lua_State* tolua_S)
     int argc = 0;
     ax::DrawNode* cobj = nullptr;
     bool ok  = true;
-
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
 
-
 #if _AX_DEBUG >= 1
     if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
 #endif
-
     cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
-
 #if _AX_DEBUG >= 1
-    if (!cobj) 
+    if (!cobj)
     {
         tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawTriangle'", nullptr);
         return 0;
     }
 #endif
-
     argc = lua_gettop(tolua_S)-1;
-    if (argc == 4) 
-    {
-        ax::Vec2 arg0;
-        ax::Vec2 arg1;
-        ax::Vec2 arg2;
-        ax::Color4B arg3;
+    do{
+        if (argc == 4) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawTriangle");
 
-        ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawTriangle");
+            if (!ok) { break; }
+            ax::Vec2 arg1;
+            ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawTriangle");
 
-        ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawTriangle");
+            if (!ok) { break; }
+            ax::Vec2 arg2;
+            ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawTriangle");
 
-        ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawTriangle");
+            if (!ok) { break; }
+            ax::Color4B arg3;
+            ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawTriangle");
 
-        ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawTriangle");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawTriangle'", nullptr);
-            return 0;
+            if (!ok) { break; }
+            cobj->drawTriangle(arg0, arg1, arg2, arg3);
+            lua_settop(tolua_S, 1);
+            return 1;
         }
-        cobj->drawTriangle(arg0, arg1, arg2, arg3);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawTriangle",argc, 4);
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 2) {
+            const ax::Vec2* arg0;
+            ok &= luaval_to_object<const ax::Vec2>(tolua_S, 2, "ax.Vec2",&arg0, "ax.DrawNode:drawTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg1;
+            ok &=luaval_to_color4b(tolua_S, 3, &arg1, "ax.DrawNode:drawTriangle");
+
+            if (!ok) { break; }
+            cobj->drawTriangle(arg0, arg1);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.DrawNode:drawTriangle",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
     tolua_lerror:
     tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawTriangle'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_base_DrawNode_drawSolidTriangle(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::DrawNode* cobj = nullptr;
+    bool ok  = true;
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
+#endif
+    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
+#if _AX_DEBUG >= 1
+    if (!cobj)
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawSolidTriangle'", nullptr);
+        return 0;
+    }
+#endif
+    argc = lua_gettop(tolua_S)-1;
+    do{
+        if (argc == 5) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Vec2 arg1;
+            ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Vec2 arg2;
+            ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg3;
+            ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg4;
+            ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            cobj->drawSolidTriangle(arg0, arg1, arg2, arg3, arg4);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 6) {
+            ax::Vec2 arg0;
+            ok &= luaval_to_vec2(tolua_S, 2, &arg0, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Vec2 arg1;
+            ok &= luaval_to_vec2(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Vec2 arg2;
+            ok &= luaval_to_vec2(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg3;
+            ok &=luaval_to_color4b(tolua_S, 5, &arg3, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg4;
+            ok &=luaval_to_color4b(tolua_S, 6, &arg4, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            double arg5;
+            ok &= luaval_to_number(tolua_S, 7,&arg5, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            cobj->drawSolidTriangle(arg0, arg1, arg2, arg3, arg4, arg5);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 3) {
+            const ax::Vec2* arg0;
+            ok &= luaval_to_object<const ax::Vec2>(tolua_S, 2, "ax.Vec2",&arg0, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg1;
+            ok &=luaval_to_color4b(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg2;
+            ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            cobj->drawSolidTriangle(arg0, arg1, arg2);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    do{
+        if (argc == 4) {
+            const ax::Vec2* arg0;
+            ok &= luaval_to_object<const ax::Vec2>(tolua_S, 2, "ax.Vec2",&arg0, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg1;
+            ok &=luaval_to_color4b(tolua_S, 3, &arg1, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            ax::Color4B arg2;
+            ok &=luaval_to_color4b(tolua_S, 4, &arg2, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            double arg3;
+            ok &= luaval_to_number(tolua_S, 5,&arg3, "ax.DrawNode:drawSolidTriangle");
+
+            if (!ok) { break; }
+            cobj->drawSolidTriangle(arg0, arg1, arg2, arg3);
+            lua_settop(tolua_S, 1);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.DrawNode:drawSolidTriangle",argc, 3);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawSolidTriangle'.",&tolua_err);
 #endif
 
     return 0;
@@ -53099,153 +53486,6 @@ int lua_ax_base_DrawNode_setBlendFunc(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_base_DrawNode_setLineWidth(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::DrawNode* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_setLineWidth'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 1) 
-    {
-        double arg0;
-
-        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.DrawNode:setLineWidth");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_setLineWidth'", nullptr);
-            return 0;
-        }
-        cobj->setLineWidth(arg0);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:setLineWidth",argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_setLineWidth'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_DrawNode_getLineWidth(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::DrawNode* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_getLineWidth'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_getLineWidth'", nullptr);
-            return 0;
-        }
-        auto&& ret = cobj->getLineWidth();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:getLineWidth",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_getLineWidth'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_DrawNode_setIsConvex(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::DrawNode* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_setIsConvex'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 1) 
-    {
-        bool arg0;
-
-        ok &= luaval_to_boolean(tolua_S, 2,&arg0, "ax.DrawNode:setIsConvex");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_setIsConvex'", nullptr);
-            return 0;
-        }
-        cobj->setIsConvex(arg0);
-        lua_settop(tolua_S, 1);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:setIsConvex",argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_setIsConvex'.",&tolua_err);
-#endif
-
-    return 0;
-}
 int lua_ax_base_DrawNode_setIsolated(lua_State* tolua_S)
 {
     int argc = 0;
@@ -53369,19 +53609,6 @@ int lua_ax_base_DrawNode_create(lua_State* tolua_S)
         object_to_luaval<ax::DrawNode>(tolua_S, "ax.DrawNode",(ax::DrawNode*)ret);
         return 1;
     }
-    if (argc == 1)
-    {
-        double arg0;
-        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.DrawNode:create");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_create'", nullptr);
-            return 0;
-        }
-        auto&& ret = ax::DrawNode::create(arg0);
-        object_to_luaval<ax::DrawNode>(tolua_S, "ax.DrawNode",(ax::DrawNode*)ret);
-        return 1;
-    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.DrawNode:create",argc, 0);
     return 0;
 #if _AX_DEBUG >= 1
@@ -53417,23 +53644,6 @@ int lua_ax_base_DrawNode_constructor(lua_State* tolua_S)
         toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)cobj,"ax.DrawNode");
         return 1;
     }
-    if (argc == 1) 
-    {
-        double arg0;
-
-        ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.DrawNode:DrawNode");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_constructor'", nullptr);
-            return 0;
-        }
-        cobj = new ax::DrawNode(arg0);
-        cobj->autorelease();
-        int ID =  (int)cobj->_ID ;
-        int* luaID =  &cobj->_luaID ;
-        toluafix_pushusertype_object(tolua_S, ID, luaID, (void*)cobj,"ax.DrawNode");
-        return 1;
-    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:DrawNode",argc, 0);
     return 0;
 
@@ -53446,7 +53656,7 @@ int lua_ax_base_DrawNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_DrawNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DrawNode)");
+    AXLOGV("luabindings: finalizing LUA object (DrawNode)");
     return 0;
 }
 
@@ -53461,20 +53671,21 @@ int lua_register_ax_base_DrawNode(lua_State* tolua_S)
         tolua_function(tolua_S,"drawLine",lua_ax_base_DrawNode_drawLine);
         tolua_function(tolua_S,"drawRect",lua_ax_base_DrawNode_drawRect);
         tolua_function(tolua_S,"drawCircle",lua_ax_base_DrawNode_drawCircle);
+        tolua_function(tolua_S,"drawStar",lua_ax_base_DrawNode_drawStar);
+        tolua_function(tolua_S,"drawSolidStar",lua_ax_base_DrawNode_drawSolidStar);
         tolua_function(tolua_S,"drawQuadBezier",lua_ax_base_DrawNode_drawQuadBezier);
         tolua_function(tolua_S,"drawCubicBezier",lua_ax_base_DrawNode_drawCubicBezier);
         tolua_function(tolua_S,"drawDot",lua_ax_base_DrawNode_drawDot);
         tolua_function(tolua_S,"drawSolidRect",lua_ax_base_DrawNode_drawSolidRect);
         tolua_function(tolua_S,"drawSolidCircle",lua_ax_base_DrawNode_drawSolidCircle);
         tolua_function(tolua_S,"drawPie",lua_ax_base_DrawNode_drawPie);
+        tolua_function(tolua_S,"setIsConvex",lua_ax_base_DrawNode_setIsConvex);
         tolua_function(tolua_S,"drawSegment",lua_ax_base_DrawNode_drawSegment);
         tolua_function(tolua_S,"drawTriangle",lua_ax_base_DrawNode_drawTriangle);
+        tolua_function(tolua_S,"drawSolidTriangle",lua_ax_base_DrawNode_drawSolidTriangle);
         tolua_function(tolua_S,"clear",lua_ax_base_DrawNode_clear);
         tolua_function(tolua_S,"getBlendFunc",lua_ax_base_DrawNode_getBlendFunc);
         tolua_function(tolua_S,"setBlendFunc",lua_ax_base_DrawNode_setBlendFunc);
-        tolua_function(tolua_S,"setLineWidth",lua_ax_base_DrawNode_setLineWidth);
-        tolua_function(tolua_S,"getLineWidth",lua_ax_base_DrawNode_getLineWidth);
-        tolua_function(tolua_S,"setIsConvex",lua_ax_base_DrawNode_setIsConvex);
         tolua_function(tolua_S,"setIsolated",lua_ax_base_DrawNode_setIsolated);
         tolua_function(tolua_S,"isIsolated",lua_ax_base_DrawNode_isIsolated);
         tolua_function(tolua_S,"create", lua_ax_base_DrawNode_create);
@@ -57618,7 +57829,7 @@ int lua_ax_base_Label_createWithCharMap(lua_State* tolua_S)
 }
 static int lua_ax_base_Label_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Label)");
+    AXLOGV("luabindings: finalizing LUA object (Label)");
     return 0;
 }
 
@@ -58037,7 +58248,7 @@ int lua_ax_base_LabelAtlas_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_LabelAtlas_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (LabelAtlas)");
+    AXLOGV("luabindings: finalizing LUA object (LabelAtlas)");
     return 0;
 }
 
@@ -59988,6 +60199,59 @@ int lua_ax_base_Sprite_initWithFile(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_Sprite_initWithImageData(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::Sprite* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.Sprite",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::Sprite*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_Sprite_initWithImageData'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 2) 
+    {
+        ax::Data arg0;
+        std::string_view arg1;
+
+        luaL_error(tolua_S, "ax::Data unsupported");;
+
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.Sprite:initWithImageData");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Sprite_initWithImageData'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->initWithImageData(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Sprite:initWithImageData",argc, 2);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Sprite_initWithImageData'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_Sprite_setVertexLayout(lua_State* tolua_S)
 {
     int argc = 0;
@@ -60316,7 +60580,7 @@ int lua_ax_base_Sprite_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Sprite_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Sprite)");
+    AXLOGV("luabindings: finalizing LUA object (Sprite)");
     return 0;
 }
 
@@ -60365,6 +60629,7 @@ int lua_register_ax_base_Sprite(lua_State* tolua_S)
         tolua_function(tolua_S,"initWithSpriteFrame",lua_ax_base_Sprite_initWithSpriteFrame);
         tolua_function(tolua_S,"initWithSpriteFrameName",lua_ax_base_Sprite_initWithSpriteFrameName);
         tolua_function(tolua_S,"initWithFile",lua_ax_base_Sprite_initWithFile);
+        tolua_function(tolua_S,"initWithImageData",lua_ax_base_Sprite_initWithImageData);
         tolua_function(tolua_S,"setVertexLayout",lua_ax_base_Sprite_setVertexLayout);
         tolua_function(tolua_S,"setAutoUpdatePS",lua_ax_base_Sprite_setAutoUpdatePS);
         tolua_function(tolua_S,"setAutoSize",lua_ax_base_Sprite_setAutoSize);
@@ -60414,7 +60679,7 @@ int lua_ax_base_Layer_create(lua_State* tolua_S)
 }
 static int lua_ax_base_Layer_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Layer)");
+    AXLOGV("luabindings: finalizing LUA object (Layer)");
     return 0;
 }
 
@@ -60751,7 +61016,7 @@ int lua_ax_base_LayerColor_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_LayerColor_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (LayerColor)");
+    AXLOGV("luabindings: finalizing LUA object (LayerColor)");
     return 0;
 }
 
@@ -61529,7 +61794,7 @@ int lua_ax_base_LayerGradient_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_LayerGradient_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (LayerGradient)");
+    AXLOGV("luabindings: finalizing LUA object (LayerGradient)");
     return 0;
 }
 
@@ -62599,7 +62864,7 @@ int lua_ax_base_LayerRadialGradient_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_LayerRadialGradient_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (LayerRadialGradient)");
+    AXLOGV("luabindings: finalizing LUA object (LayerRadialGradient)");
     return 0;
 }
 
@@ -62885,7 +63150,7 @@ int lua_ax_base_LayerMultiplex_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_LayerMultiplex_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (LayerMultiplex)");
+    AXLOGV("luabindings: finalizing LUA object (LayerMultiplex)");
     return 0;
 }
 
@@ -63278,7 +63543,7 @@ int lua_ax_base_MenuItem_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItem_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItem)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItem)");
     return 0;
 }
 
@@ -63690,7 +63955,7 @@ int lua_ax_base_MenuItemLabel_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemLabel_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemLabel)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemLabel)");
     return 0;
 }
 
@@ -63823,7 +64088,7 @@ int lua_ax_base_MenuItemAtlasFont_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemAtlasFont_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemAtlasFont)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemAtlasFont)");
     return 0;
 }
 
@@ -64272,7 +64537,7 @@ int lua_ax_base_MenuItemFont_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemFont_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemFont)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemFont)");
     return 0;
 }
 
@@ -64836,7 +65101,7 @@ int lua_ax_base_MenuItemSprite_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemSprite_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemSprite)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemSprite)");
     return 0;
 }
 
@@ -65163,7 +65428,7 @@ int lua_ax_base_MenuItemImage_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemImage_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemImage)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemImage)");
     return 0;
 }
 
@@ -65519,7 +65784,7 @@ int lua_ax_base_MenuItemToggle_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MenuItemToggle_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MenuItemToggle)");
+    AXLOGV("luabindings: finalizing LUA object (MenuItemToggle)");
     return 0;
 }
 
@@ -65923,7 +66188,7 @@ int lua_ax_base_Menu_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Menu_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Menu)");
+    AXLOGV("luabindings: finalizing LUA object (Menu)");
     return 0;
 }
 
@@ -66728,7 +66993,7 @@ int lua_ax_base_MotionStreak_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MotionStreak_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MotionStreak)");
+    AXLOGV("luabindings: finalizing LUA object (MotionStreak)");
     return 0;
 }
 
@@ -67088,7 +67353,7 @@ int lua_ax_base_NodeGrid_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_NodeGrid_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (NodeGrid)");
+    AXLOGV("luabindings: finalizing LUA object (NodeGrid)");
     return 0;
 }
 
@@ -67856,7 +68121,7 @@ int lua_ax_base_ParticleBatchNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleBatchNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleBatchNode)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleBatchNode)");
     return 0;
 }
 
@@ -67890,7 +68155,7 @@ int lua_register_ax_base_ParticleBatchNode(lua_State* tolua_S)
 
 static int lua_ax_base_SpriteSheet_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpriteSheet)");
+    AXLOGV("luabindings: finalizing LUA object (SpriteSheet)");
     return 0;
 }
 
@@ -69005,7 +69270,7 @@ int lua_ax_base_SpriteFrameCache_destroyInstance(lua_State* tolua_S)
 }
 static int lua_ax_base_SpriteFrameCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpriteFrameCache)");
+    AXLOGV("luabindings: finalizing LUA object (SpriteFrameCache)");
     return 0;
 }
 
@@ -69277,7 +69542,7 @@ int lua_ax_base_ParticleData_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleData_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleData)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleData)");
     return 0;
 }
 
@@ -69694,7 +69959,7 @@ int lua_ax_base_ParticleEmissionMaskCache_getInstance(lua_State* tolua_S)
 }
 static int lua_ax_base_ParticleEmissionMaskCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleEmissionMaskCache)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleEmissionMaskCache)");
     return 0;
 }
 
@@ -78263,7 +78528,7 @@ int lua_ax_base_ParticleSystem_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSystem_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSystem)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSystem)");
     return 0;
 }
 
@@ -78736,7 +79001,7 @@ int lua_ax_base_ParticleSystemQuad_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSystemQuad_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSystemQuad)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSystemQuad)");
     return 0;
 }
 
@@ -78868,7 +79133,7 @@ int lua_ax_base_ParticleFire_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleFire_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleFire)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleFire)");
     return 0;
 }
 
@@ -79094,7 +79359,7 @@ int lua_ax_base_ParticleFireworks_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleFireworks_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleFireworks)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleFireworks)");
     return 0;
 }
 
@@ -79322,7 +79587,7 @@ int lua_ax_base_ParticleSun_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSun_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSun)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSun)");
     return 0;
 }
 
@@ -79550,7 +79815,7 @@ int lua_ax_base_ParticleGalaxy_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleGalaxy_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleGalaxy)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleGalaxy)");
     return 0;
 }
 
@@ -79778,7 +80043,7 @@ int lua_ax_base_ParticleFlower_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleFlower_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleFlower)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleFlower)");
     return 0;
 }
 
@@ -80006,7 +80271,7 @@ int lua_ax_base_ParticleMeteor_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleMeteor_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleMeteor)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleMeteor)");
     return 0;
 }
 
@@ -80234,7 +80499,7 @@ int lua_ax_base_ParticleSpiral_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSpiral_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSpiral)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSpiral)");
     return 0;
 }
 
@@ -80462,7 +80727,7 @@ int lua_ax_base_ParticleExplosion_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleExplosion_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleExplosion)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleExplosion)");
     return 0;
 }
 
@@ -80690,7 +80955,7 @@ int lua_ax_base_ParticleSmoke_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSmoke_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSmoke)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSmoke)");
     return 0;
 }
 
@@ -80918,7 +81183,7 @@ int lua_ax_base_ParticleSnow_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleSnow_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleSnow)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleSnow)");
     return 0;
 }
 
@@ -81146,7 +81411,7 @@ int lua_ax_base_ParticleRain_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParticleRain_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParticleRain)");
+    AXLOGV("luabindings: finalizing LUA object (ParticleRain)");
     return 0;
 }
 
@@ -81875,7 +82140,7 @@ int lua_ax_base_ProgressTimer_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ProgressTimer_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ProgressTimer)");
+    AXLOGV("luabindings: finalizing LUA object (ProgressTimer)");
     return 0;
 }
 
@@ -82631,7 +82896,7 @@ int lua_ax_base_ProtectedNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ProtectedNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ProtectedNode)");
+    AXLOGV("luabindings: finalizing LUA object (ProtectedNode)");
     return 0;
 }
 
@@ -84381,7 +84646,7 @@ int lua_ax_base_RenderTexture_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_RenderTexture_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RenderTexture)");
+    AXLOGV("luabindings: finalizing LUA object (RenderTexture)");
     return 0;
 }
 
@@ -84477,7 +84742,7 @@ int lua_ax_base_TransitionEaseScene_easeActionWithAction(lua_State* tolua_S)
 }
 static int lua_ax_base_TransitionEaseScene_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionEaseScene)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionEaseScene)");
     return 0;
 }
 
@@ -84813,7 +85078,7 @@ int lua_ax_base_TransitionScene_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionScene_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionScene)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionScene)");
     return 0;
 }
 
@@ -84972,7 +85237,7 @@ int lua_ax_base_TransitionSceneOriented_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSceneOriented_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSceneOriented)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSceneOriented)");
     return 0;
 }
 
@@ -85069,7 +85334,7 @@ int lua_ax_base_TransitionRotoZoom_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionRotoZoom_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionRotoZoom)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionRotoZoom)");
     return 0;
 }
 
@@ -85165,7 +85430,7 @@ int lua_ax_base_TransitionJumpZoom_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionJumpZoom_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionJumpZoom)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionJumpZoom)");
     return 0;
 }
 
@@ -85358,7 +85623,7 @@ int lua_ax_base_TransitionMoveInL_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionMoveInL_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionMoveInL)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionMoveInL)");
     return 0;
 }
 
@@ -85456,7 +85721,7 @@ int lua_ax_base_TransitionMoveInR_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionMoveInR_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionMoveInR)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionMoveInR)");
     return 0;
 }
 
@@ -85552,7 +85817,7 @@ int lua_ax_base_TransitionMoveInT_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionMoveInT_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionMoveInT)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionMoveInT)");
     return 0;
 }
 
@@ -85648,7 +85913,7 @@ int lua_ax_base_TransitionMoveInB_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionMoveInB_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionMoveInB)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionMoveInB)");
     return 0;
 }
 
@@ -85841,7 +86106,7 @@ int lua_ax_base_TransitionSlideInL_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSlideInL_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSlideInL)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSlideInL)");
     return 0;
 }
 
@@ -85939,7 +86204,7 @@ int lua_ax_base_TransitionSlideInR_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSlideInR_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSlideInR)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSlideInR)");
     return 0;
 }
 
@@ -86035,7 +86300,7 @@ int lua_ax_base_TransitionSlideInB_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSlideInB_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSlideInB)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSlideInB)");
     return 0;
 }
 
@@ -86131,7 +86396,7 @@ int lua_ax_base_TransitionSlideInT_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSlideInT_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSlideInT)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSlideInT)");
     return 0;
 }
 
@@ -86277,7 +86542,7 @@ int lua_ax_base_TransitionShrinkGrow_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionShrinkGrow_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionShrinkGrow)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionShrinkGrow)");
     return 0;
 }
 
@@ -86393,7 +86658,7 @@ int lua_ax_base_TransitionFlipX_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFlipX_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFlipX)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFlipX)");
     return 0;
 }
 
@@ -86508,7 +86773,7 @@ int lua_ax_base_TransitionFlipY_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFlipY_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFlipY)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFlipY)");
     return 0;
 }
 
@@ -86623,7 +86888,7 @@ int lua_ax_base_TransitionFlipAngular_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFlipAngular_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFlipAngular)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFlipAngular)");
     return 0;
 }
 
@@ -86738,7 +87003,7 @@ int lua_ax_base_TransitionZoomFlipX_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionZoomFlipX_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionZoomFlipX)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionZoomFlipX)");
     return 0;
 }
 
@@ -86853,7 +87118,7 @@ int lua_ax_base_TransitionZoomFlipY_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionZoomFlipY_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionZoomFlipY)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionZoomFlipY)");
     return 0;
 }
 
@@ -86968,7 +87233,7 @@ int lua_ax_base_TransitionZoomFlipAngular_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionZoomFlipAngular_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionZoomFlipAngular)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionZoomFlipAngular)");
     return 0;
 }
 
@@ -87150,7 +87415,7 @@ int lua_ax_base_TransitionFade_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFade_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFade)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFade)");
     return 0;
 }
 
@@ -87247,7 +87512,7 @@ int lua_ax_base_TransitionCrossFade_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionCrossFade_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionCrossFade)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionCrossFade)");
     return 0;
 }
 
@@ -87393,7 +87658,7 @@ int lua_ax_base_TransitionTurnOffTiles_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionTurnOffTiles_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionTurnOffTiles)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionTurnOffTiles)");
     return 0;
 }
 
@@ -87587,7 +87852,7 @@ int lua_ax_base_TransitionSplitCols_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSplitCols_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSplitCols)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSplitCols)");
     return 0;
 }
 
@@ -87685,7 +87950,7 @@ int lua_ax_base_TransitionSplitRows_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionSplitRows_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionSplitRows)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionSplitRows)");
     return 0;
 }
 
@@ -87881,7 +88146,7 @@ int lua_ax_base_TransitionFadeTR_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFadeTR_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFadeTR)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFadeTR)");
     return 0;
 }
 
@@ -87979,7 +88244,7 @@ int lua_ax_base_TransitionFadeBL_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFadeBL_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFadeBL)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFadeBL)");
     return 0;
 }
 
@@ -88075,7 +88340,7 @@ int lua_ax_base_TransitionFadeUp_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFadeUp_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFadeUp)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFadeUp)");
     return 0;
 }
 
@@ -88171,7 +88436,7 @@ int lua_ax_base_TransitionFadeDown_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionFadeDown_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionFadeDown)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionFadeDown)");
     return 0;
 }
 
@@ -88375,7 +88640,7 @@ int lua_ax_base_TransitionPageTurn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionPageTurn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionPageTurn)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionPageTurn)");
     return 0;
 }
 
@@ -88473,7 +88738,7 @@ int lua_ax_base_TransitionProgress_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgress_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgress)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgress)");
     return 0;
 }
 
@@ -88569,7 +88834,7 @@ int lua_ax_base_TransitionProgressRadialCCW_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressRadialCCW_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressRadialCCW)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressRadialCCW)");
     return 0;
 }
 
@@ -88665,7 +88930,7 @@ int lua_ax_base_TransitionProgressRadialCW_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressRadialCW_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressRadialCW)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressRadialCW)");
     return 0;
 }
 
@@ -88761,7 +89026,7 @@ int lua_ax_base_TransitionProgressHorizontal_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressHorizontal_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressHorizontal)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressHorizontal)");
     return 0;
 }
 
@@ -88857,7 +89122,7 @@ int lua_ax_base_TransitionProgressVertical_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressVertical_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressVertical)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressVertical)");
     return 0;
 }
 
@@ -88953,7 +89218,7 @@ int lua_ax_base_TransitionProgressInOut_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressInOut_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressInOut)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressInOut)");
     return 0;
 }
 
@@ -89049,7 +89314,7 @@ int lua_ax_base_TransitionProgressOutIn_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TransitionProgressOutIn_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TransitionProgressOutIn)");
+    AXLOGV("luabindings: finalizing LUA object (TransitionProgressOutIn)");
     return 0;
 }
 
@@ -91045,7 +91310,7 @@ int lua_ax_base_Camera_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Camera_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Camera)");
+    AXLOGV("luabindings: finalizing LUA object (Camera)");
     return 0;
 }
 
@@ -91499,7 +91764,7 @@ int lua_ax_base_CameraBackgroundBrush_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CameraBackgroundBrush_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CameraBackgroundBrush)");
+    AXLOGV("luabindings: finalizing LUA object (CameraBackgroundBrush)");
     return 0;
 }
 
@@ -91650,7 +91915,7 @@ int lua_ax_base_CameraBackgroundDepthBrush_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CameraBackgroundDepthBrush_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CameraBackgroundDepthBrush)");
+    AXLOGV("luabindings: finalizing LUA object (CameraBackgroundDepthBrush)");
     return 0;
 }
 
@@ -91797,7 +92062,7 @@ int lua_ax_base_CameraBackgroundColorBrush_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CameraBackgroundColorBrush_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CameraBackgroundColorBrush)");
+    AXLOGV("luabindings: finalizing LUA object (CameraBackgroundColorBrush)");
     return 0;
 }
 
@@ -92160,7 +92425,7 @@ int lua_ax_base_CameraBackgroundSkyBoxBrush_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_CameraBackgroundSkyBoxBrush_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (CameraBackgroundSkyBoxBrush)");
+    AXLOGV("luabindings: finalizing LUA object (CameraBackgroundSkyBoxBrush)");
     return 0;
 }
 
@@ -93250,7 +93515,7 @@ int lua_ax_base_GridBase_getGridRect(lua_State* tolua_S)
 }
 static int lua_ax_base_GridBase_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (GridBase)");
+    AXLOGV("luabindings: finalizing LUA object (GridBase)");
     return 0;
 }
 
@@ -93516,7 +93781,7 @@ int lua_ax_base_Grid3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Grid3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Grid3D)");
+    AXLOGV("luabindings: finalizing LUA object (Grid3D)");
     return 0;
 }
 
@@ -93631,7 +93896,7 @@ int lua_ax_base_TiledGrid3D_create(lua_State* tolua_S)
 }
 static int lua_ax_base_TiledGrid3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TiledGrid3D)");
+    AXLOGV("luabindings: finalizing LUA object (TiledGrid3D)");
     return 0;
 }
 
@@ -93989,7 +94254,7 @@ int lua_ax_base_BaseLight_isEnabled(lua_State* tolua_S)
 }
 static int lua_ax_base_BaseLight_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (BaseLight)");
+    AXLOGV("luabindings: finalizing LUA object (BaseLight)");
     return 0;
 }
 
@@ -94234,7 +94499,7 @@ int lua_ax_base_DirectionLight_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_DirectionLight_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (DirectionLight)");
+    AXLOGV("luabindings: finalizing LUA object (DirectionLight)");
     return 0;
 }
 
@@ -94432,7 +94697,7 @@ int lua_ax_base_PointLight_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_PointLight_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (PointLight)");
+    AXLOGV("luabindings: finalizing LUA object (PointLight)");
     return 0;
 }
 
@@ -95067,7 +95332,7 @@ int lua_ax_base_SpotLight_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SpotLight_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpotLight)");
+    AXLOGV("luabindings: finalizing LUA object (SpotLight)");
     return 0;
 }
 
@@ -95172,7 +95437,7 @@ int lua_ax_base_AmbientLight_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_AmbientLight_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AmbientLight)");
+    AXLOGV("luabindings: finalizing LUA object (AmbientLight)");
     return 0;
 }
 
@@ -95293,7 +95558,7 @@ int lua_ax_base_RenderState_bindPass(lua_State* tolua_S)
 }
 static int lua_ax_base_RenderState_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (RenderState)");
+    AXLOGV("luabindings: finalizing LUA object (RenderState)");
     return 0;
 }
 
@@ -95726,7 +95991,7 @@ int lua_ax_base_Technique_create(lua_State* tolua_S)
 }
 static int lua_ax_base_Technique_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Technique)");
+    AXLOGV("luabindings: finalizing LUA object (Technique)");
     return 0;
 }
 
@@ -96756,7 +97021,7 @@ int lua_ax_base_Material_createWithProperties(lua_State* tolua_S)
 }
 static int lua_ax_base_Material_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Material)");
+    AXLOGV("luabindings: finalizing LUA object (Material)");
     return 0;
 }
 
@@ -98191,7 +98456,7 @@ int lua_ax_base_Pass_create(lua_State* tolua_S)
 }
 static int lua_ax_base_Pass_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Pass)");
+    AXLOGV("luabindings: finalizing LUA object (Pass)");
     return 0;
 }
 
@@ -99379,53 +99644,6 @@ int lua_ax_base_Renderer_getClearFlag(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     tolua_lerror:
     tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Renderer_getClearFlag'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_base_Renderer_getRenderTargetFlag(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::Renderer* cobj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"ax.Renderer",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    cobj = (ax::Renderer*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!cobj) 
-    {
-        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_Renderer_getRenderTargetFlag'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0) 
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Renderer_getRenderTargetFlag'", nullptr);
-            return 0;
-        }
-        int ret = (int)cobj->getRenderTargetFlag();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Renderer:getRenderTargetFlag",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Renderer_getRenderTargetFlag'.",&tolua_err);
 #endif
 
     return 0;
@@ -101198,7 +101416,7 @@ int lua_ax_base_Renderer_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_Renderer_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Renderer)");
+    AXLOGV("luabindings: finalizing LUA object (Renderer)");
     return 0;
 }
 
@@ -101232,7 +101450,6 @@ int lua_register_ax_base_Renderer(lua_State* tolua_S)
         tolua_function(tolua_S,"getClearDepth",lua_ax_base_Renderer_getClearDepth);
         tolua_function(tolua_S,"getClearStencil",lua_ax_base_Renderer_getClearStencil);
         tolua_function(tolua_S,"getClearFlag",lua_ax_base_Renderer_getClearFlag);
-        tolua_function(tolua_S,"getRenderTargetFlag",lua_ax_base_Renderer_getRenderTargetFlag);
         tolua_function(tolua_S,"setDepthTest",lua_ax_base_Renderer_setDepthTest);
         tolua_function(tolua_S,"setDepthWrite",lua_ax_base_Renderer_setDepthWrite);
         tolua_function(tolua_S,"setDepthCompareFunction",lua_ax_base_Renderer_setDepthCompareFunction);
@@ -101509,7 +101726,23 @@ int lua_ax_base_TextureCache_addImage(lua_State* tolua_S)
         }
     }while(0);
     ok  = true;
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.TextureCache:addImage",argc, 3);
+    do{
+        if (argc == 2) {
+            ax::Data arg0;
+            luaL_error(tolua_S, "ax::Data unsupported");;
+
+            if (!ok) { break; }
+            std::string_view arg1;
+            ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.TextureCache:addImage");
+
+            if (!ok) { break; }
+            ax::Texture2D* ret = cobj->addImage(arg0, arg1);
+            object_to_luaval<ax::Texture2D>(tolua_S, "ax.Texture2D",(ax::Texture2D*)ret);
+            return 1;
+        }
+    }while(0);
+    ok  = true;
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n",  "ax.TextureCache:addImage",argc, 2);
     return 0;
 
 #if _AX_DEBUG >= 1
@@ -102216,7 +102449,7 @@ int lua_ax_base_TextureCache_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TextureCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TextureCache)");
+    AXLOGV("luabindings: finalizing LUA object (TextureCache)");
     return 0;
 }
 
@@ -102676,7 +102909,7 @@ int lua_ax_base_Device_selectionChanged(lua_State* tolua_S)
 }
 static int lua_ax_base_Device_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Device)");
+    AXLOGV("luabindings: finalizing LUA object (Device)");
     return 0;
 }
 
@@ -103029,7 +103262,7 @@ int lua_ax_base_Application_getInstance(lua_State* tolua_S)
 }
 static int lua_ax_base_Application_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (Application)");
+    AXLOGV("luabindings: finalizing LUA object (Application)");
     return 0;
 }
 
@@ -103201,7 +103434,7 @@ int lua_ax_base_GLViewImpl_createWithFullScreen(lua_State* tolua_S)
 }
 static int lua_ax_base_GLViewImpl_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (GLViewImpl)");
+    AXLOGV("luabindings: finalizing LUA object (GLViewImpl)");
     return 0;
 }
 
@@ -103629,7 +103862,7 @@ int lua_ax_base_AnimationCache_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_AnimationCache_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (AnimationCache)");
+    AXLOGV("luabindings: finalizing LUA object (AnimationCache)");
     return 0;
 }
 
@@ -104886,7 +105119,7 @@ int lua_ax_base_SpriteBatchNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_SpriteBatchNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (SpriteBatchNode)");
+    AXLOGV("luabindings: finalizing LUA object (SpriteBatchNode)");
     return 0;
 }
 
@@ -105109,7 +105342,7 @@ int lua_ax_base_ParallaxNode_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ParallaxNode_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ParallaxNode)");
+    AXLOGV("luabindings: finalizing LUA object (ParallaxNode)");
     return 0;
 }
 
@@ -105657,7 +105890,7 @@ int lua_ax_base_TMXObjectGroup_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXObjectGroup_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXObjectGroup)");
+    AXLOGV("luabindings: finalizing LUA object (TMXObjectGroup)");
     return 0;
 }
 
@@ -105821,7 +106054,7 @@ int lua_ax_base_TMXLayerInfo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXLayerInfo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXLayerInfo)");
+    AXLOGV("luabindings: finalizing LUA object (TMXLayerInfo)");
     return 0;
 }
 
@@ -105930,7 +106163,7 @@ int lua_ax_base_TMXTilesetInfo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXTilesetInfo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXTilesetInfo)");
+    AXLOGV("luabindings: finalizing LUA object (TMXTilesetInfo)");
     return 0;
 }
 
@@ -107961,7 +108194,7 @@ int lua_ax_base_TMXMapInfo_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXMapInfo_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXMapInfo)");
+    AXLOGV("luabindings: finalizing LUA object (TMXMapInfo)");
     return 0;
 }
 
@@ -108310,7 +108543,7 @@ int lua_ax_base_TileMapAtlas_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TileMapAtlas_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TileMapAtlas)");
+    AXLOGV("luabindings: finalizing LUA object (TileMapAtlas)");
     return 0;
 }
 
@@ -109561,7 +109794,7 @@ int lua_ax_base_FastTMXLayer_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FastTMXLayer_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FastTMXLayer)");
+    AXLOGV("luabindings: finalizing LUA object (FastTMXLayer)");
     return 0;
 }
 
@@ -109881,7 +110114,7 @@ int lua_ax_base_TMXTileAnimTask_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXTileAnimTask_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXTileAnimTask)");
+    AXLOGV("luabindings: finalizing LUA object (TMXTileAnimTask)");
     return 0;
 }
 
@@ -110122,7 +110355,7 @@ int lua_ax_base_TMXTileAnimManager_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_TMXTileAnimManager_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (TMXTileAnimManager)");
+    AXLOGV("luabindings: finalizing LUA object (TMXTileAnimManager)");
     return 0;
 }
 
@@ -111333,7 +111566,7 @@ int lua_ax_base_FastTMXTiledMap_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_FastTMXTiledMap_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (FastTMXTiledMap)");
+    AXLOGV("luabindings: finalizing LUA object (FastTMXTiledMap)");
     return 0;
 }
 
@@ -112155,7 +112388,7 @@ int lua_ax_base_MotionStreak3D_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_MotionStreak3D_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (MotionStreak3D)");
+    AXLOGV("luabindings: finalizing LUA object (MotionStreak3D)");
     return 0;
 }
 
@@ -112362,7 +112595,7 @@ int lua_ax_base_ComponentLua_constructor(lua_State* tolua_S)
 
 static int lua_ax_base_ComponentLua_finalize(lua_State* tolua_S)
 {
-    printf("luabindings: finalizing LUA object (ComponentLua)");
+    AXLOGV("luabindings: finalizing LUA object (ComponentLua)");
     return 0;
 }
 
@@ -112405,7 +112638,6 @@ TOLUA_API int register_all_ax_base(lua_State* tolua_S)
 	lua_register_ax_base_Director(tolua_S);
 	lua_register_ax_base_Timer(tolua_S);
 	lua_register_ax_base_Scheduler(tolua_S);
-	lua_register_ax_base_AsyncTaskPool(tolua_S);
 	lua_register_ax_base_Action(tolua_S);
 	lua_register_ax_base_FiniteTimeAction(tolua_S);
 	lua_register_ax_base_Speed(tolua_S);

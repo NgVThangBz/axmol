@@ -1,7 +1,8 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +28,13 @@
 #include "renderer/CustomCommand.h"
 #include <list>
 
-NS_AX_BEGIN
+namespace ax
+{
 namespace backend
 {
 class ProgramState;
 }
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 DEFINE_TEST_SUITE(ClippingNodeTests);
 
@@ -150,6 +152,7 @@ private:
     ax::Node* _holes;
     ax::Node* _holesStencil;
 };
+
 
 class ScrollViewDemo : public BaseClippingNodeTest
 {
@@ -297,4 +300,20 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
     virtual void setup() override;
+};
+
+class UniqueChildStencilTest : public BaseClippingNodeTest
+{
+public:
+    CREATE_FUNC(UniqueChildStencilTest);
+
+    ~UniqueChildStencilTest();
+    virtual void setup() override;
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+    void addChildStencils();
+
+private:
+    ax::ClippingNode* _outerClipper;
+    ax::Node* _parentStencil;
 };

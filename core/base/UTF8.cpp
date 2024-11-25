@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,12 @@
 
 using namespace llvm;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace StringUtils
 {
-
+//#ifndef AX_CORE_PROFILE
 std::string AX_DLL format(const char* format, ...)
 {
     va_list args;
@@ -115,7 +116,7 @@ std::string vformat(const char* format, va_list ap)
 
     return buf;
 }
-
+//#endif
 /*
  * @str:    the string to search through.
  * @c:        the character to not look for.
@@ -478,7 +479,7 @@ void StringUTF8::replace(std::string_view newStr)
 
         if (lengthString == 0)
         {
-            AXLOG("Bad utf-8 set string: %s", newStr.data());
+            AXLOGD("Bad utf-8 set string: {}", newStr);
             return;
         }
 
@@ -559,4 +560,4 @@ bool StringUTF8::insert(std::size_t pos, const StringUTF8& insertStr)
 
 }  // namespace StringUtils
 
-NS_AX_END
+}

@@ -5,7 +5,7 @@ Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,14 +29,14 @@ THE SOFTWARE.
 #include "renderer/TextureAtlas.h"
 #include "platform/FileUtils.h"
 #include "base/Director.h"
-#include "base/UTF8.h"
 #include "renderer/TextureCache.h"
 
 #if AX_LABELATLAS_DEBUG_DRAW
 #    include "renderer/Renderer.h"
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // CCLabelAtlas - Creation & Init
 
@@ -277,13 +277,13 @@ void LabelAtlas::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
     _debugDrawNode->clear();
     auto size        = getContentSize();
     Vec2 vertices[4] = {Vec2::ZERO, Vec2(size.width, 0), Vec2(size.width, size.height), Vec2(0.0f, size.height)};
-    _debugDrawNode->drawPoly(vertices, 4, true, Color4F(1.0, 1.0, 1.0, 1.0));
+    _debugDrawNode->drawPoly(vertices, 4, true, Color4B::WHITE);
 }
 #endif
 
 std::string LabelAtlas::getDescription() const
 {
-    return StringUtils::format("<LabelAtlas | Tag = %d, Label = '%s'>", _tag, _string.c_str());
+    return fmt::format("<LabelAtlas | Tag = {}, Label = '{}'>", _tag, _string);
 }
 
-NS_AX_END
+}

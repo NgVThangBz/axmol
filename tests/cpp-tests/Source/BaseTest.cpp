@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 #include "Inspector/Inspector.h"
 #endif
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 
 #define TABEL_LABEL_TAG 1024
@@ -148,7 +148,7 @@ void TestList::addTest(std::string_view testName, std::function<TestBase*()> cal
     if (!testName.empty())
     {
         _childTestNames.emplace_back(
-            StringUtils::format("%d:%s", static_cast<int>(_childTestNames.size() + 1), testName.data()));
+            fmt::format("{}:{}", static_cast<int>(_childTestNames.size() + 1), testName));
         _testCallbacks.emplace_back(callback);
     }
 }
@@ -465,8 +465,8 @@ void TestCase::onEnter()
 
     if (_testSuite)
     {
-        _titleLabel->setString(StringUtils::format("%d", static_cast<int>(_testSuite->getCurrTestIndex() + 1)) + ":" +
-                               title());
+        _titleLabel->setString(fmt::format("{}:{}", static_cast<int>(_testSuite->getCurrTestIndex() + 1), 
+                               title()));
     }
     else
     {

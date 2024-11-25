@@ -3,14 +3,13 @@
 # PowerShell Param statement : every line must end in #\ except the last line must with <#\
 # And, you can't use backticks in this section        #\
 # refer https://gist.github.com/ryanmaclean/a1f3135f49c1ab3fa7ec958ac3f8babe #\
-param( [string]$gradlewVersion,                       #\
-    [switch]$setupCMake                               #\
-    )                                                <#\
+param( [string]$gradlewVersion                    #\
+)                                                <#\
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `
 #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Bash Start ------------------------------------------------------------
 scriptdir="`dirname "${BASH_SOURCE[0]}"`"
-if ! which pwsh > /dev/null; then
+if ! command -v pwsh > /dev/null; then
     $scriptdir/1k/install-pwsh.sh
 fi
 pwsh $scriptdir/setup.ps1 "$@"
@@ -175,7 +174,8 @@ if ($IsWin) {
     if ($execPolicy -ne 'Bypass') {
         println "Setting system installed powershell execution policy '$execPolicy'==>'Bypass', please click 'YES' on UAC dialog"
         Start-Process powershell -ArgumentList '-Command "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force"' -WindowStyle Hidden -Wait -Verb runas
-    } else {
+    }
+    else {
         println "Nice, the system installed powershell execution policy is '$execPolicy'"
     }
 }
@@ -205,7 +205,7 @@ else {
 
     if (!($axmolCmdInfo = (Get-Command axmol -ErrorAction SilentlyContinue)) -or $axmolCmdInfo.Source -ne "$AX_CLI_ROOT/axmol") {
         $stmt_export = '$env:PATH = "${env:AX_ROOT}/tools/cmdline:${env:PATH}"'
-        if(!$profileContent.Contains($stmt_export)) {
+        if (!$profileContent.Contains($stmt_export)) {
             $profileContent += "# Add axmol cmdline tool to PATH`n"
             $profileContent += '$env:PATH = "${env:AX_ROOT}/tools/cmdline:${env:PATH}"'
             $profileContent += "`n"
@@ -268,11 +268,31 @@ else {
 
 
 if ($IsLinux) {
-    Write-Host "Are you continue install linux dependencies for axmol? (y/n) " -NoNewline
+    if ($(Get-Command 'dpkg' -ErrorAction SilentlyContinue)) {
+        $LinuxDistro = 'Debian'
+    }
+    elseif ($(Get-Command 'pacman' -ErrorAction SilentlyContinue)) {
+        $LinuxDistro = 'Arch'
+    }
+    else {
+        $LinuxDistro = 'Linux'
+    }
+
+    Write-Host "Are you continue install linux dependencies for axmol? (y/N) " -NoNewline
     $answer = Read-Host
     if ($answer -like 'y*') {
-        if ($(Get-Command 'dpkg' -ErrorAction SilentlyContinue)) {
+        if ($LinuxDistro -eq 'Debian') {
             println "It will take few minutes"
+            $os_name = $PSVersionTable.OS
+            $os_ver = [Regex]::Match($os_name, '(\d+\.)+(\*|\d+)(\-[a-z0-9]+)?').Value
+            if (($os_name -match 'Ubuntu' -and [VersionEx]$os_ver -ge [VersionEx]'24.04') -or 
+            ($os_name -match 'Debian' -and [VersionEx]$os_ver -ge [VersionEx]'13')) {
+                $webkit2gtk_dev = 'libwebkit2gtk-4.1-dev'
+            }
+            else {
+                $webkit2gtk_dev = 'libwebkit2gtk-4.0-dev'
+            }
+
             sudo apt update
             # for vm, libxxf86vm-dev also required
 
@@ -288,6 +308,7 @@ if ($IsLinux) {
             $DEPENDS += 'libxi-dev'
             $DEPENDS += 'libfontconfig1-dev'
             $DEPENDS += 'libgtk-3-dev'
+            $DEPENDS += $webkit2gtk_dev
             $DEPENDS += 'binutils'
             $DEPENDS += 'g++'
             $DEPENDS += 'libasound2-dev'
@@ -296,10 +317,24 @@ if ($IsLinux) {
 
             # if vlc encouter codec error, install
             # sudo apt install ubuntu-restricted-extras
-
+            println "Install packages: $DEPENDS ..."
             sudo apt install --allow-unauthenticated --yes $DEPENDS > /dev/null
         }
-        elseif ($(Get-Command 'pacman' -ErrorAction SilentlyContinue)) {
+        elseif ($LinuxDistro -eq 'Arch') {
+            $mirror_list = [System.IO.File]::ReadAllText('/etc/pacman.d/mirrorlist')
+            $tsinghua_mirror = 'https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch'
+            if (!$mirror_list.Contains($tsinghua_mirror)) {
+                Write-Host "Are want add tsinghua mirror for speed up package install in china region? (y/N)" -NoNewline
+                $answer = Read-Host
+                if ($answer -like 'y*') {
+                    $mirror_list = "$tsinghua_mirror`n$mirror_list"
+                    $mirror_list_tmp_file = (Join-Path $AX_ROOT 'mirrorlist')
+                    [System.IO.File]::WriteAllText($mirror_list_tmp_file, $mirror_list)
+                    sudo mv -f $mirror_list_tmp_file /etc/pacman.d/mirrorlist
+                    sudo pacman -Syyu --noconfirm
+                }
+            }
+
             $DEPENDS = @(
                 'git',
                 'cmake',
@@ -311,6 +346,7 @@ if ($IsLinux) {
                 'libxi',
                 'fontconfig',
                 'gtk3',
+                'webkit2gtk',
                 'vlc'
             )
             sudo pacman -S --needed --noconfirm @DEPENDS
@@ -330,18 +366,15 @@ if (!(Test-Path $prefix -PathType Container)) {
 # setup toolchains: glslcc, cmake, ninja, ndk, jdk, ...
 . $1k_script -setupOnly -prefix $prefix @args
 
-if ($setupCMake) {
-    setup_cmake -scope 'global'
-}
-
 if ($gradlewVersion) {
     $aproj_source_root = Join-Path $AX_ROOT 'templates/common/proj.android'
     $aproj_source_gradle = Join-Path $aproj_source_root 'build.gradle'
     $aproj_source_gradle_wrapper = Join-Path $aproj_source_root 'gradle/wrapper/'
     $vernums = $gradlewVersion.Split('.')
-    if($vernums.Count -lt 3) {
+    if ($vernums.Count -lt 3) {
         $gradle_tag = "v$gradlewVersion.0"
-    } else {
+    }
+    else {
         $gradle_tag = "v$gradlewVersion"
     }
 
@@ -368,20 +401,35 @@ if ($gradlewVersion) {
     update_gradle_for_test 'fairygui-tests'
     update_gradle_for_test 'live2d-tests'
     update_gradle_for_test 'lua-tests'
+    update_gradle_for_test 'unit-tests'
 }
 
 if ($IsLinux -and (Test-Path '/etc/wsl.conf' -PathType Leaf)) {
-    Write-Host "Are want remove host windows path from wsl? (y/n) " -NoNewline
-    $answer = Read-Host
-    if ($answer -like 'y*') {
-        $wsl_conf = [System.IO.File]::ReadAllText('/etc/wsl.conf')
-        if (!$wsl_conf.Contains('appendWindowsPath')) {
-            $wsl_conf += "`n[interop]`nappendWindowsPath = false"
-            $wsl_conf_tmp_file = (Join-Path $AX_ROOT 'wsl.conf')
-            [System.IO.File]::WriteAllText($wsl_conf_tmp_file, $wsl_conf)
-            sudo mv -f $wsl_conf_tmp_file /etc/wsl.conf
-            println "Update /etc/wsl.conf success, please run 'wsl --shutdown' on your host windows, then re-enter wsl"
+    $wsl_conf = [System.IO.File]::ReadAllText('/etc/wsl.conf')
+    $wsl_mods = 0
+    if (!$wsl_conf.Contains('appendWindowsPath')) {
+        Write-Host "Are want remove host windows path from WSL? (Y/n)" -NoNewline
+        $answer = Read-Host
+        if ($answer -notlike 'n*') {
+            $wsl_conf += "`n[interop]`nappendWindowsPath=false"
+            ++$wsl_mods
         }
+    }
+    if ($LinuxDistro -eq 'Arch') {
+        if ($wsl_conf -match 'systemd.*=.*true') {
+            Write-Host "Are want disable systemd to solve Arch WSL graphics issue? (Y/n) " -NoNewline
+            $answer = Read-Host
+            if ($answer -notlike 'n*') {
+                $wsl_conf = $wsl_conf -replace 'systemd.*=.*true', 'systemd=false'
+                ++$wsl_mods
+            }
+        }
+    }
+    if ($wsl_mods) {
+        $wsl_conf_tmp_file = (Join-Path $AX_ROOT 'wsl.conf')
+        [System.IO.File]::WriteAllText($wsl_conf_tmp_file, $wsl_conf)
+        sudo mv -f $wsl_conf_tmp_file /etc/wsl.conf
+        println "Update /etc/wsl.conf success, please run 'wsl --shutdown' on your host windows, then re-enter wsl"
     }
 }
 

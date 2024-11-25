@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "MouseTest.h"
 
-USING_NS_AX;
+using namespace ax;
 
 template <typename T>
 std::string tostr(const T& t)
@@ -92,16 +92,15 @@ void MouseEventTest::onMouseUp(Event* event)
 void MouseEventTest::onMouseMove(Event* event)
 {
     EventMouse* e   = (EventMouse*)event;
-    std::string str = "MousePosition X:";
-    str             = str + tostr(e->getCursorX()) + " Y:" + tostr(e->getCursorY());
-    _labelPosition->setString(str.c_str());
+    auto loc = e->getLocation();
+    std::string str = fmt::format("MousePosition:({},{})", loc.x, loc.y);
+    _labelPosition->setString(str);
 }
 
 void MouseEventTest::onMouseScroll(Event* event)
 {
     EventMouse* e   = (EventMouse*)event;
-    std::string str = "Mouse Scroll detected, X: ";
-    str             = str + tostr(e->getScrollX()) + " Y: " + tostr(e->getScrollY());
+    std::string str = fmt::format("Mouse Scroll detected, X:{} Y:{}", e->getScrollX(), e->getScrollY());
     _labelAction->setString(str.c_str());
 }
 

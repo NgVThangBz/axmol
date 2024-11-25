@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/axmol
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -329,7 +329,7 @@ THE SOFTWARE.
 #endif
 
 /** @def AX_STRIP_FPS
- * Whether to strip FPS related data and functions, such as cc_fps_images_png
+ * Whether to strip FPS related data and functions, such as ax_fps_images_png
  */
 #ifndef AX_STRIP_FPS
 #    define AX_STRIP_FPS 0
@@ -346,17 +346,9 @@ THE SOFTWARE.
 /// @name namespace ax
 /// @{
 #ifdef __cplusplus
-#    define NS_AX_BEGIN \
-        namespace ax    \
-        {
-#    define NS_AX_END }
 #    define USING_NS_AX using namespace ax
-#    define NS_AX ::ax
 #else
-#    define NS_AX_BEGIN
-#    define NS_AX_END
 #    define USING_NS_AX
-#    define NS_AX
 #endif
 
 namespace ax

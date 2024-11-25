@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,8 @@
 #include <stdint.h>
 #include "network/IDownloaderImpl.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Scheduler;
 
@@ -51,16 +52,12 @@ protected:
     class Impl;
     std::shared_ptr<Impl> _impl;
 
-    // for transfer data on schedule
-    DownloadTaskCURL* _currTask;  // temp ref
-    std::function<int64_t(void*, int64_t)> _transferDataToBuffer;
-
     void _lazyScheduleUpdate();
 
     static void _updateTaskProgressInfo(DownloadTask& task, int64_t totalExpected = -1);
 
     // scheduler for update processing and finished task in main schedule
-    void _onDownloadFinished(DownloadTask& task, int checkState = 0);
+    void _onDownloadFinished(DownloadTask& task);
 
     // scheduler for update processing and finished task in main schedule
     void _onUpdate(float);
@@ -69,4 +66,4 @@ protected:
 };
 
 }  // namespace network
-NS_AX_END  // namespace ax
+}  // namespace ax

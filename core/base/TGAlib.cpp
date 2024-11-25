@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@ THE SOFTWARE.
 #include "base/Data.h"
 #include "platform/FileUtils.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static bool tgaLoadRLEImageData(unsigned char* Buffer, uint32_t bufSize, tImageTGA* info);
 void tgaFlipImage(tImageTGA* info);
@@ -337,4 +338,4 @@ void tgaDestroy(tImageTGA* info)
         free(info);
     }
 }
-NS_AX_END
+}

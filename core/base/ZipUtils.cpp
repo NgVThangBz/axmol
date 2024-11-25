@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,8 @@
 #define unzGoToFirstFile64(A, B, C, D) unzGoToFirstFile2(A, B, C, D, NULL, 0, NULL, 0)
 #define unzGoToNextFile64(A, B, C, D) unzGoToNextFile2(A, B, C, D, NULL, 0, NULL, 0)
 
-NS_AX_BEGIN
+namespace ax
+{
 
 unsigned int ZipUtils::s_uEncryptedPvrKeyParts[4] = {0, 0, 0, 0};
 unsigned int ZipUtils::s_uEncryptionKey[1024];
@@ -178,16 +179,16 @@ _L_end:
         switch (err)
         {
         case Z_MEM_ERROR:
-            AXLOG("axmol: ZipUtils: Out of memory while decompressing map data!");
+            AXLOGW("ZipUtils: Out of memory while decompressing map data!");
             break;
         case Z_VERSION_ERROR:
-            AXLOG("axmol: ZipUtils: Incompatible zlib version!");
+            AXLOGW("ZipUtils: Incompatible zlib version!");
             break;
         case Z_DATA_ERROR:
-            AXLOG("axmol: ZipUtils: Incorrect zlib compressed data!");
+            AXLOGW("ZipUtils: Incorrect zlib compressed data!");
             break;
         default:
-            AXLOG("axmol: ZipUtils: Unknown error while decompressing map data!");
+            AXLOGW("ZipUtils: Unknown error while decompressing map data!");
         }
         output.clear();
         output.shrink_to_fit();
@@ -314,7 +315,7 @@ int ZipUtils::inflateGZipFile(const char* path, unsigned char** out)
     gzFile inFile = gzopen(path, "rb");
     if (inFile == nullptr)
     {
-        AXLOG("axmol: ZipUtils: error open gzip file: %s", path);
+        AXLOGW("ZipUtils: error open gzip file: {}", path);
         return -1;
     }
 
@@ -329,7 +330,7 @@ int ZipUtils::inflateGZipFile(const char* path, unsigned char** out)
         len = gzread(inFile, readBuffer, sizeof(readBuffer));
         if (len < 0)
         {
-            AXLOG("axmol: ZipUtils: error in gzread");
+            AXLOGW("ZipUtils: error in gzread");
             return -1;
         }
         if (len == 0)
@@ -342,7 +343,7 @@ int ZipUtils::inflateGZipFile(const char* path, unsigned char** out)
 
     if (gzclose(inFile) != Z_OK)
     {
-        AXLOG("axmol: ZipUtils: gzclose failed");
+        AXLOGW("ZipUtils: gzclose failed");
     }
 
 
@@ -359,7 +360,7 @@ bool ZipUtils::isCCZFile(const char* path)
 
     if (compressedData.isNull())
     {
-        AXLOG("axmol: ZipUtils: loading file failed");
+        AXLOGW("ZipUtils: loading file failed");
         return false;
     }
 
@@ -385,7 +386,7 @@ bool ZipUtils::isGZipFile(const char* path)
 
     if (compressedData.isNull())
     {
-        AXLOG("axmol: ZipUtils: loading file failed");
+        AXLOGW("ZipUtils: loading file failed");
         return false;
     }
 
@@ -413,14 +414,14 @@ int ZipUtils::inflateCCZBuffer(const unsigned char* buffer, ssize_t bufferLen, u
         unsigned int version = AX_SWAP_INT16_BIG_TO_HOST(header->version);
         if (version > 2)
         {
-            AXLOG("axmol: Unsupported CCZ header format");
+            AXLOGW("Unsupported CCZ header format");
             return -1;
         }
 
         // verify compression format
         if (AX_SWAP_INT16_BIG_TO_HOST(header->compression_type) != CCZ_COMPRESSION_ZLIB)
         {
-            AXLOG("axmol: CCZ Unsupported compression method");
+            AXLOGW("CCZ Unsupported compression method");
             return -1;
         }
     }
@@ -433,14 +434,14 @@ int ZipUtils::inflateCCZBuffer(const unsigned char* buffer, ssize_t bufferLen, u
         unsigned int version = AX_SWAP_INT16_BIG_TO_HOST(header->version);
         if (version > 0)
         {
-            AXLOG("axmol: Unsupported CCZ header format");
+            AXLOGW("Unsupported CCZ header format");
             return -1;
         }
 
         // verify compression format
         if (AX_SWAP_INT16_BIG_TO_HOST(header->compression_type) != CCZ_COMPRESSION_ZLIB)
         {
-            AXLOG("axmol: CCZ Unsupported compression method");
+            AXLOGW("CCZ Unsupported compression method");
             return -1;
         }
 
@@ -457,21 +458,21 @@ int ZipUtils::inflateCCZBuffer(const unsigned char* buffer, ssize_t bufferLen, u
 
         if (calculated != required)
         {
-            AXLOG("axmol: Can't decrypt image file. Is the decryption key valid?");
+            AXLOGW("Can't decrypt image file. Is the decryption key valid?");
             return -1;
         }
 #endif
     }
     else
     {
-        AXLOG("axmol: Invalid CCZ file");
+        AXLOGW("Invalid CCZ file");
         return -1;
     }
 
     unsigned int len = AX_SWAP_INT32_BIG_TO_HOST(header->len);
     if (!len)
     {
-        AXLOG("axmol: CCZ: Failed to allocate memory for texture");
+        AXLOGW("CCZ: Failed to allocate memory for texture");
         return -1;
     }
 
@@ -483,7 +484,7 @@ int ZipUtils::inflateCCZBuffer(const unsigned char* buffer, ssize_t bufferLen, u
 
     if (ret != Z_OK)
     {
-        AXLOG("axmol: CCZ: Failed to uncompress data");
+        AXLOGW("CCZ: Failed to uncompress data");
         return -1;
     }
     *out = outBuffer.release_pointer();
@@ -499,7 +500,7 @@ int ZipUtils::inflateCCZFile(const char* path, unsigned char** out)
 
     if (compressedData.isNull())
     {
-        AXLOG("axmol: Error loading CCZ compressed file");
+        AXLOGW("Error loading CCZ compressed file");
         return -1;
     }
 
@@ -933,4 +934,4 @@ int64_t ZipFile::vsize(ZipEntryInfo* entry)
     return 0;
 }
 
-NS_AX_END
+}

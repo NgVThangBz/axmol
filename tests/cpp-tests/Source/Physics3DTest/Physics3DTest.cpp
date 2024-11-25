@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 #include "physics3d/Physics3D.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
 USING_NS_AX_EXT;
-USING_NS_AX;
+using namespace ax;
 
 static const std::string_view boss[] = {"MeshRendererTest/boss.c3b", "MeshRendererTest/boss.obj"};
 static const int boss_count          = sizeof(boss) / sizeof(boss[0]);
@@ -117,7 +117,7 @@ bool Physics3DTestDemo::init()
 
         TTFConfig ttfConfig("fonts/arial.ttf", 10);
         auto label = Label::createWithTTF(ttfConfig, "DebugDraw OFF");
-        auto menuItem = MenuItemLabel::create(label, [=](Object* /*ref*/) {
+        auto menuItem = MenuItemLabel::create(label, [this, label](Object* /*sender*/) {
             if (getPhysics3DWorld()->isDebugDrawEnabled())
             {
                 getPhysics3DWorld()->setDebugDrawEnable(false);
@@ -758,7 +758,7 @@ bool Physics3DCollisionCallbackDemo::init()
             this->addChild(mesh);
             // preload
             //
-            rigidBody->setCollisionCallback([=](const Physics3DCollisionInfo& ci) {
+            rigidBody->setCollisionCallback([this](const Physics3DCollisionInfo& ci) {
                 if (!ci.collisionPointList.empty())
                 {
                     if (ci.objA->getMask() != 0)
@@ -774,15 +774,15 @@ bool Physics3DCollisionCallbackDemo::init()
                         ci.objA->setMask(0);
                     }
                 }
-                // AXLOG("------------BoxB Collision Info------------");
-                // AXLOG("Collision Point Num: %d", ci.collisionPointList.size());
+                // AXLOGD("------------BoxB Collision Info------------");
+                // AXLOGD("Collision Point Num: {}", ci.collisionPointList.size());
                 // for (auto&& iter : ci.collisionPointList){
-                //	AXLOG("Collision Position On A: (%.2f, %.2f, %.2f)", iter.worldPositionOnA.x, iter.worldPositionOnA.y,
-                // iter.worldPositionOnA.z); 	AXLOG("Collision Position On B: (%.2f, %.2f, %.2f)",
-                // iter.worldPositionOnB.x, iter.worldPositionOnB.y, iter.worldPositionOnB.z); 	AXLOG("Collision Normal
-                // On B: (%.2f, %.2f, %.2f)", iter.worldNormalOnB.x, iter.worldNormalOnB.y, iter.worldNormalOnB.z);
+                //	AXLOGD("Collision Position On A: ({:.2},{:.2}, {:.2})", iter.worldPositionOnA.x, iter.worldPositionOnA.y,
+                // iter.worldPositionOnA.z); 	AXLOGD("Collision Position On B: ({:.2}, {:.2}, {:.2})",
+                // iter.worldPositionOnB.x, iter.worldPositionOnB.y, iter.worldPositionOnB.z); 	AXLOGD("Collision Normal
+                // On B: ({:.2}, {:.2}, {:.2})", iter.worldNormalOnB.x, iter.worldNormalOnB.y, iter.worldNormalOnB.z);
                 // }
-                // AXLOG("------------BoxB Collision Info------------");
+                // AXLOGD("------------BoxB Collision Info------------");
             });
         }
     }

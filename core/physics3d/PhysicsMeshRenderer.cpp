@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@
 
 #    if (AX_ENABLE_BULLET_INTEGRATION)
 
-NS_AX_BEGIN
+namespace ax
+{
 
 PhysicsMeshRenderer* PhysicsMeshRenderer::create(std::string_view modelPath,
                                          Physics3DRigidBodyDes* rigidDes,
@@ -98,7 +99,7 @@ void PhysicsMeshRenderer::syncPhysicsToNode()
 PhysicsMeshRenderer::PhysicsMeshRenderer() : _physicsComponent(nullptr) {}
 PhysicsMeshRenderer::~PhysicsMeshRenderer() {}
 
-NS_AX_END
+}
 
 #    endif  // AX_ENABLE_BULLET_INTEGRATION
 

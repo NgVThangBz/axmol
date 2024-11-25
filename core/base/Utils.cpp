@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ THE SOFTWARE.
 #include "openssl/evp.h"
 
 #include "base/Director.h"
-#include "base/AsyncTaskPool.h"
 #include "base/EventDispatcher.h"
 #include "base/Constants.h"
 #include "base/UTF8.h"
@@ -57,10 +56,12 @@ THE SOFTWARE.
 
 #include "base/base64.h"
 #include "base/axstd.h"
+#include "yasio/string_view.hpp"
 
 using namespace std::string_view_literals;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace utils
 {
@@ -95,7 +96,7 @@ void captureScreen(std::function<void(RefPtr<Image>)> imageCallback)
 {
     if (s_captureScreenListener)
     {
-        AXLOG("Warning: CaptureScreen has been called already, don't call more than once in one frame.");
+        AXLOGW("Warning: CaptureScreen has been called already, don't call more than once in one frame.");
         return;
     }
 
@@ -111,20 +112,20 @@ void captureScreen(std::function<void(RefPtr<Image>)> imageCallback)
     s_captureScreenListener =
         eventDispatcher->addCustomEventListener(Director::EVENT_AFTER_DRAW, [=](EventCustom* /*event*/) {
 #endif
-            eventDispatcher->removeEventListener(s_captureScreenListener);
-            s_captureScreenListener = nullptr;
-            // !!!GL: AFTER_DRAW and BEFORE_END_FRAME
-            renderer->readPixels(renderer->getDefaultRenderTarget(), [=](const backend::PixelBufferDescriptor& pbd) {
-                if (pbd)
-                {
-                    auto image = utils::makeInstance<Image>(&Image::initWithRawData, pbd._data.getBytes(),
-                                                            pbd._data.getSize(), pbd._width, pbd._height, 8, false);
-                    imageCallback(image);
-                }
-                else
-                    imageCallback(nullptr);
-            });
+        eventDispatcher->removeEventListener(s_captureScreenListener);
+        s_captureScreenListener = nullptr;
+        // !!!GL: AFTER_DRAW and BEFORE_END_FRAME
+        renderer->readPixels(renderer->getDefaultRenderTarget(), [=](const backend::PixelBufferDescriptor& pbd) {
+            if (pbd)
+            {
+                auto image = utils::makeInstance<Image>(&Image::initWithRawData, pbd._data.getBytes(),
+                                                        pbd._data.getSize(), pbd._width, pbd._height, 8, false);
+                imageCallback(image);
+            }
+            else
+                imageCallback(nullptr);
         });
+    });
 }
 
 static std::unordered_map<Node*, EventListenerCustom*> s_captureNodeListener;
@@ -132,7 +133,7 @@ void captureNode(Node* startNode, std::function<void(RefPtr<Image>)> imageCallba
 {
     if (s_captureNodeListener.find(startNode) != s_captureNodeListener.end())
     {
-        AXLOG("Warning: current node has been captured already");
+        AXLOGW("Warning: current node has been captured already");
         return;
     }
 
@@ -201,13 +202,12 @@ void captureScreen(std::function<void(bool, std::string_view)> afterCap, std::st
         outfile = FileUtils::getInstance()->getWritablePath().append(filename);
 
     captureScreen([_afterCap = std::move(afterCap), _outfile = std::move(outfile)](RefPtr<Image> image) mutable {
-        AsyncTaskPool::getInstance()->enqueue(
-            AsyncTaskPool::TaskType::TASK_IO,
+        Director::getInstance()->getJobSystem()->enqueue(
             [_afterCap = std::move(_afterCap), image = std::move(image), _outfile = std::move(_outfile)]() mutable {
             bool ok = image->saveToFile(_outfile);
             Director::getInstance()->getScheduler()->runOnAxmolThread(
                 [ok, _afterCap = std::move(_afterCap), _outfile = std::move(_outfile)] { _afterCap(ok, _outfile); });
-            });
+        });
     });
 }
 
@@ -408,8 +408,8 @@ std::string getFileMD5Hash(std::string_view filename, uint32_t bufferSize)
 
 std::string getDataMD5Hash(const Data& data)
 {
-    //if (data.isNull())
-   //     return std::string{};
+    // if (data.isNull())
+    //     return std::string{};
 
     return computeDigest(std::string_view{(const char*)data.getBytes(), (size_t)data.getSize()}, "md5"sv);
 }
@@ -720,7 +720,7 @@ std::vector<int> parseIntegerList(std::string_view intsString)
             if (errno == ERANGE)
             {
                 errno = 0;
-                AXLOGWARN("%s contains out of range integers", intsString.data());
+                AXLOGW("{} contains out of range integers", intsString);
             }
             result.emplace_back(static_cast<int>(i));
             cStr = endptr;
@@ -829,6 +829,37 @@ std::string urlDecode(std::string_view st)
     return decoded;
 }
 
+AX_DLL std::string& filePathToUrl(std::string&& path)
+{
+    //
+    // file uri helper: https://www.ietf.org/rfc/rfc3986.txt
+    //
+    static constexpr std::string_view LOCAL_FILE_URL_PREFIX = "file:///"sv;  // The localhost file prefix
+
+    // windows: file:///D:/xxx/xxx.mp4
+    // unix: file:///home/xxx/xxx.mp4
+    // android_asset:
+    //   - file:///android_asset/xxx/xxx.mp4
+    //   - asset://android_asset/xxx/xxx.mp4
+    if (!path.empty())
+    {
+        if (path[0] == '/')
+            path.insert(0, LOCAL_FILE_URL_PREFIX.data(), LOCAL_FILE_URL_PREFIX.length() - 1);
+        else if (!cxx20::ic::starts_with(path, LOCAL_FILE_URL_PREFIX))
+        {
+#if !defined(__ANDROID__)
+            path.insert(0, LOCAL_FILE_URL_PREFIX.data(), LOCAL_FILE_URL_PREFIX.length());
+#else
+            if (!cxx20::starts_with(path, "assets/"sv))  // not android asset
+                path.insert(0, LOCAL_FILE_URL_PREFIX.data(), LOCAL_FILE_URL_PREFIX.length());
+            else
+                path.replace(0, "assets/"sv.length(), "file:///android_asset/");
+#endif
+        }
+    }
+    return path;
+}
+
 AX_DLL std::string base64Encode(const void* in, size_t inlen)
 {
     size_t n = ax::base64::encoded_size(inlen);
@@ -914,4 +945,4 @@ AX_DLL uint32_t fourccValue(std::string_view str)
 
 }  // namespace utils
 
-NS_AX_END
+}

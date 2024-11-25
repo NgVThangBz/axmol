@@ -2,8 +2,9 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2014 GamePlay3D team
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +40,8 @@
 #include "renderer/backend/Types.h"
 #include "renderer/MeshCommand.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Texture2D;
 class Pass;
@@ -258,4 +260,4 @@ protected:
     std::string _name;
 };
 
-NS_AX_END
+}

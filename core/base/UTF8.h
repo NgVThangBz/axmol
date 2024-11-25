@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +25,21 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2dx__ccUTF8__
-#define __cocos2dx__ccUTF8__
+#ifndef AXMOL__UTF8_H
+#define AXMOL__UTF8_H
 
 #include "platform/PlatformMacros.h"
+#include <fmt/format.h>
 #include <vector>
 #include <string>
 #include <sstream>
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-#    include "platform/android/jni/JniHelper.h"
+#    include <jni.h>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace StringUtils
 {
@@ -60,15 +62,15 @@ const char Space             = ' ';
 }  // namespace AsciiCharacters
 
 template <typename T>
-std::string toString(T arg)
+inline std::string toString(T arg)
 {
-    std::stringstream ss;
-    ss << arg;
-    return ss.str();
+    return fmt::to_string(arg);
 }
-
+//#ifndef AX_CORE_PROFILE
+// DEPRECATED since axmol-2.1.4, use fmt::format instead
 std::string AX_DLL format(const char* format, ...) AX_FORMAT_PRINTF(1, 2);
 std::string AX_DLL vformat(const char* format, va_list ap);
+//#endif
 
 /**
  *  @brief Converts from UTF8 string to UTF16 string.
@@ -268,6 +270,6 @@ private:
 
 }  // namespace StringUtils
 
-NS_AX_END
+}
 
-#endif /** defined(__cocos2dx__ccUTF8__) */
+#endif /** defined(AXMOL__UTF8_H) */

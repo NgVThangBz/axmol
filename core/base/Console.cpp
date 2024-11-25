@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,8 @@
 
 #include "yasio/xxsocket.hpp"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 extern const char* axmolVersion(void);
 
@@ -197,7 +198,7 @@ Console::Command::Command(const Command& o)
     *this = o;
 }
 
-Console::Command::Command(Command&& o)
+Console::Command::Command(Command&& o) noexcept
 {
     *this = std::move(o);
 }
@@ -233,7 +234,7 @@ Console::Command& Console::Command::operator=(const Command& o)
     return *this;
 }
 
-Console::Command& Console::Command::operator=(Command&& o)
+Console::Command& Console::Command::operator=(Command&& o) noexcept
 {
     if (this != &o)
     {
@@ -398,7 +399,7 @@ bool Console::listenOnTCP(int port)
     if (sock.pserve(ep) != 0)
     {
         int ec = xxsocket::get_last_errno();
-        AXLOGW("Console: open server failed, ec:{}", ec);
+        AXLOGW("Console: open server failed, ec:{}, {}", ec, xxsocket::strerror(ec));
         return false;
     }
 
@@ -566,7 +567,7 @@ void Console::loop()
             }
 
             /* data from client */
-            std::vector<int> to_remove;
+            std::vector<socket_native_type> to_remove;
             for (const auto& fd : _fds)
             {
                 if (_watcher.is_ready(fd, yasio::socket_event::read))
@@ -605,7 +606,7 @@ void Console::loop()
             }
 
             /* remove closed connections */
-            for (int fd : to_remove)
+            for (socket_native_type fd : to_remove)
             {
                 _watcher.mod_event(fd, 0, yasio::socket_event::read);
                 _fds.erase(std::remove(_fds.begin(), _fds.end(), fd), _fds.end());
@@ -1425,4 +1426,4 @@ void Console::sendHelp(socket_native_type fd, const hlookup::string_map<Command*
     }
 }
 
-NS_AX_END
+}

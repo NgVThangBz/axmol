@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #include "ParallaxTest.h"
 #include "../testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 enum
 {
@@ -221,13 +221,13 @@ void Issue2572::update(float dt)
         case 0:
         case 1:
         case 2:
-            ax::print("--child count-- %zd", _childList.size());
+            AXLOGD("--child count-- {}", _childList.size());
             for (const auto& obj : _childList)
             {
                 Sprite* obstacle = dynamic_cast<Sprite*>(obj);
-                ax::print("child position : (%.2f, %.2f)", obstacle->getPositionX(), obstacle->getPositionY());
+                AXLOGD("child position : ({:.2}, {:.2})", obstacle->getPositionX(), obstacle->getPositionY());
             }
-            ax::print("-------------------");
+            AXLOGD("-------------------");
             _printCount++;
             break;
         case 3:

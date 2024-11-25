@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,8 @@ extern "C" {
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * The Lua engine integrated into the axmol to process the interactive operation between lua and c++.
@@ -64,7 +65,7 @@ public:
      *
      * @return the instance of LuaEngine.
      */
-    AX_DEPRECATED_ATTRIBUTE static LuaEngine* defaultEngine(void) { return LuaEngine::getInstance(); }
+    AX_DEPRECATED(2.1) static LuaEngine* defaultEngine(void) { return LuaEngine::getInstance(); }
 
     /**
      * Destructor of LuaEngine.
@@ -259,7 +260,7 @@ private:
     LuaStack* _stack;
 };
 
-NS_AX_END
+}
 
 // end group
 /// @}

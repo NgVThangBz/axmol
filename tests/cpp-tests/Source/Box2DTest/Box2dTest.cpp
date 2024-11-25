@@ -2,7 +2,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2021 @aismann; Peter Eismann, Germany; dreifrankensoft
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 #include "renderer/Renderer.h"
 #include "renderer/CustomCommand.h"
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 
 #define PTM_RATIO 32
@@ -257,7 +257,7 @@ void Box2DTest::createResetButton()
 
 void Box2DTest::addNewSpriteAtPosition(Vec2 p)
 {
-    AXLOG("Add sprite %0.2f x %02.f", p.x, p.y);
+    AXLOGD("Add sprite x: {:.2} y: {:.2}", p.x, p.y);
 
     // Define the dynamic body.
     // Set up a 1m squared box in the physics world
@@ -265,7 +265,7 @@ void Box2DTest::addNewSpriteAtPosition(Vec2 p)
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(p.x / PTM_RATIO, p.y / PTM_RATIO);
 
-    AXLOG("Add PTM_RATIO sprite %0.2f x %0.2f", p.x / PTM_RATIO, p.y / PTM_RATIO);
+    AXLOGD("Add PTM_RATIO sprite x: {:.2} y: {:.2}", p.x / PTM_RATIO, p.y / PTM_RATIO);
 
     b2Body* body = world->CreateBody(&bodyDef);
 

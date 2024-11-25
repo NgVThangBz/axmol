@@ -1,3 +1,230 @@
+## axmol-2.2.1 Oct.22 2024
+
+### Bug fixes
+
+- Fix curl link error on macOS
+
+## axmol-2.2.0 Oct.20 2024
+
+### Significant changes relative to 2.1.5:
+
+- Enable vsync by default by @halx99 in https://github.com/axmolengine/axmol/pull/2118
+- Improve android media player, also fix #2101 by @halx99 in https://github.com/axmolengine/axmol/pull/2109
+- Add build on ubuntu 24.04 support by @halx99 in https://github.com/axmolengine/axmol/pull/2152
+- No longer add sprite as child of RenderTexture by @halx99 in https://github.com/axmolengine/axmol/pull/2149
+- API change too: remove all DrawNode setLineWidth() stuff by @aismann in https://github.com/axmolengine/axmol/pull/2172
+
+### Bug fixes
+
+- Fix invalidated iterator access in `Scheduler::unscheduleAllWithMinPriority()` by @smilediver in https://github.com/axmolengine/axmol/pull/2194
+- Fix label in PauseTest. by @Tosik86 in https://github.com/axmolengine/axmol/pull/2157
+- Fix #2147 full screen incorrect on macOS by @halx99 in https://github.com/axmolengine/axmol/pull/2150
+- Fix RenderTargetGL FBO not recreate when recv EVENT_RENDERER_RECREATED by @halx99 in https://github.com/axmolengine/axmol/pull/2148
+- Fix EventMouse coords by @halx99 in https://github.com/axmolengine/axmol/pull/2141
+- Fix for incorrect bits per pixel set on texture reload by @rh101 in https://github.com/axmolengine/axmol/pull/2138
+- Fix move constructor comment in Data class by @Tosik86 in https://github.com/axmolengine/axmol/pull/2132
+- Fix Node `setPosition()` and `setPositionNormalized()` not switching normalized mode if positions match by @smilediver in https://github.com/axmolengine/axmol/pull/2102
+- Fix issue with widget positioning when using normalized coordinates by @rh101 in https://github.com/axmolengine/axmol/pull/2110
+- Fix RenderTexture data needs to be saved to the cache before the GLSurfaceView context is lost by @rh101 in https://github.com/axmolengine/axmol/pull/2146
+- Fix incorrect static value usage in JNI array methods by @rh101 in https://github.com/axmolengine/axmol/pull/2178
+- Fix #2199 by @halx99 in https://github.com/axmolengine/axmol/pull/2200
+- Fix LuaJit Compilations by @IamSanjid in https://github.com/axmolengine/axmol/pull/2159
+- Fix #2163 by @halx99 in https://github.com/axmolengine/axmol/pull/2166
+- Fix #2169 by @halx99 in https://github.com/axmolengine/axmol/pull/2170
+- fix Crash Sprite when _texture null by @NgVThangBz in https://github.com/axmolengine/axmol/pull/2164
+- Fix dangling ref in `SpriteFrameCache::removeSpriteFramesFromTexture()` by @smilediver in https://github.com/axmolengine/axmol/pull/2106
+- Fix android fps issue when certain animation intervals are set by @rh101 in https://github.com/axmolengine/axmol/pull/2162
+- Fix DownloaderCURL too many open files and other fixes by @smilediver in https://github.com/axmolengine/axmol/pull/2182
+ 
+### Improvements
+
+- [ImGui] Allow setting of custom font config to enable merging of multiple fonts and other features by @rh101 in https://github.com/axmolengine/axmol/pull/2085
+- Update DevSetup.md with iOS simulator build commands by @rh101 in https://github.com/axmolengine/axmol/pull/2087
+- Remove couple bad warnings by @smilediver in https://github.com/axmolengine/axmol/pull/2088
+- Trim trailing whitespace for files in `core` folder by @smilediver in https://github.com/axmolengine/axmol/pull/2089
+- Remove the NS_AX_BEGIN and NS_AX_END macros. by @j-jorge in https://github.com/axmolengine/axmol/pull/2100
+- Remove the USING_NS_AX and NS_AX macros. by @j-jorge in https://github.com/axmolengine/axmol/pull/2103
+- Remove usage of the NS_AX macro. by @j-jorge in https://github.com/axmolengine/axmol/pull/2107
+- Sprite: show stretch warning only if stretching is enabled by @smilediver in https://github.com/axmolengine/axmol/pull/2113
+- Delay load mf.dll, mfplat.dll by @halx99 in https://github.com/axmolengine/axmol/pull/2116
+- Remove unreferenced sprite from test scene by @rh101 in https://github.com/axmolengine/axmol/pull/2119
+- Set RenderTexture content size on creation by @rh101 in https://github.com/axmolengine/axmol/pull/2120
+- Update sweep.h  (fix invalid UTF-8) by @aismann in https://github.com/axmolengine/axmol/pull/2121
+- Math optimizations by @smilediver in https://github.com/axmolengine/axmol/pull/2115
+- DrawNode V2  by @aismann in https://github.com/axmolengine/axmol/pull/2124
+- USe gradle-8.8-bin.zip everywhere by @crazyhappygame in https://github.com/axmolengine/axmol/pull/2134
+- Refine contributing.md guide by @Tosik86 in https://github.com/axmolengine/axmol/pull/2135
+- Allow turn on/off deprecated features by @halx99 in https://github.com/axmolengine/axmol/pull/2136
+- Math: remove and replace GP_ASSERT with AX_ASSERT by @smilediver in https://github.com/axmolengine/axmol/pull/2143
+- Enable cache render data for webgl by default by @halx99 in https://github.com/axmolengine/axmol/pull/2151
+- Fix some compiling deprecated issues by @halx99 in https://github.com/axmolengine/axmol/pull/2154
+- Update DrawNode.cpp (fix #2140) by @aismann in https://github.com/axmolengine/axmol/pull/2158
+- Add (missing) parameter 'drawLineToCenter' to 'drawSolidCircle(...)' by @aismann in https://github.com/axmolengine/axmol/pull/2160
+- Optimize DrawNode by @smilediver in https://github.com/axmolengine/axmol/pull/2165
+- remove DrawPrimitivesTests (Cocos2Dx) (redundant mit DrawNodeTest) by @aismann in https://github.com/axmolengine/axmol/pull/2179
+- move ZwoptexTest to SpriteTest (better add it to the SpriteTest section as removing) by @aismann in https://github.com/axmolengine/axmol/pull/2180
+- Update README.md (thirdparty) by @aismann in https://github.com/axmolengine/axmol/pull/2183
+- `AxmolActivity` refactoring and fixes by @smilediver in https://github.com/axmolengine/axmol/pull/2185
+- Update controller.cpp Add small hint that the DrawNode tests be "not finished": "Node: Draw (WIP)" by @aismann in https://github.com/axmolengine/axmol/pull/2189
+- DrawNode calls: replacing Color4F with Color4B (without the 'test' folder!) by @aismann in https://github.com/axmolengine/axmol/pull/2192
+
+### sdks updates
+
+- emsdk: 3.1.63 ==> 3.1.67
+
+### 3rdparty updates
+
+- glad: 2.0.6 ==> 2.0.8
+- curl: 8.9.1 ==> 8.10.1
+- simdjson: 3.10.0 ==> 3.10.1
+- libpng: 1.6.43 ==> 1.6.44
+- c-ares: 1.33.0 ==> 1.34.1
+- openssl: 3.3.1 ==> 3.0.15
+- yasio: 4.2.4 ==> 4.3.1
+- jpeg-turbo: 3.0.3 ==> 3.0.4
+- luajit: 2.1-04dca79 ==> 2.1-97813fb
+- simdjson: 3.10.0 ==> 3.10.1
+- rapidjson: 1.1.0-b4a6da3 ==> 1.1.0-815e6e7
+- freetype: 2.13.2 ==> 2.13.3
+
+## axmol-2.1.5 Aug.11 2024
+
+### Significant changes relative to 2.1.4:
+
+- Add render I420 video support by @halx99 in https://github.com/axmolengine/axmol/pull/2050 , also fix issue #2049 reported by @SimplyJpk
+- Refactor math simd by @halx99 in https://github.com/axmolengine/axmol/pull/2070, proposed by @huiguochen and @smilediver
+  - Implement NEON transformVertices & transformIndices by @smilediver in https://github.com/axmolengine/axmol/pull/2065
+  - Implement SSE transformVertices & transformIndices, proposed by @huiguochen
+  - Add cmake option `AX_WASM_ISA_SIMD` to support build wasm with SIMD support, supports values `sse`, `neon`
+  - Rewrite all neon inline asm code with NEON intrinsics, this will allow WASM and winuwp-arm64 can compile with NEON intrinsic
+- Improve FileUtils by @halx99
+  - Rename FileUtils::createDirectory to FileUtils::createDirectories
+  - Use splitpath_cb to optimize FileUtils::createDirectories
+  - Rename FileUtils::getFileShortName to FileUtils::getPathBaseName
+  - Add FileUtils::getPathDirName
+  - Add FileUtils::getPathBaseNameNoExtension
+  - Mark all renamed FileUtils stubs old name deprecated
+  - Mark all FileUtils offthread APIs deprecated
+- Remove arch suffix of host default build output directory for axmol cmdline
+
+### Bug Fixes
+
+- Fix checkReallySupportsASTC does not work on ios device reported by @BIGCATDOG in https://github.com/axmolengine/axmol/issues/2078
+- Fix ImGui index draw info incorrect by @rh101 in https://github.com/axmolengine/axmol/pull/2052
+- Fix ArchLinux setup dependencies always fail by @halx99
+- Fix android VolatileTexture memory leak when addImage(img,k,fmt)
+- Fix cmake prebuilt link error by @IamSanjid in https://github.com/axmolengine/axmol/pull/2058
+- Fix prebuilt openssl dll path incorrect for winuwp by @halx99
+- Fix #2060, make http request/respose reference counter thread-safe by @halx99 in https://github.com/axmolengine/axmol/pull/2064, reported by @qq461787436
+- Fix Curl downloader not observing set task limits by @smilediver in https://github.com/axmolengine/axmol/pull/2067
+- Fix a regression introduced by 2.1.4 that live2d compile error by @halx99, reported by @Sevael
+- Fix unexpected libpng from system used
+- Fix #1751, use coroutine control AutoTest flow
+
+### Improvements
+
+- Enhance Color4F and method naming change by @rh101 in https://github.com/axmolengine/axmol/pull/2072
+- Improve FastRNG implementation by @DelinWorks in https://github.com/axmolengine/axmol/pull/2056
+  - Move FastRNG to ax ns and more improvements by @DelinWorks in https://github.com/axmolengine/axmol/pull/2057
+  - Add missing include for AXASSERT by @smilediver in https://github.com/axmolengine/axmol/pull/2081
+- Handle premultiplied alpha for grayscale PNGs by @j-jorge in https://github.com/axmolengine/axmol/pull/2047
+- Optimize ProgramState::setTexture() to avoid vector (de)allocations by @smilediver in https://github.com/axmolengine/axmol/pull/2061
+- Add OpenType font (.otf) to the noCompress list by @danialias in https://github.com/axmolengine/axmol/pull/2077
+- Update DrawNodeEx aka DrawNodeV2 to 0.95.1 by @aismann in https://github.com/axmolengine/axmol/pull/2079
+
+### sdks updates
+
+- cppwinrt: 2.0.240111.5 ==> 2.0.240405.15
+
+### 3rdparty updates
+
+- box2d: 2.4.1 ==> 2.4.2
+- curl: 8.8.0 ==> 8.9.1
+- simdjson: 3.9.5 ==> 3.10.0
+- lz4: 1.9.4 ==> 1.10.0
+- c-ares: 1.32.2 ==> 1.33.0
+
+## axmol-2.1.4 Jun.20 2024
+
+### Significant changes relative to 2.1.3:
+
+- Add JobSystem support by @halx99
+- Add cmake option AX_WASM_INITIAL_MEMORY
+- Add Linux WebView implementation by @IamSanjid in https://github.com/axmolengine/axmol/pull/1985
+- Improve curl download implementation by @halx99 in https://github.com/axmolengine/axmol/pull/1999
+  - Use `curl_multi_poll` instead select
+  - Use `curl_xferinfo_callback` instead deprecated `curl_progress_callback`
+  - Don't use CURL_HEADER to get content length, get it in xferinfo_callback
+- Improve RenderTarget by @smilediver in https://github.com/axmolengine/axmol/pull/1996
+- Make apple controller to support four players by @paulocoutinhox in https://github.com/axmolengine/axmol/pull/2009
+
+### Deprecated
+
+- `AsyncTaskPool`, use `JobSystem` instead.
+- `AXLOG`, `AXLOGINFO`, `AXLOGWARN`, `AXLOGERROR`, use `AXLOGD`, `AXLOGI`, `AXLOGE` instead.
+  - Mark AXLOG, AXLOGINFO, AXLOGWARN, AXLOGERROR deprecated in https://github.com/axmolengine/axmol/pull/2017
+  - Rename all AXLOG/printf to AXLOGD (without .\core, .\3rdparty) by @aismann in https://github.com/axmolengine/axmol/pull/2020
+  - Set several log messages to verbose level by @rh101 in https://github.com/axmolengine/axmol/pull/2021
+  - Change AXLOGI to more appropriate AXLOGD for several log calls by @rh101 in https://github.com/axmolengine/axmol/pull/2028
+- `StringUtils::format`, use `fmt::format` instead.
+
+### Bug Fixes
+
+- Fix call to incorrect java method by @rh101 in https://github.com/axmolengine/axmol/pull/2015
+- Fix Callback and store Renderer Image type by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/1945
+- Fix char8_t not disable on msvc by @halx99
+- Fix Renderer recreated by @smilediver in https://github.com/axmolengine/axmol/pull/1988
+- Fix AvfMediaEngine assetion when play some HLS video files by @halx99 in https://github.com/axmolengine/axmol/issues/1984
+- Fix compiling errors when on linux ubuntu2204 by @bwaiox in https://github.com/axmolengine/axmol/pull/2012
+- Fix prebuilt, add ax_link_ext macro by @iAndyHD3 in https://github.com/axmolengine/axmol/pull/2022
+- Fix #1943, Make extension luabinding can be controlled by AX_EXT_HINT by @halx99, reported by @iAndyHD3
+
+### Improvements
+
+- Add ability to change Inspector's font size by @IamSanjid in https://github.com/axmolengine/axmol/pull/1932
+- Calculate safe area inset values for android devices with rounded corners by @rh101 in https://github.com/axmolengine/axmol/pull/1934
+- Update documentation for axmol build commands when targetting the iOS simulator by @rh101 in https://github.com/axmolengine/axmol/pull/1938
+- Added glyph ranges manager for ImGuiPresenter, added ability to use glyph ranges for Inspector's font by @IamSanjid in https://github.com/axmolengine/axmol/pull/1936
+- Add support for necessary events to be sent regardless of event dispatcher enabled state by @rh101 in https://github.com/axmolengine/axmol/pull/1940
+- Enable DrawNodeEx by default by @aismann in https://github.com/axmolengine/axmol/pull/1950
+- Apply child stencils correctly to the clipping node by @rh101 in https://github.com/axmolengine/axmol/pull/1957
+- Fix some compiler warnings on windows by @IamSanjid in https://github.com/axmolengine/axmol/pull/1954
+- Update DevSetup.md by @caryyu in https://github.com/axmolengine/axmol/pull/1965
+- Sprite and TextureCache from ax::Data by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/1967
+- Remove duplicate cmake options by @halx99
+- Count run action finish to call final finish when two run actions are performed by @AlexandreK38 in https://github.com/axmolengine/axmol/pull/1946
+- Only pause GLSurfaceView if activity is moved to the background, and not if it just loses focus by @rh101 in https://github.com/axmolengine/axmol/pull/1942
+- Update spine README.md by @rh101 in https://github.com/axmolengine/axmol/pull/1975
+- Update llvm setup
+  - Remove llvm setup from gh action yml config, since 1kiss will setup it
+  - Update 1kiss.ps1 llvm min requirement to 17.0.6 for msvc14.40 support
+  - Remove llvm version config from 1k/manifest.ps1 since 1kiss.ps1 already set properly for msvc14.40 support
+- Update TLD to `axmol.dev` in sources by @halx99
+- Don't output log when custom ILogOutput was set by @halx99
+- Use new logging system for audio by @halx99
+- Update DrawNodeV2 0.94 by @aismann in https://github.com/axmolengine/axmol/pull/2008
+- Ensure the RenderTexture reference is valid on threaded saveToFile task completion by @rh101 in https://github.com/axmolengine/axmol/pull/2024
+- Some warning and other minor fixes by @smilediver in https://github.com/axmolengine/axmol/pull/2038
+
+
+### sdks & tools updates
+
+- gradle: 8.7 ==> 8.8
+- AGP: 8.2.2 ==> 8.4.0
+- emsdk: 3.1.59 ==> 3.1.63
+
+### 3rdparty updates
+
+- openssl: 3.0.13 ==> 3.3.1
+- Clipper2: 1.3.0 ==> 1.4.0
+- simdjson: 3.9.2 ==> 3.9.5
+- fmtlib: 10.2.1 ==> 11.0.1
+- yasio: 4.2.2 ==> 4.2.3
+- oboe: 1.8.1 ==> 1.9.0
+- plainlua: 5.4.6 ==> 5.4.7
+- c-ares: 1.29.0 ==> 1.32.2
+- luajit: 2.1-d06beb0 ==> 2.1-04dca79
+
 ## axmol-2.1.3 May.26 2024
 
 ### Significant changes relative to 2.1.2:
@@ -72,6 +299,7 @@
 
 ### Improvements
 
+- Update ios/tvos LaunchScreen.storyboard to 11.0+, also fix xcode15.4 build error
 - Update prebuilt tool `glslcc` to 1.9.5, macos-arm64 support and built for macos-10.15+
 - Improve MediaPlayer: handle video rotation properly
 - Disable c++20 char8_t
@@ -126,7 +354,7 @@
 
 - simdjson: 3.7.0 ==> 3.9.2
 - flatbuffers: 2.0.8 ==> 24.3.25
-- curl: 8.6.0 ==> 8.7.1
+- curl: 8.6.0 ==> 8.8.0
 - glad: 2.0.5 ==> 2.0.6
 - yasio: 4.2.1 ==> 4.2.2
 - llhttp: 9.2.0 ==> 9.2.1
@@ -393,7 +621,7 @@ Notes:
 -  Add *experimental* WebAssembly build support(WebGL 2.0) by [@nowasm](https://github.com/nowasm)
     - List of known issues maybe *help wanted*
         - WebGL context lost not handled yet
-     - A demo avaiable on axmol gh-pages: [`cpp-tests.html`](https://axmolengine.github.io/axmol/wasm/cpp_tests/cpp_tests.html), build from branch `dev`
+     - A demo avaiable on axmol gh-pages: [`cpp-tests.html`](https://axmol.dev/axmol/wasm/cpp_tests/cpp_tests.html), build from branch `dev`
      - Note:  Follow functionals require wasm pthread support, and needs server enable https://web.dev/coop-coep/ response with specified header, and by default thread support was enabled by axmol client build commands
          - AudioEngine
          - ASTC multi-thread software decoder
@@ -427,7 +655,7 @@ Notes:
     - xxHash: 0.8.1 ==> 0.8.2
     - zlib: 1.2.13 ==> 1.3
 - API changes:
-    - CHANGED: The prototype of [`ProgramManager::registerCustomProgram`](https://axmolengine.github.io/axmol/manual/latest/d1/db2/classax_1_1backend_1_1_program_manager.html#ab0c9fa9f0ebef5f20a868e2ea6cdc631) was changed
+    - CHANGED: The prototype of [`ProgramManager::registerCustomProgram`](https://axmol.dev/manual/latest/d1/db2/classax_1_1backend_1_1_program_manager.html#ab0c9fa9f0ebef5f20a868e2ea6cdc631) was changed
     - ADDED: `ProgramManager::loadProgram`
     - REMOVED: `ProgramManager::getCustomProgram`
     - REMOVED: `CommandBuffer::setLineWidth`

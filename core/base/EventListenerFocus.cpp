@@ -2,8 +2,9 @@
  Copyright (c) 2014 cocos2d-x.org
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +29,16 @@
 #include "base/EventFocus.h"
 #include "base/Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
-const std::string EventListenerFocus::LISTENER_ID = "__cc_focus_event";
+const std::string EventListenerFocus::LISTENER_ID = "__ax_focus_event";
 
 EventListenerFocus::EventListenerFocus() : onFocusChanged(nullptr) {}
 
 EventListenerFocus::~EventListenerFocus()
 {
-    AXLOGINFO("In the destructor of EventListenerFocus, %p", this);
+    AXLOGV("In the destructor of EventListenerFocus, {}", fmt::ptr(this));
 }
 
 EventListenerFocus* EventListenerFocus::create()
@@ -91,4 +93,4 @@ bool EventListenerFocus::checkAvailable()
     return true;
 }
 
-NS_AX_END
+}

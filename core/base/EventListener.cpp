@@ -1,8 +1,8 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-
- https://axmolengine.github.io/
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,14 @@
 #include "base/EventListener.h"
 #include "base/Logging.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 EventListener::EventListener() {}
 
 EventListener::~EventListener()
 {
-    AXLOGINFO("In the destructor of EventListener. %p", this);
+    AXLOGV("In the destructor of EventListener. {}", fmt::ptr(this));
 }
 
 bool EventListener::init(Type t, std::string_view listenerID, const std::function<void(Event*)>& callback)
@@ -52,4 +53,4 @@ bool EventListener::checkAvailable()
     return (_onEvent != nullptr);
 }
 
-NS_AX_END
+}

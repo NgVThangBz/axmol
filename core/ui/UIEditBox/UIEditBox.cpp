@@ -2,8 +2,9 @@
  Copyright (c) 2010-2012 cocos2d-x.org
  Copyright (c) 2012 James Chen
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +29,8 @@
 #include "ui/UIEditBox/UIEditBoxImpl.h"
 #include "ui/UIHelper.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -834,7 +836,7 @@ static Rect getRect(Node* pNode)
 
 void EditBox::keyboardWillShow(IMEKeyboardNotificationInfo& info)
 {
-    // AXLOG("CCEditBox::keyboardWillShow");
+    // AXLOGD("EditBox::keyboardWillShow");
     Rect rectTracked = getRect(this);
     // some adjustment for margin between the keyboard and the edit box.
     rectTracked.origin.y -= 4;
@@ -842,13 +844,12 @@ void EditBox::keyboardWillShow(IMEKeyboardNotificationInfo& info)
     // if the keyboard area doesn't intersect with the tracking node area, nothing needs to be done.
     if (!rectTracked.intersectsRect(info.end))
     {
-        AXLOG("needn't to adjust view layout.");
         return;
     }
 
     // assume keyboard at the bottom of screen, calculate the vertical adjustment.
     _adjustHeight = info.end.getMaxY() - rectTracked.getMinY();
-    // AXLOG("CCEditBox:needAdjustVerticalPosition(%f)", _adjustHeight);
+    // AXLOGD("EditBox:needAdjustVerticalPosition({})", _adjustHeight);
 
     if (_editBoxImpl != nullptr)
     {
@@ -860,7 +861,7 @@ void EditBox::keyboardDidShow(IMEKeyboardNotificationInfo& /*info*/) {}
 
 void EditBox::keyboardWillHide(IMEKeyboardNotificationInfo& info)
 {
-    // AXLOG("CCEditBox::keyboardWillHide");
+    // AXLOGD("EditBox::keyboardWillHide");
     if (_editBoxImpl != nullptr)
     {
         _editBoxImpl->doAnimationWhenKeyboardMove(info.duration, -_adjustHeight);
@@ -897,4 +898,4 @@ void EditBox::unregisterScriptEditBoxHandler()
 
 }  // namespace ui
 
-NS_AX_END
+}

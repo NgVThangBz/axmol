@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/axmol
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@ THE SOFTWARE.
 #include "renderer/Shaders.h"
 #include "renderer/backend/ProgramState.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 Layer* Layer::create()
 {
@@ -336,7 +337,7 @@ void LayerGradient::setCompressedInterpolation(bool compress)
 
 std::string LayerGradient::getDescription() const
 {
-    return StringUtils::format("<LayerGradient | Tag = %d>", _tag);
+    return fmt::format("<LayerGradient | Tag = {}>", _tag);
 }
 
 /**
@@ -750,7 +751,7 @@ void LayerMultiplex::switchToAndReleaseMe(int n)
 
 std::string LayerMultiplex::getDescription() const
 {
-    return StringUtils::format("<LayerMultiplex | Tag = %d, Layers = %d", _tag, static_cast<int>(_children.size()));
+    return fmt::format("<LayerMultiplex | Tag = {}, Layers = {}", _tag, static_cast<int>(_children.size()));
 }
 
-NS_AX_END
+}

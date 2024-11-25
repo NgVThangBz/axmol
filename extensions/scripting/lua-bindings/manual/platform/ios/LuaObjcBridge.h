@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * Build a bridge between ObjectC and Lua script.
@@ -57,7 +58,7 @@ protected:
 
     static void pushValue(lua_State* L, void* val);
 };
-NS_AX_END
+}
 
 // end group
 /// @}

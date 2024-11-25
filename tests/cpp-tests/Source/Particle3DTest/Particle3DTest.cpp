@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
 #include "Particle3D/ParticleSystem3D.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
 
-USING_NS_AX;
+using namespace ax;
 
 #define PARTICLE_SYSTEM_TAG 0x0001
 

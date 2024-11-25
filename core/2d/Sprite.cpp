@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,8 @@ THE SOFTWARE.
 #include "renderer/backend/ProgramState.h"
 #include "renderer/backend/DriverBase.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // MARK: create, init, dealloc
 Sprite* Sprite::createWithTexture(Texture2D* texture)
@@ -105,6 +106,18 @@ Sprite* Sprite::create(std::string_view filename, const Rect& rect)
 {
     Sprite* sprite = new Sprite();
     if (sprite->initWithFile(filename, rect))
+    {
+        sprite->autorelease();
+        return sprite;
+    }
+    AX_SAFE_DELETE(sprite);
+    return nullptr;
+}
+
+Sprite* Sprite::create(const Data& imageData, std::string_view key)
+{
+    Sprite *sprite = new Sprite();
+    if (sprite->initWithImageData(imageData, key))
     {
         sprite->autorelease();
         return sprite;
@@ -181,7 +194,7 @@ bool Sprite::initWithFile(std::string_view filename, PixelFormat format)
 {
     if (filename.empty())
     {
-        AXLOG("Call Sprite::initWithFile with blank resource filename.");
+        AXLOGD("Call Sprite::initWithFile with blank resource filename.");
         return false;
     }
 
@@ -302,6 +315,31 @@ bool Sprite::initWithTexture(Texture2D* texture, const Rect& rect, bool rotated)
     setDirty(true);
 
     return result;
+}
+
+bool Sprite::initWithImageData(const Data& imageData, std::string_view key)
+{
+    if (imageData.isNull() || key.empty())
+    {
+        AXLOGD("Call Sprite::initWithImageData empty data or blank key.");
+        return false;
+    }
+
+    //_fileName = filename;
+
+    Texture2D *texture = _director->getTextureCache()->addImage(imageData, key);
+
+    if (texture)
+    {
+        Rect rect = Rect::ZERO;
+        rect.size = texture->getContentSize();
+        return initWithTexture(texture, rect);
+    }
+
+    // don't release here.
+    // when load texture failed, it's better to get a "transparent" sprite then a crashed program
+    // this->release();
+    return false;
 }
 
 Sprite::Sprite()
@@ -669,7 +707,7 @@ void Sprite::setCenterRectNormalized(const ax::Rect& rectTopLeft)
 {
     if (_renderMode != RenderMode::QUAD && _renderMode != RenderMode::SLICE9)
     {
-        AXLOGWARN("Warning: Sprite::setCenterRectNormalized() only works with QUAD and SLICE9 render modes");
+        AXLOGW("Warning: Sprite::setCenterRectNormalized() only works with QUAD and SLICE9 render modes");
         return;
     }
 
@@ -725,7 +763,7 @@ void Sprite::setCenterRect(const ax::Rect& rectInPoints)
 {
     if (_renderMode != RenderMode::QUAD && _renderMode != RenderMode::SLICE9)
     {
-        AXLOGWARN("Warning: Sprite::setCenterRect() only works with QUAD and SLICE9 render modes");
+        AXLOGW("Warning: Sprite::setCenterRect() only works with QUAD and SLICE9 render modes");
         return;
     }
 
@@ -1063,15 +1101,15 @@ void Sprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
             // draw 3 lines
             Vec3 from = verts[indices[i * 3]].vertices;
             Vec3 to   = verts[indices[i * 3 + 1]].vertices;
-            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::WHITE);
+            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4B::WHITE);
 
             from = verts[indices[i * 3 + 1]].vertices;
             to   = verts[indices[i * 3 + 2]].vertices;
-            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::WHITE);
+            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4B::WHITE);
 
             from = verts[indices[i * 3 + 2]].vertices;
             to   = verts[indices[i * 3]].vertices;
-            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::WHITE);
+            _debugDrawNode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4B::WHITE);
         }
 #endif  // AX_SPRITE_DEBUG_DRAW
     }
@@ -1277,7 +1315,7 @@ void Sprite::setScaleX(float scaleX)
 void Sprite::setScaleY(float scaleY)
 {
 #ifdef AX_USE_METAL
-    if (_texture && _texture->isRenderTarget())
+    if (_texture &&_texture->isRenderTarget())
         scaleY = std::abs(scaleY);
 #endif
     Node::setScaleY(scaleY);
@@ -1322,8 +1360,8 @@ void Sprite::setVisible(bool bVisible)
 
 void Sprite::setContentSize(const Vec2& size)
 {
-    if (_renderMode == RenderMode::QUAD_BATCHNODE || _renderMode == RenderMode::POLYGON)
-        AXLOGWARN(
+    if (_stretchEnabled && (_renderMode == RenderMode::QUAD_BATCHNODE || _renderMode == RenderMode::POLYGON))
+        AXLOGW(
             "Sprite::setContentSize() doesn't stretch the sprite when using QUAD_BATCHNODE or POLYGON render modes");
 
     Node::setContentSize(size);
@@ -1688,4 +1726,4 @@ void Sprite::setMVPMatrixUniform()
         programState->setUniform(_mvpMatrixLocation, projectionMat.m, sizeof(projectionMat.m));
 }
 
-NS_AX_END
+}

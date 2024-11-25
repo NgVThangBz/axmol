@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ public:
      * @ see `drawElements(PrimitiveType primitiveType, IndexFormat indexType, unsigned int count, unsigned int offset)`
      */
     void setIndexBuffer(Buffer* buffer) override;
-    
+
     void setInstanceBuffer(Buffer* buffer) override;
 
     /**
@@ -167,7 +167,7 @@ public:
                               std::size_t count,
                               std::size_t offset,
                               bool wireframe) override;
-    
+
     void drawElementsInstanced(PrimitiveType primitiveType,
                                IndexFormat indexType,
                                std::size_t count,
@@ -200,7 +200,7 @@ public:
      * @param callback A callback to deal with pixel data read.
      */
     void readPixels(RenderTarget* rt, std::function<void(const PixelBufferDescriptor&)> callback) override;
-    
+
     id<MTLRenderCommandEncoder> getRenderCommandEncoder() const { return _mtlRenderEncoder; }
 
     id<MTLCommandBuffer> getMTLCommandBuffer() const { return _mtlCommandBuffer; }
@@ -255,7 +255,6 @@ private:
     dispatch_semaphore_t _frameBoundarySemaphore;
     const RenderTarget* _currentRenderTarget = nil;  // weak ref
     RenderPassDescriptor _currentRenderPassDesc;
-    TargetBufferFlags _currentRenderTargetFlags = TargetBufferFlags::NONE;
     NSAutoreleasePool* _autoReleasePool         = nil;
 
     std::vector<std::pair<TextureBackend*, std::function<void(const PixelBufferDescriptor&)>>> _captureCallbacks;

@@ -5,7 +5,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md)
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@ THE SOFTWARE.
 #include "base/EventDispatcher.h"
 #include "renderer/backend/DriverBase.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 extern const char* axmolVersion();
 
@@ -71,7 +72,7 @@ bool Configuration::init()
 #if AX_ENABLE_PROFILERS
     _valueDict["axmol.compiled_with_profiler"] = Value(true);
 #else
-    _valueDict["axmol.compiled_with_profiler"]       = Value(false);
+    _valueDict["axmol.compiled_with_profiler"] = Value(false);
 #endif
 
 #if AX_ENABLE_GL_STATE_CACHE == 0
@@ -83,7 +84,17 @@ bool Configuration::init()
 #if _AX_DEBUG
     _valueDict["axmol.build_type"] = Value("DEBUG");
 #else
-    _valueDict["axmol.build_type"]                   = Value("RELEASE");
+    _valueDict["axmol.build_type"] = Value("RELEASE");
+#endif
+
+#if defined(AX_SSE_INTRINSICS)
+#    if defined(__SSE4_1__)
+    _valueDict["axmol.simd"] = Value("SSE41");
+#    else
+    _valueDict["axmol.simd"] = Value("SSE2");
+#    endif
+#elif defined(AX_NEON_INTRINSICS)
+    _valueDict["axmol.simd"] = Value("NEON");
 #endif
 
     return true;
@@ -98,13 +109,13 @@ std::string Configuration::getInfo() const
 {
     // And Dump some warnings as well
 #if AX_ENABLE_PROFILERS
-    AXLOG(
+    AXLOGD(
         "axmol: **** WARNING **** AX_ENABLE_PROFILERS is defined. Disable it when you finish profiling (from "
         "ccConfig.h)\n");
 #endif
 
 #if AX_ENABLE_GL_STATE_CACHE == 0
-    AXLOG(
+    AXLOGD(
         "axmol: **** WARNING **** AX_ENABLE_GL_STATE_CACHE is disabled. To improve performance, enable it (from "
         "ccConfig.h)\n");
 #endif
@@ -351,14 +362,14 @@ void Configuration::loadConfigFile(std::string_view filename)
 
     if (!validMetadata)
     {
-        AXLOG("Invalid config format for file: %s", filename.data());
+        AXLOGW("Invalid config format for file: {}", filename);
         return;
     }
 
     auto dataIter = dict.find("data");
     if (dataIter == dict.cend() || dataIter->second.getType() != Value::Type::MAP)
     {
-        AXLOG("Expected 'data' dict, but not found. Config file: %s", filename.data());
+        AXLOGW("Expected 'data' dict, but not found. Config file: {}", filename);
         return;
     }
 
@@ -370,7 +381,7 @@ void Configuration::loadConfigFile(std::string_view filename)
         if (_valueDict.find(dataMapIter.first) == _valueDict.cend())
             _valueDict[dataMapIter.first] = dataMapIter.second;
         else
-            AXLOG("Key already present. Ignoring '%s'", dataMapIter.first.c_str());
+            AXLOGD("Key already present. Ignoring '{}'", dataMapIter.first);
     }
 
     // light info
@@ -406,4 +417,4 @@ int Configuration::getMaxAttributes() const
     return backend::DriverBase::getInstance()->getMaxAttributes();
 }
 
-NS_AX_END
+}

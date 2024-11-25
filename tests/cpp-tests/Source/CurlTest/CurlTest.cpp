@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 #include "stdlib.h"
 #include "curl/curl.h"
 
-USING_NS_AX;
+using namespace ax;
 
 CurlTests::CurlTests()
 {
@@ -70,7 +70,7 @@ static size_t WriteMemoryCallback(void* contents, size_t size, size_t nmemb, voi
     if (mem->memory == NULL)
     {
         /* out of memory! */
-        printf("not enough memory (realloc returned NULL)\n");
+        AXLOGE("not enough memory (realloc returned NULL)\n");
         return 0;
     }
 
@@ -109,7 +109,7 @@ void CurlTest::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
         curl_easy_cleanup(curl);
         if (res == 0)
         {
-            _label->setString(StringUtils::format("Connect successfully!\n%s", chunk.memory));
+            _label->setString(fmt::format("Connect successfully!\n{}", chunk.memory));
         }
         else
         {

@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,8 @@ struct mp3dec_impl
 };
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 #if !AX_USE_MPG123
 static size_t minimp3_read_r(void* buf, size_t size, void* user_data)
@@ -96,7 +97,7 @@ bool AudioDecoderMp3::lazyInit()
         }
         else
         {
-            ALOGE("Basic setup goes wrong: %s", mpg123_plain_strerror(error));
+            AXLOGE("Basic setup goes wrong: {}", mpg123_plain_strerror(error));
             ret = false;
         }
     }
@@ -133,7 +134,7 @@ bool AudioDecoderMp3::open(std::string_view fullPath)
         _fileStream = FileUtils::getInstance()->openFileStream(fullPath, IFileStream::Mode::READ);
         if (!_fileStream)
         {
-            ALOGE("Trouble with minimp3(1): %s\n", strerror(errno));
+            AXLOGE("Trouble with minimp3(1): {}\n", strerror(errno));
             break;
         }
 
@@ -180,13 +181,13 @@ bool AudioDecoderMp3::open(std::string_view fullPath)
         _handle = mpg123_new(nullptr, &error);
         if (nullptr == _handle)
         {
-            ALOGE("Basic setup goes wrong: %s", mpg123_plain_strerror(error));
+            AXLOGE("Basic setup goes wrong: {}", mpg123_plain_strerror(error));
             break;
         }
 
         if (!_fileStream.open(fullPath))
         {
-            ALOGE("Trouble with mpg123(1): %s\n", strerror(errno));
+            AXLOGE("Trouble with mpg123(1): {}\n", strerror(errno));
             break;
         }
 
@@ -195,7 +196,7 @@ bool AudioDecoderMp3::open(std::string_view fullPath)
         if (mpg123_open_handle(_handle, _fileStream) != MPG123_OK ||
             mpg123_getformat(_handle, &rate, &channel, &mp3Encoding) != MPG123_OK)
         {
-            ALOGE("Trouble with mpg123(2): %s\n", mpg123_strerror(_handle));
+            AXLOGE("Trouble with mpg123(2): {}\n", mpg123_strerror(_handle));
             break;
         }
 
@@ -214,7 +215,7 @@ bool AudioDecoderMp3::open(std::string_view fullPath)
         }
         else
         {
-            ALOGE("Bad encoding: 0x%x!\n", mp3Encoding);
+            AXLOGE("Bad encoding: {0:#x}!\n", mp3Encoding);
             break;
         }
 
@@ -279,7 +280,7 @@ uint32_t AudioDecoderMp3::read(uint32_t framesToRead, char* pcmBuf)
     int err          = mpg123_read(_handle, (unsigned char*)pcmBuf, bytesToRead, &bytesRead);
     if (err == MPG123_ERR)
     {
-        ALOGE("Trouble with mpg123: %s\n", mpg123_strerror(_handle));
+        AXLOGE("Trouble with mpg123: {}\n", mpg123_strerror(_handle));
         return 0;
     }
 
@@ -293,10 +294,10 @@ bool AudioDecoderMp3::seek(uint32_t frameOffset)
     return 0 == mp3dec_ex_seek(&_handle->_dec, frameOffset);
 #else
     off_t offset = mpg123_seek(_handle, frameOffset, SEEK_SET);
-    // ALOGD("mpg123_seek return: %d", (int)offset);
+    // AXLOGD("mpg123_seek return: {}", (int)offset);
     return (offset >= 0 && offset == frameOffset);
 #endif
 }
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 #undef LOG_TAG

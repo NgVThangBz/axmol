@@ -3,8 +3,9 @@ Copyright (c) 2010 ForzeField Studios S.L. http://forzefield.com
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2017 Chukong Technologies
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +38,8 @@ THE SOFTWARE.
  * @addtogroup base
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 
 /*
  * Similar to std::vector, but it will manage reference count automatically internally.
@@ -110,7 +112,7 @@ public:
     /** Constructor. */
     Vector() : _data()
     {
-        static_assert(std::is_convertible<T, Object*>::value, "Invalid Type for ax::Vector!");
+        static_assert(axstd::is_ref_counted_v<T>, "Invalid Type for ax::Vector!");
     }
 
     /**
@@ -119,8 +121,8 @@ public:
      */
     explicit Vector(ssize_t capacity) : _data()
     {
-        static_assert(std::is_convertible<T, Object*>::value, "Invalid Type for ax::Vector!");
-        AXLOGINFO("In the default constructor with capacity of Vector.");
+        static_assert(axstd::is_ref_counted_v<T>, "Invalid Type for ax::Vector!");
+        AXLOGV("In the default constructor with capacity of Vector.");
         reserve(capacity);
     }
 
@@ -136,15 +138,15 @@ public:
     /** Destructor. */
     ~Vector()
     {
-        AXLOGINFO("In the destructor of Vector.");
+        AXLOGV("In the destructor of Vector.");
         clear();
     }
 
     /** Copy constructor. */
     Vector(const Vector& other)
     {
-        static_assert(std::is_convertible<T, Object*>::value, "Invalid Type for ax::Vector!");
-        AXLOGINFO("In the copy constructor!");
+        static_assert(axstd::is_ref_counted_v<T>, "Invalid Type for ax::Vector!");
+        AXLOGV("In the copy constructor!");
         _data = other._data;
         addRefForAllObjects();
     }
@@ -152,8 +154,8 @@ public:
     /** Constructor with std::move semantic. */
     Vector(Vector&& other)
     {
-        static_assert(std::is_convertible<T, Object*>::value, "Invalid Type for ax::Vector!");
-        AXLOGINFO("In the move constructor of Vector!");
+        static_assert(axstd::is_ref_counted_v<T>, "Invalid Type for ax::Vector!");
+        AXLOGV("In the move constructor of Vector!");
         _data = std::move(other._data);
     }
 
@@ -162,7 +164,7 @@ public:
     {
         if (this != &other)
         {
-            AXLOGINFO("In the copy assignment operator!");
+            AXLOGV("In the copy assignment operator!");
             clear();
             _data = other._data;
             addRefForAllObjects();
@@ -171,11 +173,11 @@ public:
     }
 
     /** Copy assignment operator with std::move semantic. */
-    Vector& operator=(Vector&& other)
+    Vector& operator=(Vector&& other) noexcept
     {
         if (this != &other)
         {
-            AXLOGINFO("In the move assignment operator!");
+            AXLOGV("In the move assignment operator!");
             clear();
             _data = std::move(other._data);
         }
@@ -246,7 +248,7 @@ public:
 
     T operator[](ssize_t index) const
     {
-        return this->at(index); 
+        return this->at(index);
     }
 
     /** Returns the first element in the Vector. */
@@ -479,6 +481,6 @@ protected:
 // end of base group
 /** @} */
 
-NS_AX_END
+}
 
 #endif  // __CCVECTOR_H__

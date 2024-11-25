@@ -7,6 +7,18 @@ else()
     set(BUILD_CONFIG_DIR "")
 endif()
 
+
+macro(ax_link_ext EXTENSION_ENABLED LINKLIB)
+    if(${EXTENSION_ENABLED})
+        list(APPEND LIBS ${LINKLIB})
+        foreach(INCLUDEDIR ${ARGN})
+            target_include_directories(${APP_NAME}
+                PRIVATE ${INCLUDEDIR}
+            )
+        endforeach()
+    endif()
+endmacro()
+
 function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
     # stupid: exclude CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_DEBUG to avoid cmake generate
     # .vcxproj with incorrect debug msvc runtime, should be /MDd but got /MD
@@ -31,9 +43,9 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
     message(STATUS "AX_ENABLE_EXT_EFFEKSEER=${AX_ENABLE_EXT_EFFEKSEER}")
     message(STATUS "AX_ENABLE_EXT_LUA=${AX_ENABLE_EXT_LUA}")
 	message(STATUS "AX_ENABLE_EXT_DRAWNODEEX=${AX_ENABLE_EXT_DRAWNODEEX}")
-    
+
     # compile defines can't inherit when link prebuits, so need add manually
-    target_compile_definitions(${APP_NAME} 
+    target_compile_definitions(${APP_NAME}
         PRIVATE AX_GLES_PROFILE=${AX_GLES_PROFILE}
         PRIVATE OPENSSL_SUPPRESS_DEPRECATED=1
         PRIVATE NOUNCRYPT=1
@@ -125,8 +137,6 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
         box2d
         chipmunk
         freetype
-        recast
-        bullet
         webp
         pugixml
         xxhash
@@ -142,110 +152,32 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
         unzip
         llhttp
         simdjson
-        physics-nodes
         yasio
         websocket-parser
     )
-    
-    if (AX_ENABLE_EXT_DRAGONBONES)
-        list(APPEND LIBS "cocostudio")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/DragonBones/src
-        )          
-    endif()
-    
-    if(AX_ENABLE_EXT_COCOSTUDIO)
-        list(APPEND LIBS "DragonBones")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/cocostudio/src
-        )          
-    endif()
-    
-    if(AX_ENABLE_EXT_ASSETMANAGER)
-        list(APPEND LIBS "assets-manager")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/assets-manager/src
-        )          
-    endif()
 
-    if(AX_ENABLE_EXT_PARTICLE3D)
-        list(APPEND LIBS "particle3d")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/Particle3D/src
-        )         
-    endif()
+    ax_link_ext(AX_ENABLE_EXT_DRAGONBONES "DragonBones" "${AX_ROOT_DIR}/extensions/DragonBones/src")
+    ax_link_ext(AX_ENABLE_EXT_COCOSTUDIO "cocostudio" "${AX_ROOT_DIR}/extensions/cocostudio/src")
+    ax_link_ext(AX_ENABLE_EXT_ASSETMANAGER "assets-manager" "${AX_ROOT_DIR}/extensions/assets-manager/src")
+    ax_link_ext(AX_ENABLE_EXT_PARTICLE3D "particle3d" "${AX_ROOT_DIR}/extensions/Particle3D/src")
+    ax_link_ext(AX_ENABLE_EXT_INSPECTOR "Inspector" "${AX_ROOT_DIR}/extensions/Inspector/src")
+    ax_link_ext(AX_ENABLE_EXT_SDFGEN "SDFGen" "${AX_ROOT_DIR}/extensions/SDFGen/src")
+    ax_link_ext(AX_ENABLE_EXT_DRAWNODEEX "DrawNodeEx" "${AX_ROOT_DIR}/extensions/DrawNodeEx/src")
+    ax_link_ext(AX_ENABLE_EXT_GUI "GUI" "${AX_ROOT_DIR}/extensions/GUI/src")
+    ax_link_ext(AX_ENABLE_EXT_FAIRYGUI "fairygui" "${AX_ROOT_DIR}/extensions/fairygui/src")
+    ax_link_ext(AX_ENABLE_EXT_LIVE2D "Live2D" "${AX_ROOT_DIR}/extensions/Live2D/Framework/src")
+    ax_link_ext(AX_ENABLE_EXT_EFFEKSEER "EffekseerForCocos2d-x" "${AX_ROOT_DIR}/extensions/Effekseer")
+    ax_link_ext(AX_ENABLE_EXT_PHYSICS_NODE "physics-nodes" "${AX_ROOT_DIR}/extensions/physics-nodes/src")
+    ax_link_ext(AX_ENABLE_NAVMESH "recast" "${AX_ROOT_DIR}/3rdparty/recast")
+    ax_link_ext(AX_ENABLE_3D_PHYSICS "bullet" "${AX_ROOT_DIR}/3rdparty/bullet")
 
-    if(AX_ENABLE_EXT_SPINE)
-        list(APPEND LIBS "spine")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/spine/runtime/include
-            PRIVATE ${AX_ROOT_DIR}/extensions/spine/src
-        )
-    endif()
+    ax_link_ext(AX_ENABLE_EXT_IMGUI "ImGui"
+        "${AX_ROOT_DIR}/extensions/ImGui/src" "${AX_ROOT_DIR}/extensions/ImGui/src/ImGui/imgui"
+    )
 
-    if (AX_ENABLE_EXT_IMGUI)
-        list(APPEND LIBS "ImGui")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/ImGui/src
-            PRIVATE ${AX_ROOT_DIR}/extensions/ImGui/src/ImGui/imgui
-        )
-    endif()
-	
-	if (AX_ENABLE_EXT_INSPECTOR)
-        list(APPEND LIBS "Inspector")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/Inspector/src
-        )        
-    endif()
-    
-    if (AX_ENABLE_EXT_SDFGEN)
-        list(APPEND LIBS "SDFGen")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/SDFGen/src
-        )         
-    endif()
-	
-	if (AX_ENABLE_EXT_DRAWNODEEX)
-        list(APPEND LIBS "DrawNodeEx")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/DrawNodeEx/src
-        )         
-    endif()
-	
-    if (AX_ENABLE_EXT_GUI)
-        list(APPEND LIBS "GUI")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/GUI/src
-        )         
-    endif()
-
-    if (AX_ENABLE_EXT_FAIRYGUI)
-        list(APPEND LIBS "fairygui")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/fairygui/src
-        )         
-    endif()
-
-	if (AX_ENABLE_EXT_LIVE2D)
-        list(APPEND LIBS "Live2D")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/Live2D/Framework/src
-        )        
-    endif()
-
-	if (AX_ENABLE_EXT_EFFEKSEER)
-        list(APPEND LIBS "EffekseerForCocos2d-x")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/Effekseer
-        )        
-    endif()
-
-    if (AX_ENABLE_EXT_PHYSICS_NODE)
-        list(APPEND LIBS "physics-nodes")
-        target_include_directories(${APP_NAME}        
-            PRIVATE ${AX_ROOT_DIR}/extensions/physics-nodes/src
-        )        
-    endif()
+    ax_link_ext(AX_ENABLE_EXT_SPINE "spine"
+        "${AX_ROOT_DIR}/extensions/spine/runtime/include" "${AX_ROOT_DIR}/extensions/spine/src"
+    )
 
     if (WINDOWS)
         target_link_libraries(${APP_NAME}
@@ -256,11 +188,11 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
             libssl
             libcurl_imp
         )
-        
+
         if (AX_ENABLE_AUDIO)
             target_link_libraries(${APP_NAME}
                 OpenAL32
-            )   
+            )
         endif()
     else()
         target_link_libraries(${APP_NAME}
@@ -271,12 +203,12 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
             ssl
             crypto
         )
-        
+
         if (AX_ENABLE_AUDIO)
             target_link_libraries(${APP_NAME}
                 openal
-            )        
-        endif()        
+            )
+        endif()
     endif()
 
     target_link_libraries(${APP_NAME} debug fmtd optimized fmt)
@@ -299,7 +231,7 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
             add_custom_command(TARGET ${APP_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}OpenAL32.dll"
-                $<TARGET_FILE_DIR:${APP_NAME}>)        
+                $<TARGET_FILE_DIR:${APP_NAME}>)
         endif()
 
         if (BUILD_SHARED_LIBS)

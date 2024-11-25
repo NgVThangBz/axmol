@@ -2,8 +2,9 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +37,8 @@ THE SOFTWARE.
 #define WIDE_SCREEN_ASPECT_RATIO_ANDROID 2.0f
 
 
-NS_AX_BEGIN
+namespace ax
+{
 void GLViewImpl::loadGLES2()
 {
     auto glesVer = gladLoaderLoadGLES2();
@@ -143,6 +145,14 @@ Rect GLViewImpl::getSafeAreaRect() const
     bool hasSoftKeys     = JniHelper::callStaticBooleanMethod("org/axmol/lib/AxmolEngine", "hasSoftKeys");
     bool isCutoutEnabled = JniHelper::callStaticBooleanMethod("org/axmol/lib/AxmolEngine", "isCutoutEnabled");
 
+    float insetTop = 0.0f;
+    float insetBottom = 0.0f;
+    float insetLeft = 0.0f;
+    float insetRight = 0.0f;
+
+    static axstd::pod_vector<int32_t> cornerRadii =
+            JniHelper::callStaticIntArrayMethod("org/axmol/lib/AxmolEngine", "getDeviceCornerRadii");
+
     if (isScreenRound)
     {
         // edge screen (ex. Samsung Galaxy s7, s9, s9+, Note 9, Nokia 8 Sirocco, Sony Xperia XZ3, Oppo Find X...)
@@ -162,28 +172,59 @@ Rect GLViewImpl::getSafeAreaRect() const
             // landscape: no changes with X-coords
         }
     }
-    else if (deviceAspectRatio >= WIDE_SCREEN_ASPECT_RATIO_ANDROID)
+    else if (deviceAspectRatio >= WIDE_SCREEN_ASPECT_RATIO_ANDROID || cornerRadii.size() >= 4)
     {
         // almost all devices on the market have round corners if
         // deviceAspectRatio more than 2 (@see "android.max_aspect" parameter in AndroidManifest.xml)
-        float bottomMarginIfPortrait = 0;
-        if (hasSoftKeys)
-        {
-            bottomMarginIfPortrait = marginY * 2.f;
-        }
 
-        if (safeAreaRect.size.width < safeAreaRect.size.height)
+        // cornerRadii is only available in API31+ (Android 12+)
+        if (cornerRadii.size() >= 4)
         {
-            // portrait: double margin space if device has soft menu
-            safeAreaRect.origin.y += bottomMarginIfPortrait;
-            safeAreaRect.size.height -= (bottomMarginIfPortrait + marginY);
+            float radiiBottom = cornerRadii[0] / _scaleY;
+            float radiiLeft   = cornerRadii[1] / _scaleX;
+            float radiiRight  = cornerRadii[2] / _scaleX;
+            float radiiTop    = cornerRadii[3] / _scaleY;
+
+            if (safeAreaRect.size.width < safeAreaRect.size.height)
+            {
+                if (hasSoftKeys)
+                {
+                    safeAreaRect.origin.y += marginY;
+                    safeAreaRect.size.height -= (marginY * 2);
+                }
+
+                // portrait
+                insetTop = radiiTop;
+                insetBottom = radiiBottom;
+            }
+            else
+            {
+                // landscape
+                insetLeft = radiiLeft;
+                insetRight = radiiRight;
+            }
         }
         else
         {
-            // landscape: ignore double margin at the bottom in any cases
-            // prepare signle margin for round corners
-            safeAreaRect.origin.y += marginY;
-            safeAreaRect.size.height -= (marginY * 2.f);
+            float bottomMarginIfPortrait = 0;
+            if (hasSoftKeys)
+            {
+                bottomMarginIfPortrait = marginY * 2.f;
+            }
+
+            if (safeAreaRect.size.width < safeAreaRect.size.height)
+            {
+                // portrait: double margin space if device has soft menu
+                safeAreaRect.origin.y += bottomMarginIfPortrait;
+                safeAreaRect.size.height -= (bottomMarginIfPortrait + marginY);
+            }
+            else
+            {
+                // landscape: ignore double margin at the bottom in any cases
+                // prepare single margin for round corners
+                safeAreaRect.origin.y += marginY;
+                safeAreaRect.size.height -= (marginY * 2.f);
+            }
         }
     }
     else
@@ -199,9 +240,10 @@ Rect GLViewImpl::getSafeAreaRect() const
     if (isCutoutEnabled)
     {
         // screen with enabled cutout area (ex. Google Pixel 3 XL, Huawei P20, Asus ZenFone 5, etc)
-        static int* safeInsets =
-            JniHelper::callStaticIntArrayMethod("org/axmol/lib/AxmolEngine", "getSafeInsets");
-        if (safeInsets != nullptr)
+        static axstd::pod_vector<int32_t> safeInsets =
+                JniHelper::callStaticIntArrayMethod("org/axmol/lib/AxmolEngine", "getSafeInsets");
+
+        if (safeInsets.size() >= 4)
         {
             float safeInsetBottom = safeInsets[0] / _scaleY;
             float safeInsetLeft   = safeInsets[1] / _scaleX;
@@ -209,24 +251,16 @@ Rect GLViewImpl::getSafeAreaRect() const
             float safeInsetTop    = safeInsets[3] / _scaleY;
 
             // fit safe area rect with safe insets
-            if (safeInsetBottom > 0)
-            {
-                safeAreaRect.origin.y += safeInsetBottom;
-                safeAreaRect.size.height -= safeInsetBottom;
-            }
-            if (safeInsetLeft > 0)
-            {
-                safeAreaRect.origin.x += safeInsetLeft;
-                safeAreaRect.size.width -= safeInsetLeft;
-            }
-            if (safeInsetRight > 0)
-            {
-                safeAreaRect.size.width -= safeInsetRight;
-            }
-            if (safeInsetTop > 0)
-            {
-                safeAreaRect.size.height -= safeInsetTop;
-            }
+            auto maxInsetBottom = std::max(safeInsetBottom, insetBottom);
+            safeAreaRect.origin.y += maxInsetBottom;
+            safeAreaRect.size.height -= maxInsetBottom;
+
+            auto maxInsetLeft = std::max(safeInsetLeft, insetLeft);
+            safeAreaRect.origin.x += maxInsetLeft;
+            safeAreaRect.size.width -= maxInsetLeft;
+
+            safeAreaRect.size.width -= std::max(safeInsetRight, insetRight);
+            safeAreaRect.size.height -= std::max(safeInsetTop, insetTop);
         }
     }
 
@@ -239,4 +273,4 @@ void GLViewImpl::queueOperation(void (*op)(void*), void* param)
                                     (jlong)(uintptr_t)param);
 }
 
-NS_AX_END
+}

@@ -3,8 +3,9 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013 Jozef Pridavok
 Copyright (c) 2013-2017 zilongshanren
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,13 +40,14 @@ THE SOFTWARE.
 #    include <windows.h>
 #    include "ui/UIHelper.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
 
 bool EditBoxImplWin::s_isInitialized       = false;
-int EditBoxImplWin::s_editboxChildID       = 100;
+HMENU EditBoxImplWin::s_editboxChildID     = (HMENU)100;
 HWND EditBoxImplWin::s_previousFocusWnd    = 0;
 WNDPROC EditBoxImplWin::s_prevCocosWndProc = 0;
 HINSTANCE EditBoxImplWin::s_hInstance      = 0;
@@ -119,7 +121,7 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
                                       0, 0, 0,
                                       0,                        // set size in WM_SIZE message
                                       s_hwndCocos,              // parent window
-                                      (HMENU)s_editboxChildID,  // edit control ID
+                                      s_editboxChildID,         // edit control ID
                                       s_hInstance,
                                       this);  // pointer not needed
 
@@ -376,7 +378,7 @@ std::string EditBoxImplWin::getText() const
     bool conversionResult = ax::StringUtils::UTF16ToUTF8(wstrResult, utf8Result);
     if (!conversionResult)
     {
-        AXLOG("warning, editbox input text conversion error.");
+        AXLOGW("warning, editbox input text conversion error.");
     }
     return std::move(utf8Result);
 }
@@ -436,6 +438,6 @@ LRESULT EditBoxImplWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 }
 }  // namespace ui
 
-NS_AX_END
+}
 
 #endif /* (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32) */

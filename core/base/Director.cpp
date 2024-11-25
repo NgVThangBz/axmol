@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,11 +57,13 @@ THE SOFTWARE.
 #include "base/Logging.h"
 #include "base/AutoreleasePool.h"
 #include "base/Configuration.h"
-#include "base/AsyncTaskPool.h"
+#ifndef AX_CORE_PROFILE
+#    include "base/AsyncTaskPool.h"
+#endif
 #include "base/ObjectFactory.h"
 #include "platform/Application.h"
 #if defined(AX_ENABLE_AUDIO)
-    #include "audio/AudioEngine.h"
+#    include "audio/AudioEngine.h"
 #endif
 
 #if AX_ENABLE_SCRIPT_BINDING
@@ -70,7 +72,8 @@ THE SOFTWARE.
 
 using namespace std;
 
-NS_AX_BEGIN
+namespace ax
+{
 // FIXME: it should be a Director ivar. Move it there once support for multiple directors is added
 
 // singleton stuff
@@ -115,8 +118,12 @@ bool Director::init()
 
     // FPS
     _lastUpdate = std::chrono::steady_clock::now();
+
+    auto concurrency = Configuration::getInstance()->getValue("axmol.concurrency", Value{-1}).asInt();
+    _jobSystem = new JobSystem(concurrency);
+
 #ifdef AX_ENABLE_CONSOLE
-    _console = new Console;
+    _console = new Console();
 #endif
     // scheduler
     _scheduler = new Scheduler();
@@ -151,10 +158,9 @@ bool Director::init()
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     // listen the event that renderer was recreated on Android/WP8
-    _rendererRecreatedListener = EventListenerCustom::create(
-        EVENT_RENDERER_RECREATED, [this](EventCustom*) {
-            _isStatusLabelUpdated = true; // Force recreation of textures
-        });
+    _rendererRecreatedListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) {
+        _isStatusLabelUpdated = true;  // Force recreation of textures
+    });
 
     _eventDispatcher->addEventListenerWithFixedPriority(_rendererRecreatedListener, -1);
 #endif
@@ -164,7 +170,7 @@ bool Director::init()
 
 Director::~Director()
 {
-    AXLOGINFO("deallocing Director: %p", this);
+    AXLOGD("deallocing Director: {}", fmt::ptr(this));
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     _eventDispatcher->removeEventListener(_rendererRecreatedListener);
@@ -198,6 +204,8 @@ Director::~Director()
 
     /** clean auto release pool. */
     PoolManager::destroyInstance();
+
+    AX_SAFE_DELETE(_jobSystem);
 
     s_SharedDirector = nullptr;
 }
@@ -247,7 +255,8 @@ void Director::setDefaultValues()
     Image::setCompressedImagesHavePMA(Image::CompressedImagePMAFlag::ASTC, astc_alpha_premultiplied);
 
     // ETC2 has alpha premultiplied ?
-    // Note: no suitable tools(etc2comp, Mali Texture Compression Tool, PVRTexTool) support do PMA currently, so set etc2 PMA default to `false`
+    // Note: no suitable tools(etc2comp, Mali Texture Compression Tool, PVRTexTool) support do PMA currently, so set
+    // etc2 PMA default to `false`
     bool etc2_alpha_premultiplied = conf->getValue("axmol.texture.etc2_has_pma", Value{false}).asBool();
     Image::setCompressedImagesHavePMA(Image::CompressedImagePMAFlag::ETC2, etc2_alpha_premultiplied);
 }
@@ -299,7 +308,8 @@ void Director::drawScene()
 
     if (_runningScene)
     {
-#if (defined(AX_ENABLE_PHYSICS) || (defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION) || defined(AX_ENABLE_NAVMESH))
+#if (defined(AX_ENABLE_PHYSICS) || (defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION) || \
+     defined(AX_ENABLE_NAVMESH))
         _runningScene->stepPhysicsAndNavigation(_deltaTime);
 #endif
         // clear draw stats
@@ -610,7 +620,7 @@ void Director::setProjection(Projection projection)
 
     if (size.width == 0 || size.height == 0)
     {
-        AXLOGERROR("axmol: warning, Director::setProjection() failed because size is 0");
+        AXLOGE("warning, Director::setProjection() failed because size is 0");
         return;
     }
 
@@ -652,7 +662,7 @@ void Director::setProjection(Projection projection)
         break;
 
     default:
-        AXLOG("axmol: Director: unrecognized projection");
+        AXLOGD("Director: unrecognized projection");
         break;
     }
 
@@ -673,7 +683,7 @@ void Director::purgeCachedData()
 
         // Note: some tests such as ActionsTest are leaking refcounted textures
         // There should be no test textures left in the cache
-        AXLOGI("{}\n", _textureCache->getCachedTextureInfo());
+        AXLOGD("{}\n", _textureCache->getCachedTextureInfo());
     }
     FileUtils::getInstance()->purgeCachedEntries();
 }
@@ -827,7 +837,7 @@ void Director::replaceScene(Scene* scene)
         {
             _nextScene->onExit();
         }
-        if(_nextScene)
+        if (_nextScene)
         {
             _nextScene->cleanup();
         }
@@ -864,7 +874,7 @@ void Director::pushScene(Scene* scene)
     }
 #endif  // AX_ENABLE_GC_FOR_NATIVE_OBJECTS
     _scenesStack.pushBack(scene);
-    _nextScene    = scene;
+    _nextScene = scene;
 }
 
 void Director::popScene()
@@ -1049,7 +1059,9 @@ void Director::reset()
     AnimationCache::destroyInstance();
     SpriteFrameCache::destroyInstance();
     FileUtils::destroyInstance();
+#ifndef AX_CORE_PROFILE
     AsyncTaskPool::destroyInstance();
+#endif
     backend::ProgramStateRegistry::destroyInstance();
     backend::ProgramManager::destroyInstance();
 
@@ -1113,10 +1125,9 @@ void Director::restartDirector()
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
     // listen the event that renderer was recreated on Android/WP8
-    _rendererRecreatedListener = EventListenerCustom::create(
-            EVENT_RENDERER_RECREATED, [this](EventCustom*) {
-                _isStatusLabelUpdated = true; // Force recreation of textures
-            });
+    _rendererRecreatedListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) {
+        _isStatusLabelUpdated = true;  // Force recreation of textures
+    });
 
     _eventDispatcher->addEventListenerWithFixedPriority(_rendererRecreatedListener, -1);
 #endif
@@ -1151,7 +1162,7 @@ void Director::setNextScene()
         _runningScene->release();
     }
     _runningScene = _nextScene;
-    if(_nextScene)
+    if (_nextScene)
     {
         _nextScene->retain();
     }
@@ -1281,8 +1292,8 @@ void Director::calculateMPF()
 void Director::getFPSImageData(unsigned char** datapointer, ssize_t* length)
 {
     // FIXME: fixed me if it should be used
-    *datapointer = cc_fps_images_png;
-    *length      = cc_fps_images_len();
+    *datapointer = ax_fps_images_png;
+    *length      = ax_fps_images_len();
 }
 
 void Director::createStatsLabel()
@@ -1300,7 +1311,7 @@ void Director::createStatsLabel()
         AX_SAFE_RELEASE_NULL(_FPSLabel);
         AX_SAFE_RELEASE_NULL(_drawnBatchesLabel);
         AX_SAFE_RELEASE_NULL(_drawnVerticesLabel);
-        _textureCache->removeTextureForKey("/cc_fps_images");
+        _textureCache->removeTextureForKey("/ax_fps_images");
         FileUtils::getInstance()->purgeCachedEntries();
     }
 
@@ -1314,11 +1325,11 @@ void Director::createStatsLabel()
     {
         if (image)
             delete image;
-        AXLOGERROR("%s", "Fails: init fps_images");
+        AXLOGE("{}", "Fails: init fps_images");
         return;
     }
 
-    texture = _textureCache->addImage(image, "/cc_fps_images", PixelFormat::RGBA4);
+    texture = _textureCache->addImage(image, "/ax_fps_images", PixelFormat::RGBA4);
     AX_SAFE_RELEASE(image);
 
     /*
@@ -1359,9 +1370,9 @@ void Director::setStatsAnchor(AnchorPreset anchor)
         showStats();
 
     {
-        static Vec2 _fpsPosition          = {0, 0};
-        auto safeOrigin        = getSafeAreaRect().origin;
-        auto safeSize          = getSafeAreaRect().size;
+        static Vec2 _fpsPosition = {0, 0};
+        auto safeOrigin          = getSafeAreaRect().origin;
+        auto safeSize            = getSafeAreaRect().size;
         const int height_spacing = (int)(22 / AX_CONTENT_SCALE_FACTOR());
 
         switch (anchor)
@@ -1582,4 +1593,4 @@ void Director::setAnimationInterval(float interval, SetIntervalReason reason)
     }
 }
 
-NS_AX_END
+}

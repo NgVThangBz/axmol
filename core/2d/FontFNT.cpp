@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@
 
 #include <cmath>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @addtogroup GUI
@@ -117,7 +118,7 @@ BMFontConfiguration::BMFontConfiguration() : _commonHeight(0), _characterSet(nul
 
 BMFontConfiguration::~BMFontConfiguration()
 {
-    AXLOGINFO("deallocing BMFontConfiguration: %p", this);
+    AXLOGV("deallocing BMFontConfiguration: {}", fmt::ptr(this));
     this->purgeFontDefDictionary();
     this->purgeKerningDictionary();
     _atlasName.clear();
@@ -126,9 +127,9 @@ BMFontConfiguration::~BMFontConfiguration()
 
 std::string BMFontConfiguration::description() const
 {
-    return StringUtils::format(
-        "<BMFontConfiguration = " AX_FORMAT_PRINTF_SIZE_T " | Glphys:%d Kernings:%d | Image = %s>", (size_t)this,
-        static_cast<int>(_fontDefDictionary.size()), static_cast<int>(_kerningDictionary.size()), _atlasName.c_str());
+    return fmt::format(
+        "<BMFontConfiguration = " AX_FORMAT_PRINTF_SIZE_T " | Glphys:{} Kernings:{} | Image = {}>", (size_t)this,
+        static_cast<int>(_fontDefDictionary.size()), static_cast<int>(_kerningDictionary.size()), _atlasName);
 }
 
 void BMFontConfiguration::purgeKerningDictionary()
@@ -156,7 +157,7 @@ std::set<unsigned int>* BMFontConfiguration::parseConfigFile(std::string_view co
     }
     if (data[0] == 0)
     {
-        AXLOG("axmol: Error parsing FNTfile %s", controlFile.data());
+        AXLOGW("axmol: Error parsing FNTfile {}", controlFile);
         return nullptr;
     }
     auto contents = data.c_str();
@@ -429,7 +430,7 @@ void BMFontConfiguration::parseInfoArguments(const char* line)
     // padding
     sscanf(strstr(line, "padding=") + 8, "%d,%d,%d,%d", &_padding.top, &_padding.right, &_padding.bottom,
            &_padding.left);
-    // AXLOG("axmol: padding: %d,%d,%d,%d", _padding.left, _padding.top, _padding.right, _padding.bottom);
+    // AXLOGD("axmol: padding: {},{},{},{}", _padding.left, _padding.top, _padding.right, _padding.bottom);
 }
 
 void BMFontConfiguration::parseCommonArguments(const char* line)
@@ -589,12 +590,12 @@ FontFNT* FontFNT::create(std::string_view fntFilePath)
     tempFont->autorelease();
     return tempFont;
 }
-
+#ifndef AX_CORE_PROFILE
 FontFNT* FontFNT::create(std::string_view fntFilePath, const Vec2& imageOffset)
 {
     return create(fntFilePath, Rect(imageOffset.x, imageOffset.y, 0, 0), false);
 }
-
+#endif
 FontFNT::FontFNT(BMFontConfiguration* theContfig, const Rect& imageRect, bool imageRotated)
     : _configuration(theContfig), _imageRectInPoints(AX_RECT_PIXELS_TO_POINTS(imageRect)), _imageRotated(imageRotated)
 {
@@ -738,7 +739,7 @@ FontAtlas* FontFNT::newFontAtlas()
         // add the new definition
         if (65535 < fontDef.charID)
         {
-            AXLOGWARN("Warning: 65535 < fontDef.charID (%u), ignored", fontDef.charID);
+            AXLOGW("Warning: 65535 < fontDef.charID ({}), ignored", fontDef.charID);
         }
         else
         {
@@ -783,4 +784,4 @@ void FontFNT::reloadBMFontResource(std::string_view fntFilePath)
     }
 }
 
-NS_AX_END
+}

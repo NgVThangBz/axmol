@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,9 @@ THE SOFTWARE.
 #include "base/Config.h"
 
 // base
-#include "base/AsyncTaskPool.h"
+#ifndef AX_CORE_PROFILE
+#    include "base/AsyncTaskPool.h"
+#endif
 #include "base/AutoreleasePool.h"
 #include "base/Configuration.h"
 #include "base/Logging.h"
@@ -281,10 +283,11 @@ THE SOFTWARE.
 #include "3d/Terrain.h"
 #include "3d/VertexAttribBinding.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 AX_DLL const char* axmolVersion();
 
-NS_AX_END
+}
 
 #endif  // __AX_H__

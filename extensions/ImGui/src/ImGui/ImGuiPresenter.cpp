@@ -1,3 +1,27 @@
+/****************************************************************************
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+
+https://axmol.dev/
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+****************************************************************************/
+
 #include "ImGuiPresenter.h"
 #include <assert.h>
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
@@ -15,6 +39,7 @@
 #endif
 
 NS_AX_EXT_BEGIN
+
 
 namespace
 {
@@ -367,17 +392,13 @@ void ImGuiPresenter::loadCustomFonts(void* ud)
     auto contentZoomFactor = thiz->_contentZoomFactor;
     for (auto& fontInfo : thiz->_fontsInfoMap)
     {
-        const ImWchar* imChars = nullptr;
-        switch (fontInfo.second.glyphRange)
-        {
-        case CHS_GLYPH_RANGE::GENERAL:
-            imChars = imFonts->GetGlyphRangesChineseSimplifiedCommon();
-            break;
-        case CHS_GLYPH_RANGE::FULL:
-            imChars = imFonts->GetGlyphRangesChineseFull();
-            break;
-        default:;
-        }
+        auto& imChars = fontInfo.second.glyphRanges;
+        // if the user has explicitly called `removeGlyphRanges` or replaced with new ranges
+        if (imChars && !thiz->_usedGlyphRanges.contains((uintptr_t)imChars))
+            imChars = nullptr;
+
+        if (imChars == nullptr && thiz->_glyphRanges.contains(fontInfo.second.glyphRangesId))
+            imChars = thiz->_glyphRanges.at(fontInfo.second.glyphRangesId).data();
 
         auto fontData = FileUtils::getInstance()->getDataFromFile(fontInfo.first);
         AXASSERT(!fontData.isNull(), "Cannot load font for IMGUI");
@@ -385,9 +406,11 @@ void ImGuiPresenter::loadCustomFonts(void* ud)
         ssize_t bufferSize = 0;
         auto* buffer       = fontData.takeBuffer(&bufferSize);  // Buffer automatically freed by IMGUI
 
-        imFonts->AddFontFromMemoryTTF(buffer, bufferSize, fontInfo.second.fontSize * contentZoomFactor, nullptr,
-                                      imChars);
+        imFonts->AddFontFromMemoryTTF(buffer, bufferSize, fontInfo.second.fontSize * contentZoomFactor,
+                                      &fontInfo.second.fontConfig, imChars);
     }
+    // the temporary bucket gets emptied out
+    thiz->_eraseGlyphRanges.clear();
 }
 
 float ImGuiPresenter::enableDPIScale(float userScale)
@@ -424,11 +447,66 @@ void ImGuiPresenter::setViewResolution(float width, float height)
     ImGui_ImplAx_SetViewResolution(width, height);
 }
 
-void ImGuiPresenter::addFont(std::string_view fontFile, float fontSize, CHS_GLYPH_RANGE glyphRange)
+void ImGuiPresenter::addFont(std::string_view fontFile,
+                             float fontSize,
+                             GLYPH_RANGES glyphRange,
+                             const ImFontConfig& fontConfig)
+{
+    addGlyphRanges(glyphRange);
+    std::string_view glyphId = getGlyphRangesId(glyphRange);
+    addFont(fontFile, fontSize, glyphId, fontConfig);
+}
+
+void ImGuiPresenter::addFont(std::string_view fontFile,
+                             float fontSize,
+                             std::string_view glyphRangeId,
+                             const ImFontConfig& fontConfig)
+{
+    auto it = _glyphRanges.find(glyphRangeId);
+    if (it == _glyphRanges.end())
+    {
+        addFont(fontFile, fontSize, std::vector<ImWchar>(0), fontConfig);
+        return;
+    }
+
+    if (FileUtils::getInstance()->isFileExistInternal(fontFile))
+    {
+        ImWchar* imChars = it->second.data();
+
+        bool isDirty =
+            _fontsInfoMap.emplace(fontFile, FontInfo{fontSize, imChars, std::string(glyphRangeId), fontConfig}).second;
+        isDirty |=
+            _usedGlyphRanges.emplace((uintptr_t)imChars).second || _fontsInfoMap.at(fontFile).glyphRanges != imChars;
+        if (isDirty)
+            ImGui_ImplAx_SetDeviceObjectsDirty();
+    }
+}
+
+void ImGuiPresenter::addFont(std::string_view fontFile,
+                             float fontSize,
+                             const std::vector<ImWchar>& glyphRanges,
+                             const ImFontConfig& fontConfig)
+{
+    addFont(fontFile, fontSize, fontFile, glyphRanges, fontConfig);
+}
+
+void ImGuiPresenter::addFont(std::string_view fontFile,
+                             float fontSize,
+                             std::string_view glyphRangesId,
+                             const std::vector<ImWchar>& glyphRanges,
+                             const ImFontConfig& fontConfig)
 {
     if (FileUtils::getInstance()->isFileExistInternal(fontFile))
     {
-        if (_fontsInfoMap.emplace(fontFile, FontInfo{fontSize, glyphRange}).second)
+        ImWchar* imChars = nullptr;
+        if (!glyphRanges.empty())
+            imChars = addGlyphRanges(glyphRangesId, glyphRanges);
+
+        bool isDirty =
+            _fontsInfoMap.emplace(fontFile, FontInfo{fontSize, imChars, std::string(glyphRangesId), fontConfig}).second;
+        isDirty |= imChars && (_usedGlyphRanges.emplace((uintptr_t)imChars).second ||
+                               _fontsInfoMap.at(fontFile).glyphRanges != imChars);
+        if (isDirty)
             ImGui_ImplAx_SetDeviceObjectsDirty();
     }
 }
@@ -853,16 +931,108 @@ void ImGuiPresenter::setLabelColor(Label* label, ImGuiCol col)
         setLabelColor(label, ImGui::GetStyleColorVec4(col));
 }
 
+ImWchar* ImGuiPresenter::addGlyphRanges(GLYPH_RANGES glyphRange)
+{
+    static std::unordered_map<GLYPH_RANGES, size_t> _glyph_ranges_size;
+    auto imFonts = ImGui::GetIO().Fonts;
+    const ImWchar* imChars;
+
+    switch (glyphRange)
+    {
+    case GLYPH_RANGES::DEFAULT:
+        imChars = imFonts->GetGlyphRangesDefault();
+        break;
+    case GLYPH_RANGES::GREEK:
+        imChars = imFonts->GetGlyphRangesGreek();
+        break;
+    case GLYPH_RANGES::KOREAN:
+        imChars = imFonts->GetGlyphRangesKorean();
+        break;
+    case GLYPH_RANGES::CHINESE_GENERAL:
+        imChars = imFonts->GetGlyphRangesChineseSimplifiedCommon();
+        break;
+    case GLYPH_RANGES::CHINESE_FULL:
+        imChars = imFonts->GetGlyphRangesChineseFull();
+        break;
+    case GLYPH_RANGES::JAPANESE:
+        imChars = imFonts->GetGlyphRangesJapanese();
+        break;
+    case GLYPH_RANGES::CYRILLIC:
+        imChars = imFonts->GetGlyphRangesCyrillic();
+        break;
+    case GLYPH_RANGES::THAI:
+        imChars = imFonts->GetGlyphRangesThai();
+        break;
+    case GLYPH_RANGES::VIETNAMESE:
+        imChars = imFonts->GetGlyphRangesVietnamese();
+        break;
+    default:
+        return nullptr;
+    }
+
+    size_t imCharsSize = 0;
+    if (_glyph_ranges_size.contains(glyphRange))
+        imCharsSize = _glyph_ranges_size[glyphRange];
+    else
+    {
+        // must always end with 0
+        while (imChars[imCharsSize] != 0)
+            imCharsSize++;
+        imCharsSize += 1;
+        _glyph_ranges_size[glyphRange] = imCharsSize;
+    }
+    auto glyphId = getGlyphRangesId(glyphRange);
+
+    return addGlyphRanges(glyphId, std::vector<ImWchar>(imChars, imChars + imCharsSize));
+}
+
 ImWchar* ImGuiPresenter::addGlyphRanges(std::string_view key, const std::vector<ImWchar>& ranges)
 {
-    auto it = glyphRanges.find(key);
-    // the pointer must be persistant, do not replace
-    if (it != glyphRanges.end())
-        return it->second.data();
-    it = glyphRanges.emplace(key, ranges).first;  // glyphRanges[key] = ranges;
+    auto it = _glyphRanges.find(key);
+    // store in our temporary bucket if already exists...
+    if (it != _glyphRanges.end())
+    {
+        // so that `loadCustomFonts` can look for the new "replaced" glyph ranges
+        _usedGlyphRanges.erase((uintptr_t)it->second.data());
+        // probably automatically gets *moved* but to make our intention more clear
+        _eraseGlyphRanges.push_back(std::move(it->second));
+    }
+    it = _glyphRanges.emplace(key, ranges).first;  // _glyphRanges[key] = ranges;
     if (ranges.empty())
         it->second.push_back(0);
+    // the `addFont` will call `ImGui_ImplAx_SetDeviceObjectsDirty` if everything is okay,
+    // no need to call it if no font is using the glyph ranges...
     return it->second.data();
+}
+
+void ImGuiPresenter::removeGlyphRanges(std::string_view key)
+{
+    auto removeGlyphRange = _glyphRanges.find(key);
+    if (removeGlyphRange == _glyphRanges.end())
+        return;
+
+    auto usedCount = _usedGlyphRanges.size();
+    _usedGlyphRanges.erase((uintptr_t)removeGlyphRange->second.data());
+    _eraseGlyphRanges.push_back(std::move(removeGlyphRange->second));
+    _glyphRanges.erase(key);
+
+    // update the fonts to not use the glyph ranges since user wants to remove it for some reason..
+    if (_usedGlyphRanges.size() != usedCount)
+        ImGui_ImplAx_SetDeviceObjectsDirty();
+}
+
+void ImGuiPresenter::clearGlyphRanges()
+{
+    auto usedCount = _usedGlyphRanges.size();
+    for (auto& glyphRange : _glyphRanges)
+    {
+        _usedGlyphRanges.erase((uintptr_t)glyphRange.second.data());
+        _eraseGlyphRanges.push_back(std::move(glyphRange.second));
+    }
+    _glyphRanges.clear();
+
+    if (_usedGlyphRanges.size() != usedCount)
+        ImGui_ImplAx_SetDeviceObjectsDirty();
 }
 
 void ImGuiPresenter::mergeFontGlyphs(ImFont* dst, ImFont* src, ImWchar start, ImWchar end)
@@ -899,6 +1069,33 @@ int ImGuiPresenter::getCCRefId(Object* p)
     for (auto i = 0u; i < sizeof(int); ++i)
         hash = hash * seed + ((const char*)&id)[i];
     return (int)hash;
+}
+
+std::string_view ImGuiPresenter::getGlyphRangesId(GLYPH_RANGES glyphRanges)
+{
+    switch (glyphRanges)
+    {
+    case GLYPH_RANGES::DEFAULT:
+        return GLYPH_RANGES_DEFAULT_ID;
+    case GLYPH_RANGES::GREEK:
+        return GLYPH_RANGES_GREEK_ID;
+    case GLYPH_RANGES::KOREAN:
+        return GLYPH_RANGES_KOREAN_ID;
+    case GLYPH_RANGES::CHINESE_GENERAL:
+        return GLYPH_RANGES_CHINESE_GENERAL_ID;
+    case GLYPH_RANGES::CHINESE_FULL:
+        return GLYPH_RANGES_CHINESE_FULL_ID;
+    case GLYPH_RANGES::JAPANESE:
+        return GLYPH_RANGES_JAPANESE_ID;
+    case GLYPH_RANGES::CYRILLIC:
+        return GLYPH_RANGES_CYRILLIC_ID;
+    case GLYPH_RANGES::THAI:
+        return GLYPH_RANGES_THAI_ID;
+    case GLYPH_RANGES::VIETNAMESE:
+        return GLYPH_RANGES_VIETNAMESE_ID;
+    default:
+        return "";
+    }
 }
 
 NS_AX_EXT_END

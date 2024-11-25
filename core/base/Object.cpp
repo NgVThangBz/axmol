@@ -4,7 +4,7 @@ Copyright (c) 2013-2017 Chukong Technologies
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@ THE SOFTWARE.
 #    include <vector>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 #if AX_OBJECT_LEAK_DETECTION
 static void trackRef(Object* ref);
@@ -195,4 +196,4 @@ static void untrackRef(Object* ref)
 
 #endif  // #if AX_OBJECT_LEAK_DETECTION
 
-NS_AX_END
+}

@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,8 @@
 
 #include "yasio/string_view.hpp"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 PUMaterial::PUMaterial()
     : isEnabledLight(true)
@@ -111,7 +112,7 @@ void PUMaterialCache::addMaterial(PUMaterial* material)
     {
         if (iter->name == material->name)
         {
-            AXLOG("warning: Material has existed (FilePath: %s,  MaterialName: %s)", material->fileName.c_str(),
+            AXLOGD("warning: Material has existed (FilePath: {},  MaterialName: {})", material->fileName,
                   material->name.c_str());
             return;
         }
@@ -126,7 +127,7 @@ int iterPath(const char* fpath, const struct stat* /*sb*/, int typeflag)
 {
     if (typeflag == FTW_F)
     {
-        if (FileUtils::getInstance()->getFileExtension(fpath) == ".material")
+        if (FileUtils::getPathExtension(fpath) == ".material")
             PUMaterialCache::Instance()->loadMaterials(fpath);
     }
     return 0;
@@ -170,7 +171,7 @@ bool PUMaterialCache::loadMaterialsFromSearchPaths(std::string_view fileFolder)
     std::string fullpath;
     while ((fileName = AAssetDir_getNextFileName(dir)) != nullptr)
     {
-        if (FileUtils::getInstance()->getFileExtension(fileName) == ".material")
+        if (FileUtils::getPathExtension(fileName) == ".material")
         {
             fullpath.assign(fileFolder).append(seg).append(fileName);
             loadMaterials(fullpath);
@@ -187,7 +188,7 @@ bool PUMaterialCache::loadMaterialsFromSearchPaths(std::string_view fileFolder)
 
     if (!(d = opendir(fileFolder.data())))
     {
-        AXLOG("error opendir %s!!!\n", fileFolder.data());
+        AXLOGD("error opendir {}!!!\n", fileFolder);
         return false;
     }
     while ((file = readdir(d)) != NULL)
@@ -197,11 +198,11 @@ bool PUMaterialCache::loadMaterialsFromSearchPaths(std::string_view fileFolder)
             continue;
         }
 
-        if (FileUtils::getInstance()->getFileExtension(file->d_name) == ".material")
+        if (FileUtils::getPathExtension(file->d_name) == ".material")
         {
             std::string fullpath{fileFolder};
             fullpath.append("/"sv).append(file->d_name);
-            AXLOG("%s", fullpath.c_str());
+            AXLOGD("{}", fullpath);
             loadMaterials(fullpath);
             state = true;
         }
@@ -227,4 +228,4 @@ bool PUMaterialCache::loadMaterialsFromSearchPaths(std::string_view fileFolder)
     return state;
 }
 
-NS_AX_END
+}

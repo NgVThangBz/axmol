@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,8 @@
 #include "PUScaleVelocityAffector.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 // Constants
 const float PUScaleVelocityAffector::DEFAULT_VELOCITY_SCALE = 1.0f;
 
@@ -123,4 +124,4 @@ void PUScaleVelocityAffector::copyAttributesTo(PUAffector* affector)
     scaleVelocityAffector->_stopAtFlip       = _stopAtFlip;
 }
 
-NS_AX_END
+}

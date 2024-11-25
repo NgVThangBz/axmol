@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 #include "CustomTableViewCell.h"
 #include "../ExtensionsTest.h"
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 
 TableViewTests::TableViewTests()
@@ -70,7 +70,7 @@ bool TableViewTest::init()
 
 void TableViewTest::tableCellTouched(TableView* table, TableViewCell* cell)
 {
-    AXLOG("cell touched at index: %d", static_cast<int32_t>(cell->getIdx()));
+    AXLOGD("cell touched at index: {}", static_cast<int32_t>(cell->getIdx()));
 }
 
 Size TableViewTest::tableCellSizeForIndex(TableView* table, ssize_t idx)
@@ -84,7 +84,7 @@ Size TableViewTest::tableCellSizeForIndex(TableView* table, ssize_t idx)
 
 TableViewCell* TableViewTest::tableCellAtIndex(TableView* table, ssize_t idx)
 {
-    auto string         = StringUtils::format("%d", static_cast<int32_t>(idx));
+    auto string         = fmt::format("{}", static_cast<int32_t>(idx));
     TableViewCell* cell = table->dequeueCell();
     if (!cell)
     {

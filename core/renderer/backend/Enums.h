@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -381,6 +381,7 @@ struct ProgramType
 
         VIDEO_TEXTURE_YUY2,
         VIDEO_TEXTURE_NV12,
+        VIDEO_TEXTURE_I420, // For some android 11 and older devices
         VIDEO_TEXTURE_BGR32,
 
         BUILTIN_COUNT,

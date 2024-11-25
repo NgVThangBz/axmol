@@ -2,7 +2,7 @@
  Copyright (c) 2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ void ShaderCache::purge()
     {
         AX_SAFE_RELEASE(shaderModule);
     }
-    AXLOGINFO("purging ShaderCache");
+    AXLOGV("purging ShaderCache");
 }
 
 backend::ShaderModule* ShaderCache::newVertexShaderModule(std::string_view shaderSource)
@@ -89,7 +89,7 @@ void ShaderCache::removeUnusedShader()
         auto shaderModule = iter->second;
         if (shaderModule->getReferenceCount() == 1)
         {
-            //            AXLOG("axmol: TextureCache: removing unused program");
+            //            AXLOGD("TextureCache: removing unused program");
             shaderModule->release();
             iter = _cachedShaders.erase(iter);
         }

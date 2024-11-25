@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@
 
 #define LOG_TAG "AudioDecoder"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 AudioDecoderEXT::AudioDecoderEXT() : _extRef(nullptr), _fileStream(nullptr), _streamSize(0), _audioFileId(nullptr)
 {
@@ -221,4 +222,4 @@ SInt64 AudioDecoderEXT::getSizeCallback(void* inClientData)
     auto* audioDecoder = (AudioDecoderEXT*)inClientData;
     return audioDecoder->_streamSize;
 }
-NS_AX_END  // namespace ax
+}  // namespace ax

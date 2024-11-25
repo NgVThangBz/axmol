@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,8 @@
 
 #include "yasio/byte_buffer.hpp"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 using ilist_u16_t = std::initializer_list<uint16_t>;
 using ilist_u32_t = std::initializer_list<uint32_t>;
@@ -574,6 +575,6 @@ struct Reference
     unsigned int offset;
 };
 
-NS_AX_END
+}
 
 #endif  //__AX_BUNDLE_3D_DATA_H__

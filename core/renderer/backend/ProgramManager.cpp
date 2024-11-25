@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ ProgramManager::~ProgramManager()
     {
         AX_SAFE_RELEASE(program.second);
     }
-    AXLOGINFO("deallocing ProgramManager: %p", this);
+    AXLOGD("deallocing ProgramManager: {}", fmt::ptr(this));
     backend::ShaderCache::destroyInstance();
 }
 
@@ -151,6 +151,8 @@ bool ProgramManager::init()
     registerProgram(ProgramType::VIDEO_TEXTURE_YUY2, positionTextureColor_vert, videoTextureYUY2_frag,
                     VertexLayoutType::Sprite);
     registerProgram(ProgramType::VIDEO_TEXTURE_NV12, positionTextureColor_vert, videoTextureNV12_frag,
+                    VertexLayoutType::Sprite);
+    registerProgram(ProgramType::VIDEO_TEXTURE_I420, positionTextureColor_vert, videoTextureI420_frag,
                     VertexLayoutType::Sprite);
 
     // The builtin dual sampler shader registry
@@ -284,7 +286,7 @@ void ProgramManager::unloadUnusedPrograms()
         auto program = iter->second;
         if (program->getReferenceCount() == 1)
         {
-            //            AXLOG("axmol: TextureCache: removing unused program");
+            // AXLOGD("TextureCache: removing unused program");
             program->release();
             iter = _cachedPrograms.erase(iter);
         }

@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,8 @@ THE SOFTWARE.
 #include "base/Director.h"
 #include "base/ScriptSupport.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // implementation Timer
 
@@ -279,7 +280,7 @@ void Scheduler::schedule(const ccSchedulerFunc& callback,
         });
         if (timerIt != timers.end())
         {
-            AXLOG("Scheduler#schedule. Reiniting timer with interval %.4f, repeat %u, delay %.4f", interval, repeat,
+            AXLOGD("Scheduler#schedule. Reiniting timer with interval {:.4f}, repeat {}, delay {:.4f}", interval, repeat,
                   delay);
             (*timerIt)->setupTimerWithInterval(interval, repeat, delay);
             return;
@@ -499,9 +500,11 @@ void Scheduler::unscheduleAllWithMinPriority(int minPriority)
         unscheduleAllForTarget(timerIt);
     }
 
+    axstd::pod_vector<void*> targets;
+
     for (auto&& entry : _waitList)
     {
-        unscheduleUpdate(entry->target);
+        targets.push_back(entry->target);
     }
 
     // Updates selectors
@@ -511,7 +514,7 @@ void Scheduler::unscheduleAllWithMinPriority(int minPriority)
         {
             if (entry->priority >= minPriority)
             {
-                unscheduleUpdate(entry->target);
+                targets.push_back(entry->target);
             }
         }
     }
@@ -520,7 +523,7 @@ void Scheduler::unscheduleAllWithMinPriority(int minPriority)
     {
         for (auto&& entry : _updates0List)
         {
-            unscheduleUpdate(entry->target);
+            targets.push_back(entry->target);
         }
     }
 
@@ -528,9 +531,13 @@ void Scheduler::unscheduleAllWithMinPriority(int minPriority)
     {
         if (entry->priority >= minPriority)
         {
-            unscheduleUpdate(entry->target);
+            targets.push_back(entry->target);
         }
     }
+
+    for (auto target: targets)
+        unscheduleUpdate(target);
+
 #if AX_ENABLE_SCRIPT_BINDING
     _scriptHandlerEntries.clear();
 #endif
@@ -903,7 +910,7 @@ void Scheduler::schedule(SEL_SCHEDULE selector,
         });
         if (timerIt != timers.end())
         {
-            AXLOG("Scheduler#schedule. Reiniting timer with interval %.4f, repeat %u, delay %.4f", interval, repeat,
+            AXLOGD("Scheduler#schedule. Reiniting timer with interval {:.4}, repeat {}, delay {:.4f}", interval, repeat,
                   delay);
             (*timerIt)->setupTimerWithInterval(interval, repeat, delay);
             return;
@@ -993,4 +1000,4 @@ void Scheduler::unschedule(SEL_SCHEDULE selector, Object* target)
     }
 }
 
-NS_AX_END
+}

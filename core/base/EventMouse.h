@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +25,8 @@
 
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCMouseEvent__
-#define __cocos2d_libs__CCMouseEvent__
+#ifndef _AX_MOUSEEVENT_H_
+#define _AX_MOUSEEVENT_H_
 
 #include "base/Event.h"
 #include "math/Math.h"
@@ -35,7 +36,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /** @class EventMouse
  * @brief The mouse event.
@@ -103,13 +105,12 @@ public:
      * @param y The y coordinate of cursor position.
      * @js setLocation
      */
-    void setCursorPosition(float x, float y)
+    void setMouseInfo(float x, float y, MouseButton button)
     {
-        _x         = x;
-        _y         = y;
         _prevPoint = _point;
         _point.x   = x;
         _point.y   = y;
+        _mouseButton = button;
         if (!_startPointCaptured)
         {
             _startPoint         = _point;
@@ -134,13 +135,13 @@ public:
      * @return The x coordinate of cursor position.
      * @js getLocationX
      */
-    float getCursorX() const { return _x; }
+    AX_DEPRECATED(2.2) float getCursorX() const { return getLocation().x; }
     /** Get the cursor position of y axis.
      *
      * @return The y coordinate of cursor position.
      * @js getLocationY
      */
-    float getCursorY() const { return _y; }
+    AX_DEPRECATED(2.2) float getCursorY() const { return getLocation().y; }
 
     /** Returns the current touch location in OpenGL coordinates.
      *
@@ -185,8 +186,6 @@ public:
 private:
     MouseEventType _mouseEventType;
     MouseButton _mouseButton;
-    float _x;
-    float _y;
     float _scrollX;
     float _scrollY;
 
@@ -198,9 +197,9 @@ private:
     friend class EventListenerMouse;
 };
 
-NS_AX_END
+}
 
 // end of base group
 /// @}
 
-#endif /* defined(__cocos2d_libs__CCMouseEvent__) */
+#endif /* defined(_AX_MOUSEEVENT_H_) */

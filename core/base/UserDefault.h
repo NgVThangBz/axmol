@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,8 @@ THE SOFTWARE.
  * @addtogroup base
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * UserDefault acts as a tiny database. You can save and get base type values by it.
@@ -299,7 +300,7 @@ protected:
 
 };
 
-NS_AX_END
+}
 // end of base group
 /** @} */
 

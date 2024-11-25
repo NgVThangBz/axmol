@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@
 #include "PixelFormatUtils.h"
 #include "Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace backend
 {
@@ -88,7 +89,7 @@ static_assert(AX_ARRAYSIZE(s_pixelFormatDescriptors) == (int)PixelFormat::COUNT,
 // pixel format helper functions
 const PixelFormatDescriptor& getFormatDescriptor(PixelFormat format)
 {
-    if (UTILS_LIKELY(format < PixelFormat::COUNT))
+    if (AX_LIKELY(format < PixelFormat::COUNT))
         return s_pixelFormatDescriptors[(uint32_t)format];
 
     static const PixelFormatDescriptor s_invalidDescriptor = {};
@@ -97,9 +98,9 @@ const PixelFormatDescriptor& getFormatDescriptor(PixelFormat format)
 
 uint32_t computeRowPitch(PixelFormat format, uint32_t width)
 {
-    if (UTILS_LIKELY(format < PixelFormat::COUNT))
+    if (AX_LIKELY(format < PixelFormat::COUNT))
     {
-        if (UTILS_LIKELY(format >= PixelFormat::ETC1))
+        if (AX_LIKELY(format >= PixelFormat::ETC1))
         {  // @MTL: PVRTC.rowPitc must be 0
             auto& descriptor = s_pixelFormatDescriptors[(uint32_t)format];
             if (format < PixelFormat::RGBA8)
@@ -500,8 +501,8 @@ static ax::backend::PixelFormat convertR8ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::R8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::L8 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::L8 to format ID:{}, we will use it's origin format "
                 "PixelFormat::L8",
                 static_cast<int>(format));
         }
@@ -556,8 +557,8 @@ static ax::backend::PixelFormat convertRG8ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RG8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::LA8 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::LA8 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RG8",
                 static_cast<int>(format));
         }
@@ -612,8 +613,8 @@ static ax::backend::PixelFormat convertRGB8ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RGB8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::RGB8 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::RGB8 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RGB8",
                 static_cast<int>(format));
         }
@@ -668,8 +669,8 @@ static ax::backend::PixelFormat convertRGBA8ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RGBA8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::RGBA8 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::RGBA8 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RGBA8",
                 static_cast<int>(format));
         }
@@ -703,8 +704,8 @@ static ax::backend::PixelFormat convertRGB5A1ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RGBA8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::RGB5A1 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::RGB5A1 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RGB51A",
                 static_cast<int>(format));
         }
@@ -737,8 +738,8 @@ static ax::backend::PixelFormat convertRGB565ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RGBA8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::RGB565 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::RGB565 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RGB565",
                 static_cast<int>(format));
         }
@@ -771,8 +772,8 @@ static ax::backend::PixelFormat convertRGBA4ToFormat(const unsigned char* data,
         // unsupported conversion or don't need to convert
         if (format != PixelFormat::RGBA8)
         {
-            AXLOG(
-                "Can not convert image format PixelFormat::RGBA444 to format ID:%d, we will use it's origin format "
+            AXLOGW(
+                "Can not convert image format PixelFormat::RGBA444 to format ID:{}, we will use it's origin format "
                 "PixelFormat::RGBA4",
                 static_cast<int>(format));
         }
@@ -854,7 +855,7 @@ ax::backend::PixelFormat convertDataToFormat(const unsigned char* data,
     case PixelFormat::BGRA8:
         return convertBGRA8ToFormat(data, dataLen, format, outData, outDataLen);
     default:
-        AXLOG("unsupported conversion from format %d to format %d", static_cast<int>(originFormat),
+        AXLOGW("unsupported conversion from format {} to format {}", static_cast<int>(originFormat),
               static_cast<int>(format));
         *outData    = (unsigned char*)data;
         *outDataLen = dataLen;
@@ -864,4 +865,4 @@ ax::backend::PixelFormat convertDataToFormat(const unsigned char* data,
 }  // namespace PixelFormatUtils
 }  // namespace backend
 
-NS_AX_END
+}

@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,8 @@
 #include "platform/FileUtils.h"
 #include "base/format.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 hlookup::string_map<FontAtlas*> FontAtlasCache::_atlasMap;
 
@@ -143,12 +144,12 @@ FontAtlas* FontAtlasCache::getFontAtlasFNT(std::string_view fontFileName, const 
 
     return nullptr;
 }
-
+#ifndef AX_CORE_PROFILE
 FontAtlas* FontAtlasCache::getFontAtlasFNT(std::string_view fontFileName, const Vec2& imageOffset)
 {
     return getFontAtlasFNT(fontFileName, Rect(imageOffset.x, imageOffset.y, 0, 0), false);
 }
-
+#endif
 FontAtlas* FontAtlasCache::getFontAtlasCharMap(std::string_view plistFile)
 {
     std::string_view atlasName = plistFile;
@@ -259,11 +260,12 @@ void FontAtlasCache::reloadFontAtlasFNT(std::string_view fontFileName, const Rec
             _atlasMap.emplace(std::move(atlasName), tempAtlas);
     }
 }
-
+#ifndef AX_CORE_PROFILE
 void FontAtlasCache::reloadFontAtlasFNT(std::string_view fontFileName, const Vec2& imageOffset)
 {
     reloadFontAtlasFNT(fontFileName, Rect(imageOffset.x, imageOffset.y, 0, 0), false);
 }
+#endif
 
 void FontAtlasCache::unloadFontAtlasTTF(std::string_view fontFileName)
 {
@@ -279,4 +281,4 @@ void FontAtlasCache::unloadFontAtlasTTF(std::string_view fontFileName)
     }
 }
 
-NS_AX_END
+}

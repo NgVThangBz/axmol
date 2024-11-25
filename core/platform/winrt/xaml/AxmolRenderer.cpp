@@ -1,5 +1,5 @@
 /*
- * cocos2d-x   https://axmolengine.github.io/
+ * cocos2d-x   https://axmol.dev/
  *
  * Copyright (c) 2010-2014 - cocos2d-x community
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
@@ -71,7 +71,7 @@ void AxmolRenderer::Resume()
     {
         Application::getInstance()->applicationWillEnterForeground();
         ax::EventCustom foregroundEvent(EVENT_COME_TO_FOREGROUND);
-        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&foregroundEvent);
+        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&foregroundEvent, true);
     }
 }
 
@@ -81,7 +81,7 @@ void AxmolRenderer::Pause()
     {
         Application::getInstance()->applicationDidEnterBackground();
         ax::EventCustom backgroundEvent(EVENT_COME_TO_BACKGROUND);
-        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&backgroundEvent);
+        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&backgroundEvent, true);
     }
 }
 
@@ -97,19 +97,18 @@ void AxmolRenderer::DeviceLost()
     auto director = ax::Director::getInstance();
     if (director->getGLView())
     {
-        // TODO:
-        // ax::GL::invalidateStateCache();
-        // ax::GLProgramCache::getInstance()->reloadDefaultGLPrograms();
-        // ax::DrawPrimitives::init();
-        // ax::VolatileTextureMgr::reloadAllTextures();
-
+        backend::DriverBase::getInstance()->resetState();
+        ax::Director::getInstance()->resetMatrixStack();
         ax::EventCustom recreatedEvent(EVENT_RENDERER_RECREATED);
-        director->getEventDispatcher()->dispatchEvent(&recreatedEvent);
+        director->getEventDispatcher()->dispatchEvent(&recreatedEvent, true);
         director->setGLDefaultValues();
+#if AX_ENABLE_CACHE_TEXTURE_DATA
+        ax::VolatileTextureMgr::reloadAllTextures();
+#endif
 
         Application::getInstance()->applicationWillEnterForeground();
         ax::EventCustom foregroundEvent(EVENT_COME_TO_FOREGROUND);
-        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&foregroundEvent);
+        ax::Director::getInstance()->getEventDispatcher()->dispatchEvent(&foregroundEvent, true);
     }
 }
 

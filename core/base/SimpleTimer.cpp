@@ -22,7 +22,8 @@ private:
 // 0xffffffff, 0xfffffffe, so it's always works well.
 #define STIMER_TARGET(bNative) reinterpret_cast<void*>(bNative ? STIMER_TARGET_NATIVE : STIMER_TARGET_SCRIPT)
 
-NS_AX_BEGIN
+namespace ax
+{
 namespace stimer
 {
 static const uintptr_t STIMER_TARGET_NATIVE = ~static_cast<uintptr_t>(0);
@@ -49,7 +50,7 @@ TIMER_ID loop(unsigned int n, float interval, vcallback_t callback, bool bNative
 
         auto timerId = reinterpret_cast<TIMER_ID>(++TimerObject::s_timerId);
 
-        std::string key = StringUtils::format("STMR#%p", timerId);
+        std::string key = fmt::format("STMR#{}", fmt::ptr(timerId));
 
         Director::getInstance()->getScheduler()->schedule(
             [timerObj](float /*dt*/) {  // lambda expression hold the reference of timerObj automatically.
@@ -69,7 +70,7 @@ TIMER_ID delay(float delay, vcallback_t callback, bool bNative)
         yasio::ref_ptr<TimerObject> timerObj(new TimerObject(std::move(callback)));
         auto timerId = reinterpret_cast<TIMER_ID>(++TimerObject::s_timerId);
 
-        std::string key = StringUtils::format("STMR#%p", timerId);
+        std::string key = fmt::format("STMR#{}", fmt::ptr(timerId));
         Director::getInstance()->getScheduler()->schedule(
             [timerObj](float /*dt*/) {  // lambda expression hold the reference of timerObj automatically.
                 timerObj->callback_();
@@ -83,7 +84,7 @@ TIMER_ID delay(float delay, vcallback_t callback, bool bNative)
 
 void kill(TIMER_ID timerId, bool bNative)
 {
-    std::string key = StringUtils::format("STMR#%p", timerId);
+    std::string key = fmt::format("STMR#{}", fmt::ptr(timerId));
     Director::getInstance()->getScheduler()->unschedule(key, STIMER_TARGET(bNative));
 }
 
@@ -92,4 +93,4 @@ void killAll(bool bNative)
     Director::getInstance()->getScheduler()->unscheduleAllForTarget(STIMER_TARGET(bNative));
 }
 }  // namespace stimer
-NS_AX_END
+}

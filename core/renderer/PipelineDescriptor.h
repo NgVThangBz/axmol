@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@
  * @addtogroup renderer
  * @{
  */
-NS_AX_BEGIN
+namespace ax
+{
 
 struct AX_DLL PipelineDescriptor
 {
@@ -46,4 +47,4 @@ struct AX_DLL PipelineDescriptor
 
 // end of renderer group
 /// @}
-NS_AX_END
+}

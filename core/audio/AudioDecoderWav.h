@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,8 @@ __inline int IsEqualGUID(const GUID& rguid1, const GUID& rguid2)
 #include <guiddef.h>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // http://soundfile.sapp.org/doc/WaveFormat/
 enum class WAV_FORMAT : uint16_t
@@ -170,4 +171,4 @@ protected:
     mutable WAV_FILE _wavf;
 };
 
-NS_AX_END  // namespace ax
+}  // namespace ax

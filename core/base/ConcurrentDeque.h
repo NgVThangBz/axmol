@@ -2,7 +2,7 @@
 *
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,8 @@
 #include <deque>
 #include <mutex>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 template <typename _Ty>
 class ConcurrentDeque
@@ -113,4 +114,4 @@ private:
     std::deque<_Ty> queue_;
     mutable std::recursive_mutex mtx_;
 };
-NS_AX_END  // namespace ax
+}  // namespace ax

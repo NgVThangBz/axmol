@@ -1,8 +1,9 @@
 /****************************************************************************
 Copyright (c) 2015-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +26,7 @@ THE SOFTWARE.
 
 #include "3d/Terrain.h"
 
-USING_NS_AX;
+using namespace ax;
 #include <stdlib.h>
 #include <float.h>
 #include <set>
@@ -44,12 +45,13 @@ USING_NS_AX;
 #include "3d/3DProgramInfo.h"
 #include "base/Utils.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace
 {
 // It's used for creating a default texture when lightMap is nullpter
-static unsigned char cc_2x2_white_image[] = {
+static unsigned char ax_2x2_white_image[] = {
     // RGBA8888
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 }  // namespace
@@ -246,7 +248,7 @@ bool Terrain::initHeightMap(std::string_view heightMap)
     }
     else
     {
-        AXLOG("warning: the height map size is not POT or POT + 1");
+        AXLOGW("warning: the height map size is not POT or POT + 1");
         return false;
     }
 }
@@ -266,7 +268,7 @@ Terrain::Terrain()
 #endif
 #ifdef AX_USE_METAL
     auto image          = new Image();
-    bool AX_UNUSED isOK = image->initWithRawData(cc_2x2_white_image, sizeof(cc_2x2_white_image), 2, 2, 8);
+    bool AX_UNUSED isOK = image->initWithRawData(ax_2x2_white_image, sizeof(ax_2x2_white_image), 2, 2, 8);
     AXASSERT(isOK, "The 2x2 empty texture was created unsuccessfully.");
     _dummyTexture = new Texture2D();
     _dummyTexture->initWithImage(image);
@@ -683,7 +685,7 @@ void Terrain::setDetailMap(unsigned int index, DetailMap detailMap)
 {
     if (index > 4)
     {
-        AXLOG("invalid DetailMap index %d\n", index);
+        AXLOGW("invalid DetailMap index {}\n", index);
     }
     _terrainData._detailMaps[index] = detailMap;
     if (_detailMapTextures[index])
@@ -1818,4 +1820,4 @@ void Terrain::StateBlock::apply()
     renderer->setWinding(winding);
 }
 
-NS_AX_END
+}

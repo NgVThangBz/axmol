@@ -3,7 +3,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ THE SOFTWARE.
 
 void axmol_android_app_init(JNIEnv* env) __attribute__((weak));
 
-USING_NS_AX;
+using namespace ax;
 
 extern "C" {
 
@@ -88,7 +88,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_AxmolRenderer_nativeInit(JNIEnv*, jcla
     auto glView   = director->getGLView();
     if (!glView)
     {
-        glView = ax::GLViewImpl::create("Android app");
+        glView = ax::GLViewImpl::create("axmol2");
         glView->setFrameSize(w, h);
         director->setGLView(glView);
 
@@ -97,9 +97,9 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_AxmolRenderer_nativeInit(JNIEnv*, jcla
     else
     {
         backend::DriverBase::getInstance()->resetState();
-        ax::Director::getInstance()->resetMatrixStack();
+        director->resetMatrixStack();
         ax::EventCustom recreatedEvent(EVENT_RENDERER_RECREATED);
-        director->getEventDispatcher()->dispatchEvent(&recreatedEvent);
+        director->getEventDispatcher()->dispatchEvent(&recreatedEvent, true);
         director->setGLDefaultValues();
 #if AX_ENABLE_CACHE_TEXTURE_DATA
         ax::VolatileTextureMgr::reloadAllTextures();
@@ -112,7 +112,7 @@ JNIEXPORT void JNICALL Java_org_axmol_lib_AxmolRenderer_nativeOnContextLost(JNIE
 #if AX_ENABLE_RESTART_APPLICATION_ON_CONTEXT_LOST
     auto director = ax::Director::getInstance();
     ax::EventCustom recreatedEvent(EVENT_APP_RESTARTING);
-    director->getEventDispatcher()->dispatchEvent(&recreatedEvent);
+    director->getEventDispatcher()->dispatchEvent(&recreatedEvent, true);
 
     //  Pop to root scene, replace with an empty scene, and clear all cached data before restarting
     director->popToRootScene();

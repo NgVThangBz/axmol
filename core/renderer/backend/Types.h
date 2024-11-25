@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,6 @@ inline TargetBufferFlags getMRTColorFlag(size_t index) noexcept
 }
 
 typedef TargetBufferFlags ClearFlag;
-typedef TargetBufferFlags RenderTargetFlag;
 
 struct SamplerDescriptor
 {

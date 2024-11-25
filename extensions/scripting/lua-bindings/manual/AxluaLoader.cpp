@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include "platform/FileUtils.h"
 #include "yasio/string_view.hpp"
 
-USING_NS_AX;
+using namespace ax;
 
 extern "C" {
 int axlua_loader(lua_State* L)
@@ -93,7 +93,7 @@ int axlua_loader(lua_State* L)
                              resolvedPath.c_str());
     }
     else
-        AXLOG("can not get file data of %s", resolvedPath.c_str());
+        AXLOGD("can not get file data of {}", resolvedPath);
     return nret;
 }
 }

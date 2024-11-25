@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,8 @@ THE SOFTWARE.
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /** @struct Tex2F
  * A TEXCOORD composed of 2 floats: u, v
@@ -469,11 +470,10 @@ using PixelFormat  = backend::PixelFormat;
 
 using TargetBufferFlags = backend::TargetBufferFlags;
 using DepthStencilFlags = backend::DepthStencilFlags;
-using RenderTargetFlag  = backend::RenderTargetFlag;
 using ClearFlag         = backend::ClearFlag;
 
 typedef void (*AsyncOperation)(void* param);
 
-NS_AX_END
+}
 // end group
 /// @}

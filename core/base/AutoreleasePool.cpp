@@ -2,8 +2,9 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,8 @@ THE SOFTWARE.
 #include "base/AutoreleasePool.h"
 #include "base/Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 AutoreleasePool::AutoreleasePool()
     : _name("")
@@ -50,7 +52,7 @@ AutoreleasePool::AutoreleasePool(std::string_view name)
 
 AutoreleasePool::~AutoreleasePool()
 {
-    AXLOGINFO("deallocing AutoreleasePool: %p", this);
+    AXLOGV("deallocing AutoreleasePool: {}", fmt::ptr(this));
     clear();
 
     PoolManager::getInstance()->pop();
@@ -89,12 +91,12 @@ bool AutoreleasePool::contains(Object* object) const
 
 void AutoreleasePool::dump()
 {
-    AXLOG("autorelease pool: %s, number of managed object %d\n", _name.c_str(),
+    AXLOGD("autorelease pool: {}, number of managed object {}\n", _name,
           static_cast<int>(_managedObjectArray.size()));
-    AXLOG("%20s%20s%20s", "Object pointer", "Object id", "reference count");
+    AXLOGD("{}\t{}\t{}", "Object pointer", "Object id", "reference count");
     for (const auto& obj : _managedObjectArray)
     {
-        AXLOG("%20p%20u\n", obj, obj->getReferenceCount());
+        AXLOGD("{}\t{}\n", fmt::ptr(obj), obj->getReferenceCount());
     }
 }
 
@@ -130,7 +132,7 @@ PoolManager::PoolManager()
 
 PoolManager::~PoolManager()
 {
-    AXLOGINFO("deallocing PoolManager: %p", this);
+    AXLOGD("deallocing PoolManager: {}", fmt::ptr(this));
 
     while (!_releasePoolStack.empty())
     {
@@ -166,4 +168,4 @@ void PoolManager::pop()
     _releasePoolStack.pop_back();
 }
 
-NS_AX_END
+}

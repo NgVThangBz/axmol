@@ -3,7 +3,7 @@ Copyright (c) 2010      cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,12 @@ THE SOFTWARE.
 #include "base/Random.h"
 
 #ifdef EMSCRIPTEN
-#include <limits>
-#include <emscripten.h>
+#    include <limits>
+#    include <emscripten.h>
 std::mt19937& ax::RandomHelper::getEngine()
 {
-    static std::mt19937 engine(emscripten_random() * (std::numeric_limits<int>::max)());
+    static std::mt19937 engine(
+        static_cast<int>(emscripten_random() * static_cast<float>((std::numeric_limits<int>::max)())));
     return engine;
 }
 #else

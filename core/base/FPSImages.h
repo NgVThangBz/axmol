@@ -3,7 +3,7 @@ Copyright (c) 2012      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ THE SOFTWARE.
 /// @cond DO_NOT_SHOW
 
 #if !AX_STRIP_FPS
-extern unsigned char cc_fps_images_png[];
-extern unsigned int cc_fps_images_len(void);
+extern unsigned char ax_fps_images_png[];
+extern unsigned int ax_fps_images_len(void);
 #endif
 
 /// @endcond

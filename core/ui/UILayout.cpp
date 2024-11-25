@@ -3,7 +3,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,8 @@ THE SOFTWARE.
 #include "base/StencilStateManager.h"
 #include <algorithm>
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -448,7 +449,7 @@ void Layout::setStencilClippingSize(const Vec2& /*size*/)
     if (_clippingEnabled && _clippingType == ClippingType::STENCIL)
     {
         _clippingStencil->clear();
-        _clippingStencil->drawSolidRect(Vec2::ZERO, _contentSize, Color4F::GREEN);  // Fix issue #1546 
+        _clippingStencil->drawSolidRect(Vec2::ZERO, _contentSize, Color4B::GREEN);  // Fix issue #1546
     }
 }
 
@@ -1064,7 +1065,7 @@ Vec2 Layout::getWorldCenterPoint(Widget* widget) const
     Layout* layout = dynamic_cast<Layout*>(widget);
     // FIXEDME: we don't need to calculate the content size of layout anymore
     Vec2 widgetSize = layout ? layout->getLayoutAccumulatedSize() : widget->getContentSize();
-    //    AXLOG("content size : width = %f, height = %f", widgetSize.width, widgetSize.height);
+    //    AXLOGD("content size : width = {}, height = {}", widgetSize.width, widgetSize.height);
     return widget->convertToWorldSpace(Vec2(widgetSize.width / 2, widgetSize.height / 2));
 }
 
@@ -1896,4 +1897,4 @@ ResourceData Layout::getRenderFile()
 }
 
 }  // namespace ui
-NS_AX_END
+}

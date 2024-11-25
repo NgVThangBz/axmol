@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +45,8 @@
 #    define strcasecmp _stricmp
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace
 {
@@ -68,7 +70,7 @@ static bool isValidUniform(const char* name);
 
 Material* Material::createWithFilename(std::string_view filepath)
 {
-    AXLOG("Loading material: %s", filepath.data());
+    AXLOGD("Loading material: {}", filepath);
     auto validfilename = FileUtils::getInstance()->fullPathForFilename(filepath);
     if (!validfilename.empty())
     {
@@ -265,7 +267,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
     auto texture = Director::getInstance()->getTextureCache()->addImage(filename);
     if (!texture)
     {
-        AXLOG("Invalid filepath");
+        AXLOGW("Invalid filepath");
         return false;
     }
 
@@ -289,7 +291,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
         else if (strcasecmp(wrapS, "CLAMP_TO_EDGE") == 0)
             texParams.sAddressMode = backend::SamplerAddressMode::CLAMP_TO_EDGE;
         else
-            AXLOG("Invalid wrapS: %s", wrapS);
+            AXLOGW("Invalid wrapS: {}", wrapS);
 
         // valid options: REPEAT, CLAMP
         const char* wrapT = getOptionalString(samplerProperties, "wrapT", "CLAMP_TO_EDGE");
@@ -298,7 +300,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
         else if (strcasecmp(wrapT, "CLAMP_TO_EDGE") == 0)
             texParams.tAddressMode = backend::SamplerAddressMode::CLAMP_TO_EDGE;
         else
-            AXLOG("Invalid wrapT: %s", wrapT);
+            AXLOGW("Invalid wrapT: {}", wrapT);
 
         // valid options: NEAREST, LINEAR, NEAREST_MIPMAP_NEAREST, LINEAR_MIPMAP_NEAREST, NEAREST_MIPMAP_LINEAR,
         // LINEAR_MIPMAP_LINEAR
@@ -317,7 +319,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
         else if (strcasecmp(minFilter, "LINEAR_MIPMAP_LINEAR") == 0)
             texParams.minFilter = backend::SamplerFilter::LINEAR;
         else
-            AXLOG("Invalid minFilter: %s", minFilter);
+            AXLOGW("Invalid minFilter: {}", minFilter);
 
         // valid options: NEAREST, LINEAR
         const char* magFilter = getOptionalString(samplerProperties, "magFilter", "LINEAR");
@@ -326,7 +328,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
         else if (strcasecmp(magFilter, "LINEAR") == 0)
             texParams.magFilter = backend::SamplerFilter::LINEAR;
         else
-            AXLOG("Invalid magFilter: %s", magFilter);
+            AXLOGW("Invalid magFilter: {}", magFilter);
 
         texture->setTexParameters(texParams);
     }
@@ -336,7 +338,7 @@ bool Material::parseSampler(backend::ProgramState* programState, Properties* sam
 
     if (!location)
     {
-        AXLOG("warning: failed to find texture uniform location %s when parsing material", textureName.data());
+        AXLOGW("warning: failed to find texture uniform location {} when parsing material", textureName);
         return false;
     }
 
@@ -587,4 +589,4 @@ static const char* getOptionalString(Properties* properties, const char* key, co
     return ret;
 }
 
-NS_AX_END
+}

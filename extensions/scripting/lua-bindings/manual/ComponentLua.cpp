@@ -2,7 +2,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include "base/UTF8.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 const std::string ComponentLua::ON_ENTER = "onEnter";
 const std::string ComponentLua::ON_EXIT  = "onExit";
@@ -154,7 +155,7 @@ bool ComponentLua::getLuaFunction(std::string_view functionName)
     int type = lua_type(l, -1);
     //    if (type != LUA_TFUNCTION)
     //    {
-    //        AXLOG("can not get %s function from %s", functionName.c_str(), _scriptFileName.c_str());
+    //        AXLOGD("can not get {} function from {}", functionName, _scriptFileName);
     //    }
 
     return type == LUA_TFUNCTION;
@@ -176,7 +177,7 @@ bool ComponentLua::loadAndExecuteScript()
                                                      fullPathOfScript.c_str());
     if (error)
     {
-        AXLOG("ComponentLua::loadAndExecuteScript: %s", lua_tostring(l, -1));
+        AXLOGD("ComponentLua::loadAndExecuteScript: {}", lua_tostring(l, -1));
         lua_pop(l, 1);
         return false;
     }
@@ -185,7 +186,7 @@ bool ComponentLua::loadAndExecuteScript()
     error = lua_pcall(l, 0, 1, 0);
     if (error)
     {
-        AXLOG("ComponentLua::loadAndExecuteScript: %s", lua_tostring(l, -1));
+        AXLOGD("ComponentLua::loadAndExecuteScript: {}", lua_tostring(l, -1));
         lua_pop(l, 1);
         return false;
     }
@@ -194,7 +195,7 @@ bool ComponentLua::loadAndExecuteScript()
     int type = lua_type(l, -1);
     if (type != LUA_TTABLE)
     {
-        AXLOG("%s should return a table, or the script component can not work currectly", _scriptFileName.c_str());
+        AXLOGD("{} should return a table, or the script component can not work currectly", _scriptFileName);
         return false;
     }
 
@@ -271,4 +272,4 @@ void ComponentLua::getUserData()
     object_to_luaval<ax::ComponentLua>(l, "ax.ComponentLua", this);
 }
 
-NS_AX_END
+}

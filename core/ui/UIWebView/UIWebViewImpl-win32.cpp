@@ -1,9 +1,10 @@
 /****************************************************************************
  MIT License
 
- Portions copyright (c) 2017 Serge Zaitsev
+ Portions copyright (c) 2017 Serge Zaitsev.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +29,7 @@
 
 #    include "UIWebViewImpl-win32.h"
 #    include "UIWebView.h"
+#    include "UIWebViewCommon.h"
 #    include "base/Director.h"
 #    include "platform/FileUtils.h"
 #    include "platform/GLView.h"
@@ -56,149 +58,10 @@
 
 #    include "ntcvt/ntcvt.hpp"
 
-USING_NS_AX;
-using namespace rapidjson;
+using namespace ax;
+using namespace webview_common;
 
 using msg_cb_t = std::function<void(std::string_view)>;
-
-inline std::string htmlFromUri(std::string_view s)
-{
-    if (s.substr(0, 15) == "data:text/html,")
-    {
-        return utils::urlDecode(s.substr(15));
-    }
-    return "";
-}
-
-inline int jsonUnescape(const char* s, size_t n, char* out)
-{
-    int r = 0;
-    if (*s++ != '"')
-    {
-        return -1;
-    }
-    while (n > 2)
-    {
-        char c = *s;
-        if (c == '\\')
-        {
-            s++;
-            n--;
-            switch (*s)
-            {
-            case 'b':
-                c = '\b';
-                break;
-            case 'f':
-                c = '\f';
-                break;
-            case 'n':
-                c = '\n';
-                break;
-            case 'r':
-                c = '\r';
-                break;
-            case 't':
-                c = '\t';
-                break;
-            case '\\':
-                c = '\\';
-                break;
-            case '/':
-                c = '/';
-                break;
-            case '\"':
-                c = '\"';
-                break;
-            default:  // TODO: support unicode decoding
-                return -1;
-            }
-        }
-        if (out != NULL)
-        {
-            *out++ = c;
-        }
-        s++;
-        n--;
-        r++;
-    }
-    if (*s != '"')
-    {
-        return -1;
-    }
-    if (out != NULL)
-    {
-        *out = '\0';
-    }
-    return r;
-}
-
-// These are the results that must be returned by this method
-// assert(jsonParse(R"({"foo":"bar"})", "foo", -1) == "bar");
-// assert(jsonParse(R"({"foo":""})", "foo", -1) == "");
-// assert(jsonParse(R"(["foo", "bar", "baz"])", "", 0) == "foo");
-// assert(jsonParse(R"(["foo", "bar", "baz"])", "", 2) == "baz");
-// The following is a special case, where the exact json string is not returned due
-// to how rapidjson re-creates the nested object, original: "{"bar": 1}", parsed result: "{"bar":1}"
-// assert(jsonParse(R"({"foo": {"bar": 1}})", "foo", -1) == R"({"bar":1})");
-inline std::string jsonParse(std::string_view s, std::string_view key, const int index)
-{
-    const char* value = nullptr;
-    size_t value_sz{};
-    StringBuffer sb;
-    Writer<StringBuffer> writer(sb);
-    Document d;
-    d.Parse(s.data());
-    if (key.empty() && index > -1)
-    {
-        if (d.IsArray())
-        {
-            auto&& jsonArray = d.GetArray();
-            if (SizeType(index) < jsonArray.Size())
-            {
-                auto&& arrayValue = jsonArray[SizeType(index)];
-                value             = arrayValue.GetString();
-                value_sz          = arrayValue.GetStringLength();
-            }
-        }
-    }
-    else
-    {
-        auto&& fieldItr = d.FindMember(key.data());
-        if (fieldItr != d.MemberEnd())
-        {
-            auto&& jsonValue = fieldItr->value;
-            if (jsonValue.IsString())
-            {
-                value    = jsonValue.GetString();
-                value_sz = jsonValue.GetStringLength();
-            }
-            else
-            {
-                jsonValue.Accept(writer);
-                value    = sb.GetString();
-                value_sz = sb.GetLength();
-            }
-        }
-    }
-
-    if (value != nullptr)
-    {
-        if (value[0] != '"')
-        {
-            return std::string(value, value_sz);
-        }
-
-        const auto n = jsonUnescape(value, value_sz, nullptr);
-        if (n > 0)
-        {
-            const auto decoded = std::unique_ptr<char[]>(new char[n + 1]);
-            jsonUnescape(value, value_sz, decoded.get());
-            return std::string(decoded.get(), n);
-        }
-    }
-    return "";
-}
 
 template <class ArgType>
 static std::string getUriStringFromArgs(ArgType* args)
@@ -207,19 +70,11 @@ static std::string getUriStringFromArgs(ArgType* args)
     {
         LPWSTR uri;
         args->get_Uri(&uri);
-        std::wstring ws(uri);
-        std::string result = std::string(ws.begin(), ws.end());
 
-        return result;
+        return ntcvt::from_chars(uri);
     }
 
     return {};
-}
-
-static std::string getDataURI(const ax::Data& data, std::string_view mime_type)
-{
-    auto encodedData = utils::base64Encode(std::span{data.getBytes(), data.getBytes() + data.getSize()});
-    return std::string{"data:"}.append(mime_type).append(";base64,").append(utils::urlEncode(encodedData));
 }
 
 static double getDeviceScaleFactor()
@@ -294,14 +149,6 @@ private:
     static bool s_isInitialized;
     static void lazyInit();
 
-    static LPWSTR to_lpwstr(std::string_view s)
-    {
-        const int n = MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, NULL, 0);
-        auto* ws    = new wchar_t[n];
-        MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, ws, n);
-        return ws;
-    }
-
     bool embed(HWND wnd, bool debug, msg_cb_t cb)
     {
         std::atomic_flag flag = ATOMIC_FLAG_INIT;
@@ -311,17 +158,18 @@ private:
         GetModuleFileNameA(NULL, currentExePath, MAX_PATH);
 #    if AX_TARGET_PLATFORM != AX_PLATFORM_WINRT
         const char* currentExeName = PathFindFileNameA(currentExePath);
-#else
+#    else
         const char* currentExeName = "axmol-app";
-#endif
+#    endif
 
         /*
-        * Note: New OS feature 'Beta: Use Unicode UTF-8 for worldwide language support' since win10/win11
-        *   - OFF: GetACP() equal to current system locale, such as chinese simplified is 936, english is 437
-        *   - ON: GetACP() always equal to 65001(UTF-8)
-        * Remark:
-        *   The macro CP_ACP for ntcvt::from_chars works for converting chraset from current code page(936,437,65001) to utf-16
-        */
+         * Note: New OS feature 'Beta: Use Unicode UTF-8 for worldwide language support' since win10/win11
+         *   - OFF: GetACP() equal to current system locale, such as chinese simplified is 936, english is 437
+         *   - ON: GetACP() always equal to 65001(UTF-8)
+         * Remark:
+         *   The macro CP_ACP for ntcvt::from_chars works for converting chraset from current code page(936,437,65001)
+         * to utf-16
+         */
         std::wstring userDataFolder  = ntcvt::from_chars(std::getenv("APPDATA"), CP_ACP);
         std::wstring currentExeNameW = ntcvt::from_chars(currentExeName, CP_ACP);
 
@@ -355,16 +203,14 @@ private:
                 [this]() {
                     LPWSTR uri;
                     this->m_webview->get_Source(&uri);
-                    std::wstring ws(uri);
-                    const auto result = std::string(ws.begin(), ws.end());
+                    std::string result = ntcvt::from_chars(uri);
                     if (_didFinishLoading)
                         _didFinishLoading(result);
                 },
                 [this]() {
                     LPWSTR uri;
                     this->m_webview->get_Source(&uri);
-                    std::wstring ws(uri);
-                    const auto result = std::string(ws.begin(), ws.end());
+                    std::string result = ntcvt::from_chars(uri);
                     if (_didFailLoading)
                         _didFailLoading(result);
                 },
@@ -382,7 +228,7 @@ private:
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-#endif
+#    endif
         init("window.external={invoke:s=>window.chrome.webview.postMessage(s)}");
         return true;
     }
@@ -397,28 +243,25 @@ private:
         RECT bounds;
         GetClientRect(wnd, &bounds);
         m_controller->put_Bounds(bounds);
-#endif
+#    endif
     }
 
     void navigate(std::string_view url)
     {
-        auto wurl = to_lpwstr(url);
-        m_webview->Navigate(wurl);
-        delete[] wurl;
+        auto wurl = ntcvt::from_chars(url.data());
+        m_webview->Navigate(wurl.c_str());
     }
 
     void init(std::string_view js)
     {
-        LPCWSTR wjs = to_lpwstr(js);
-        m_webview->AddScriptToExecuteOnDocumentCreated(wjs, nullptr);
-        delete[] wjs;
+        auto wjs = ntcvt::from_chars(js);
+        m_webview->AddScriptToExecuteOnDocumentCreated(wjs.c_str(), nullptr);
     }
 
     void eval(std::string_view js)
     {
-        LPCWSTR wjs = to_lpwstr(js);
-        m_webview->ExecuteScript(wjs, nullptr);
-        delete[] wjs;
+        auto wjs = ntcvt::from_chars(js);
+        m_webview->ExecuteScript(wjs.c_str(), nullptr);
     }
 
     void on_message(std::string_view msg)
@@ -608,7 +451,8 @@ private:
     };
 };
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace ui
 {
@@ -825,7 +669,7 @@ void WebViewImpl::setBackgroundTransparent()
     _systemWebControl->setBackgroundTransparent();
 }
 }  // namespace ui
-NS_AX_END  // namespace ax
+}  // namespace ax
 
 //
 // Implement Win32WebControl
@@ -840,8 +684,8 @@ void Win32WebControl::lazyInit()
     const auto style = GetWindowLong(hwnd, GWL_STYLE);
     SetWindowLong(hwnd, GWL_STYLE, style | WS_CLIPCHILDREN);
 
-    CoInitialize(NULL);
-#endif
+    std::ignore = CoInitialize(NULL);
+#    endif
 }
 
 Win32WebControl::Win32WebControl() : _shouldStartLoading(nullptr), _didFinishLoading(nullptr), _didFailLoading(nullptr)
@@ -924,7 +768,7 @@ bool Win32WebControl::createWebView(const std::function<bool(std::string_view)>&
 
         if (!embed(m_window, false, cb))
         {
-            AXLOG("Cannot create edge chromium webview");
+            AXLOGD("Cannot create edge chromium webview");
             ret = false;
             break;
         }
@@ -942,7 +786,7 @@ bool Win32WebControl::createWebView(const std::function<bool(std::string_view)>&
     _didFinishLoading   = didFinishLoading;
     _didFailLoading     = didFailLoading;
     _onJsCallback       = onJsCallback;
-#endif
+#    endif
     return ret;
 }
 
@@ -971,7 +815,7 @@ void Win32WebControl::setWebViewRect(const int left, const int top, const int wi
     SetWindowPos(m_window, nullptr, left, top, width, height, SWP_NOZORDER);
 
     m_controller->put_ZoomFactor(_scalesPageToFit ? getDeviceScaleFactor() : 1.0);
-#endif
+#    endif
 }
 
 void Win32WebControl::setJavascriptInterfaceScheme(std::string_view scheme)
@@ -983,9 +827,8 @@ void Win32WebControl::loadHTMLString(std::string_view html, std::string_view bas
 {
     if (!html.empty())
     {
-        const auto whtml = to_lpwstr(html);
-        m_webview->NavigateToString(whtml);
-        delete[] whtml;
+        const auto whtml = ntcvt::from_chars(html);
+        m_webview->NavigateToString(whtml.c_str());
     }
 }
 
@@ -1068,7 +911,7 @@ void Win32WebControl::setWebViewVisible(const bool visible) const
         // reduce resource usage.
         SetWindowPos(m_window, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
     }
-#endif
+#    endif
 }
 
 void Win32WebControl::setBounces(bool bounces) {}

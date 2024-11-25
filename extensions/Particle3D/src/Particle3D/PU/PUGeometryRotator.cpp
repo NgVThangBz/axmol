@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,8 @@
 #include "PUGeometryRotator.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 //-----------------------------------------------------------------------
 // Constants
 const bool PUGeometryRotator::DEFAULT_USE_OWN         = false;
@@ -185,4 +186,4 @@ void PUGeometryRotator::copyAttributesTo(PUAffector* affector)
 
 //-----------------------------------------------------------------------
 
-NS_AX_END
+}

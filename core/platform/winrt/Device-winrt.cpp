@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,8 @@ using namespace Windows::Foundation;
 using namespace Windows::Phone::Devices::Notification;
 #    endif  // (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 
-NS_AX_BEGIN
+namespace ax
+{
 
 template <typename T>
 inline HRESULT CreateInstance(REFCLSID clsid, winrt::com_ptr<T>& ptr)
@@ -496,12 +497,12 @@ void Device::setAccelerometerInterval(float interval)
         }
         catch (winrt::hresult_error const& /*ex*/)
         {
-            AXLOG("Device::setAccelerometerInterval not supported on this device");
+            AXLOGW("Device::setAccelerometerInterval not supported on this device");
         }
     }
     else
     {
-        AXLOG("Device::setAccelerometerInterval: accelerometer not enabled.");
+        AXLOGW("Device::setAccelerometerInterval: accelerometer not enabled.");
     }
 }
 
@@ -574,6 +575,6 @@ void Device::prepareSelectionFeedbackGenerator() {}
 
 void Device::selectionChanged() {}
 
-NS_AX_END
+}
 
-#endif  // (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
+#endif  // (AX_TARGET_PLATFORM == AX_PLATFORM_WINRT)

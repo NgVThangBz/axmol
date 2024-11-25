@@ -1,6 +1,6 @@
 // VlcMediaEngine.h
 // Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
-// https://axmolengine.github.io/
+// https://axmol.dev/
 
 #pragma once
 
@@ -10,7 +10,8 @@
 
 #include "vlc/vlc.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class VlcMediaEngine : public MediaEngine
 {
@@ -101,6 +102,6 @@ struct VlcMediaEngineFactory : public MediaEngineFactory
     void destroyMediaEngine(MediaEngine* me) override { delete static_cast<VlcMediaEngine*>(me); }
 };
 
-NS_AX_END
+}
 
 #endif

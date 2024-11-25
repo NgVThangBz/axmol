@@ -4,7 +4,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,8 +51,6 @@ THE SOFTWARE.
 
 #include "pugixml/pugixml.hpp"
 
-#define DECLARE_GUARD (void)0
-
 #include "base/filesystem.h"
 
 #if defined(_WIN32)
@@ -67,7 +65,8 @@ inline stdfs::path toFspath(const std::string_view& pathSV)
 }
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // Implement DictMaker
 
@@ -488,7 +487,7 @@ bool FileUtils::writeStringToFile(std::string_view dataStr, std::string_view ful
 {
     return FileUtils::writeBinaryToFile(dataStr.data(), dataStr.size(), fullPath);
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::writeStringToFile(std::string dataStr,
                                   std::string_view fullPath,
                                   std::function<void(bool)> callback) const
@@ -499,12 +498,12 @@ void FileUtils::writeStringToFile(std::string dataStr,
         },
         std::move(callback), std::move(dataStr));
 }
-
+#endif
 bool FileUtils::writeDataToFile(const Data& data, std::string_view fullPath) const
 {
     return FileUtils::writeBinaryToFile(data.getBytes(), data.getSize(), fullPath);
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::writeDataToFile(Data data, std::string_view fullPath, std::function<void(bool)> callback) const
 {
     performOperationOffthread(
@@ -513,7 +512,7 @@ void FileUtils::writeDataToFile(Data data, std::string_view fullPath, std::funct
         },
         std::move(callback), std::move(data));
 }
-
+#endif
 bool FileUtils::writeBinaryToFile(const void* data, size_t dataSize, std::string_view fullPath)
 {
     AXASSERT(!fullPath.empty() && dataSize > 0, "Invalid parameters.");
@@ -534,14 +533,12 @@ bool FileUtils::writeBinaryToFile(const void* data, size_t dataSize, std::string
 
 bool FileUtils::init()
 {
-    DECLARE_GUARD;
     _searchPathArray.emplace_back(_defaultResRootPath);
     return true;
 }
 
 void FileUtils::purgeCachedEntries()
 {
-    DECLARE_GUARD;
     _fullPathCache.clear();
     _fullPathCacheDir.clear();
 }
@@ -552,7 +549,7 @@ std::string FileUtils::getStringFromFile(std::string_view filename) const
     getContents(filename, &s);
     return s;
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::getStringFromFile(std::string_view path, std::function<void(std::string)> callback) const
 {
     // Get the full path on the main thread, to avoid the issue that FileUtil's is not
@@ -562,14 +559,14 @@ void FileUtils::getStringFromFile(std::string_view path, std::function<void(std:
         [path = std::string{fullPath}]() -> std::string { return FileUtils::getInstance()->getStringFromFile(path); },
         std::move(callback));
 }
-
+#endif
 Data FileUtils::getDataFromFile(std::string_view filename) const
 {
     Data d;
     getContents(filename, &d);
     return d;
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::getDataFromFile(std::string_view filename, std::function<void(Data)> callback) const
 {
     auto fullPath = fullPathForFilename(filename);
@@ -577,7 +574,7 @@ void FileUtils::getDataFromFile(std::string_view filename, std::function<void(Da
         [path = std::string{fullPath}]() -> Data { return FileUtils::getInstance()->getDataFromFile(path); },
         std::move(callback));
 }
-
+#endif
 FileUtils::Status FileUtils::getContents(std::string_view filename, ResizableBuffer* buffer) const
 {
     if (filename.empty())
@@ -613,7 +610,7 @@ FileUtils::Status FileUtils::getContents(std::string_view filename, ResizableBuf
 
     return Status::OK;
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::writeValueMapToFile(ValueMap dict, std::string_view fullPath, std::function<void(bool)> callback) const
 {
 
@@ -634,7 +631,7 @@ void FileUtils::writeValueVectorToFile(ValueVector vecData,
         },
         std::move(callback), std::move(vecData));
 }
-
+#endif
 std::string FileUtils::getPathForFilename(std::string_view filename, std::string_view searchPath) const
 {
     auto file                  = filename;
@@ -662,9 +659,6 @@ std::string FileUtils::getPathForDirectory(std::string_view dir, std::string_vie
 
 std::string FileUtils::fullPathForFilename(std::string_view filename) const
 {
-
-    DECLARE_GUARD;
-
     if (filename.empty())
     {
         return "";
@@ -704,7 +698,7 @@ std::string FileUtils::fullPathForFilename(std::string_view filename) const
 
     if (isPopupNotify())
     {
-        AXLOG("axmol: fullPathForFilename: No file found at %s. Possible missing file.", filename.data());
+        AXLOGD("fullPathForFilename: No file found at {}. Possible missing file.", filename);
     }
 
     // The file wasn't found, return empty string.
@@ -713,8 +707,6 @@ std::string FileUtils::fullPathForFilename(std::string_view filename) const
 
 std::string FileUtils::fullPathForDirectory(std::string_view dir) const
 {
-    DECLARE_GUARD;
-
     auto result = std::string();
 
     if (dir.empty())
@@ -756,7 +748,7 @@ std::string FileUtils::fullPathForDirectory(std::string_view dir) const
 
             if (result.empty() && isPopupNotify())
             {
-                AXLOG("axmol: fullPathForDirectory: No directory found at %s. Possible missing directory.", dir.data());
+                AXLOGD("fullPathForDirectory: No directory found at {}. Possible missing directory.", dir);
             }
         }
     }
@@ -776,31 +768,26 @@ std::string FileUtils::fullPathFromRelativeFile(std::string_view filename, std::
 
 const std::vector<std::string>& FileUtils::getSearchPaths() const
 {
-    DECLARE_GUARD;
     return _searchPathArray;
 }
 
 const std::vector<std::string>& FileUtils::getOriginalSearchPaths() const
 {
-    DECLARE_GUARD;
     return _originalSearchPaths;
 }
 
 void FileUtils::setWritablePath(std::string_view writablePath)
 {
-    DECLARE_GUARD;
     _writablePath = writablePath;
 }
 
 const std::string& FileUtils::getDefaultResourceRootPath() const
 {
-    DECLARE_GUARD;
     return _defaultResRootPath;
 }
 
 void FileUtils::setDefaultResourceRootPath(std::string_view path)
 {
-    DECLARE_GUARD;
     if (_defaultResRootPath != path)
     {
         _fullPathCache.clear();
@@ -818,7 +805,6 @@ void FileUtils::setDefaultResourceRootPath(std::string_view path)
 
 void FileUtils::setSearchPaths(const std::vector<std::string>& searchPaths)
 {
-    DECLARE_GUARD;
     bool existDefaultRootPath = false;
     _originalSearchPaths      = searchPaths;
 
@@ -849,14 +835,13 @@ void FileUtils::setSearchPaths(const std::vector<std::string>& searchPaths)
 
     if (!existDefaultRootPath)
     {
-        // AXLOG("Default root path doesn't exist, adding it.");
+        // AXLOGD("Default root path doesn't exist, adding it.");
         _searchPathArray.emplace_back(_defaultResRootPath);
     }
 }
 
 void FileUtils::addSearchPath(std::string_view searchpath, const bool front)
 {
-    DECLARE_GUARD;
     std::string path;
     if (!isAbsolutePath(searchpath))
         path = _defaultResRootPath;
@@ -922,7 +907,7 @@ bool FileUtils::isFileExist(std::string_view filename) const
         return !fullpath.empty();
     }
 }
-
+#ifndef AX_CORE_PROFILE
 void FileUtils::isFileExist(std::string_view filename, std::function<void(bool)> callback) const
 {
     auto fullPath = fullPathForFilename(filename);
@@ -930,7 +915,7 @@ void FileUtils::isFileExist(std::string_view filename, std::function<void(bool)>
         [path = std::string{fullPath}]() -> bool { return FileUtils::getInstance()->isFileExist(path); },
         std::move(callback));
 }
-
+#endif
 bool FileUtils::isAbsolutePath(std::string_view path) const
 {
     return isAbsolutePathInternal(path);
@@ -956,8 +941,6 @@ bool FileUtils::isDirectoryExist(std::string_view dirPath) const
 {
     AXASSERT(!dirPath.empty(), "Invalid path");
 
-    DECLARE_GUARD;
-
     if (isAbsolutePath(dirPath))
     {
         return isDirectoryExistInternal(dirPath);
@@ -968,6 +951,8 @@ bool FileUtils::isDirectoryExist(std::string_view dirPath) const
         return !fullPath.empty();
     }
 }
+
+#ifndef AX_CORE_PROFILE
 
 void FileUtils::isDirectoryExist(std::string_view fullPath, std::function<void(bool)> callback) const
 {
@@ -980,7 +965,7 @@ void FileUtils::isDirectoryExist(std::string_view fullPath, std::function<void(b
 void FileUtils::createDirectory(std::string_view dirPath, std::function<void(bool)> callback) const
 {
     performOperationOffthread(
-        [path = std::string{dirPath}]() -> bool { return FileUtils::getInstance()->createDirectory(path); },
+        [path = std::string{dirPath}]() -> bool { return FileUtils::getInstance()->createDirectories(path); },
         std::move(callback));
 }
 
@@ -1048,6 +1033,7 @@ void FileUtils::listFilesRecursivelyAsync(std::string_view dirPath,
         },
         std::move(callback));
 }
+#endif
 
 std::unique_ptr<IFileStream> FileUtils::openFileStream(std::string_view filePath, IFileStream::Mode mode) const
 {
@@ -1133,9 +1119,9 @@ bool FileUtils::isDirectoryExistInternal(std::string_view dirPath) const
     return false;
 }
 
-bool FileUtils::createDirectory(std::string_view path) const
+bool FileUtils::createDirectories(std::string_view path) const
 {
-    AXASSERT(false, "FileUtils not support createDirectory");
+    AXASSERT(false, "FileUtils not support createDirectories");
     return false;
 }
 
@@ -1190,67 +1176,30 @@ bool FileUtils::isDirectoryExistInternal(std::string_view dirPath) const
     return false;
 }
 
-bool FileUtils::createDirectory(std::string_view path) const
+bool FileUtils::createDirectories(std::string_view path) const
 {
     AXASSERT(!path.empty(), "Invalid path");
 
     if (isDirectoryExist(path))
         return true;
 
-    // Split the path
-    size_t start = 0;
-    size_t found = path.find_first_of("/\\", start);
-    std::string_view subpath;
-    std::vector<std::string> dirs;
-
-    if (found != std::string::npos)
-    {
-        while (true)
+    bool fail{false};
+    std::string mpath{path};
+    axstd::splitpath_cb(&mpath.front(), [](char* ptr) { return *ptr != '\0'; }, [&fail](const char* subpath) {
+        struct stat st;
+        if (stat(subpath, &st) != 0)
         {
-            subpath = path.substr(start, found - start + 1);
-            if (!subpath.empty())
-                dirs.emplace_back(std::string{subpath});
-            start = found + 1;
-            found = path.find_first_of("/\\", start);
-            if (found == std::string::npos)
-            {
-                if (start < path.length())
-                {
-                    dirs.emplace_back(std::string{path.substr(start)});
-                }
-                break;
-            }
-        }
-    }
-
-    DIR* dir = NULL;
-
-    // Create path recursively
-    std::string strSubpath;
-    for (const auto& iter : dirs)
-    {
-        strSubpath += iter;
-        dir = opendir(strSubpath.c_str());
-
-        if (!dir)
-        {
-            // directory doesn't exist, should create a new one
-
-            int ret = mkdir(strSubpath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+            int ret = mkdir(subpath, S_IRWXU | S_IRWXG | S_IRWXO);
             if (ret != 0 && (errno != EEXIST))
-            {
-                // current directory can not be created, sub directories can not be created too
-                // should return
-                return false;
-            }
+                fail = true;
         }
         else
-        {
-            // directory exists, should close opened dir
-            closedir(dir);
-        }
-    }
-    return true;
+            fail = !S_ISDIR(st.st_mode);
+
+        return fail;
+    });
+
+    return !fail;
 }
 
 namespace
@@ -1313,7 +1262,7 @@ bool FileUtils::renameFile(std::string_view oldfullpath, std::string_view newful
 
     if (0 != errorCode)
     {
-        AXLOGERROR("Fail to rename file %s to %s !Error code is %d", oldfullpath.data(), newfullpath.data(), errorCode);
+        AXLOGE("Fail to rename file {} to {} !Error code is {}", oldfullpath, newfullpath, errorCode);
         return false;
     }
     return true;
@@ -1379,29 +1328,42 @@ bool FileUtils::isPopupNotify() const
     return s_popupNotify;
 }
 
-std::string FileUtils::getFileExtension(std::string_view filePath) const
+std::string FileUtils::getPathExtension(std::string_view filePath)
 {
     std::string fileExtension;
     size_t pos = filePath.find_last_of('.');
     if (pos != std::string::npos)
     {
         fileExtension = filePath.substr(pos, filePath.length());
-
         std::transform(fileExtension.begin(), fileExtension.end(), fileExtension.begin(), ::tolower);
     }
 
     return fileExtension;
 }
 
-std::string FileUtils::getFileShortName(std::string_view filePath)
+std::string FileUtils::getPathBaseName(std::string_view filePath)
 {
-    // std::string fileExtension;
     size_t pos = filePath.find_last_of("/\\");
     if (pos != std::string::npos)
-    {
         return std::string{filePath.substr(pos + 1)};
-    }
 
+    return std::string{filePath};
+}
+
+std::string FileUtils::getPathBaseNameNoExtension(std::string_view filePath)
+{
+    size_t pos = filePath.find_last_of("/\\");
+    size_t dot = filePath.find_last_of('.');
+    if (pos != std::string::npos)
+        return std::string{filePath.substr(pos + 1, dot != std::string_view::npos ? dot - (pos + 1) : dot)};
+
+    return std::string{filePath.substr(0, dot)};
+}
+
+std::string FileUtils::getPathDirName(std::string_view filePath) {
+    auto pos = filePath.find_last_of("/\\");
+    if (pos != std::string_view::npos)
+        return std::string{filePath.substr(0, pos)};
     return std::string{filePath};
 }
 
@@ -1409,4 +1371,4 @@ void FileUtils::valueMapCompact(ValueMap& /*valueMap*/) const {}
 
 void FileUtils::valueVectorCompact(ValueVector& /*valueVector*/) const {}
 
-NS_AX_END
+}

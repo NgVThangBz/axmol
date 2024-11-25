@@ -2,7 +2,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +39,12 @@
 #    include "physics3d/Physics3DComponent.h"
 #    include "physics3d/Physics3DConstraint.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 AX_DLL const char* physics3dVersion();
 
-NS_AX_END
+}
 
 #    if (AX_ENABLE_BULLET_INTEGRATION)
 

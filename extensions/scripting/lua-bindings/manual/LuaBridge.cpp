@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
 
 #include "lua-bindings/manual/LuaBridge.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 lua_State* LuaBridge::s_luaState = NULL;
 int LuaBridge::s_newFunctionId   = 0;
@@ -93,7 +94,7 @@ int LuaBridge::retainLuaFunctionById(int functionId)
     lua_rawset(L, -3);               /* id_r[id] = r, L: id_r */
     lua_pop(L, 1);
 
-    AXLOG("CCLuaBridge::retainLuaFunctionById(%d) - retain count = %d", functionId, retainCount);
+    AXLOGD("CCLuaBridge::retainLuaFunctionById({}) - retain count = {}", functionId, retainCount);
 
     return retainCount;
 }
@@ -107,7 +108,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
     if (!lua_istable(L, -1))
     {
         lua_pop(L, 1);
-        AXLOG("CCLuaBridge::releaseLuaFunctionById() - LUA_BRIDGE_REGISTRY_FUNCTION not exists");
+        AXLOGD("CCLuaBridge::releaseLuaFunctionById() - LUA_BRIDGE_REGISTRY_FUNCTION not exists");
         return 0;
     }
 
@@ -116,7 +117,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
     if (!lua_istable(L, -1))
     {
         lua_pop(L, 2);
-        AXLOG("CCLuaBridge::releaseLuaFunctionById() - LUA_BRIDGE_REGISTRY_RETAIN not exists");
+        AXLOGD("CCLuaBridge::releaseLuaFunctionById() - LUA_BRIDGE_REGISTRY_RETAIN not exists");
         return 0;
     }
 
@@ -125,7 +126,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
     if (lua_type(L, -1) != LUA_TNUMBER)
     {
         lua_pop(L, 3);
-        AXLOG("CCLuaBridge::releaseLuaFunctionById() - function id %d not found", functionId);
+        AXLOGD("CCLuaBridge::releaseLuaFunctionById() - function id {} not found", functionId);
         return 0;
     }
 
@@ -140,7 +141,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
         lua_pushinteger(L, retainCount); /* L: f_id id_r id r */
         lua_rawset(L, -3);               /* id_r[id] = r, L: f_id id_r */
         lua_pop(L, 2);
-        AXLOG("CCLuaBridge::releaseLuaFunctionById() - function id %d retain count = %d", functionId, retainCount);
+        AXLOGD("CCLuaBridge::releaseLuaFunctionById() - function id {} retain count = {}", functionId, retainCount);
         return retainCount;
     }
 
@@ -165,7 +166,7 @@ int LuaBridge::releaseLuaFunctionById(int functionId)
     } /* L: f_id */
 
     lua_pop(L, 1);
-    AXLOG("CCLuaBridge::releaseLuaFunctionById() - function id %d released", functionId);
+    AXLOGD("CCLuaBridge::releaseLuaFunctionById() - function id {} released", functionId);
     return 0;
 }
 
@@ -243,4 +244,4 @@ int LuaBridge::retainLuaFunction(lua_State* L, int functionIndex, int* retainCou
     return functionId;
 }
 
-NS_AX_END
+}

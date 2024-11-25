@@ -4,8 +4,9 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +31,8 @@ THE SOFTWARE.
 #include "2d/Node.h"
 #include "2d/TMXObjectGroup.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class TMXLayerInfo;
 class TMXTilesetInfo;
@@ -202,9 +204,9 @@ public:
      *  animations are not enabled by default
      */
     void setTileAnimEnabled(bool enabled);
-
-    AX_DEPRECATED_ATTRIBUTE int getLayerNum() const { return getLayerCount(); }
-
+#ifndef AX_CORE_PROFILE
+    AX_DEPRECATED(2.1) int getLayerNum() const { return getLayerCount(); }
+#endif
     int getLayerCount() const { return _layerCount; }
 
     std::string_view getResourceFile() const { return _tmxFile; }
@@ -266,4 +268,4 @@ private:
 // @API compatible
 typedef FastTMXTiledMap TMXTiledMap;
 
-NS_AX_END
+}  // namespace ax

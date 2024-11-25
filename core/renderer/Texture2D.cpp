@@ -5,7 +5,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,8 @@ THE SOFTWARE.
 #    include "renderer/TextureCache.h"
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // CLASS IMPLEMENTATIONS:
 
@@ -191,7 +192,7 @@ bool Texture2D::updateWithImage(Image* image, backend::PixelFormat format, int i
 {
     if (image == nullptr)
     {
-        AXLOG("axmol: Texture2D. Can't create Texture. UIImage is nil");
+        AXLOGW("axmol: Texture2D. Can't create Texture. UIImage is nil");
         return false;
     }
 
@@ -206,7 +207,7 @@ bool Texture2D::updateWithImage(Image* image, backend::PixelFormat format, int i
     int maxTextureSize = conf->getMaxTextureSize();
     if (imageWidth > maxTextureSize || imageHeight > maxTextureSize)
     {
-        AXLOG("axmol: WARNING: Image (%u x %u) is bigger than the supported %u x %u", imageWidth, imageHeight,
+        AXLOGW("axmol: WARNING: Image ({} x {}) is bigger than the supported {} x {}", imageWidth, imageHeight,
               maxTextureSize, maxTextureSize);
         return false;
     }
@@ -252,7 +253,7 @@ bool Texture2D::updateWithImage(Image* image, backend::PixelFormat format, int i
     {
         if (renderFormat != image->getPixelFormat())
         {
-            AXLOG("axmol: WARNING: This image has more than 1 mipmaps and we will not convert the data format");
+            AXLOGW("WARNING: This image has more than 1 mipmaps and we will not convert the data format");
         }
 
         // pixel format of data is not converted, renderFormat can be different from pixelFormat
@@ -308,14 +309,14 @@ bool Texture2D::updateWithMipmaps(MipmapInfo* mipmaps,
 
     if (mipmapsNum <= 0)
     {
-        AXLOG("axmol: WARNING: mipmap number is less than 1");
+        AXLOGW("WARNING: mipmap number is less than 1");
         return false;
     }
 
     auto& pfd = backend::PixelFormatUtils::getFormatDescriptor(pixelFormat);
     if (!pfd.bpp)
     {
-        AXLOG("axmol: WARNING: unsupported pixelformat: %x", (uint32_t)pixelFormat);
+        AXLOGW("WARNING: unsupported pixelformat: {:x}", (uint32_t)pixelFormat);
 #ifdef AX_USE_METAL
         AXASSERT(false, "pixeformat not found in _pixelFormatInfoTables, register required!");
 #endif
@@ -328,12 +329,12 @@ bool Texture2D::updateWithMipmaps(MipmapInfo* mipmaps,
         !Configuration::getInstance()->supportsETC2() && !Configuration::getInstance()->supportsS3TC() &&
         !Configuration::getInstance()->supportsASTC() && !Configuration::getInstance()->supportsATITC())
     {
-        AXLOG("axmol: WARNING: PVRTC/ETC images are not supported");
+        AXLOGW("WARNING: PVRTC/ETC images are not supported");
         return false;
     }
 
 #if AX_ENABLE_CACHE_TEXTURE_DATA
-    VolatileTextureMgr::findVolotileTexture(this);
+    VolatileTextureMgr::getOrAddVolatileTexture(this);
 #endif
 
     backend::TextureDescriptor textureDescriptor;
@@ -400,9 +401,9 @@ bool Texture2D::updateWithMipmaps(MipmapInfo* mipmaps,
 
         if (i > 0 && (width != height || utils::nextPOT(width) != width))
         {
-            AXLOG(
-                "axmol: Texture2D. WARNING. Mipmap level %u is not squared. Texture won't render correctly. width=%d "
-                "!= height=%d",
+            AXLOGW(
+                "Texture2D. WARNING. Mipmap level {} is not squared. Texture won't render correctly. width={} "
+                "!= height={}",
                 i, width, height);
         }
 
@@ -454,7 +455,7 @@ bool Texture2D::initWithImage(Image* image, backend::PixelFormat format)
 {
     if (image == nullptr)
     {
-        AXLOG("axmol: Texture2D. Can't create Texture. UIImage is nil");
+        AXLOGW("Texture2D. Can't create Texture. UIImage is nil");
         return false;
     }
 
@@ -811,4 +812,4 @@ void Texture2D::drawInRect(const Rect& rect, float globalZOrder)
     Director::getInstance()->getRenderer()->addCommand(&_customCommand);
 }
 
-NS_AX_END
+}

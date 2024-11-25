@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -46,19 +46,19 @@ void luaval_to_native_err(lua_State* L, const char* msg, tolua_Error* err, const
         {
             int narg = err->index;
             if (err->array)
-                AXLOG("%s\n     %s argument #%d is array of '%s'; array of '%s' expected.\n", msg + 2, funcName, narg,
+                AXLOGD("{}\n     {} argument #{} is array of '{}'; array of '{}' expected.\n", msg + 2, funcName, narg,
                       provided, expected);
             else
-                AXLOG("%s\n     %s argument #%d is '%s'; '%s' expected.\n", msg + 2, funcName, narg, provided,
+                AXLOGD("{}\n     {} argument #{} is '{}'; '{}' expected.\n", msg + 2, funcName, narg, provided,
                       expected);
         }
         else if (msg[1] == 'v')
         {
             if (err->array)
-                AXLOG("%s\n     %s value is array of '%s'; array of '%s' expected.\n", funcName, msg + 2, provided,
+                AXLOGD("{}\n     {} value is array of '{}'; array of '{}' expected.\n", funcName, msg + 2, provided,
                       expected);
             else
-                AXLOG("%s\n     %s value is '%s'; '%s' expected.\n", msg + 2, funcName, provided, expected);
+                AXLOGD("{}\n     {} value is '{}'; '{}' expected.\n", msg + 2, funcName, provided, expected);
         }
     }
 }
@@ -3098,7 +3098,8 @@ bool luaval_to_stageUniformLocation(lua_State* L, int pos, ax::backend::StageUni
         pos -= 1; // since we'll be pushing keys for table access
 
     lua_pushstring(L, "location");
-    if (lua_gettable(L, pos) == LUA_TNIL)
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }
@@ -3106,7 +3107,8 @@ bool luaval_to_stageUniformLocation(lua_State* L, int pos, ax::backend::StageUni
     lua_pop(L, 1);
 
     lua_pushstring(L, "offset");
-    if (lua_gettable(L, pos) == LUA_TNIL)
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }
@@ -3138,7 +3140,8 @@ bool luaval_to_uniformLocation(lua_State* L, int pos, ax::backend::UniformLocati
         return false;
 
     lua_pushstring(L, "vertStage");
-    if (lua_gettable(L, pos) == LUA_TNIL)
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }
@@ -3146,7 +3149,8 @@ bool luaval_to_uniformLocation(lua_State* L, int pos, ax::backend::UniformLocati
     lua_pop(L, 1);
 
     lua_pushstring(L, "fragStage");
-    if (lua_gettable(L, pos) == LUA_TNIL)
+    lua_gettable(L, pos);
+    if (lua_isnil(L, -1))
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }

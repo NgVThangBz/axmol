@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,8 @@
 
 #    if (AX_ENABLE_BULLET_INTEGRATION)
 
-NS_AX_BEGIN
+namespace ax
+{
 
 void Physics3DDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
@@ -68,7 +69,7 @@ void Physics3DDebugDrawer::drawContactPoint(const btVector3& PointOnB,
 
 void Physics3DDebugDrawer::reportErrorWarning(const char* warningString)
 {
-    AXLOG("%s", warningString);
+    AXLOGD("{}", warningString);
 }
 
 void Physics3DDebugDrawer::draw3dText(const btVector3& /*location*/, const char* /*textString*/) {}
@@ -160,7 +161,7 @@ void Physics3DDebugDrawer::clear()
     _buffer.clear();
 }
 
-NS_AX_END
+}
 
 #    endif  // AX_ENABLE_BULLET_INTEGRATION
 

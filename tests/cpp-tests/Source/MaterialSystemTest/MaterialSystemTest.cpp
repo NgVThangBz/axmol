@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 #include "axmol.h"
 #include "ui/CocosGUI.h"
 
-USING_NS_AX;
+using namespace ax;
 
 static void printProperties(Properties* properties, int indent);
 
@@ -417,7 +417,7 @@ void Material_parsePerformance::onEnter()
             ui::Slider* slider = dynamic_cast<ui::Slider*>(sender);
             float p            = slider->getPercent() / 100.0f;
             slider->setTouchEnabled(false);
-            AXLOG("Will parsing material %d times", (int)(p * _maxParsingCoumt));
+            AXLOGD("Will parsing material {} times", (int)(p * _maxParsingCoumt));
             Label* label = dynamic_cast<Label*>(this->getChildByTag(SHOW_LEBAL_TAG));
             if (label)
             {
@@ -463,11 +463,11 @@ void Material_parsePerformance::parsingTesting(unsigned int count)
     Label* label        = dynamic_cast<Label*>(this->getChildByTag(SHOW_LEBAL_TAG));
     if (label)
     {
-        std::string str = StringUtils::format("Testing completed! Took: %.3f seconds for parsing material %d times.",
+        std::string str = fmt::format("Testing completed! Took: {:.3} seconds for parsing material {} times.",
                                               elapsed_secs, count);
         label->setString(str);
 
-        AXLOG("Took: %.3f seconds for parsing material %d times.", elapsed_secs, count);
+        AXLOGD("Took: {:.3} seconds for parsing material {} times.", elapsed_secs, count);
     }
 }
 
@@ -489,7 +489,7 @@ static void printProperties(Properties* properties, int indent)
         chindent[i] = ' ';
     chindent[i] = '\0';
 
-    ax::print("%sNamespace: %s  ID: %s\n%s{", chindent, spacename, id, chindent);
+    AXLOGD("{}Namespace: {}  ID: {}\n{}{{", chindent, spacename, id, chindent);
 
     // Print all properties in this namespace.
     const char* name  = properties->getNextProperty();
@@ -497,7 +497,7 @@ static void printProperties(Properties* properties, int indent)
     while (name != NULL)
     {
         value = properties->getString(name);
-        ax::print("%s%s = %s", chindent, name, value);
+        AXLOGD("{}{} = {}", chindent, name, value);
         name = properties->getNextProperty();
     }
 
@@ -508,5 +508,5 @@ static void printProperties(Properties* properties, int indent)
         space = properties->getNextNamespace();
     }
 
-    ax::print("%s}\n", chindent);
+    AXLOGD("{}}}\n", chindent);
 }

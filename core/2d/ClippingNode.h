@@ -5,7 +5,7 @@
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
  *
- * https://axmolengine.github.io/
+ * https://axmol.dev/
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@
 #include "renderer/CustomCommand.h"
 #include "renderer/CallbackCommand.h"
 #include <unordered_map>
-NS_AX_BEGIN
+namespace ax
+{
 
 class StencilStateManager;
 /**
@@ -71,8 +72,11 @@ public:
     /** Set the Node to use as a stencil to do the clipping.
      *
      * @param stencil The Node to use as a stencil to do the clipping.
+     * @param uniqueChildStencils Set a different ProgramState per child stencil if enabled. Only
+     *                            set to true if the child stencils are different in some way, as in
+     *                            different shapes, images etc..
      */
-    void setStencil(Node* stencil);
+    void setStencil(Node* stencil, bool uniqueChildStencils = false);
 
     /** If stencil has no children it will not be drawn.
      * If you have custom stencil-based node with stencil drawing mechanics other then children-based,
@@ -135,7 +139,7 @@ public:
     virtual void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
 
     virtual void setGlobalZOrder(float globalZOrder) override;
-    
+
     virtual void setCameraMask(unsigned short mask, bool applyChildren = true) override;
 
     ClippingNode();
@@ -159,6 +163,7 @@ protected:
     void setProgramStateRecursively(Node* node, backend::ProgramState* programState);
     void restoreAllProgramStates();
 
+    bool _uniqueChildStencils                 = false;
     Node* _stencil                            = nullptr;
     StencilStateManager* _stencilStateManager = nullptr;
 
@@ -170,4 +175,4 @@ private:
     AX_DISALLOW_COPY_AND_ASSIGN(ClippingNode);
 };
 /** @} */
-NS_AX_END
+}

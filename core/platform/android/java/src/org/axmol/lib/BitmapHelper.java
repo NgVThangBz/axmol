@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public final class BitmapHelper {
     // Constants
     // ===========================================================
 
-    /* The values are the same as cocos2dx/platform/CCImage.h. */
+    /* The values are the same as core/platform/Image.h. */
     private static final int HORIZONTAL_ALIGN_LEFT = 1;
     private static final int HORIZONTAL_ALIGN_RIGHT = 2;
     private static final int HORIZONTAL_ALIGN_CENTER = 3;

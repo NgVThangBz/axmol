@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,8 @@ THE SOFTWARE.
 #    include "navmesh/NavMesh.h"
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 Scene::Scene()
     : _event(_director->getEventDispatcher()->addCustomEventListener(
@@ -154,7 +155,7 @@ Scene* Scene::createWithSize(const Vec2& size)
 
 std::string Scene::getDescription() const
 {
-    return StringUtils::format("<Scene | tag = %d>", _tag);
+    return fmt::format("<Scene | tag = {}>", _tag);
 }
 
 void Scene::onProjectionChanged(EventCustom* /*event*/)
@@ -396,4 +397,4 @@ void Scene::stepPhysicsAndNavigation(float deltaTime)
 }
 #endif
 
-NS_AX_END
+}

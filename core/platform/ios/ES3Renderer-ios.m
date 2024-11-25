@@ -4,7 +4,7 @@
  Corpyight (c) 2011      Zynga Inc.
  Copyright (c) 2013-2017 Chukong Technologies Inc.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@
             [self release];
             return nil;
         }
-        
+
         depthFormat_ = depthFormat;
         pixelFormat_ = pixelFormat;
         multiSampling_ = multiSampling;
@@ -84,12 +84,12 @@
             GLint maxSamplesAllowed;
             glGetIntegerv(GL_MAX_SAMPLES, &maxSamplesAllowed);
             samplesToUse_ = MIN(maxSamplesAllowed,requestedSamples);
-            
+
             /* Create the MSAA framebuffer (offscreen) */
             glGenFramebuffers(1, &msaaFramebuffer_);
             NSAssert( msaaFramebuffer_, @"Can't create default MSAA frame buffer");
             glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebuffer_);
-            
+
         }
 
         CHECK_GL_ERROR();
@@ -107,11 +107,11 @@
     {
         NSLog(@"failed to call context");
     }
-    
+
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth_);
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight_);
 
-    NSLog(@"cocos2d: surface size: %dx%d", (int)backingWidth_, (int)backingHeight_);
+    NSLog(@"axmol: surface size: %dx%d", (int)backingWidth_, (int)backingHeight_);
 
     if (multiSampling_)
     {
@@ -119,21 +119,21 @@
             glDeleteRenderbuffers(1, &msaaColorbuffer_);
             msaaColorbuffer_ = 0;
         }
-        
+
         /* Create the offscreen MSAA color buffer.
          After rendering, the contents of this will be blitted into ColorRenderbuffer */
-        
+
         //msaaFrameBuffer needs to be binded
         glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebuffer_);
         glGenRenderbuffers(1, &msaaColorbuffer_);
         NSAssert(msaaFramebuffer_, @"Can't create MSAA color buffer");
-        
+
         glBindRenderbuffer(GL_RENDERBUFFER, msaaColorbuffer_);
-        
+
         glRenderbufferStorageMultisample(GL_RENDERBUFFER, samplesToUse_, pixelFormat_ , backingWidth_, backingHeight_);
-        
+
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msaaColorbuffer_);
-        
+
         GLenum error;
         if ( (error=glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE)
         {
@@ -152,20 +152,20 @@
         }
 
         glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer_);
-        
+
         if( multiSampling_ )
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, samplesToUse_, depthFormat_,backingWidth_, backingHeight_);
         else
             glRenderbufferStorage(GL_RENDERBUFFER, depthFormat_, backingWidth_, backingHeight_);
 
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer_);
-        
+
         if (depthFormat_ == GL_DEPTH24_STENCIL8) {
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer_);
         }
 
         // bind color buffer
-        glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer_);        
+        glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer_);
     }
 
     CHECK_GL_ERROR();
@@ -212,7 +212,7 @@
 
 - (void)dealloc
 {
-//    AXLOGINFO("deallocing ES3Renderer: %p", self);
+//    AXLOGV("deallocing ES3Renderer: {}", fmt::ptr(self));
 
     // Tear down GL
     if (defaultFramebuffer_) {
@@ -229,13 +229,13 @@
         glDeleteRenderbuffers(1, &depthBuffer_ );
         depthBuffer_ = 0;
     }
-    
+
     if ( msaaColorbuffer_)
     {
         glDeleteRenderbuffers(1, &msaaColorbuffer_);
         msaaColorbuffer_ = 0;
     }
-    
+
     if ( msaaFramebuffer_)
     {
         glDeleteRenderbuffers(1, &msaaFramebuffer_);

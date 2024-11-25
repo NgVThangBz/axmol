@@ -2,8 +2,9 @@
  Copyright (C) 2013 Henry van Merode. All rights reserved.
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,8 @@
 
 #include "PUScriptParser.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 PUScriptParser::PUScriptParser() {}
 
@@ -35,7 +37,7 @@ void traceScriptParserCell(PUConcreteNodeList& nodes, int level)
 {
     for (const auto& node : nodes)
     {
-        printf("%s,##%d\n", node->token.c_str(), level);
+        AXLOGD("{},##{}\n", node->token, level);
         if (node->children.size() != 0)
         {
             traceScriptParserCell(node->children, level + 1);
@@ -89,7 +91,7 @@ void PUScriptParser::parse(PUConcreteNodeList& nodes, const PUScriptTokenList& t
                     ++i;
                     if (i == end || ((*i)->type != TID_WORD && (*i)->type != TID_QUOTE))
                     {
-                        printf("Except,expected import target at line :%d,ScriptParser::parse", node->line);
+                        AXLOGD("Except,expected import target at line :{},ScriptParser::parse", node->line);
                     }
                     PUConcreteNode* temp = new PUConcreteNode;
                     temp->parent         = node;
@@ -107,7 +109,7 @@ void PUScriptParser::parse(PUConcreteNodeList& nodes, const PUScriptTokenList& t
                     ++i;
                     if (i == end || ((*i)->type != TID_WORD && (*i)->type != TID_QUOTE))
                     {
-                        printf("expected import source at line :%d,ScriptParser::parse", node->line);
+                        AXLOGD("expected import source at line :{},ScriptParser::parse", node->line);
                     }
                     temp         = new PUConcreteNode;
                     temp->parent = node;
@@ -149,7 +151,7 @@ void PUScriptParser::parse(PUConcreteNodeList& nodes, const PUScriptTokenList& t
                     ++i;
                     if (i == end || (*i)->type != TID_VARIABLE)
                     {
-                        printf("Exception");
+                        AXLOGD("Exception");
                     }
                     PUConcreteNode* temp = new PUConcreteNode;
                     temp->parent         = node;
@@ -163,7 +165,7 @@ void PUScriptParser::parse(PUConcreteNodeList& nodes, const PUScriptTokenList& t
                     ++i;
                     if (i == end || ((*i)->type != TID_WORD && (*i)->type != TID_QUOTE))
                     {
-                        printf("expected variable value at line %d ScriptParser::parse\n", node->line);
+                        AXLOGD("expected variable value at line {} ScriptParser::parse\n", node->line);
                     }
                     temp         = new PUConcreteNode;
                     temp->parent = node;
@@ -287,7 +289,7 @@ void PUScriptParser::parse(PUConcreteNodeList& nodes, const PUScriptTokenList& t
                 if (j == end || ((*j)->type != TID_WORD && (*j)->type != TID_QUOTE))
                 {
 
-                    printf("expected object identifier at line %d ScriptParser::parse\n", node->line);
+                    AXLOGD("expected object identifier at line {} ScriptParser::parse\n", node->line);
                 }
 
                 while (j != end && ((*j)->type == TID_WORD || (*j)->type == TID_QUOTE))
@@ -496,7 +498,7 @@ void PUScriptParser::parseChunk(PUConcreteNodeList& nodes, const PUScriptTokenLi
             node->token  = token->lexeme.substr(1, token->lexeme.size() - 2);
             node->type   = CNT_QUOTE;
         default:
-            printf("unexpected token,%s,%d\n", token->lexeme.c_str(), token->line);
+            AXLOGD("unexpected token,{},{}\n", token->lexeme, token->line);
         }
 
         if (node != nullptr)
@@ -529,4 +531,4 @@ PUConcreteNode::~PUConcreteNode()
     }
 }
 
-NS_AX_END
+}

@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __cocos2d_libs__CCCustomEventListener__
-#define __cocos2d_libs__CCCustomEventListener__
+#ifndef _AX_CUSTOMEVENTLISTENER_H_
+#define _AX_CUSTOMEVENTLISTENER_H_
 
 #include "base/EventListener.h"
 
@@ -33,7 +33,8 @@
  * @{
  */
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class EventCustom;
 
@@ -84,9 +85,9 @@ protected:
     friend class LuaEventListenerCustom;
 };
 
-NS_AX_END
+}
 
 // end of base group
 /// @}
 
-#endif /* defined(__cocos2d_libs__CCCustomEventListener__) */
+#endif /* defined(_AX_CUSTOMEVENTLISTENER_H_) */

@@ -2,8 +2,9 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2014 GamePlay3D team
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +38,8 @@
 #include "renderer/Renderer.h"
 #include "renderer/Material.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 std::string RenderState::getName() const
 {
@@ -221,8 +223,8 @@ static backend::BlendFactor parseBlend(std::string_view value)
         return backend::BlendFactor::SRC_ALPHA_SATURATE;
     else
     {
-        AXLOG("Unsupported blend value (%s). (Will default to BLEND_ONE if errors are treated as warnings)",
-              value.data());
+        AXLOGW("Unsupported blend value ({}). (Will default to BLEND_ONE if errors are treated as warnings)",
+              value);
         return backend::BlendFactor::ONE;
     }
 }
@@ -250,8 +252,8 @@ static DepthFunction parseDepthFunc(std::string_view value)
         return DepthFunction::ALWAYS;
     else
     {
-        AXLOG("Unsupported depth function value (%s). Will default to DEPTH_LESS if errors are treated as warnings)",
-              value.data());
+        AXLOGW("Unsupported depth function value ({}). Will default to DEPTH_LESS if errors are treated as warnings)",
+              value);
         return DepthFunction::LESS;
     }
 }
@@ -270,8 +272,8 @@ static CullFaceSide parseCullFaceSide(std::string_view value)
     //        return RenderState::CULL_FACE_SIDE_FRONT_AND_BACK;
     else
     {
-        AXLOG("Unsupported cull face side value (%s). Will default to BACK if errors are treated as warnings.",
-              value.data());
+        AXLOGW("Unsupported cull face side value ({}). Will default to BACK if errors are treated as warnings.",
+              value);
         return CullFaceSide::BACK;
     }
 }
@@ -287,8 +289,8 @@ static FrontFace parseFrontFace(std::string_view value)
         return FrontFace::CLOCK_WISE;
     else
     {
-        AXLOG("Unsupported front face side value (%s). Will default to CCW if errors are treated as warnings.",
-              value.data());
+        AXLOGW("Unsupported front face side value ({}). Will default to CCW if errors are treated as warnings.",
+              value);
         return FrontFace::COUNTER_CLOCK_WISE;
     }
 }
@@ -333,7 +335,7 @@ void RenderState::StateBlock::setState(std::string_view name, std::string_view v
     }
     else
     {
-        AXLOG("Unsupported render state string '%s'.", name.data());
+        AXLOGW("Unsupported render state string '{}'.", name);
     }
 }
 
@@ -409,4 +411,4 @@ void RenderState::StateBlock::setDepthFunction(DepthFunction func)
     _modifiedBits |= RS_DEPTH_FUNC;
 }
 
-NS_AX_END
+}

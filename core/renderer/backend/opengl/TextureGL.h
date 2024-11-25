@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -203,10 +203,15 @@ public:
     int getCount() const override { return _textureInfo.maxIdx + 1; }
 
 private:
-    void initWithZeros();
+    void ensureTexStorageForRT();
 
     TextureInfoGL _textureInfo;
     EventListener* _rendererRecreatedListener = nullptr;
+
+#if AX_ENABLE_CACHE_TEXTURE_DATA
+    bool _generateMipmaps = false;
+    bool _usedForRT = false;
+#endif
 };
 
 /**

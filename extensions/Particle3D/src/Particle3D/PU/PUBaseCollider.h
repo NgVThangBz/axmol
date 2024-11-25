@@ -3,7 +3,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@
 #include "Particle3D/PU/PUAffector.h"
 #include "3d/AABB.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 struct PUParticle3D;
 class AX_EX_DLL PUBaseCollider : public PUAffector
@@ -124,6 +125,6 @@ protected:
     CollisionType _collisionType;
     float _velocityScale;  // Value set in the particle system, but stored in the collider for convenience.
 };
-NS_AX_END
+}
 
 #endif

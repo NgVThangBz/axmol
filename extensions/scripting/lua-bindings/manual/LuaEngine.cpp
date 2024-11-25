@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@
 #include "base/Director.h"
 #include "base/EventCustom.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 LuaEngine* LuaEngine::_defaultEngine = nullptr;
 
@@ -179,7 +180,7 @@ bool LuaEngine::parseConfig(ConfigType type, std::string_view str)
     lua_getglobal(_stack->getLuaState(), "__onParseConfig");
     if (!lua_isfunction(_stack->getLuaState(), -1))
     {
-        AXLOG("[LUA ERROR] name '%s' does not represent a Lua function", "__onParseConfig");
+        AXLOGD("[LUA ERROR] name '{}' does not represent a Lua function", "__onParseConfig");
         lua_pop(_stack->getLuaState(), 1);
         return false;
     }
@@ -1025,4 +1026,4 @@ int LuaEngine::reload(const char* moduleFileName)
     return _stack->reload(moduleFileName);
 }
 
-NS_AX_END
+}

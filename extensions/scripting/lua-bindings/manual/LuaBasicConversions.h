@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
  
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@
 #include "yasio/string_view.hpp"
 #include <thread>
 
-USING_NS_AX;
+using namespace ax;
 
 extern std::unordered_map<uintptr_t, const char*> g_luaType;
 extern std::unordered_map<cxx17::string_view, const char*> g_typeCast;
@@ -474,14 +474,14 @@ static inline bool luaval_to_point(lua_State* L, int lo, ax::Vec2* outValue, con
     return luaval_to_vec2(L, lo, outValue);
 }
 
-AX_DEPRECATED_ATTRIBUTE static inline bool luaval_to_kmMat4(lua_State* L,
+AX_DEPRECATED(2.1) static inline bool luaval_to_kmMat4(lua_State* L,
                                                             int lo,
                                                             ax::Mat4* outValue,
                                                             const char* funcName = "")
 {
     return luaval_to_mat4(L, lo, outValue);
 }
-AX_DEPRECATED_ATTRIBUTE static inline bool luaval_to_array_of_Point(lua_State* L,
+AX_DEPRECATED(2.1) static inline bool luaval_to_array_of_Point(lua_State* L,
                                                                     int lo,
                                                                     ax::Vec2** points,
                                                                     int* numPoints,
@@ -727,7 +727,7 @@ bool luaval_to_object(lua_State* L, int lo, const char* type, T** ret, const cha
     *ret = static_cast<T*>(tolua_tousertype(L, lo, 0));
 
     if (nullptr == *ret)
-        AXLOG("Warning: %s argument %d is invalid native object(nullptr)", funcName, lo);
+        AXLOGD("Warning: {} argument {} is invalid native object(nullptr)", funcName, lo);
 
     return true;
 }
@@ -1047,7 +1047,7 @@ static inline void point_to_luaval(lua_State* L, const ax::Vec2& pt)
     vec2_to_luaval(L, pt);
 }
 
-AX_DEPRECATED_ATTRIBUTE static inline void points_to_luaval(lua_State* L, const ax::Vec2* points, int count)
+AX_DEPRECATED(2.1) static inline void points_to_luaval(lua_State* L, const ax::Vec2* points, int count)
 {
     vec2_array_to_luaval(L, points, count);
 }

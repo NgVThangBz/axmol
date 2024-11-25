@@ -6,7 +6,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@ THE SOFTWARE.
 #    include <list>
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @addtogroup _2d
@@ -83,7 +84,7 @@ public:
      * @lua NA
      */
     virtual std::string getDescription() const;
-    
+
     /** Gets a 2x2 white texture  */
     Texture2D* getWhiteTexture();
 
@@ -114,7 +115,7 @@ public:
      @param filepath The file path.
      @param callback A callback function would be invoked after the image is loaded.
      @since v0.8
-     
+
      @remark Please don't invoke Texture2D::setDefaultAlphaPixelFormat in main GL thread before invoke this API.
     */
     virtual void addImageAsync(std::string_view filepath, const std::function<void(Texture2D*)>& callback);
@@ -144,6 +145,15 @@ public:
      */
     Texture2D* addImage(Image* image, std::string_view key);
     Texture2D* addImage(Image* image, std::string_view key, PixelFormat format);
+
+    /** Returns a Texture2D object given an Image.
+     * If the image was not previously loaded, it will create a new Texture2D object and it will return it.
+     * Otherwise it will return a reference of a previously loaded image.
+     * @param imageData The Data of the image to use
+     * @param key The "key" parameter will be used as the "key" for the cache.
+     * If "key" is nil, then a new texture will be created each time.
+     */
+    Texture2D* addImage(const Data& imageData, std::string_view key);
 
     /** Returns an already created texture. Returns nil if the texture doesn't exist.
     @param key It's the related/absolute path of the file image.
@@ -184,7 +194,7 @@ public:
     */
     void removeTextureForKey(std::string_view key);
 
-    /** Output to AXLOG the current contents of this TextureCache.
+    /** Output to AXLOGD the current contents of this TextureCache.
      * This will attempt to calculate the size of each texture, and the total texture memory in use.
      *
      * @since v1.0
@@ -303,7 +313,8 @@ public:
 
     // find VolatileTexture by Texture2D*
     // if not found, create a new one
-    static VolatileTexture* findVolotileTexture(Texture2D* tt);
+    AX_DEPRECATED(2.2) static VolatileTexture* findVolotileTexture(Texture2D* tt) { return getOrAddVolatileTexture(tt); }
+    static VolatileTexture* getOrAddVolatileTexture(Texture2D* tt);
 
 private:
     static void reloadTexture(Texture2D* texture, std::string_view filename, backend::PixelFormat pixelFormat);
@@ -314,6 +325,6 @@ private:
 // end of textures group
 /// @}
 
-NS_AX_END
+}
 
 #endif  //__CCTEXTURE_CACHE_H__

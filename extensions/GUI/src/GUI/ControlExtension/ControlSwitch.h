@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 cocos2d-x.org
- * https://axmolengine.github.io/
+ * https://axmol.dev/
  *
  * Copyright 2012 Yannick Loriot. All rights reserved.
  * http://yannickloriot.com
@@ -33,10 +33,11 @@
 #include "Control.h"
 #include "extensions/ExtensionExport.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 class Sprite;
 class Label;
-NS_AX_END
+}
 
 NS_AX_EXT_BEGIN
 

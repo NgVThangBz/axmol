@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,8 @@
 #    include "physics/PhysicsWorld.h"
 #    include "physics/PhysicsHelper.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 extern const float PHYSICS_INFINITY;
 static cpBody* s_sharedBody = nullptr;
 
@@ -118,7 +119,7 @@ void PhysicsShape::setScale(float scaleX, float scaleY)
     {
         if (_type == Type::CIRCLE && scaleX != scaleY)
         {
-            AXLOG("PhysicsShapeCircle WARNING: CANNOT support setScale with different x and y");
+            AXLOGD("PhysicsShapeCircle WARNING: CANNOT support setScale with different x and y");
             return;
         }
         _newScaleX = scaleX;
@@ -974,6 +975,6 @@ bool PhysicsShape::containsPoint(const Vec2& point) const
     return false;
 }
 
-NS_AX_END
+}
 
 #endif  // defined(AX_ENABLE_PHYSICS)

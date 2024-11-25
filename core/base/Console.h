@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,8 @@ typedef SSIZE_T ssize_t;
 #include "base/Object.h"
 #include "base/Macros.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /** Console is helper class that lets the developer control the game from TCP connection.
  Console will spawn a new thread that will listen to a specified TCP port.
@@ -113,7 +114,7 @@ public:
         Command(const Command& o);
 
         /** Move constructor */
-        Command(Command&& o);
+        Command(Command&& o) noexcept;
 
         /** Destructor */
         ~Command();
@@ -122,7 +123,7 @@ public:
         Command& operator=(const Command& o);
 
         /** Move operator */
-        Command& operator=(Command&& o);
+        Command& operator=(Command&& o) noexcept;
 
         /** add callback */
         void addCallback(const Callback& callback);
@@ -290,7 +291,7 @@ private:
     static void sendHelp(socket_native_type fd, const hlookup::string_map<Command*>& commands, const char* msg);
 };
 
-NS_AX_END
+}
 
 /// @endcond
 #endif /* defined(__CCCONSOLE_H__) */

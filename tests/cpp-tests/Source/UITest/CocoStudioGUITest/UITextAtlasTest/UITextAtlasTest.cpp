@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UITextAtlasTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UITextAtlasTests::UITextAtlasTests()
@@ -76,7 +76,7 @@ bool UITextAtlasTest::init()
 void UITextAtlasTest::printWidgetResources(ax::Object* sender)
 {
     ax::ResourceData textureFile = _textAtlas->getRenderFile();
-    AXLOG("textureFile  Name : %s, Type: %d", textureFile.file.c_str(), textureFile.type);
+    AXLOGD("textureFile  Name : {}, Type: {}", textureFile.file, textureFile.type);
 }
 
 // UITextAtlasETC1ShadowTest
@@ -126,5 +126,5 @@ bool UITextAtlasETC1ShadowTest::init()
 void UITextAtlasETC1ShadowTest::printWidgetResources(ax::Object* sender)
 {
     ax::ResourceData textureFile = _textAtlas->getRenderFile();
-    AXLOG("textureFile  Name : %s, Type: %d", textureFile.file.c_str(), textureFile.type);
+    AXLOGD("textureFile  Name : {}, Type: {}", textureFile.file, textureFile.type);
 }

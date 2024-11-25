@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,18 @@
 #include "network/Downloader.h"
 
 #if EMSCRIPTEN
-#include "network/Downloader-wasm.h"
-#define DownloaderImpl  DownloaderEmscripten
+#    include "network/Downloader-wasm.h"
+#    define DownloaderImpl DownloaderEmscripten
 #else
-#include "network/Downloader-curl.h"
-#define DownloaderImpl DownloaderCURL
+#    include "network/Downloader-curl.h"
+#    define DownloaderImpl DownloaderCURL
 #endif
 
-NS_AX_BEGIN
+#include <ctype.h>
+#include <algorithm>
+
+namespace ax
+{
 
 namespace network
 {
@@ -63,7 +67,9 @@ DownloadTask::DownloadTask(std::string_view srcUrl,
     this->checksum    = checksum;
     this->identifier  = identifier;
     this->background  = background;
-    this->cacertPath = cacertPath;
+    this->cacertPath  = cacertPath;
+    if (!this->checksum.empty())
+        std::transform(this->checksum.begin(), this->checksum.end(), this->checksum.begin(), ::tolower);
 }
 
 DownloadTask::~DownloadTask()
@@ -85,8 +91,7 @@ Downloader::Downloader(const DownloaderHints& hints)
 {
     AXLOGD("Construct Downloader {}", fmt::ptr(this));
     _impl.reset(new DownloaderImpl(hints));
-    _impl->onTaskProgress = [this](const DownloadTask& task,
-                                   std::function<int64_t(void* buffer, int64_t len)>& /*transferDataToBuffer*/) {
+    _impl->onTaskProgress = [this](const DownloadTask& task) {
         if (onTaskProgress)
         {
             onTaskProgress(task);
@@ -186,4 +191,4 @@ std::shared_ptr<DownloadTask> Downloader::createDownloadFileTask(std::string_vie
 //}
 
 }  // namespace network
-NS_AX_END  // namespace ax
+}  // namespace ax

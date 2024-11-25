@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 #include "UIEditBoxTest.h"
 #include "testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 USING_NS_AX_EXT;
 using namespace ax::ui;
 
@@ -79,7 +79,7 @@ bool UIEditBoxTest::init()
         auto buttonSize = button->getContentSize();
         button->setTitleText("Single Line");
         button->setPosition(_editName->getPosition() + Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        button->addClickEventListener([=](Object* ref) { _editName->setInputMode(ui::EditBox::InputMode::SINGLE_LINE); });
+        button->addClickEventListener([this](Object* /*sender*/) { _editName->setInputMode(ui::EditBox::InputMode::SINGLE_LINE); });
         addChild(button);
 
         // middle
@@ -102,7 +102,7 @@ bool UIEditBoxTest::init()
         buttonPassword->setPosition(_editPassword->getPosition() +
                                     Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
         buttonPassword->addClickEventListener(
-            [=](Object* ref) { _editPassword->setInputMode(ui::EditBox::InputMode::ANY); });
+            [this](Object* /*sender*/) { _editPassword->setInputMode(ui::EditBox::InputMode::ANY); });
         addChild(buttonPassword);
 
         // bottom
@@ -129,7 +129,7 @@ bool UIEditBoxTest::init()
         buttonEmail->setTitleText("Multiline");
         buttonEmail->setPosition(_editEmailParent->getPosition() +
                                  Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        buttonEmail->addClickEventListener([=](Object* ref) { _editEmail->setInputMode(ui::EditBox::InputMode::ANY); });
+        buttonEmail->addClickEventListener([this](Object* /*sender*/) { _editEmail->setInputMode(ui::EditBox::InputMode::ANY); });
         addChild(buttonEmail);
 
         return true;
@@ -139,24 +139,24 @@ bool UIEditBoxTest::init()
 
 void UIEditBoxTest::editBoxEditingDidBegin(ax::ui::EditBox* editBox)
 {
-    ax::print("editBox %p DidBegin !", editBox);
+    AXLOGD("editBox {} DidBegin !", fmt::ptr(editBox));
 }
 
 void UIEditBoxTest::editBoxEditingDidEndWithAction(ax::ui::EditBox* editBox,
                                                    ax::ui::EditBoxDelegate::EditBoxEndAction action)
 {
-    ax::print("editBox %p DidEnd with action %d!", editBox, action);
+    AXLOGD("editBox {} DidEnd with action {}!", fmt::ptr(editBox), static_cast<int>(action));
 }
 
 void UIEditBoxTest::editBoxTextChanged(ax::ui::EditBox* editBox, std::string_view text)
 {
-    ax::print("editBox %p TextChanged, text: %s ", editBox, text.data());
+    AXLOGD("editBox {} TextChanged, text: {}", fmt::ptr(editBox), text);
     editBox->setText(text.data());
 }
 
 void UIEditBoxTest::editBoxReturn(ui::EditBox* editBox)
 {
-    ax::print("editBox %p was returned !", editBox);
+    AXLOGD("editBox {} was returned !", fmt::ptr(editBox));
 
     if (_editName == editBox)
     {
@@ -213,7 +213,7 @@ bool UIEditBoxTestToggleVisibility::init()
         auto buttonSize = button->getContentSize();
         button->setTitleText("Toggle Visibility");
         button->setPosition(_editName->getPosition() + Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        button->addClickEventListener([=](Object* ref) { _editName->setVisible(!_editName->isVisible()); });
+        button->addClickEventListener([this](Object* /*sender*/) { _editName->setVisible(!_editName->isVisible()); });
         addChild(button);
 
         // middle
@@ -235,7 +235,7 @@ bool UIEditBoxTestToggleVisibility::init()
         buttonPassword->setPosition(_editPassword->getPosition() +
                                     Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
         buttonPassword->addClickEventListener(
-            [=](Object* ref) { _editPassword->setVisible(!_editPassword->isVisible()); });
+            [this](Object* /*sender*/) { _editPassword->setVisible(!_editPassword->isVisible()); });
         addChild(buttonPassword);
 
         // bottom
@@ -262,7 +262,7 @@ bool UIEditBoxTestToggleVisibility::init()
         buttonEmail->setTitleText("Toggle Visibility");
         buttonEmail->setPosition(_editEmailParent->getPosition() +
                                  Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        buttonEmail->addClickEventListener([=](Object* ref) { _editEmail->setVisible(!_editEmail->isVisible()); });
+        buttonEmail->addClickEventListener([this](Object* /*sender*/) { _editEmail->setVisible(!_editEmail->isVisible()); });
         addChild(buttonEmail);
 
         return true;
@@ -272,17 +272,17 @@ bool UIEditBoxTestToggleVisibility::init()
 
 void UIEditBoxTestToggleVisibility::editBoxEditingDidBegin(ax::ui::EditBox* editBox)
 {
-    ax::print("editBox %p DidBegin !", editBox);
+    AXLOGD("editBox {} DidBegin !", fmt::ptr(editBox));
 }
 
 void UIEditBoxTestToggleVisibility::editBoxTextChanged(ax::ui::EditBox* editBox, std::string_view text)
 {
-    ax::print("editBox %p TextChanged, text: %s ", editBox, text.data());
+    AXLOGD("editBox {} TextChanged, text: {} ", fmt::ptr(editBox), text);
 }
 
 void UIEditBoxTestToggleVisibility::editBoxReturn(ui::EditBox* editBox)
 {
-    ax::print("editBox %p was returned !", editBox);
+    AXLOGD("editBox {} was returned !", fmt::ptr(editBox));
 
     if (_editName == editBox)
     {

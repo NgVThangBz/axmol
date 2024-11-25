@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 #include "UICheckBoxTest.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ax::ui;
 
 UICheckBoxTests::UICheckBoxTests()
@@ -101,17 +101,17 @@ void UICheckBoxTest::selectedEvent(Object* pSender, CheckBox::EventType type)
 void UICheckBoxTest::printWidgetResources(ax::Object* sender)
 {
     ax::ResourceData backGroundFileName = _checkBox->getBackNormalFile();
-    AXLOG("backGroundFile  Name : %s, Type: %d", backGroundFileName.file.c_str(), backGroundFileName.type);
+    AXLOGD("backGroundFile  Name : {}, Type: {}", backGroundFileName.file, backGroundFileName.type);
     ax::ResourceData backGroundSelectedFileName = _checkBox->getBackPressedFile();
-    AXLOG("backGroundSelectedFile  Name : %s, Type: %d", backGroundSelectedFileName.file.c_str(),
+    AXLOGD("backGroundSelectedFile  Name : {}, Type: {}", backGroundSelectedFileName.file,
           backGroundSelectedFileName.type);
     ax::ResourceData backGroundDisabledFileName = _checkBox->getBackDisabledFile();
-    AXLOG("backGroundDisabledFile  Name : %s, Type: %d", backGroundDisabledFileName.file.c_str(),
+    AXLOGD("backGroundDisabledFile  Name : {}, Type: {}", backGroundDisabledFileName.file,
           backGroundDisabledFileName.type);
     ax::ResourceData frontCrossFileName = _checkBox->getCrossNormalFile();
-    AXLOG("frontCrossFile  Name : %s, Type: %d", frontCrossFileName.file.c_str(), frontCrossFileName.type);
+    AXLOGD("frontCrossFile  Name : {}, Type: {}", frontCrossFileName.file, frontCrossFileName.type);
     ax::ResourceData frontCrossDisabledFileName = _checkBox->getCrossDisabledFile();
-    AXLOG("frontCrossDisabledFile  Name : %s, Type: %d", frontCrossDisabledFileName.file.c_str(),
+    AXLOGD("frontCrossDisabledFile  Name : {}, Type: {}", frontCrossDisabledFileName.file,
           frontCrossDisabledFileName.type);
 }
 

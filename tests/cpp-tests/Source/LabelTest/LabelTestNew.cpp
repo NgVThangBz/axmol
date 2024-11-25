@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include "renderer/Renderer.h"
 #include "2d/FontAtlasCache.h"
 
-USING_NS_AX;
+using namespace ax;
 using namespace ui;
 using namespace extension;
 
@@ -72,7 +72,7 @@ public:
     }
 
     virtual std::string title() const override { return "Github Issue 1336"; }
-    virtual std::string subtitle() const override { return "The label char shouldn't overalpping"; }
+    virtual std::string subtitle() const override { return "The label char shouldn't overlap"; }
 };
 
 //------------------------------------------------------------------
@@ -445,14 +445,14 @@ LabelFNTMultiLine::LabelFNTMultiLine()
     addChild(label1, 0, kTagBitmapAtlas1);
 
     s = label1->getContentSize();
-    AXLOG("content size: %.2fx%.2f", s.width, s.height);
+    AXLOGD("content size: {:.2}x{:.2}", s.width, s.height);
 
     // Center
     auto label2 = Label::createWithBMFont("fonts/bitmapFontTest3.fnt", "Multi line\nCenter");
     addChild(label2, 0, kTagBitmapAtlas2);
 
     s = label2->getContentSize();
-    AXLOG("content size: %.2fx%.2f", s.width, s.height);
+    AXLOGD("content size:  {:.2}x{:.2}", s.width, s.height);
 
     // right
     auto label3 = Label::createWithBMFont("fonts/bitmapFontTest3.fnt", "Multi line\nRight\nThree lines Three");
@@ -460,7 +460,7 @@ LabelFNTMultiLine::LabelFNTMultiLine()
     addChild(label3, 0, kTagBitmapAtlas3);
 
     s = label3->getContentSize();
-    AXLOG("content size: %.2fx%.2f", s.width, s.height);
+    AXLOGD("content size:  {:.2}x{:.2}", s.width, s.height);
 
     label1->setPosition(VisibleRect::leftBottom());
     label2->setPosition(VisibleRect::center());
@@ -1266,7 +1266,7 @@ LabelTTFFontsTestNew::LabelTTFFontsTestNew()
         }
         else
         {
-            ax::print("ERROR: Cannot load: %s", ttfpaths[i]);
+            AXLOGE("ERROR: Cannot load: {}", ttfpaths[i]);
         }
     }
 }
@@ -1300,7 +1300,6 @@ LabelTTFDistanceField::LabelTTFDistanceField()
     auto borderDraw        = DrawNode::create();
     label1->addChild(borderDraw);
     borderDraw->clear();
-    borderDraw->setLineWidth(1);
     Vec2 vertices[4] = {Vec2::ZERO, Vec2(labelContentSize.width, 0.0f),
                         Vec2(labelContentSize.width, labelContentSize.height), Vec2(0.0f, labelContentSize.height)};
     borderDraw->drawPoly(vertices, 4, true, Color4F::RED);
@@ -1315,7 +1314,6 @@ LabelTTFDistanceField::LabelTTFDistanceField()
     auto borderDraw2        = DrawNode::create();
     label2->addChild(borderDraw2);
     borderDraw2->clear();
-    borderDraw2->setLineWidth(1);
     Vec2 vertices2[4] = {Vec2::ZERO, Vec2(labelContentSize2.width, 0.0f),
                          Vec2(labelContentSize2.width, labelContentSize2.height), Vec2(0.0f, labelContentSize2.height)};
     borderDraw2->drawPoly(vertices2, 4, true, Color4F::GREEN);
@@ -1552,7 +1550,7 @@ LabelCharMapColorTest::LabelCharMapColorTest()
 
 void LabelCharMapColorTest::actionFinishCallback()
 {
-    AXLOG("Action finished");
+    AXLOGD("Action finished");
 }
 
 void LabelCharMapColorTest::step(float dt)
@@ -2323,7 +2321,7 @@ void LabelLayoutBaseTest::initWrapOption(const ax::Size& size)
     checkBox->setSelected(true);
     checkBox->setName("toggleWrap");
 
-    checkBox->addEventListener([=](Object* ref, CheckBox::EventType event) {
+    checkBox->addEventListener([this](Object* /*sender*/, CheckBox::EventType event) {
         if (event == CheckBox::EventType::SELECTED)
         {
             _label->enableWrap(true);
@@ -2354,7 +2352,7 @@ void LabelLayoutBaseTest::initToggleLabelTypeOption(const ax::Size& size)
 
     auto stepper = (ControlStepper*)this->getChildByName("stepper");
 
-    checkBox->addEventListener([=](Object* ref, CheckBox::EventType event) {
+    checkBox->addEventListener([this, stepper](Object* /*sender*/, CheckBox::EventType event) {
         float fontSize = stepper->getValue();
 
         if (event == CheckBox::EventType::SELECTED)
@@ -2419,7 +2417,7 @@ void LabelLayoutBaseTest::initSliders(const ax::Size& size)
     addChild(slider2);
     auto winSize = Director::getInstance()->getVisibleSize();
 
-    slider->addEventListener([=](Object* ref, Slider::EventType event) {
+    slider->addEventListener([this, slider, winSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider->getPercent();
         auto labelSize    = _label->getContentSize();
         auto drawNodeSize = Size(percent / 100.0 * winSize.width, labelSize.height);
@@ -2431,7 +2429,7 @@ void LabelLayoutBaseTest::initSliders(const ax::Size& size)
         this->updateDrawNodeSize(drawNodeSize);
     });
 
-    slider2->addEventListener([=](Object* ref, Slider::EventType event) {
+    slider2->addEventListener([this, slider2, winSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider2->getPercent();
         auto labelSize    = _label->getContentSize();
         auto drawNodeSize = Size(labelSize.width, percent / 100.0 * winSize.height);
@@ -2501,7 +2499,7 @@ void LabelLayoutBaseTest::valueChanged(ax::Object* sender, ax::extension::Contro
     // Change value of label.
     auto fontSizeLabel = (Label*)this->getChildByName("fontSize");
     float fontSize     = (float)pControl->getValue();
-    fontSizeLabel->setString(StringUtils::format("font size:%d", (int)fontSize));
+    fontSizeLabel->setString(fmt::format("font size:{}", (int)fontSize));
 
     if (_labelType == 0)
     {
@@ -2525,7 +2523,7 @@ void LabelLayoutBaseTest::valueChanged(ax::Object* sender, ax::extension::Contro
     //    letterSprite->stopAllActions();
     //    letterSprite->runAction(Sequence::create(moveBy, moveBy->clone()->reverse(), nullptr ));
     //
-    //    AXLOG("label line height = %f", _label->getLineHeight());
+    //    AXLOGD("label line height = {}", _label->getLineHeight());
 }
 
 void LabelLayoutBaseTest::updateDrawNodeSize(const ax::Size& drawNodeSize)
@@ -2590,8 +2588,8 @@ LabelWrapNoBreakSpaceTest::LabelWrapNoBreakSpaceTest()
 {
     _label->setLineBreakWithoutSpace(false);
     const char* no_break_space_utf8 = "\xC2\xA0";  // 0xA0 - no-break space
-    auto str                        = StringUtils::format(
-        "The price is $%s1.25. \n\nthe space between \"$\" and \"1.25\" is a no break space.", no_break_space_utf8);
+    auto str                        = fmt::format(
+        "The price is ${}1.25. \n\nthe space between \"$\" and \"1.25\" is a no break space.", no_break_space_utf8);
     _label->setString(str);
     _label->setVerticalAlignment(TextVAlignment::TOP);
     _label->setOverflow(Label::Overflow::CLAMP);
@@ -2663,7 +2661,7 @@ LabelResizeTest::LabelResizeTest()
     slider2->setVisible(false);
 
     auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([=](Object* ref, Slider::EventType event) {
+    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
         auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
@@ -2690,7 +2688,7 @@ LabelResizeTest::LabelResizeTest()
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
 
-    checkBox->addEventListener([=](Object* ref, CheckBox::EventType event) {
+    checkBox->addEventListener([this](Object* /*sender*/, CheckBox::EventType event) {
         if (event == CheckBox::EventType::SELECTED)
         {
             _label->setLineBreakWithoutSpace(true);
@@ -2729,7 +2727,7 @@ LabelToggleTypeTest::LabelToggleTypeTest()
     slider2->setVisible(false);
 
     auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([=](Object* ref, Slider::EventType event) {
+    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
         auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
@@ -2756,7 +2754,7 @@ LabelToggleTypeTest::LabelToggleTypeTest()
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
 
-    checkBox->addEventListener([=](Object* ref, CheckBox::EventType event) {
+    checkBox->addEventListener([this](Object* /*sender*/, CheckBox::EventType event) {
         if (event == CheckBox::EventType::SELECTED)
         {
             _label->setLineBreakWithoutSpace(true);
@@ -2875,7 +2873,7 @@ LabelSystemFontTest::LabelSystemFontTest()
     auto slider1 = (ui::Slider*)this->getChildByTag(1);
 
     auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([=](Object* ref, Slider::EventType event) {
+    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
         auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
@@ -2899,7 +2897,7 @@ LabelSystemFontTest::LabelSystemFontTest()
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
 
-    checkBox->addEventListener([=](Object* ref, CheckBox::EventType event) {
+    checkBox->addEventListener([this](Object* /*sender*/, CheckBox::EventType event) {
         if (event == CheckBox::EventType::SELECTED)
         {
             _label->setLineBreakWithoutSpace(true);

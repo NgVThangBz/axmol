@@ -4,7 +4,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,8 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _CCFontAtlas_h_
-#define _CCFontAtlas_h_
+#ifndef _AX_FONTATLAS_H_
+#define _AX_FONTATLAS_H_
 
 /// @cond DO_NOT_SHOW
 
@@ -41,7 +41,8 @@
 #include "base/Map.h"
 #include "2d/FontFreeType.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 class Font;
 class EventCustom;
@@ -181,7 +182,7 @@ protected:
     friend class Label;
 };
 
-NS_AX_END
+}
 
 /// @endcond
-#endif /* defined(__cocos2d_libs__CCFontAtlas__) */
+#endif /* defined(_AX_FONTATLAS_H_) */

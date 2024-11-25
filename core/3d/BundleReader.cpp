@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +27,8 @@
 #include "3d/BundleReader.h"
 #include "platform/FileUtils.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 BundleReader::BundleReader()
 {
@@ -50,7 +52,7 @@ ssize_t BundleReader::read(void* ptr, ssize_t size, ssize_t count)
 {
     if (!_buffer || eof())
     {
-        AXLOG("warning: bundle reader out of range");
+        AXLOGW("warning: bundle reader out of range");
         return 0;
     }
 
@@ -72,7 +74,7 @@ ssize_t BundleReader::read(void* ptr, ssize_t size, ssize_t count)
             _position += readLength;
             validCount += 1;
         }
-        AXLOG("warning: bundle reader out of range");
+        AXLOGW("warning: bundle reader out of range");
     }
     else
     {
@@ -187,4 +189,4 @@ bool BundleReader::readMatrix(float* m)
     return (read(m, sizeof(float), 16) == 16);
 }
 
-NS_AX_END
+}

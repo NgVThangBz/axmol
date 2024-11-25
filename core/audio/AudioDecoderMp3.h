@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,8 @@ typedef struct mp3dec_impl* mp3dec_handle_t;
 typedef struct mpg123_handle_struct* mp3dec_handle_t;
 #endif
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @brief The class for decoding compressed audio file to PCM buffer.
@@ -89,4 +90,4 @@ protected:
     friend class AudioDecoderManager;
 };
 
-NS_AX_END  // namespace ax
+}  // namespace ax

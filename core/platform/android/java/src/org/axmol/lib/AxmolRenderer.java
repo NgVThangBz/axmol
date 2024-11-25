@@ -1,26 +1,26 @@
 /****************************************************************************
-Copyright (c) 2010-2011 cocos2d-x.org
-Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2010-2011 cocos2d-x.org
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ https://axmol.dev/
 
-https://axmolengine.github.io/
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
  ****************************************************************************/
 package org.axmol.lib;
 
@@ -38,6 +38,7 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
 
     // The final animation interval which is used in 'onDrawFrame'
     private static long sAnimationInterval = (long) (1.0f / 60f * AxmolRenderer.NANOSECONDSPERSECOND);
+    private static float FPS_CONTROL_THRESHOLD = 1.0f / 1200.0f * AxmolRenderer.NANOSECONDSPERSECOND;
 
     // ===========================================================
     // Fields
@@ -46,7 +47,9 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
     private long mLastTickInNanoSeconds;
     private int mScreenWidth;
     private int mScreenHeight;
-    private boolean mNativeInitCompleted = false;
+
+    private static boolean gNativeInitialized = false;
+    private static boolean gNativeIsPaused = false;
 
     // ===========================================================
     // Constructors
@@ -74,11 +77,11 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
         AxmolRenderer.nativeInit(this.mScreenWidth, this.mScreenHeight);
         this.mLastTickInNanoSeconds = System.nanoTime();
 
-        if (mNativeInitCompleted) {
+        if (gNativeInitialized) {
             // This must be from an OpenGL context loss
             nativeOnContextLost();
         } else {
-            mNativeInitCompleted = true;
+            gNativeInitialized = true;
         }
     }
 
@@ -90,19 +93,15 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(final GL10 gl) {
         /*
-         * Fix 60fps limiting doesn't work when high-end device is working in 120fps mode.
+         * Render time MUST be counted in, or the FPS will slower than appointed.
          */
-        if (AxmolRenderer.sAnimationInterval <= 1.0f / 1200.0f * AxmolRenderer.NANOSECONDSPERSECOND) {
-            AxmolRenderer.nativeRender();
-        } else {
-            final long now = System.nanoTime();
-            final long interval = now - this.mLastTickInNanoSeconds;
-            
-            /*
-             * Render time MUST be counted in, or the FPS will slower than appointed.
-            */
-            this.mLastTickInNanoSeconds = now;
-            AxmolRenderer.nativeRender();
+        AxmolRenderer.nativeRender();
+        /*
+         * No need to use algorithm in default(60,90,120... FPS) situation,
+         * since onDrawFrame() was called by system 60 times per second by default.
+         */
+        if (AxmolRenderer.sAnimationInterval > AxmolRenderer.FPS_CONTROL_THRESHOLD) {
+            final long interval = System.nanoTime() - this.mLastTickInNanoSeconds;
 
             if (interval < AxmolRenderer.sAnimationInterval) {
                 try {
@@ -110,6 +109,8 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
                 } catch (final Exception e) {
                 }
             }
+
+            this.mLastTickInNanoSeconds = System.nanoTime();
         }
     }
 
@@ -160,14 +161,18 @@ public class AxmolRenderer implements GLSurfaceView.Renderer {
          * onSurfaceCreated is invoked. Can not invoke any
          * native method before onSurfaceCreated is invoked
          */
-        if (!mNativeInitCompleted)
+        if (!gNativeInitialized)
             return;
 
         AxmolRenderer.nativeOnPause();
+        gNativeIsPaused = true;
     }
 
     public void handleOnResume() {
-        AxmolRenderer.nativeOnResume();
+        if (gNativeIsPaused) {
+            AxmolRenderer.nativeOnResume();
+            gNativeIsPaused = false;
+        }
     }
 
     private static native void nativeInsertText(final String text);

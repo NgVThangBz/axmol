@@ -1,7 +1,7 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #include "DataVisitorTest.h"
 #include "../testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 DataVisitorTests::DataVisitorTests()
 {
@@ -88,8 +88,8 @@ void PrettyPrinterDemo::onEnter()
     //    // print dictionary
     //    auto dict = __Dictionary::createWithContentsOfFile("animations/animations.plist");
     //    dict->acceptVisitor(visitor);
-    //    ax::print("%s", visitor.getResult().c_str());
-    //    ax::print("-------------------------------");
+    //    AXLOGD("{}", visitor.getResult());
+    //    AXLOGD("-------------------------------");
     //
     //    __Set myset;
     //    for (int i = 0; i < 30; ++i) {
@@ -97,12 +97,12 @@ void PrettyPrinterDemo::onEnter()
     //    }
     //    visitor.clear();
     //    myset.acceptVisitor(visitor);
-    //    ax::print("%s", visitor.getResult().c_str());
-    //    ax::print("-------------------------------");
+    //    AXLOGD("{}", visitor.getResult());
+    //    AXLOGD("-------------------------------");
     //
     //    visitor.clear();
     addSprite();
     //    dict = Director::getInstance()->getTextureCache()->snapshotTextures();
     //    dict->acceptVisitor(visitor);
-    //    ax::print("%s", visitor.getResult().c_str());
+    //    AXLOGD("{}", visitor.getResult());
 }

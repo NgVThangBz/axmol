@@ -3,7 +3,7 @@ Copyright (c) 2010 cocos2d-x.org
 Copyright (c) Microsoft Open Technologies, Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@ THE SOFTWARE.
 
 #include "platform/StdC.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 int AX_DLL gettimeofday(struct timeval * val, struct timezone *)
 {
     if (val)
@@ -48,4 +49,4 @@ int AX_DLL gettimeofday(struct timeval * val, struct timezone *)
     }
     return 0;
 }
-NS_AX_END
+}

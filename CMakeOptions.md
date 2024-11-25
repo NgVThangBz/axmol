@@ -35,12 +35,12 @@
   - AX_ENABLE_EXT_EFFEKSEER: the effekseer extension, default: `FALSE` 
   - AX_ENABLE_EXT_JSONDEFAULT: the UserDefault based on json, default: `FALSE`
   - AX_ENABLE_EXT_LUA: the lua extension, default: `TRUE`
-  - AX_ENABLE_EXT_DRAWNODEEX: the DrawNodeEx extension, default: `FALSE`
 - AX_WITH_XXX: usually user don't need care it
 - AX_USE_COMPAT_GL: whether use compat gl as renderer backend, default: win32: `TRUE`, others: `FALSE`
   - win32: whether use ANGLE GLES backend
   - osx: whether use OpenGL instead Metal backend
   - ios/tvos: whether use GLES instead Metal backend
+- AX_CORE_PROFILE: whether strip deprecated features, default `FALSE`
 - AX_ISA_LEVEL: specifiy SIMD Instructions Acceleration Level: 0~4, 0: disabled, 1: SSE2, 2: SSE4.1/NEON, 3: SSE4.2, 4: AVX2, default: 2
 - AX_GLES_PROFILE: specify GLES profile version for GLES backend, valid value `200`, `300`
 - AX_WASM_THREADS: specify wasm thread count, valid value: number: `>=0` , string: must be: `auto` or `navigator.hardwareConcurrency`(default), 
@@ -51,6 +51,8 @@
 default is: `navigator.hardwareConcurrency`
 - AX_WASM_SHELL_FILE: specify the wasm shell file, by default use `${_AX_ROOT}/core/platform/wasm/shell_minimal.html`
 - AX_WASM_ENABLE_DEVTOOLS: whether enable web devtools aka `pause`, `resume`, `step` buttons in webpage, default: `TRUE`
+- AX_WASM_INITIAL_MEMORY: set the wasm initial memory size, default `1024MB`
+- AX_WASM_ISA_SIMD: specify the wasm simd intrinsics type, default `none`, supports `sse`, `neon`, note the `wasm-simd` not support by axmol yet
 
 ## The options for axmol apps
 

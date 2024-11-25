@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 cocos2d-x.org
- * https://axmolengine.github.io/
+ * https://axmol.dev/
  *
  * Copyright 2012 Yannick Loriot. All rights reserved.
  * http://yannickloriot.com
@@ -216,7 +216,7 @@ bool ControlSwitchSprite::initWithMaskSprite(Sprite* maskSprite,
 
 void ControlSwitchSprite::updateTweenAction(float value, std::string_view key)
 {
-    AXLOGINFO("key = %s, value = %f", key.c_str(), value);
+    AXLOGI("key = {}, value = {}", key, value);
     setSliderXPosition(value);
 }
 

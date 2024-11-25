@@ -3,7 +3,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include "TransitionsTest.h"
 #include "../testResource.h"
 
-USING_NS_AX;
+using namespace ax;
 
 #define TRANSITION_DURATION (1.2f)
 
@@ -296,26 +296,26 @@ void TestLayer1::step(float dt) {}
 void TestLayer1::onEnter()
 {
     Layer::onEnter();
-    ax::print("Scene 1 onEnter");
+    AXLOGD("Scene 1 onEnter");
 }
 
 void TestLayer1::onEnterTransitionDidFinish()
 {
     Layer::onEnterTransitionDidFinish();
-    ax::print("Scene 1: onEnterTransitionDidFinish");
+    AXLOGD("Scene 1: onEnterTransitionDidFinish");
 }
 
 void TestLayer1::onExitTransitionDidStart()
 {
     Layer::onExitTransitionDidStart();
-    ax::print("Scene 1: onExitTransitionDidStart");
+    AXLOGD("Scene 1: onExitTransitionDidStart");
 }
 
 void TestLayer1::onExit()
 {
     Layer::onExit();
     Director::getInstance()->getRenderer()->setDepthTest(false);
-    ax::print("Scene 1 onExit");
+    AXLOGD("Scene 1 onExit");
 }
 
 TestLayer2* TestLayer2::create(std::string_view transitionName)
@@ -366,24 +366,24 @@ void TestLayer2::step(float dt) {}
 void TestLayer2::onEnter()
 {
     Layer::onEnter();
-    ax::print("Scene 2 onEnter");
+    AXLOGD("Scene 2 onEnter");
 }
 
 void TestLayer2::onEnterTransitionDidFinish()
 {
     Layer::onEnterTransitionDidFinish();
-    ax::print("Scene 2: onEnterTransitionDidFinish");
+    AXLOGD("Scene 2: onEnterTransitionDidFinish");
 }
 
 void TestLayer2::onExitTransitionDidStart()
 {
     Layer::onExitTransitionDidStart();
-    ax::print("Scene 2: onExitTransitionDidStart");
+    AXLOGD("Scene 2: onExitTransitionDidStart");
 }
 
 void TestLayer2::onExit()
 {
     Layer::onExit();
     Director::getInstance()->getRenderer()->setDepthTest(false);
-    ax::print("Scene 2 onExit");
+    AXLOGD("Scene 2 onExit");
 }

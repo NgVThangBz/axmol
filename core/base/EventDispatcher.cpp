@@ -1,8 +1,9 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -61,7 +62,8 @@ private:
 
 }  // namespace
 
-NS_AX_BEGIN
+namespace ax
+{
 
 static EventListener::ListenerID __getListenerID(Event* event)
 {
@@ -959,9 +961,9 @@ void EventDispatcher::dispatchTouchEventToListeners(EventListenerVector* listene
     }
 }
 
-void EventDispatcher::dispatchEvent(Event* event)
+void EventDispatcher::dispatchEvent(Event* event, bool forced)
 {
-    if (!_isEnabled)
+    if (!_isEnabled && !forced)
         return;
 
     updateDirtyFlagForSceneGraph();
@@ -1000,11 +1002,11 @@ void EventDispatcher::dispatchEvent(Event* event)
     updateListeners(event);
 }
 
-void EventDispatcher::dispatchCustomEvent(std::string_view eventName, void* optionalUserData)
+void EventDispatcher::dispatchCustomEvent(std::string_view eventName, void* optionalUserData, bool forced)
 {
     EventCustom ev(eventName);
     ev.setUserData(optionalUserData);
-    dispatchEvent(&ev);
+    dispatchEvent(&ev, forced);
 }
 
 bool EventDispatcher::hasEventListener(std::string_view listenerID) const
@@ -1689,4 +1691,4 @@ void EventDispatcher::releaseListener(EventListener* listener)
     AX_SAFE_RELEASE(listener);
 }
 
-NS_AX_END
+}

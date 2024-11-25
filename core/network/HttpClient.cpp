@@ -5,7 +5,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@
 
 using namespace yasio;
 
-NS_AX_BEGIN
+namespace ax
+{
 
 namespace network
 {
@@ -76,15 +77,15 @@ void HttpClient::destroyInstance()
 {
     if (nullptr == _httpClient)
     {
-        AXLOG("HttpClient singleton is nullptr");
+        AXLOGD("HttpClient singleton is nullptr");
         return;
     }
 
-    AXLOG("HttpClient::destroyInstance begin");
+    AXLOGD("HttpClient::destroyInstance begin");
     delete _httpClient;
     _httpClient = nullptr;
 
-    AXLOG("HttpClient::destroyInstance() finished!");
+    AXLOGD("HttpClient::destroyInstance() finished!");
 }
 
 void HttpClient::enableCookies(const char* cookieFile)
@@ -120,7 +121,7 @@ HttpClient::HttpClient()
     , _cookie(nullptr)
     , _clearResponsePredicate(nullptr)
 {
-    AXLOG("In the constructor of HttpClient!");
+    AXLOGD("In the constructor of HttpClient!");
     _scheduler = Director::getInstance()->getScheduler();
 
     _service = new yasio::io_service(HttpClient::MAX_CHANNELS);
@@ -150,7 +151,7 @@ HttpClient::~HttpClient()
         delete _cookie;
     }
 
-    AXLOG("HttpClient destructor");
+    AXLOGD("HttpClient destructor");
 }
 
 void HttpClient::setDispatchOnWorkThread(bool bVal)
@@ -526,6 +527,6 @@ std::string_view HttpClient::getSSLVerification()
 
 }  // namespace network
 
-NS_AX_END
+}
 
 #endif

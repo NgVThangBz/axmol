@@ -3,7 +3,7 @@
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,8 @@
 #include "renderer/backend/Backend.h"
 #include "renderer/backend/RenderTarget.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 // helper
 static bool compareRenderCommand(RenderCommand* a, RenderCommand* b)
@@ -204,9 +205,8 @@ void Renderer::init()
 
     auto driver    = backend::DriverBase::getInstance();
     _commandBuffer = driver->newCommandBuffer();
-    // @MTL: the depth stencil flags must same render target and _dsDesc
     _dsDesc.flags = DepthStencilFlags::ALL;
-    _defaultRT    = driver->newDefaultRenderTarget(TargetBufferFlags::COLOR | TargetBufferFlags::DEPTH_AND_STENCIL);
+    _defaultRT    = driver->newDefaultRenderTarget();
 
     _currentRT      = _defaultRT;
     _renderPipeline = driver->newRenderPipeline();
@@ -218,7 +218,7 @@ void Renderer::init()
 
 backend::RenderTarget* Renderer::getOffscreenRenderTarget() {
     if (_offscreenRT != nullptr) return _offscreenRT;
-    return (_offscreenRT = backend::DriverBase::getInstance()->newRenderTarget(TargetBufferFlags::COLOR | TargetBufferFlags::DEPTH_AND_STENCIL));
+    return (_offscreenRT = backend::DriverBase::getInstance()->newRenderTarget());
 }
 
 void Renderer::addCallbackCommand(std::function<void()> func, float globalZOrder)
@@ -283,13 +283,7 @@ void Renderer::processGroupCommand(GroupCommand* command)
 
     int renderQueueID = ((GroupCommand*)command)->getRenderQueueID();
 
-    pushStateBlock();
-    // apply default state for all render queues
-    setDepthTest(false);
-    setDepthWrite(false);
-    setCullMode(backend::CullMode::NONE);
     visitRenderQueue(_renderGroups[renderQueueID]);
-    popStateBlock();
 }
 
 void Renderer::processRenderCommand(RenderCommand* command)
@@ -358,6 +352,13 @@ void Renderer::processRenderCommand(RenderCommand* command)
 
 void Renderer::visitRenderQueue(RenderQueue& queue)
 {
+    pushStateBlock();
+
+    // Apply default state for all render queues
+    setDepthTest(false);
+    setDepthWrite(false);
+    setCullMode(backend::CullMode::NONE);
+
     //
     // Process Global-Z < 0 Objects
     //
@@ -388,6 +389,8 @@ void Renderer::visitRenderQueue(RenderQueue& queue)
     // Process Global-Z > 0 Queue
     //
     doVisitRenderQueue(queue.getSubQueue(RenderQueue::QUEUE_GROUP::GLOBALZ_POS));
+
+    popStateBlock();
 }
 
 void Renderer::doVisitRenderQueue(const std::vector<RenderCommand*>& renderCommands)
@@ -455,29 +458,17 @@ void Renderer::clean()
 void Renderer::setDepthTest(bool value)
 {
     if (value)
-    {
-        _currentRT->addFlag(TargetBufferFlags::DEPTH);
         _dsDesc.addFlag(DepthStencilFlags::DEPTH_TEST);
-    }
     else
-    {
-        _currentRT->removeFlag(TargetBufferFlags::DEPTH);
         _dsDesc.removeFlag(DepthStencilFlags::DEPTH_TEST);
-    }
 }
 
 void Renderer::setStencilTest(bool value)
 {
     if (value)
-    {
-        _currentRT->addFlag(TargetBufferFlags::STENCIL);
         _dsDesc.addFlag(DepthStencilFlags::STENCIL_TEST);
-    }
     else
-    {
-        _currentRT->removeFlag(TargetBufferFlags::STENCIL);
         _dsDesc.removeFlag(DepthStencilFlags::STENCIL_TEST);
-    }
 }
 
 void Renderer::setDepthWrite(bool value)
@@ -599,23 +590,17 @@ void Renderer::setViewPort(int x, int y, unsigned int w, unsigned int h)
 
 void Renderer::fillVerticesAndIndices(const TrianglesCommand* cmd, unsigned int vertexBufferOffset)
 {
-    size_t vertexCount = cmd->getVertexCount();
-    memcpy(&_verts[_filledVertex], cmd->getVertices(), sizeof(V3F_C4B_T2F) * vertexCount);
+    auto destVertices = &_verts[_filledVertex];
+    auto srcVertices = cmd->getVertices();
+    auto vertexCount = cmd->getVertexCount();
+    auto&& modelView = cmd->getModelView();
+    MathUtil::transformVertices(destVertices, srcVertices, vertexCount, modelView);
 
-    // fill vertex, and convert them to world coordinates
-    const Mat4& modelView = cmd->getModelView();
-    for (size_t i = 0; i < vertexCount; ++i)
-    {
-        modelView.transformPoint(&(_verts[i + _filledVertex].vertices));
-    }
-
-    // fill index
-    const unsigned short* indices = cmd->getIndices();
-    size_t indexCount             = cmd->getIndexCount();
-    for (size_t i = 0; i < indexCount; ++i)
-    {
-        _indices[_filledIndex + i] = vertexBufferOffset + _filledVertex + indices[i];
-    }
+    auto destIndices = &_indices[_filledIndex];
+    auto srcIndices = cmd->getIndices();
+    auto indexCount = cmd->getIndexCount();
+    auto offset = vertexBufferOffset + _filledVertex;
+    MathUtil::transformIndices(destIndices, srcIndices, indexCount, int(offset));
 
     _filledVertex += vertexCount;
     _filledIndex += indexCount;
@@ -849,7 +834,18 @@ void Renderer::readPixels(backend::RenderTarget* rt,
 void Renderer::beginRenderPass()
 {
     _commandBuffer->beginRenderPass(_currentRT, _renderPassDesc);
-    _commandBuffer->updateDepthStencilState(_dsDesc);
+
+    // Disable depth/stencil access if render target has no relevant attachments.
+    auto depthStencil = _dsDesc;
+    if (!_currentRT->isDefaultRenderTarget())
+    {
+        if (!_currentRT->_depth)
+            depthStencil.removeFlag(DepthStencilFlags::DEPTH_TEST | DepthStencilFlags::DEPTH_WRITE);
+        if (!_currentRT->_stencil)
+            depthStencil.removeFlag(DepthStencilFlags::STENCIL_TEST);
+    }
+
+    _commandBuffer->updateDepthStencilState(depthStencil);
     _commandBuffer->setStencilReferenceValue(_stencilRef);
 
     _commandBuffer->setViewport(_viewport.x, _viewport.y, _viewport.width, _viewport.height);
@@ -927,11 +923,6 @@ unsigned int Renderer::getClearStencil() const
 ClearFlag Renderer::getClearFlag() const
 {
     return _clearFlag;
-}
-
-RenderTargetFlag Renderer::getRenderTargetFlag() const
-{
-    return _currentRT->getTargetFlags();
 }
 
 void Renderer::setScissorTest(bool enabled)
@@ -1042,4 +1033,4 @@ void Renderer::popStateBlock()
     _stateBlockStack.pop_back();
 }
 
-NS_AX_END
+}

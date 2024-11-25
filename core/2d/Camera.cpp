@@ -3,7 +3,7 @@
  Copyright (c) 2017-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@
 #include "renderer/Renderer.h"
 #include "renderer/QuadCommand.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 Camera* Camera::_visitingCamera = nullptr;
 Viewport Camera::_defaultViewport;
@@ -217,7 +218,7 @@ void Camera::initDefault()
     }
 
     setDepth(0);
-	
+
     if (_zoomFactor != 1.0F)
         applyZoom();
 }
@@ -307,7 +308,7 @@ Vec2 Camera::projectGL(const Vec3& src) const
     getViewProjectionMatrix().transformVector(Vec4(src.x, src.y, src.z, 1.0f), &clipPos);
 
     if (clipPos.w == 0.0f)
-        AXLOG("WARNING: Camera's clip position w is 0.0! a black screen should be expected.");
+        AXLOGW("WARNING: Camera's clip position w is 0.0! a black screen should be expected.");
 
     float ndcX = clipPos.x / clipPos.w;
     float ndcY = clipPos.y / clipPos.w;
@@ -555,4 +556,4 @@ bool Camera::isBrushValid()
     return _clearBrush != nullptr && _clearBrush->isValid();
 }
 
-NS_AX_END
+}

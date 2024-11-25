@@ -2,7 +2,7 @@
 
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 #include "simdjson/simdjson.h"
 #include "platform/FileUtils.h"
 
-NS_AX_BEGIN
+namespace ax
+{
 
 /**
  * @addtogroup base
@@ -101,4 +102,4 @@ private:
 // end of base group
 /** @} */
 
-NS_AX_END
+}

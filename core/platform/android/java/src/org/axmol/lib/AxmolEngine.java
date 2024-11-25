@@ -2,8 +2,9 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,8 +53,10 @@ import android.view.Display;
 import android.view.DisplayCutout;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 
 import com.android.vending.expansion.zipfile.APKExpansionSupport;
@@ -71,6 +74,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -108,6 +112,10 @@ public class AxmolEngine {
 
     public static void runOnGLThread(final Runnable r) {
         nativeRunOnGLThread(r);
+    }
+
+    public static void runOnUiThread(final Runnable r) {
+        sActivity.runOnUiThread(r);
     }
 
     public static void queueOperation(final long op, final long param) {
@@ -235,8 +243,12 @@ public class AxmolEngine {
     public static String getPackageName() {
         return AxmolEngine.sPackageName;
     }
-    public static String getWritablePath() {
+    public static String getInternalFilesDir() {
         return sActivity.getFilesDir().getAbsolutePath();
+    }
+
+    public static String getExternalFilesDir() {
+        return Objects.requireNonNull(sActivity.getExternalFilesDir(null)).getAbsolutePath();
     }
 
     public static String getCurrentLanguage() {
@@ -634,6 +646,46 @@ public class AxmolEngine {
         }
 
         return safeInsets;
+    }
+
+    /**
+     * Returns rounded corner radius array.
+     *
+     * @return array of int with rounded corner radius values
+     */
+    @SuppressLint("NewApi")
+    public static int[] getDeviceCornerRadii() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            final int[] radii = new int[]{0, 0, 0, 0};
+            Window cocosWindow = sActivity.getWindow();
+            View view = cocosWindow.getDecorView();
+            WindowInsets insets = view.getRootWindowInsets();
+            android.view.RoundedCorner topLeft = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT);
+            android.view.RoundedCorner topRight = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_RIGHT);
+            android.view.RoundedCorner bottomLeft = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT);
+            android.view.RoundedCorner bottomRight = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_RIGHT);
+            int radiusTopLeft = 0;
+            int radiusTopRight = 0;
+            int radiusBottomLeft = 0;
+            int radiusBottomRight = 0;
+            if (topLeft != null) radiusTopLeft = topLeft.getRadius();
+            if (topRight != null) radiusTopRight = topRight.getRadius();
+            if (bottomLeft != null) radiusBottomLeft = bottomLeft.getRadius();
+            if (bottomRight != null) radiusBottomRight = bottomRight.getRadius();
+
+            int leftRadius = Math.max(radiusTopLeft, radiusBottomLeft);
+            int topRadius = Math.max(radiusTopLeft, radiusTopRight);
+            int rightRadius = Math.max(radiusTopRight, radiusBottomRight);
+            int bottomRadius = Math.max(radiusBottomLeft, radiusBottomRight);
+
+            radii[0] = bottomRadius;
+            radii[1] = leftRadius;
+            radii[2] = rightRadius;
+            radii[3] = topRadius;
+            return radii;
+        }
+
+        return null;
     }
 
     /**

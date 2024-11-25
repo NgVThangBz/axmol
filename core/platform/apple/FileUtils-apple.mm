@@ -5,7 +5,7 @@ Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
-https://axmolengine.github.io/
+https://axmol.dev/
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +37,8 @@ THE SOFTWARE.
 #include "base/Director.h"
 #include "platform/FileUtils.h"
 
-#define DECLARE_GUARD (void)0  // std::lock_guard<std::recursive_mutex> mutexGuard(_mutex)
-
-NS_AX_BEGIN
+namespace ax
+{
 
 struct FileUtilsApple::IMPL
 {
@@ -91,7 +90,7 @@ FileUtils* FileUtils::getInstance()
         {
             delete s_sharedFileUtils;
             s_sharedFileUtils = nullptr;
-            AXLOG("ERROR: Could not init CCFileUtilsApple");
+            AXLOGE("ERROR: Could not init FileUtilsApple");
         }
     }
     return s_sharedFileUtils;
@@ -99,13 +98,11 @@ FileUtils* FileUtils::getInstance()
 
 std::string FileUtilsApple::getWritablePath() const
 {
-    DECLARE_GUARD;
     return getNativeWritableAbsolutePath();
 }
 
 std::string FileUtilsApple::getNativeWritableAbsolutePath() const
 {
-    DECLARE_GUARD;
     if (_writablePath.length())
     {
         return _writablePath;
@@ -183,7 +180,7 @@ bool FileUtilsApple::removeDirectory(std::string_view path) const
 {
     if (path.empty())
     {
-        AXLOGERROR("Fail to remove directory, path is empty!");
+        AXLOGE("Fail to remove directory, path is empty!");
         return false;
     }
 
@@ -227,36 +224,45 @@ std::string FileUtilsApple::getPathForDirectory(std::string_view dir,
 std::string FileUtilsApple::getFullPathForFilenameWithinDirectory(std::string_view directory,
                                                                   std::string_view filename) const
 {
-    auto fullPath = std::string();
+    std::string ret;
 
-    // Build full path for the file
-    if (directory[0] != '/')
-    {
-        NSString* path = [pimpl_->getBundle() pathForResource:[[NSString alloc] initWithBytes:filename.data() length:filename.size() encoding:NSUTF8StringEncoding]
-                                                       ofType:nil
-                                                  inDirectory:[[NSString alloc] initWithBytes:directory.data() length:directory.size() encoding:NSUTF8StringEncoding]];
-        if (path != nil)
-        {
-            fullPath = [path UTF8String];
-        }
+    if (filename.empty())
+        return ret;
+
+    if (!directory.empty() && directory[0] == '/') {
+        size_t pathSize = directory.size() + filename.size();
+        if (directory.back() != '/')
+            ++pathSize;
+        ret.reserve(pathSize);
+        ret += directory;
+        ret += filename;
     }
     else
-    {
-        fullPath = directory;
-        fullPath += filename;
+    { // Build full path for the file
+        NSString* path = nil;
+        if (!directory.empty()) {
+            path = [pimpl_->getBundle() pathForResource:[[NSString alloc] initWithBytes:filename.data() length:filename.size() encoding:NSUTF8StringEncoding]
+                                                       ofType:nil
+                                                  inDirectory:[[NSString alloc] initWithBytes:directory.data() length:directory.size() encoding:NSUTF8StringEncoding]];
+        } else {
+            path = [pimpl_->getBundle() pathForResource:[[NSString alloc] initWithBytes:filename.data() length:filename.size() encoding:NSUTF8StringEncoding]
+                                                       ofType:nil];
+        }
+        if (path != nil)
+            ret = [path UTF8String];
     }
 
     // Check if there's a file at path
     BOOL isDir = NO;
-    if (![s_fileManager fileExistsAtPath:[NSString stringWithUTF8String:fullPath.c_str()] isDirectory:&isDir] || isDir)
+    if (![s_fileManager fileExistsAtPath:[NSString stringWithUTF8String:ret.c_str()] isDirectory:&isDir] || isDir)
     {
-        fullPath.clear();
+        ret.clear();
     }
 
-    return fullPath;
+    return ret;
 }
 
-bool FileUtilsApple::createDirectory(std::string_view path) const
+bool FileUtilsApple::createDirectories(std::string_view path) const
 {
     AXASSERT(!path.empty(), "Invalid path");
 
@@ -272,10 +278,10 @@ bool FileUtilsApple::createDirectory(std::string_view path) const
 
     if (!result && error != nil)
     {
-        AXLOGERROR("Fail to create directory \"%s\": %s", std::string(path).c_str(), [error.localizedDescription UTF8String]);
+        AXLOGE("Fail to create directory \"{}\": {}", path, [error.localizedDescription UTF8String]);
     }
 
     return result;
 }
 
-NS_AX_END
+}

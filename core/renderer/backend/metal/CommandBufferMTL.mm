@@ -2,7 +2,7 @@
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
- https://axmolengine.github.io/
+ https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -204,7 +204,6 @@ void CommandBufferMTL::updateRenderCommandEncoder(const RenderTarget* renderTarg
                                                   const RenderPassDescriptor& renderPassDesc)
 {
     if (_mtlRenderEncoder != nil && _currentRenderPassDesc == renderPassDesc && _currentRenderTarget == renderTarget &&
-        _currentRenderTargetFlags == renderTarget->getTargetFlags() &&
         !renderTarget->isDirty())
     {
         return;
@@ -212,7 +211,6 @@ void CommandBufferMTL::updateRenderCommandEncoder(const RenderTarget* renderTarg
 
     _currentRenderTarget      = renderTarget;
     _currentRenderPassDesc    = renderPassDesc;
-    _currentRenderTargetFlags = renderTarget->getTargetFlags();
 
     if (_mtlRenderEncoder != nil)
     {
