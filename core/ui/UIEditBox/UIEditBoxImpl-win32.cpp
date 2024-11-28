@@ -119,9 +119,9 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
                                       WS_CHILD | ES_LEFT | WS_BORDER | WS_EX_TRANSPARENT | WS_TABSTOP | ES_AUTOHSCROLL |
                                           (singleLine ? 0 : ES_MULTILINE),
                                       0, 0, 0,
-                                      0,                        // set size in WM_SIZE message
-                                      s_hwndCocos,              // parent window
-                                      s_editboxChildID,         // edit control ID
+                                      0,                 // set size in WM_SIZE message
+                                      s_hwndCocos,       // parent window
+                                      s_editboxChildID,  // edit control ID
                                       s_hInstance,
                                       this);  // pointer not needed
 
@@ -305,6 +305,12 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 {
     switch (uMsg)
     {
+    case WM_KEYDOWN:
+        if (_hasFocus && wParam == 'A' && (GetKeyState(VK_CONTROL) & 0x8000) != 0)  // CTRL+A for "Select All"
+        {
+            ::SendMessageW(_hwndEdit, EM_SETSEL, 0, -1);
+        }
+        break;
     case WM_CHAR:
         if (wParam == VK_RETURN)
         {
@@ -438,6 +444,6 @@ LRESULT EditBoxImplWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 }
 }  // namespace ui
 
-}
+}  // namespace ax
 
 #endif /* (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32) */
