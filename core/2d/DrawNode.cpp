@@ -489,17 +489,15 @@ void DrawNode::drawCardinalSpline(PointArray* config,
     for (unsigned int i = 0; i < segments; i++)
     {
         float dt = (float)i / segments;
+        p  = static_cast<ssize_t>(dt / deltaT);
 
-        // border
-        if (dt == 1)
+        // Check last control point reached
+        if (p >= (config->count() - 1))
         {
-            p  = config->count() - 1;
-            lt = 1;
-        }
-        else
-        {
-            p  = static_cast<ssize_t>(dt / deltaT);
-            lt = (dt - deltaT * (float)p) / deltaT;
+            _vertices[i] = config->getControlPointAtIndex(config->count() - 1);
+            segments     = i + 1;
+            _vertices.resize(segments);
+            break;
         }
 
         // Interpolate
@@ -508,14 +506,8 @@ void DrawNode::drawCardinalSpline(PointArray* config,
         Vec2 pp2 = config->getControlPointAtIndex(p + 1);
         Vec2 pp3 = config->getControlPointAtIndex(p + 2);
 
-        Vec2 newPos    = ccCardinalSplineAt(pp0, pp1, pp2, pp3, tension, lt);
-        _vertices[i].x = newPos.x;
-        _vertices[i].y = newPos.y;
-        if (newPos == config->getControlPointAtIndex(config->count() - 1) && i > 0)
-        {
-            segments = i + 1;
-            break;
-        }
+        lt           = (dt - deltaT * (float)p) / deltaT;
+        _vertices[i] = ccCardinalSplineAt(pp0, pp1, pp2, pp3, tension, lt);
     }
 
     _drawPoly(_vertices.data(), segments, false, color, thickness, true);
@@ -1461,18 +1453,21 @@ void DrawNode::_drawPie(const Vec2& center,
         case DrawMode::Fill:
             _vertices[n++] = center;
             _vertices[n++] = _vertices[0];
-            _drawPolygon(_vertices.data(), n, fillColor, borderColor, true, thickness, false);
+            _drawPolygon(_vertices.data(), n, fillColor, Color4B::TRANSPARENT, true, 0, false);
+            _drawPoly(_vertices.data(), n, false, borderColor, thickness, true);
             break;
         case DrawMode::Outline:
             _vertices[n++] = center;
             _vertices[n++] = _vertices[0];
-            _drawPolygon(_vertices.data(), n, Color4B::TRANSPARENT, borderColor, false, thickness, false);
+            _drawPoly(_vertices.data(), n, false, borderColor, thickness, true);
             break;
         case DrawMode::Line:
-            _drawPolygon(_vertices.data(), n - 1, Color4B::TRANSPARENT, borderColor, false, thickness, false);
+            _drawPoly(_vertices.data(), n,  false, borderColor, thickness, true);
             break;
         case DrawMode::Semi:
-            _drawPolygon(_vertices.data(), n - 1, fillColor, borderColor, true, thickness, false);
+            if (fillColor != Color4B::TRANSPARENT)
+                _drawPolygon(_vertices.data(), n, fillColor, borderColor, true, 0, false);
+            _drawPoly(_vertices.data(), n, true, borderColor, thickness, true);
             break;
         default:
             break;

@@ -1,6 +1,0 @@
-*The 2.2.1 release is a minor `LTS` release for bugfixes and improvements*
-
-### Bug fixes
-
-- Fix curl link error on macOS
-
