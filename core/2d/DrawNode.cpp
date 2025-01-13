@@ -1062,9 +1062,9 @@ void DrawNode::_drawSegment(const Vec2& from,
     }
     else
     {
-        float fS = Director::getInstance()->getGLView()->getFrameSize().width;
-        float dS = Director::getInstance()->getGLView()->getDesignResolutionSize().width;
-        float factor = 2 * fS / dS;
+//        float fS = Director::getInstance()->getGLView()->getFrameSize().width;
+//        float dS = Director::getInstance()->getGLView()->getDesignResolutionSize().width;
+        float factor = 10;
 
         Vec2 a  = vertices[0];
         Vec2 b  = vertices[1];
