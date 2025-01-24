@@ -81,7 +81,10 @@
     {
         return;
     }
-
+    if(!textInput || !_textInput) 
+    {
+        return;
+    }
     // Migrate properties
     textInput.axui_textColor   = _textInput.axui_textColor ?: [NSColor whiteColor];
     textInput.axui_text        = _textInput.axui_text ?: @"";
