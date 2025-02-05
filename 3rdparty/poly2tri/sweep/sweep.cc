@@ -54,6 +54,8 @@ void Sweep::SweepPoints(SweepContext& tcx)
   for (size_t i = 1; i < tcx.point_count(); i++) {
     Point& point = *tcx.GetPoint(i);
     Node* node = &PointEvent(tcx, point);
+      if(!node) 
+          return;
     for (auto& j : point.edge_list) {
       EdgeEvent(tcx, j, node);
     }
@@ -80,6 +82,7 @@ Node& Sweep::PointEvent(SweepContext& tcx, Point& point)
   Node* node_ptr = tcx.LocateNode(point);
   if (!node_ptr || !node_ptr->point || !node_ptr->next || !node_ptr->next->point)
   {
+      return *node_ptr;
     throw std::runtime_error("PointEvent - null node");
   }
 
