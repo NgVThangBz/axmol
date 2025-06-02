@@ -23,8 +23,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#define LOG_TAG "AudioEngineImpl"
-
 #include "platform/PlatformConfig.h"
 
 #include "audio/AudioEngineImpl.h"
@@ -551,6 +549,7 @@ AUDIO_ID AudioEngineImpl::play2d(std::string_view filePath, bool loop, float vol
     player->_alSource = alSource;
     player->_loop     = loop;
     player->_volume   = volume;
+    player->_pitch    = 1.0f;
     if (time > 0.0f)
     {
         player->_currTime  = time;
@@ -635,6 +634,30 @@ void AudioEngineImpl::setVolume(AUDIO_ID audioID, float volume)
     if (player->_ready)
     {
         alSourcef(player->_alSource, AL_GAIN, volume);
+
+        auto error = alGetError();
+        if (error != AL_NO_ERROR)
+        {
+            AXLOGE("{}: audio id = {}, error = {:#x}", __FUNCTION__, audioID, error);
+        }
+    }
+}
+
+void AudioEngineImpl::setPitch(AUDIO_ID audioID, float pitch)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioID);
+    if (iter == _audioPlayers.end())
+        return;
+
+    auto player = iter->second;
+    lck.unlock();
+
+    player->_pitch = pitch;
+
+    if (player->_ready)
+    {
+        alSourcef(player->_alSource, AL_PITCH, pitch);
 
         auto error = alGetError();
         if (error != AL_NO_ERROR)
@@ -805,6 +828,11 @@ float AudioEngineImpl::getCurrentTime(AUDIO_ID audioID)
                 AXLOGE("{}, audio id:{},error code:{:#x}", __FUNCTION__, audioID, error);
             }
         }
+
+        if (ret == 0.0f && player->isFinished())
+        {
+            ret = player->_audioCache->_duration;
+        }
     }
 
     return ret;
@@ -970,4 +998,3 @@ void AudioEngineImpl::uncacheAll()
     _audioCaches.clear();
 }
 }
-#undef LOG_TAG

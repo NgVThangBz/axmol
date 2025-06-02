@@ -135,21 +135,17 @@ void FastTMXLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flag
     updateTotalQuads();
 
     auto cam = Camera::getVisitingCamera();
-    if (flags != 0 || _dirty || _quadsDirty || !_cameraPositionDirty.fuzzyEquals(cam->getPosition(), _tileSet->_tileSize.x) ||
+    if (flags != 0 || _dirty || _quadsDirty ||
+        !_cameraPositionDirty.fuzzyEquals(cam->getPosition(), _tileSet->_tileSize.x) ||
         _cameraZoomDirty != cam->getZoom())
     {
         _cameraPositionDirty = cam->getPosition();
-        auto zoom            = _cameraZoomDirty = cam->getZoom();
-        Vec2 s               = _director->getVisibleSize();
-        const Vec2& anchor   = getAnchorPoint();
-        auto rect            = Rect(cam->getPositionX() - s.width * zoom * (anchor.x == 0.0f ? 0.5f : anchor.x),
-                                    cam->getPositionY() - s.height * zoom * (anchor.y == 0.0f ? 0.5f : anchor.y),
-                                    s.width * zoom, s.height * zoom);
-
-        rect.origin.x -= _tileSet->_tileSize.x;
-        rect.origin.y -= _tileSet->_tileSize.y;
-        rect.size.x += s.x * zoom / 2 + _tileSet->_tileSize.x * zoom;
-        rect.size.y += s.y * zoom / 2 + _tileSet->_tileSize.y * zoom;
+        auto zoom = _cameraZoomDirty = cam->getZoom();
+        Vec2 s                       = _director->getVisibleSize();
+        const Vec2& anchor           = getAnchorPoint();
+        auto rect                    = Rect(cam->getPositionX() - s.width * zoom * (anchor.x == 0.0f ? 0.5f : anchor.x),
+                                            cam->getPositionY() - s.height * zoom * (anchor.y == 0.0f ? 0.5f : anchor.y), s.width * zoom,
+                                            s.height * zoom);
 
         Mat4 inv = transform;
         inv.inverse();
@@ -177,7 +173,7 @@ void FastTMXLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flag
 
 void FastTMXLayer::updateTiles(const Rect& culledRect)
 {
-    Rect visibleTiles        = Rect(culledRect.origin, culledRect.size * _director->getContentScaleFactor());
+    Rect visibleTiles        = Rect(culledRect.origin, culledRect.size);
     Vec2 mapTileSize         = AX_SIZE_PIXELS_TO_POINTS(_mapTileSize);
     Vec2 tileSize            = AX_SIZE_PIXELS_TO_POINTS(_tileSet->_tileSize);
     Mat4 nodeToTileTransform = _tileToNodeTransform.getInversed();
@@ -694,10 +690,9 @@ int FastTMXLayer::getTileGIDAt(const Vec2& tileCoordinate, TMXTileFlags* flags /
 
     // Bits on the far end of the 32-bit global tile ID are used for tile flags
     int tile = _tiles[idx];
-    auto it  = _spriteContainer.find(idx);
-
+    decltype(_spriteContainer)::iterator it;
     // converted to sprite.
-    if (tile == 0 && it != _spriteContainer.end())
+    if (tile == 0 && (it = _spriteContainer.find(idx)) != _spriteContainer.end())
     {
         tile = it->second.second;
     }
@@ -1041,8 +1036,9 @@ void TMXTileAnimTask::stop()
 
 void TMXTileAnimTask::setCurrFrame()
 {
-    _layer->setTileGID(_animation->_frames[_currentFrame]._tileID, _tilePosition, (TMXTileFlags)_flag);
-    _currentFrame = (_currentFrame + 1) % _frameCount;
+    _currentFrame = _nextFrame;
+    _layer->setTileGID((int)_animation->_frames[_currentFrame]._tileID, _tilePosition, (TMXTileFlags)_flag);
+    _nextFrame = (_currentFrame + 1) % _frameCount;
 }
 
 TMXTileAnimTask* TMXTileAnimTask::create(FastTMXLayer* layer, TMXTileAnimInfo* animation, const Vec2& tilePos, uint32_t flag)

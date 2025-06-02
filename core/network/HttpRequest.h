@@ -32,10 +32,13 @@
 #include <vector>
 #include <memory>
 #include <future>
+#include <atomic>
 #include "base/Object.h"
 #include "base/Macros.h"
 
 #include "yasio/byte_buffer.hpp"
+
+#include "ConcurrentRefCountedBase.h"
 
 /**
  * @addtogroup network
@@ -53,26 +56,6 @@ class HttpResponse;
 
 typedef std::function<void(HttpClient* client, HttpResponse* response)> ccHttpRequestCallback;
 
-class TSFRefCountedBase
-{
-public:
-    TSFRefCountedBase() : _refCount(1) {}
-    virtual ~TSFRefCountedBase() {}
-
-    void retain() { ++_refCount; }
-
-    void release()
-    {
-        if (--_refCount == 0)
-            delete this;
-    }
-
-    int getReferenceCount() const { return _refCount; }
-
-protected:
-    std::atomic_int _refCount;
-};
-
 /**
  * Defines the object which users must packed for HttpClient::send(HttpRequest*) method.
  * Please refer to tests/test-cpp/Classes/ExtensionTest/NetworkTest/HttpClientTest.cpp as a sample
@@ -81,7 +64,7 @@ protected:
  * @lua NA
  */
 
-class AX_DLL HttpRequest : public TSFRefCountedBase
+class AX_DLL HttpRequest : public ConcurrentRefCountedBase
 {
     friend class HttpClient;
 

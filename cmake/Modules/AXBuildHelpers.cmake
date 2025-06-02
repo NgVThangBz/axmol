@@ -27,7 +27,7 @@ function(ax_sync_target_res ax_target)
     ax_def_sync_resource_target(${ax_target} ${sync_target_name})
 
     if(NOT TARGET ${sync_target_name})
-        message(WARNING "SyncResource targe for ${ax_target} is not defined")
+        message(AUTHOR_WARNING "SyncResource targe for ${ax_target} is not defined")
         return()
     endif()
 
@@ -533,7 +533,7 @@ set(AX_WASM_SHELL_FILE "${_AX_ROOT}/core/platform/wasm/shell_minimal.html" CACHE
 
 option(AX_WASM_ENABLE_DEVTOOLS "Enable wasm devtools" ON)
 
-set(_AX_WASM_EXPORTS "_main,_axmol_wgl_context_lost,_axmol_wgl_context_restored,_axmol_hdoc_visibilitychange")
+set(_AX_WASM_EXPORTS "_main,_axmol_webglcontextlost,_axmol_webglcontextrestored,_axmol_hdoc_visibilitychange")
 if(AX_WASM_ENABLE_DEVTOOLS)
     string(APPEND _AX_WASM_EXPORTS ",_axmol_dev_pause,_axmol_dev_resume,_axmol_dev_step")
 endif()
@@ -561,15 +561,16 @@ macro (ax_setup_app_props app_name)
         set(CMAKE_EXECUTABLE_SUFFIX ".html")
         target_link_options(${app_name} PRIVATE
                             "-sEXPORTED_FUNCTIONS=[${AX_WASM_EXPORTS}]"
-                            "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap]"
+                            "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap,HEAPU8]"
                             )
-        set(EMSCRIPTEN_LINK_FLAGS "-lidbfs.js -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s STACK_SIZE=4mb -s INITIAL_MEMORY=512MB --shell-file ${AX_WASM_SHELL_FILE} --use-preload-cache")
-        # Disable wasm, generate js build?
-        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -s WASM=0")
-        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -s SEPARATE_DWARF_URL=https://xxx:8080/axmolwasm/axmolwasm/build/HelloLua.debug.wasm")
-        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -gseparate-dwarf=HelloLua.debug.wasm")
+        set(EMSCRIPTEN_LINK_FLAGS "-lidbfs.js -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s STACK_SIZE=4mb --shell-file ${AX_WASM_SHELL_FILE} --use-preload-cache")
+        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -s SEPARATE_DWARF_URL=http://127.0.0.1:6931/${app_name}.debug.wasm")
+        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -gseparate-dwarf=${CMAKE_BINARY_DIR}/bin/${app_name}/${app_name}.debug.wasm")
+        # string(APPEND EMSCRIPTEN_LINK_FLAGS " -gsplit-dwarf")
 
-        set(_APP_RES_FOLDER "${_APP_SOURCE_DIR}/Content")
+        if (NOT DEFINED _APP_RES_FOLDER)
+            set(_APP_RES_FOLDER "${_APP_SOURCE_DIR}/Content")
+        endif()
         foreach(FOLDER IN LISTS _APP_RES_FOLDER)
             string(APPEND EMSCRIPTEN_LINK_FLAGS " --preload-file ${FOLDER}/@/")
         endforeach()
@@ -629,7 +630,7 @@ macro(ax_setup_winrt_sources )
         ${_AX_ROOT}/core/platform/winrt/xaml/AxmolRenderer.cpp
     )
 
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_LIST_DIR}/proj.winrt/App.xaml" APP_XAML_FULL_PATH)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proj.winrt/App.xaml" APP_XAML_FULL_PATH)
     set_property(
         SOURCE proj.winrt/App.h proj.winrt/App.cpp proj.winrt/App.idl
         PROPERTY VS_SETTINGS

@@ -94,7 +94,6 @@ class FastTMXLayer;
  * object->getProperty(name_of_the_property);
 
  * @since v3.2
- * @js NA
  */
 class AX_DLL FastTMXTiledMap : public Node
 {
@@ -103,15 +102,18 @@ public:
      *
      * @return An autorelease object.
      */
-    static FastTMXTiledMap* create(std::string_view tmxFile);
+    static FastTMXTiledMap* create(std::string_view tmxFile, bool allowInvisibleLayers = false);
 
     /** Initializes a TMX Tiled Map with a TMX formatted XML string and a path to TMX resources.
      *
      * @param tmxString A TMX formatted XML string.
      * @param resourcePath A path to TMX resources.
+     * @param allowInvisibleLayers Allow creation of invisible layers. Default is false.
      * @return An autorelease object.
      */
-    static FastTMXTiledMap* createWithXML(std::string_view tmxString, std::string_view resourcePath);
+    static FastTMXTiledMap* createWithXML(std::string_view tmxString,
+                                          std::string_view resourcePath,
+                                          bool allowInvisibleLayers = false);
 
     /** Return the FastTMXLayer for the specific layer.
      *
@@ -218,25 +220,23 @@ public:
     Vector<ax::FastTMXLayer*> getLayers() const;
 
     /**
-     * @js ctor
      */
     FastTMXTiledMap();
     /**
-     * @js NA
      * @lua NA
      */
-    virtual ~FastTMXTiledMap();
+    virtual ~FastTMXTiledMap() override;
 
     /** initializes a TMX Tiled Map with a TMX file */
-    bool initWithTMXFile(std::string_view tmxFile);
+    bool initWithTMXFile(std::string_view tmxFile, bool allowInvisibleLayers = false);
 
     /** initializes a TMX Tiled Map with a TMX formatted XML string and a path to TMX resources */
-    bool initWithXML(std::string_view tmxString, std::string_view resourcePath);
+    bool initWithXML(std::string_view tmxString, std::string_view resourcePath, bool allowInvisibleLayers = false);
 
 protected:
     FastTMXLayer* parseLayer(TMXLayerInfo* layerInfo, TMXMapInfo* mapInfo);
     TMXTilesetInfo* tilesetForLayer(TMXLayerInfo* layerInfo, TMXMapInfo* mapInfo);
-    void buildWithMapInfo(TMXMapInfo* mapInfo);
+    void buildWithMapInfo(TMXMapInfo* mapInfo, bool ignoreInvisibleLayers);
 
     /** the map's size property measured in tiles */
     Vec2 _mapSize;

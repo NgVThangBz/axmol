@@ -50,7 +50,6 @@ namespace ax
  * @struct AudioPlayerSettings
  *
  * @brief
- * @js NA
  */
 struct AX_DLL AudioPlayerSettings
 {
@@ -63,7 +62,6 @@ struct AX_DLL AudioPlayerSettings
  * @class AudioProfile
  *
  * @brief
- * @js NA
  */
 class AX_DLL AudioProfile
 {
@@ -92,7 +90,6 @@ class AudioEngineImpl;
  * @brief Offers a interface to play audio.
  *
  * @note Make sure to call AudioEngine::end() when the audio engine is not needed anymore to release resources.
- * @js NA
  */
 
 class AX_DLL AudioEngine
@@ -188,6 +185,22 @@ public:
      * @return Volume value (range from 0.0 to 1.0).
      */
     static float getVolume(AUDIO_ID audioID);
+
+    /**
+     * Sets pitch for an audio instance.
+     *
+     * @param audioID An audioID returned by the play2d function.
+     * @param pitch Volume value (range from 0.5 to 2.0).
+     */
+    static void setPitch(AUDIO_ID audioID, float pitch);
+
+    /**
+     * Gets the volume value of an audio instance.
+     *
+     * @param audioID An audioID returned by the play2d function.
+     * @return pitch value (range from 0.5 to 2.0).
+     */
+    static float getPitch(AUDIO_ID audioID);
 
     /**
      * Pause an audio instance.
@@ -354,6 +367,7 @@ protected:
         ProfileHelper* profileHelper;
 
         float volume;
+        float pitch;
         bool loop;
         float duration;
         AudioState state;

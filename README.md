@@ -1,4 +1,4 @@
-<p align="center"><a href="https://axmol.dev" target="_blank" rel="noopener noreferrer"><img width="160" src="docs/logo.png" alt="axmol logo"></a></p>
+<p align="center"><a href="https://axmol.dev" target="_blank" rel="noopener noreferrer"><img width="160" src="https://axmol.dev/assets/img/logo.png" alt="axmol logo"></a></p>
 
 # Axmol Engine
 
@@ -78,7 +78,7 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 
 **Supported 2D physics engines** ([more info here](https://github.com/axmolengine/axmol/wiki/2D-Physics-Engines-Information)):
 * Box2D
-* Chipmunk2D
+* Chipmunk2D (Will be removed in axmol-v3)
 
 **Supported 3D physics engines**:
 * Bullet Physics SDK
@@ -103,6 +103,7 @@ Some highlights:
 - **Universal Windows Platform** (UWP) support for Xbox consoles
 - **Apple M1 and Android x64 support** (by @pietpukkel)
 - **Windows x64 build support**
+- **Powerful cross-platform build system**
 - Improved Windows workflow, supporting linking with engine prebuilt libs. Please read the [Windows workflow guide](https://github.com/axmolengine/axmol/issues/564).
 - Refactored AudioEngine, OpenAL for all platforms:
     - [OpenAL Soft](https://github.com/kcat/openal-soft) (pass `-DAX_USE_ALSOFT=ON` to CMake to force enabling it)
@@ -138,7 +139,23 @@ How to contribute:
 * Please do not forget to add the topic `axmol` and `axmolengine` to any related repository you create!
 * Adding a star on GitHub will help Axmol grow as well. Thank you!
 
-If you find **Axmol Engine** helpful, please consider donating in [Open Collective](https://opencollective.com/axmol) or in [GitHub Sponsors](https://github.com/sponsors/axmolengine). Thank you very much!
+If you find **Axmol Engine** helpful, please consider donating in [https://axmol.dev/donate](https://axmol.dev/donate). Thank you very much!
+
+## Sponsors
+
+#### Platinum Sponsors
+
+<p align="left">
+  <a href="https://scorewarrior.com/?ad=axmol" target=_blank><img
+    src="https://cdn.prod.website-files.com/633da33305ac754156026dd8/63566f1edf5f0712f94f7f1b_sw-triangle-821890.svg" height="120"
+  /></a>
+</p>
+
+<p>&nbsp;</p>
+
+#### More Sponsors
+
+Please visit: [https://axmol.dev/donate](https://axmol.dev/donate)
 
 ## Community
 

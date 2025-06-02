@@ -32,6 +32,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <atomic>
 
 #include "audio/AudioMacros.h"
 #include "platform/PlatformMacros.h"
@@ -71,6 +72,7 @@ protected:
     AudioCache* _audioCache;
 
     float _volume;
+    float _pitch;
     bool _loop;
     std::function<void(AUDIO_ID, std::string_view)> _finishCallbak;
 

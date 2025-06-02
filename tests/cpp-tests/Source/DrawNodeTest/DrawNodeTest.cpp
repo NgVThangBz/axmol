@@ -1332,9 +1332,8 @@ float verticesFB[] = {
 DrawNodeTests::DrawNodeTests()
 {
     ADD_TEST_CASE(DrawNodeMethodsTest);
-
     ADD_TEST_CASE(DrawNodeSpLinesTest);
-
+	ADD_TEST_CASE(DrawNodeSpLinesOpenClosedTest);
     ADD_TEST_CASE(DrawNodeAxmolTest2);
 
 #if defined(AX_PLATFORM_PC)
@@ -1346,12 +1345,11 @@ DrawNodeTests::DrawNodeTests()
     ADD_TEST_CASE(DrawNodeMorphTest_SolidPolygon);
 
     ADD_TEST_CASE(DrawNodePieTest);
-
     ADD_TEST_CASE(DrawNodeDrawInWrongOrder_Issue1888);
 
     ADD_TEST_CASE(DrawNodeThicknessTest);
     ADD_TEST_CASE(DrawNodeThicknessStressTest);
-
+    ADD_TEST_CASE(DrawNodeLineDrawTest);
     ADD_TEST_CASE(DrawNodeIssueTester);
 }
 
@@ -1806,7 +1804,7 @@ void DrawNodeMorphTest_Polygon::update(float dt)
         }
 
         drawNodeArray[n]->properties.setScale(Vec2(0.5f, 0.5f));
-        drawNodeArray[n]->drawPolygon(verticesObjMorph[n], segments, sliderValue[sliderType::Thickness], color[n]);
+        drawNodeArray[n]->drawPoly(verticesObjMorph[n], segments, true, color[n], sliderValue[sliderType::Thickness] );
     }
 }
 
@@ -1878,7 +1876,6 @@ void DrawNodePictureTest::update(float dt)
     do
     {
         Color4F color = Color4F(sph_xx[sph_la + 1], sph_yy[sph_la + 1], sph_xx[sph_la + 2], sph_yy[sph_la + 2] * 255);
-        // color = Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1);
         Vec2* vertices = new Vec2[(int)(sph_cmb - 3)];
         for (int n = 3; n < sph_cmb; n++)
         {
@@ -1906,6 +1903,60 @@ string DrawNodePictureTest::title() const
 string DrawNodePictureTest::subtitle() const
 {
     return "Actions Test";
+}
+
+DrawNodeLineDrawTest::DrawNodeLineDrawTest()
+{
+    initSliders();
+    slider[sliderType::Thickness]->setEnabled(true);
+
+    scheduleUpdate();
+}
+
+void DrawNodeLineDrawTest::update(float dt)
+{
+    DrawNodeBaseTest::update(dt);
+
+    drawNode->clear();
+
+    float segments = 36.0f;
+    int radius = 100;
+    float angle = 360/segments;
+    const float coef = (float)M_PI / 360;
+    for (int i = 0; i < 360;)
+    {
+        float rads     = i * coef;
+        i += segments;
+        float x = radius * cosf(rads) + center.x;
+        float y = radius * sinf(rads) + center.y;
+
+        drawNode->drawLine(center - Vec2(20, 40), Vec2(x, y)- Vec2(20, 40), Color4F::RED, sliderValue[sliderType::Thickness]);
+        drawNode->drawLine(center + Vec2(120, 20), Vec2(x, y) + Vec2(120,20), Color4F::BLUE, sliderValue[sliderType::Thickness]);
+        drawNode->drawLine(center - Vec2(130, 110),Vec2(x,y) - Vec2(130,110), Color4F::GREEN, sliderValue[sliderType::Thickness]);
+    }
+}
+
+void DrawNodeLineDrawTest::onEnter()
+{
+    for (int i = 0; i < sliderType::sliderTypeLast; i++)
+    {
+        sliderValue[i] = 1;
+        slider[i]->setPercent(sliderValue[i]);
+    }
+    sliderValue[sliderType::Thickness] = 10;
+    slider[sliderType::Thickness]->setPercent(sliderValue[sliderType::Thickness]);
+
+    DrawNodeBaseTest::onEnter();
+}
+
+string DrawNodeLineDrawTest::title() const
+{
+    return "lineDraw Test";
+}
+
+string DrawNodeLineDrawTest::subtitle() const
+{
+    return "";
 }
 
 DrawNodeThicknessTest::DrawNodeThicknessTest()
@@ -2149,7 +2200,6 @@ void DrawNodeThicknessTest::update(float dt)
         drawNode->drawPoint(Vec2(i * 7.0f, 5.0f), (float)i / 5 + 1,
                             Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
     }
-
 
     drawNode->drawLine(Vec2(0.0f, s.height), Vec2(s.width, s.height - 20), Color4F::YELLOW);
     drawNode->drawLine(Vec2(0.0f, 0.0f), Vec2(s.width, s.height - 20), Color4F::YELLOW);
@@ -2534,10 +2584,6 @@ void DrawNodeMethodsTest::drawAll()
             drawNode->drawLine(Vec2(-size.x / 2, -size.y / 2 + i * 4), Vec2(size.x - 50, -size.y / 2 + i * 4),
                                Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
                                sliderValue[sliderType::Thickness]);
-            drawNode->drawLine(Vec2(-size.x + 50, -size.y + AXRANDOM_0_1() * 2 * size.y),
-                               Vec2(size.x - 50, -size.y + AXRANDOM_0_1() * 2 * size.y),
-                               Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
-                               sliderValue[sliderType::Thickness]);
         }
 
         break;
@@ -2551,10 +2597,6 @@ void DrawNodeMethodsTest::drawAll()
             drawNode->drawRect(center / 2 - rec, center / 2 + rec,
                                Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
                                sliderValue[sliderType::Thickness]);
-            drawNode->drawRect(Vec2(AXRANDOM_MINUS1_1() * 300, AXRANDOM_MINUS1_1() * 300),
-                               Vec2(AXRANDOM_MINUS1_1() * 400, AXRANDOM_MINUS1_1() * 400),
-                               Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
-                               sliderValue[sliderType::Thickness]);
         }
 
         break;
@@ -2564,13 +2606,6 @@ void DrawNodeMethodsTest::drawAll()
         for (int i = 0; i < 100; i++)
         {
             drawNode->drawCircle(VisibleRect::center(), 3 * i, AX_DEGREES_TO_RADIANS(90), i, false, 1.0f, 1.0f,
-                                 Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
-                                 sliderValue[sliderType::Thickness]);
-
-            Vec2 pos = Vec2(-100, -100) + Vec2(AXRANDOM_MINUS1_1() * VisibleRect::rightTop().x,
-                                               AXRANDOM_MINUS1_1() * VisibleRect::rightTop().y);
-            drawNode->drawCircle(VisibleRect::center() + pos, AXRANDOM_0_1() * 200,
-                                 AX_DEGREES_TO_RADIANS(AXRANDOM_MINUS1_1() * 90), 30, true,
                                  Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
                                  sliderValue[sliderType::Thickness]);
         }
@@ -2593,8 +2628,7 @@ void DrawNodeMethodsTest::drawAll()
             Vec2 p3 = pts->getControlPointAtIndex(i);
 
             drawNode->properties.setPosition(Vec2(-100, -100));
-            drawNode->drawQuadBezier(p1, p2, p3, 30, Color4B::RED,
-                                     sliderValue[sliderType::Thickness]);
+            drawNode->drawQuadBezier(p1, p2, p3, 30, Color4B::RED, sliderValue[sliderType::Thickness]);
         }
 
         for (int i = 0; i < 360;)
@@ -2604,8 +2638,7 @@ void DrawNodeMethodsTest::drawAll()
             Vec2 p3 = pts2->getControlPointAtIndex(i);
 
             drawNode->properties.setPosition(Vec2(-100, -100));
-            drawNode->drawQuadBezier(p1, p2, p3, 30, Color4B::GREEN,
-                                     sliderValue[sliderType::Thickness]);
+            drawNode->drawQuadBezier(p1, p2, p3, 30, Color4B::GREEN, sliderValue[sliderType::Thickness]);
         }
 
         break;
@@ -2815,19 +2848,21 @@ void DrawNodeMethodsTest::drawAll()
     }
     case drawMethodes::Triangle:
     {
-        static Vec2 triangle[] = {Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 30,
-                                  Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 30,
-                                  Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 30};
+        static Color4B color3[] = {Color4B::GREEN, Color4B::BLUE, Color4B::RED};
         drawNode->properties.setPosition(center);
         drawNode->properties.setScale(Vec2(10, 10));
-        // for (int i = 0; i < 10; i++)
+
         {
-
             drawNode->drawTriangle(Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20,
-                                        Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20,
-                                        Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20, Color4B::RED);
+                                   Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20,
+                                   Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20, Color4B::RED);
+        }
+        {
+            Vec2 triangle[] = {Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20,
+                                  Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20,
+                                  Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20};
 
-            drawNode->drawTriangle(triangle, Color4B::GREEN);
+            drawNode->drawColoredTriangle(triangle, color3);
         }
         break;
     }
@@ -2846,7 +2881,7 @@ void DrawNodeMethodsTest::drawAll()
                                         Vec2(AXRANDOM_MINUS1_1(), AXRANDOM_MINUS1_1()) * 20, Color4B::RED,
                                         Color4B::BLUE, sliderValue[sliderType::Thickness]);
 
-            drawNode->properties.setPosition(center-Vec2(200,200));
+            drawNode->properties.setPosition(center - Vec2(200, 200));
             drawNode->drawSolidTriangle(triangle, Color4B::GREEN, Color4B::BLUE, sliderValue[sliderType::Thickness]);
         }
         break;
@@ -3321,7 +3356,6 @@ void DrawNodeAxmolTest2::drawAllv2(DrawNode* drawNode, bool drawOrder)
                             Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
     }
 
-
     drawNode->drawLine(Vec2(0.0f, size.height), Vec2(size.width, size.height - 20), Color4F::YELLOW);
     drawNode->drawLine(Vec2(0.0f, 0.0f), Vec2(size.width, size.height - 20), Color4F::YELLOW);
 }
@@ -3338,63 +3372,62 @@ string DrawNodeAxmolTest2::subtitle() const
 
 DrawNodeIssueTester::DrawNodeIssueTester()
 {
-    // static Vec2 vertices[] = {Vec2(0.0f, 0.0f), Vec2(50.0f, 50.0f), Vec2(100.0f, 50.0f), Vec2(100.0f, 100.0f),
-    //                           Vec2(50.0f, 100.0f)};
-    // int verticesCount      = 5;
+     static Vec2 vertices[] = {Vec2(0.0f, 0.0f), Vec2(50.0f, 50.0f), Vec2(100.0f, 50.0f), Vec2(100.0f, 100.0f),
+                               Vec2(50.0f, 100.0f)};
+     int verticesCount      = 5;
 
-    // drawNode->properties.setPosition(Vec2(5, 150));
-    // drawNode->setLineWidth(1);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F::GREEN);
+     drawNode->properties.setPosition(Vec2(5, 150));
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F::GREEN);
 
-    // auto draw = DrawNode::create();
-    // addChild(draw, 10);
-    // draw->setPosition(70, 150);
-    // draw->drawPoly(vertices, verticesCount, false, Color4F::BLUE);
+     auto draw = DrawNode::create();
+     addChild(draw, 10);
+     draw->setPosition(70, 150);
+     draw->drawPoly(vertices, verticesCount, false, Color4F::BLUE);
 
-    // drawNode->properties.setPosition(Vec2(140, 150));
-    // drawNode->setLineWidth(1);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F::RED);
+     drawNode->properties.setPosition(Vec2(140, 150));
 
-    // drawNode->properties.setPosition(Vec2(200, 150));
-    // drawNode->setLineWidth(1);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F::RED, 3);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F::WHITE);
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F::RED);
 
-    // drawNode->properties.setPosition(Vec2(270, 150));
-    // drawNode->setLineWidth(1);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F(0.0f, 0.5f, 0.5f, 0.5f), 10);
-    // drawNode->drawPoly(vertices, verticesCount, false, Color4F::BLACK);
+     drawNode->properties.setPosition(Vec2(200, 150));
 
-    // float thick = 0.0f;
-    // float y     = -90.0f;
-    // drawNode->properties.setPosition(Vec2(270, 100));
-    // for (int i = 0; i < 32; i++)
-    //{
-    //     thick += 0.5f;
-    //     y += thick + 1;
-    //     drawNode->drawLine(Vec2(140, y), Vec2(180, y), Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
-    //                        thick);
-    // }
-    // drawNode->drawPie(Vec2(-220, 150), 20, 0, 100, 300, 1, 1, Color4B::TRANSPARENT, Color4B::BLUE,
-    //                   DrawNode::DrawMode::Line, 10);
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F::RED, 3);
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F::WHITE);
 
-    // drawNode->properties.setPosition(Vec2(50, -100));
-    // for (int i = 2; i < 30; i++)
-    //{
-    //     drawNode->drawCircle(center, 5 * i, AX_DEGREES_TO_RADIANS(90), i, false, 1.0f, 1.0f,
-    //                          Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f), 0.5f);
-    // }
+     drawNode->properties.setPosition(Vec2(270, 150));
 
-    // Vec2* fbHorse = new Vec2[856 / 2];
-    // int n         = 0;
-    // Vec2 pos      = {100, 210};
-    // float scale   = 3.0f;
-    // drawNode->properties.setPosition(Vec2(-90, -160));
-    // for (size_t i = 0; i < sizeof(verticesFB) / sizeof(verticesFB[0]); i += 4)
-    //{
-    //     drawNode->drawLine(Vec2(verticesFB[i] * scale, verticesFB[i + 1] * scale) + pos,
-    //                        Vec2(verticesFB[i + 2] * scale, verticesFB[i + 3] * scale) + pos, Color4F::RED, 0.5f);
-    // }
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F(0.0f, 0.5f, 0.5f, 0.5f), 10);
+     drawNode->drawPoly(vertices, verticesCount, false, Color4F::BLACK);
+
+     float thick = 0.0f;
+     float y     = -90.0f;
+     drawNode->properties.setPosition(Vec2(270, 100));
+     for (int i = 0; i < 32; i++)
+    {
+         thick += 0.5f;
+         y += thick + 1;
+         drawNode->drawLine(Vec2(140, y), Vec2(180, y), Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f),
+                            thick);
+     }
+     drawNode->drawPie(Vec2(-220, 150), 20, 0, 100, 300, 1, 1, Color4B::TRANSPARENT, Color4B::BLUE,
+                       DrawNode::DrawMode::Line, 10);
+
+     drawNode->properties.setPosition(Vec2(50, -100));
+     for (int i = 2; i < 30; i++)
+    {
+         drawNode->drawCircle(center, 5 * i, AX_DEGREES_TO_RADIANS(90), i, false, 1.0f, 1.0f,
+                              Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f), 0.5f);
+     }
+
+     Vec2* fbHorse = new Vec2[856 / 2];
+     int n         = 0;
+     Vec2 pos      = {100, 210};
+     float scale   = 3.0f;
+     drawNode->properties.setPosition(Vec2(-90, -160));
+     for (size_t i = 0; i < sizeof(verticesFB) / sizeof(verticesFB[0]); i += 4)
+    {
+         drawNode->drawLine(Vec2(verticesFB[i] * scale, verticesFB[i + 1] * scale) + pos,
+                            Vec2(verticesFB[i + 2] * scale, verticesFB[i + 3] * scale) + pos, Color4F::RED, 0.5f);
+     }
 
     drawNode->properties.setPosition(VisibleRect::center() - Vec2(100, 50));
     drawNode->drawSolidCircle(Vec2::ZERO, 40, AX_DEGREES_TO_RADIANS(-90), 30, 1.0f, 1.0f, Color4F::GREEN, 6,
@@ -3406,7 +3439,7 @@ DrawNodeIssueTester::DrawNodeIssueTester()
 
     drawNode->drawCircle(Vec2(0, 100), 40, AX_DEGREES_TO_RADIANS(-90), 30, false, 1.0f, 1.0f, Color4F::RED, 6);
 
-    //  scheduleUpdate();
+   // scheduleUpdate();
 }
 
 void DrawNodeIssueTester::onEnter()
@@ -3416,23 +3449,88 @@ void DrawNodeIssueTester::onEnter()
 
 void DrawNodeIssueTester::update(float dt)
 {
-    // DrawNodeBaseTest::update(dt);
+    DrawNodeBaseTest::update(dt);
 }
 
 string DrawNodeIssueTester::title() const
 {
-    return "For issue tests (future)";
+    return "";
 }
 
 string DrawNodeIssueTester::subtitle() const
 {
-    return "setLineWidth()";
+    return "";
 }
 
 DrawNodeSpLinesTest::DrawNodeSpLinesTest()
 {
+    drawNode = DrawNode::create();
+    drawNode->properties.setTransform(true);
+    addChild(drawNode, 30);
+
+    screen = Director::getInstance()->getVisibleSize();
+    origin = Director::getInstance()->getVisibleOrigin();
+    center = Vec2(screen.width / 2, screen.height / 2);
+    sixth  = Vec2(screen.width / 6, screen.height / 6);
+    sixth.y;
+
+    defY  = (int)(center.y + sixth.y);
+    defY2 = (int)(center.y - sixth.y);
+    dev   = sixth.y;
+
+    pts  = PointArray::create(n);
+    pts2 = PointArray::create(n);
+    pts->retain();
+    pts2->retain();
+    for (int i = 0; i < n; ++i)
+    {
+        pts->insertControlPoint(Vec2(0, 0), i);
+        pts2->insertControlPoint(Vec2(0, 0), i);
+    }
+
+    DrawNodeBaseTest::generateDataPoints();
+    scheduleUpdate();
+}
+
+std::string DrawNodeSpLinesTest::title() const
+{
+    return "Testing SpLines";
+}
+
+std::string DrawNodeSpLinesTest::subtitle() const
+{
+    return "";
+}
+
+void DrawNodeSpLinesTest::update(float dt)
+{
+    drawNode->clear();
+
+    // Issue #2302
+    auto array = PointArray::create(20);
+    for (int i = 0; i < 10; i++)
+    {
+        array->addControlPoint(Vec2((i % 2) ? 20 : screen.width - 20, 50 + i * 20));
+        drawNode->drawPoint(array->getControlPointAtIndex(i), 10, Color4F::BLUE);
+    }
+    drawNode->drawCardinalSpline(array, 0.1, 20, Color4F::ORANGE);
+
+    drawNode->drawCardinalSpline(pts, 0.5f, 360, Color4F::RED, 5.0f);
+    drawNode->drawCardinalSpline(pts2, 0.5f, 360, Color4F::GREEN, 2.0f);
+
+    int i1 = RandomHelper::random_int(0, n - 1);
+    int i2 = RandomHelper::random_int(0, n - 1);
+    drawNode->drawDot(pts->getControlPointAtIndex(i1), 7, Color4F(0, 1, 0, 0.3));
+    drawNode->drawDot(pts->getControlPointAtIndex(i1), 4, Color4F::GREEN);
+
+    drawNode->drawDot(pts2->getControlPointAtIndex(i2), 7, Color4F(0, 1, 0, 0.3));
+    drawNode->drawDot(pts2->getControlPointAtIndex(i2), 4, Color4F::GREEN);
+}
+
+DrawNodeSpLinesOpenClosedTest::DrawNodeSpLinesOpenClosedTest()
+{
     auto listener            = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesEnded = AX_CALLBACK_2(DrawNodeSpLinesTest::onTouchesEnded, this);
+    listener->onTouchesEnded = AX_CALLBACK_2(DrawNodeSpLinesOpenClosedTest::onTouchesEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     drawNodeCP = DrawNode::create();
@@ -3464,18 +3562,15 @@ DrawNodeSpLinesTest::DrawNodeSpLinesTest()
     }
 
     DrawNodeBaseTest::generateDataPoints();
-
-    addNewControlPoint(VisibleRect::center());
-
     scheduleUpdate();
 }
 
-void DrawNodeSpLinesTest::addNewControlPoint(Vec2 p)
+void DrawNodeSpLinesOpenClosedTest::addNewControlPoint(Vec2 p)
 {
     points.emplace_back(Vec2(p.x, p.y));
 }
 
-void DrawNodeSpLinesTest::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
+void DrawNodeSpLinesOpenClosedTest::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
     for (auto& touch : touches)
     {
@@ -3484,67 +3579,39 @@ void DrawNodeSpLinesTest::onTouchesEnded(const std::vector<Touch*>& touches, Eve
     }
 }
 
-std::string DrawNodeSpLinesTest::title() const
+std::string DrawNodeSpLinesOpenClosedTest::title() const
 {
-    return "Testing SpLines";
+    return "Testing open/closed SpLines";
 }
 
-std::string DrawNodeSpLinesTest::subtitle() const
+std::string DrawNodeSpLinesOpenClosedTest::subtitle() const
 {
-    return "Tap screen to add more (control) points";
+    return "Tap screen to add (more) control points";
 }
 
-void DrawNodeSpLinesTest::update(float dt)
+void DrawNodeSpLinesOpenClosedTest::update(float dt)
 {
     if (points.size() == 0)
         return;
-
-    array = PointArray::create(points.size());
+    if (points.size() > 2)
+        array = PointArray::create(points.size() + 4);
+    else
+        array = PointArray::create(points.size());
 
     drawNodeCP->clear();
-
-    drawNode->clear();
     drawNode->clear();
 
     int boxSize = 3;
     for (auto&& p : points)
     {
+
         drawNodeCP->drawRect(Vec2(p.x - boxSize, p.y - boxSize), Vec2(p.x + boxSize, p.y + boxSize), Color4F::BLUE);
         array->addControlPoint(Vec2(p.x, p.y));
     }
 
-    drawNode->drawCardinalSpline(array, 0.2f, points.size() * 8, Color4F::GREEN, 20.0f);
-    drawNode->drawCardinalSpline(array, 0.2f, points.size() * 8, Color4F::BLUE);
-    drawNode->drawCardinalSpline(array, 0.2f, points.size() * 16, Color4F(1.0f, 1.0f, 0.5f, 1.0f), 10.0f);
+    drawNode->drawCardinalSpline(array, 0.0f, points.size() * 20, Color4F::GREEN, 1.0f, true);
+    drawNode->drawCardinalSpline(array, 0.0f, points.size() * 20, Color4F::RED, 1.0f, false);
 
-    // Issue #2302 
-    auto array3 = PointArray::create(20);
-    for (int i = 0; i < 10; i++)
-    {
-        array3->addControlPoint(Vec2((i % 2) ? 20 : screen.width - 20, 50 + i * 20));
-        drawNode->drawPoint(array3->getControlPointAtIndex(i), 10, Color4F::BLUE);
-    }
-    drawNode->drawCardinalSpline(array3, 0.1, 20, Color4F::ORANGE);
-
-
-    //  drawNode->drawCatmullRom(array, points.size() * 8, Color4F::YELLOW,5);
-    // if (points.size()>3)
-    //{
-    //    int step = points.size()/4;
-    //    drawNode->drawCubicBezier(points.at(0), points.at(step),points.at(step*2),points.at(points.size()-1),
-    //    points.size(), Color4F::BLUE);
-    //}
-
-    drawNode->drawCardinalSpline(pts, 0.5f, 360, Color4F::RED, 5.0f);
-    drawNode->drawCardinalSpline(pts2, 0.5f, 360, Color4F::GREEN, 2.0f);
-
-    int i1 = RandomHelper::random_int(0, n - 1);
-    int i2 = RandomHelper::random_int(0, n - 1);
-    drawNode->drawDot(pts->getControlPointAtIndex(i1), 7, Color4F(0, 1, 0, 0.3));
-    drawNode->drawDot(pts->getControlPointAtIndex(i1), 4, Color4F::GREEN);
-
-    drawNode->drawDot(pts2->getControlPointAtIndex(i2), 7, Color4F(0, 1, 0, 0.3));
-    drawNode->drawDot(pts2->getControlPointAtIndex(i2), 4, Color4F::GREEN);
 }
 
 #if defined(AX_PLATFORM_PC)

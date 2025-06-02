@@ -14268,6 +14268,56 @@ int lua_ax_base_GLView_renderScene(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_GLView_setInteractive(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::GLView* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.GLView",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::GLView*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_GLView_setInteractive'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1) 
+    {
+        bool arg0;
+
+        ok &= luaval_to_boolean(tolua_S, 2,&arg0, "ax.GLView:setInteractive");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_GLView_setInteractive'", nullptr);
+            return 0;
+        }
+        cobj->setInteractive(arg0);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.GLView:setInteractive",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_GLView_setInteractive'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_GLView_setGLContextAttrs(lua_State* tolua_S)
 {
     int argc = 0;
@@ -14385,6 +14435,7 @@ int lua_register_ax_base_GLView(lua_State* tolua_S)
         tolua_function(tolua_S,"getScaleY",lua_ax_base_GLView_getScaleY);
         tolua_function(tolua_S,"getResolutionPolicy",lua_ax_base_GLView_getResolutionPolicy);
         tolua_function(tolua_S,"renderScene",lua_ax_base_GLView_renderScene);
+        tolua_function(tolua_S,"setInteractive",lua_ax_base_GLView_setInteractive);
         tolua_function(tolua_S,"setGLContextAttrs", lua_ax_base_GLView_setGLContextAttrs);
         tolua_function(tolua_S,"getGLContextAttrs", lua_ax_base_GLView_getGLContextAttrs);
     tolua_endmodule(tolua_S);
@@ -20212,6 +20263,53 @@ int lua_ax_base_Image_initWithImageFile(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_Image_flipRawData(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::Image* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.Image",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::Image*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_Image_flipRawData'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_Image_flipRawData'", nullptr);
+            return 0;
+        }
+        cobj->flipRawData();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Image:flipRawData",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_Image_flipRawData'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_Image_getFileType(lua_State* tolua_S)
 {
     int argc = 0;
@@ -21004,6 +21102,7 @@ int lua_register_ax_base_Image(lua_State* tolua_S)
     tolua_beginmodule(tolua_S,"Image");
         tolua_function(tolua_S,"new",lua_ax_base_Image_constructor);
         tolua_function(tolua_S,"initWithImageFile",lua_ax_base_Image_initWithImageFile);
+        tolua_function(tolua_S,"flipRawData",lua_ax_base_Image_flipRawData);
         tolua_function(tolua_S,"getFileType",lua_ax_base_Image_getFileType);
         tolua_function(tolua_S,"getPixelFormat",lua_ax_base_Image_getPixelFormat);
         tolua_function(tolua_S,"getWidth",lua_ax_base_Image_getWidth);
@@ -22902,6 +23001,53 @@ int lua_ax_base_SpriteFrame_initWithTextureFilename(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_SpriteFrame_getName(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::SpriteFrame* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.SpriteFrame",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::SpriteFrame*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_SpriteFrame_getName'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0) 
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_SpriteFrame_getName'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->getName();
+        lua_pushlstring(tolua_S,ret.data(),ret.length());
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.SpriteFrame:getName",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_SpriteFrame_getName'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_SpriteFrame_create(lua_State* tolua_S)
 {
     int argc = 0;
@@ -23103,6 +23249,7 @@ int lua_register_ax_base_SpriteFrame(lua_State* tolua_S)
         tolua_function(tolua_S,"clone",lua_ax_base_SpriteFrame_clone);
         tolua_function(tolua_S,"initWithTexture",lua_ax_base_SpriteFrame_initWithTexture);
         tolua_function(tolua_S,"initWithTextureFilename",lua_ax_base_SpriteFrame_initWithTextureFilename);
+        tolua_function(tolua_S,"getName",lua_ax_base_SpriteFrame_getName);
         tolua_function(tolua_S,"create", lua_ax_base_SpriteFrame_create);
         tolua_function(tolua_S,"createWithTexture", lua_ax_base_SpriteFrame_createWithTexture);
     tolua_endmodule(tolua_S);
@@ -27154,11 +27301,11 @@ int lua_ax_base_BezierBy_initWithDuration(lua_State* tolua_S)
     if (argc == 2) 
     {
         double arg0;
-        ax::_ccBezierConfig arg1;
+        ax::BezierConfig arg1;
 
         ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.BezierBy:initWithDuration");
 
-        #pragma warning NO CONVERSION TO NATIVE FOR _ccBezierConfig
+        #pragma warning NO CONVERSION TO NATIVE FOR BezierConfig
 		ok = false;
         if(!ok)
         {
@@ -27266,11 +27413,11 @@ int lua_ax_base_BezierTo_initWithDuration(lua_State* tolua_S)
     if (argc == 2) 
     {
         double arg0;
-        ax::_ccBezierConfig arg1;
+        ax::BezierConfig arg1;
 
         ok &= luaval_to_number(tolua_S, 2,&arg0, "ax.BezierTo:initWithDuration");
 
-        #pragma warning NO CONVERSION TO NATIVE FOR _ccBezierConfig
+        #pragma warning NO CONVERSION TO NATIVE FOR BezierConfig
 		ok = false;
         if(!ok)
         {
@@ -53135,6 +53282,60 @@ int lua_ax_base_DrawNode_drawSegment(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_base_DrawNode_drawColoredTriangle(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::DrawNode* cobj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"ax.DrawNode",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    cobj = (ax::DrawNode*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!cobj) 
+    {
+        tolua_error(tolua_S,"invalid 'cobj' in function 'lua_ax_base_DrawNode_drawColoredTriangle'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 2) 
+    {
+        const ax::Vec2* arg0;
+        const ax::Color4B* arg1;
+
+        ok &= luaval_to_object<const ax::Vec2>(tolua_S, 2, "ax.Vec2",&arg0, "ax.DrawNode:drawColoredTriangle");
+
+        #pragma warning NO CONVERSION TO NATIVE FOR Color4B*
+		ok = false;
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_DrawNode_drawColoredTriangle'", nullptr);
+            return 0;
+        }
+        cobj->drawColoredTriangle(arg0, arg1);
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.DrawNode:drawColoredTriangle",argc, 2);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_base_DrawNode_drawColoredTriangle'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_base_DrawNode_drawTriangle(lua_State* tolua_S)
 {
     int argc = 0;
@@ -53680,6 +53881,7 @@ int lua_register_ax_base_DrawNode(lua_State* tolua_S)
         tolua_function(tolua_S,"drawPie",lua_ax_base_DrawNode_drawPie);
         tolua_function(tolua_S,"setIsConvex",lua_ax_base_DrawNode_setIsConvex);
         tolua_function(tolua_S,"drawSegment",lua_ax_base_DrawNode_drawSegment);
+        tolua_function(tolua_S,"drawColoredTriangle",lua_ax_base_DrawNode_drawColoredTriangle);
         tolua_function(tolua_S,"drawTriangle",lua_ax_base_DrawNode_drawTriangle);
         tolua_function(tolua_S,"drawSolidTriangle",lua_ax_base_DrawNode_drawSolidTriangle);
         tolua_function(tolua_S,"clear",lua_ax_base_DrawNode_clear);
@@ -111338,6 +111540,23 @@ int lua_ax_base_FastTMXTiledMap_initWithTMXFile(lua_State* tolua_S)
         tolua_pushboolean(tolua_S,(bool)ret);
         return 1;
     }
+    if (argc == 2) 
+    {
+        std::string_view arg0;
+        bool arg1;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FastTMXTiledMap:initWithTMXFile");
+
+        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.FastTMXTiledMap:initWithTMXFile");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FastTMXTiledMap_initWithTMXFile'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->initWithTMXFile(arg0, arg1);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FastTMXTiledMap:initWithTMXFile",argc, 1);
     return 0;
 
@@ -111391,6 +111610,26 @@ int lua_ax_base_FastTMXTiledMap_initWithXML(lua_State* tolua_S)
         tolua_pushboolean(tolua_S,(bool)ret);
         return 1;
     }
+    if (argc == 3) 
+    {
+        std::string_view arg0;
+        std::string_view arg1;
+        bool arg2;
+
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FastTMXTiledMap:initWithXML");
+
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FastTMXTiledMap:initWithXML");
+
+        ok &= luaval_to_boolean(tolua_S, 4,&arg2, "ax.FastTMXTiledMap:initWithXML");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FastTMXTiledMap_initWithXML'", nullptr);
+            return 0;
+        }
+        auto&& ret = cobj->initWithXML(arg0, arg1, arg2);
+        tolua_pushboolean(tolua_S,(bool)ret);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.FastTMXTiledMap:initWithXML",argc, 2);
     return 0;
 
@@ -111429,6 +111668,21 @@ int lua_ax_base_FastTMXTiledMap_create(lua_State* tolua_S)
         object_to_luaval<ax::FastTMXTiledMap>(tolua_S, "ax.FastTMXTiledMap",(ax::FastTMXTiledMap*)ret);
         return 1;
     }
+    if (argc == 2)
+    {
+        std::string_view arg0;
+        bool arg1;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FastTMXTiledMap:create");
+        ok &= luaval_to_boolean(tolua_S, 3,&arg1, "ax.FastTMXTiledMap:create");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FastTMXTiledMap_create'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::FastTMXTiledMap::create(arg0, arg1);
+        object_to_luaval<ax::FastTMXTiledMap>(tolua_S, "ax.FastTMXTiledMap",(ax::FastTMXTiledMap*)ret);
+        return 1;
+    }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.FastTMXTiledMap:create",argc, 1);
     return 0;
 #if _AX_DEBUG >= 1
@@ -111464,6 +111718,23 @@ int lua_ax_base_FastTMXTiledMap_createWithXML(lua_State* tolua_S)
             return 0;
         }
         auto&& ret = ax::FastTMXTiledMap::createWithXML(arg0, arg1);
+        object_to_luaval<ax::FastTMXTiledMap>(tolua_S, "ax.FastTMXTiledMap",(ax::FastTMXTiledMap*)ret);
+        return 1;
+    }
+    if (argc == 3)
+    {
+        std::string_view arg0;
+        std::string_view arg1;
+        bool arg2;
+        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "ax.FastTMXTiledMap:createWithXML");
+        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "ax.FastTMXTiledMap:createWithXML");
+        ok &= luaval_to_boolean(tolua_S, 4,&arg2, "ax.FastTMXTiledMap:createWithXML");
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_base_FastTMXTiledMap_createWithXML'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::FastTMXTiledMap::createWithXML(arg0, arg1, arg2);
         object_to_luaval<ax::FastTMXTiledMap>(tolua_S, "ax.FastTMXTiledMap",(ax::FastTMXTiledMap*)ret);
         return 1;
     }

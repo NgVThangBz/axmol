@@ -27,7 +27,13 @@ endfunction()
 # DEPRECATED! Should be merged into add_module_library.
 function(enable_module target)
   if (MSVC)
-    set(BMI ${CMAKE_CURRENT_BINARY_DIR}/${target}.ifc)
+    if(CMAKE_GENERATOR STREQUAL "Ninja")
+      # Ninja dyndep expects the .ifc output to be located in a specific relative path
+      file(RELATIVE_PATH BMI_DIR "${CMAKE_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${target}.dir")
+    else()
+      set(BMI_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
+    file(TO_NATIVE_PATH "${BMI_DIR}/${target}.ifc" BMI)
     target_compile_options(${target}
       PRIVATE /interface /ifcOutput ${BMI}
       INTERFACE /reference fmt=${BMI})
@@ -68,8 +74,6 @@ function(add_module_library name)
   if (CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${name} PUBLIC -fmodules-ts)
   endif ()
-
-  target_compile_definitions(${name} PRIVATE FMT_MODULE)
 
   if (FMT_USE_CMAKE_MODULES)
     target_sources(${name} PUBLIC FILE_SET fmt TYPE CXX_MODULES
@@ -201,8 +205,7 @@ if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif ()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-  "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake")
 
 include(CheckCXXCompilerFlag)
 include(JoinPaths)
@@ -295,6 +298,7 @@ function(add_headers VAR)
 endfunction()
 
 # Define the fmt library, its includes and the needed defines.
+set(FMT_HEADERS)
 add_headers(FMT_HEADERS args.h base.h chrono.h color.h compile.h core.h format.h
                         format-inl.h os.h ostream.h printf.h ranges.h std.h
                         xchar.h)
@@ -427,7 +431,7 @@ if (FMT_INSTALL)
 
   # Install the library and headers.
   install(TARGETS ${INSTALL_TARGETS}
-          COMPONENT core
+          COMPONENT fmt-core
           EXPORT ${targets_export_name}
           LIBRARY DESTINATION ${FMT_LIB_DIR}
           ARCHIVE DESTINATION ${FMT_LIB_DIR}
@@ -443,13 +447,13 @@ if (FMT_INSTALL)
   # Install version, config and target files.
   install(FILES ${project_config} ${version_config}
           DESTINATION ${FMT_CMAKE_DIR}
-          COMPONENT core)
+          COMPONENT fmt-core)
   install(EXPORT ${targets_export_name} DESTINATION ${FMT_CMAKE_DIR}
           NAMESPACE fmt::
-          COMPONENT core)
+          COMPONENT fmt-core)
 
   install(FILES "${pkgconfig}" DESTINATION "${FMT_PKGCONFIG_DIR}"
-          COMPONENT core)
+          COMPONENT fmt-core)
 endif ()
 
 function(add_doc_target)
@@ -486,7 +490,7 @@ function(add_doc_target)
   include(GNUInstallDirs)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc-html/
           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/fmt
-          COMPONENT doc OPTIONAL)
+          COMPONENT fmt-doc OPTIONAL)
 endfunction()
 
 if (FMT_DOC)

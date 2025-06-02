@@ -19,10 +19,6 @@ $manifest['cmake'] = $build_profiles['cmake']
 $manifest['vs'] = $build_profiles['vs']
 $manifest['llvm'] = $build_profiles['llvm']
 
-# android sdk tools
-$android_sdk_tools['build-tools'] = $build_profiles['build-tools']
-$android_sdk_tools['platforms'] = "android-$($build_profiles['target_sdk'])"
-
 $Global:build_profiles = $build_profiles
 
 $Global:download_path = $1k.realpath("$PSScriptRoot/../cache")

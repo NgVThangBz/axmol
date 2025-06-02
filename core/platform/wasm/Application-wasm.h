@@ -44,11 +44,9 @@ class Application : public ApplicationBase
 {
 public:
     /**
-     * @js ctor
      */
     Application();
     /**
-     * @js NA
      * @lua NA
      */
     virtual ~Application();
@@ -112,7 +110,6 @@ public:
      */
     virtual Platform getTargetPlatform() override;
 protected:
-    long _animationSpeed;  // micro second
     std::string _resourceRootPath;
 
     static Application * sm_pSharedApplication;

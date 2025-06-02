@@ -5,7 +5,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2012-2024 HALX99
+Copyright (c) 2012-2025 HALX99
 Copyright (c) 2016 Matthew Rodusek(matthew.rodusek@gmail.com) <http://rodusek.me>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1074,10 +1074,10 @@ inline namespace literals
 {
 inline namespace string_view_literals
 {
-inline cxx17::string_view operator"" _sv(const char* _Str, size_t _Len) { return cxx17::string_view(_Str, _Len); }
-inline cxx17::wstring_view operator"" _sv(const wchar_t* _Str, size_t _Len) { return cxx17::wstring_view(_Str, _Len); }
-inline cxx17::u16string_view operator"" _sv(const char16_t* _Str, size_t _Len) { return cxx17::u16string_view(_Str, _Len); }
-inline cxx17::u32string_view operator"" _sv(const char32_t* _Str, size_t _Len) { return cxx17::u32string_view(_Str, _Len); }
+inline cxx17::string_view operator""_sv(const char* _Str, size_t _Len) { return cxx17::string_view(_Str, _Len); }
+inline cxx17::wstring_view operator""_sv(const wchar_t* _Str, size_t _Len) { return cxx17::wstring_view(_Str, _Len); }
+inline cxx17::u16string_view operator""_sv(const char16_t* _Str, size_t _Len) { return cxx17::u16string_view(_Str, _Len); }
+inline cxx17::u32string_view operator""_sv(const char32_t* _Str, size_t _Len) { return cxx17::u32string_view(_Str, _Len); }
 } // namespace string_view_literals
 } // namespace literals
 } // namespace cxx17

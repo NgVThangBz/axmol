@@ -231,8 +231,8 @@ private:
                                      unsigned char** out,
                                      ssize_t* outLength,
                                      ssize_t outLengthHint);
-    static inline void decodeEncodedPvr(unsigned int* data, ssize_t len);
-    static inline unsigned int checksumPvr(const unsigned int* data, ssize_t len);
+    static void decodeEncodedPvr(unsigned int* data, ssize_t len);
+    static unsigned int checksumPvr(const unsigned int* data, ssize_t len);
 
     static unsigned int s_uEncryptedPvrKeyParts[4];
     static unsigned int s_uEncryptionKey[1024];
@@ -310,9 +310,12 @@ public:
     void vclose(ZipEntryInfo*);
     int64_t vsize(ZipEntryInfo*);
 
+    static ZipFile *createWithBuffer(const void* buffer, unsigned long size);
+
 private:
     ZipFile();
 
+    bool initWithBuffer(const void *buffer, unsigned long size);
     int getCurrentFileInfo(std::string* filename, unz_file_info_s* info);
 
     /** Internal data like zip file pointer / file list array and so on */

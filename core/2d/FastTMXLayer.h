@@ -84,7 +84,6 @@ class Buffer;
  * http://www.cocos2d-iphone.org/wiki/doku.php/prog_guide:tiled_maps
 
  * @since v3.2
- * @js NA
  */
 
 class AX_DLL FastTMXLayer : public Node
@@ -104,11 +103,9 @@ public:
      */
     static FastTMXLayer* create(TMXTilesetInfo* tilesetInfo, TMXLayerInfo* layerInfo, TMXMapInfo* mapInfo);
     /**
-     * @js ctor
      */
     FastTMXLayer();
     /**
-     * @js NA
      * @lua NA
      */
     virtual ~FastTMXLayer();
@@ -200,7 +197,6 @@ public:
     void setMapTileSize(const Vec2& size) { _mapTileSize = size; }
 
     /** Pointer to the map of tiles.
-     * @js NA
      * @lua NA
      * @return The pointer to the map of tiles.
      */
@@ -425,6 +421,7 @@ protected:
     TMXTileAnimInfo* _animation = nullptr;
     /** Index of the frame that should be drawn currently */
     uint32_t _currentFrame = 0;
+    uint32_t _nextFrame = 0;
     uint32_t _frameCount   = 0;
 };
 

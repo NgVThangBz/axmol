@@ -1,4 +1,4 @@
-<p align="center"><a href="https://axmol.dev" target="_blank" rel="noopener noreferrer"><img width="160" src="docs/logo.png" alt="axmol logo"></a></p>
+<p align="center"><a href="https://axmol.dev" target="_blank" rel="noopener noreferrer"><img width="160" src="https://axmol.dev/assets/img/logo.png" alt="axmol logo"></a></p>
 
 # Axmol Engine
 
@@ -83,7 +83,7 @@ Axmol 引擎在 Cocos2d-x v4.0 的基础上进行迭代和改进。现在速度�
 **支持2D物理引擎** ([更多相关信息](https://github.com/axmolengine/axmol/wiki/2D-Physics-Engines-informations)):
 
 * Box2D
-* Chipmunk2D
+* Chipmunk2D  (将从 axmol-v3 版本移除)
 
 **支持3D物理引擎**:
 
@@ -111,6 +111,7 @@ Axmol 引擎在 Cocos2d-x v4.0 的基础上进行迭代和改进。现在速度�
 - **Apple M1 和 Android x64 支持** (by @pietpukkel)。
 - **Windows x64 构建支持**。
 - **Windows SIMD 加速指令矩阵计算支持**。
+- **强大的跨平台构建系统**。
 - 支持链接引擎预编译库。 详见 [Windows 工作流指导](https://github.com/axmolengine/axmol/issues/564)。
 - 重构 AudioEngine，所有平台均使用 OpenAL 并新增 `.wav` 音频格式支持。
 - 使用内存映射文件 [mio](https://github.com/mandreyel/mio) 重构 UserDefault，速度提升百倍。 
@@ -139,7 +140,22 @@ Axmol 引擎在 Cocos2d-x v4.0 的基础上进行迭代和改进。现在速度�
 * 请不要忘记将主题 axmol 和 axmolengine 添加到您创建的任何相关存储库中
 * 在 GitHub 上添加星也将有助于 Axmol 的成长。谢谢你!
 
-如果您发现 Axmol 引擎有帮助，请考虑在 [Open Collective](https://opencollective.com/axmol) 或 [GitHub Sponsors](https://github.com/sponsors/axmolengine) 赞助，非常感谢！
+如果您发现 Axmol 引擎有帮助，请考虑在 [https://axmol.dev/donate](https://axmol.dev/donate) 赞助，非常感谢！
+
+## Sponsors
+
+#### Platinum Sponsors
+<p align="left">
+  <a href="https://scorewarrior.com/?ad=axmol" target=_blank><img
+    src="https://cdn.prod.website-files.com/633da33305ac754156026dd8/63566f1edf5f0712f94f7f1b_sw-triangle-821890.svg" height="120"
+  /></a>
+</p>
+
+<p>&nbsp;</p>
+
+#### More Sponsors
+
+Please visit: [https://axmol.dev/donate](https://axmol.dev/donate)
 
 ## 社区
 

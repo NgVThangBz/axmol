@@ -6,7 +6,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2012-2024 HALX99
+Copyright (c) 2012-2025 HALX99
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -243,9 +243,9 @@ public:
   const_iterator end() const YASIO__NOEXCEPT { return begin() + _Mysize; }
 #pragma endregion
 
-  pointer data() YASIO__NOEXCEPT { return _Myfirst ? _Myfirst : reinterpret_cast<pointer>(&_Myfirst); }
-  const_pointer data() const YASIO__NOEXCEPT { return _Myfirst ? _Myfirst : reinterpret_cast<const_pointer>(&_Myfirst); }
-  const_pointer c_str() const YASIO__NOEXCEPT { return this->data(); }
+  pointer data() YASIO__NOEXCEPT { return _Myfirst; }
+  const_pointer data() const YASIO__NOEXCEPT { return _Myfirst; }
+  const_pointer c_str() const YASIO__NOEXCEPT { return _Myfirst ? _Myfirst : reinterpret_cast<pointer>(&_Myfirst);; }
   const_reference operator[](size_type index) const { return this->at(index); }
   reference operator[](size_type index) { return this->at(index); }
   const_reference at(size_type index) const

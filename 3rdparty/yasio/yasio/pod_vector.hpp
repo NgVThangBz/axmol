@@ -5,7 +5,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2012-2024 HALX99
+Copyright (c) 2012-2025 HALX99
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Version: 4.1.1
+Version: 4.3.2
 
 The pod_vector aka array_buffer concepts:
    a. The memory model is similar to to std::vector, but only accept trivially_copyable(no destructor & no custom copy constructor) types
@@ -224,6 +224,11 @@ public:
   }
   void push_back(value_type&& val) { push_back(val); }
   void push_back(const value_type& val) { emplace_back(val); }
+  void pop_back()
+  {
+    if (!empty())
+      _Eos(size() - 1);
+  }
   template <typename... _Valty>
   inline value_type& emplace_back(_Valty&&... val)
   {
@@ -250,7 +255,17 @@ public:
     _YASIO_VERIFY_RANGE(!empty(), "pod_vector: out of range!");
     return *_Myfirst;
   }
+  const value_type& front() const
+  {
+    _YASIO_VERIFY_RANGE(!empty(), "pod_vector: out of range!");
+    return *_Myfirst;
+  }
   value_type& back()
+  {
+    _YASIO_VERIFY_RANGE(!empty(), "pod_vector: out of range!");
+    return _Myfirst[_Mysize - 1];
+  }
+  const value_type& back() const
   {
     _YASIO_VERIFY_RANGE(!empty(), "pod_vector: out of range!");
     return _Myfirst[_Mysize - 1];
@@ -406,8 +421,8 @@ private:
   }
   void _Assign_rv(pod_vector&& rhs)
   {
-    memcpy(this, &rhs, sizeof(rhs));
-    memset(&rhs, 0, sizeof(rhs));
+    memcpy((void*)this, &rhs, sizeof(rhs));
+    memset((void*)&rhs, 0, sizeof(rhs));
   }
   enum class _Reallocation_policy
   {

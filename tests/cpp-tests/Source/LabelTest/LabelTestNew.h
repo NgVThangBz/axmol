@@ -715,10 +715,11 @@ protected:
     void setAlignmentTop(ax::Object* sender);
     void setAlignmentMiddle(ax::Object* sender);
     void setAlignmentBottom(ax::Object* sender);
-
+    
     void initWrapOption(const ax::Size& size);
     void initToggleLabelTypeOption(const ax::Size& size);
     void initAlignmentOption(const ax::Size& size);
+    void initUnderlineStrikethroughOption(const ax::Size& size);
     void initFontSizeChange(const ax::Size& size);
     void initSliders(const ax::Size& size);
     void initTestLabel(const ax::Size& size);
@@ -726,6 +727,8 @@ protected:
     ax::DrawNode* _drawNode;
     ax::Label* _label;
     int _labelType;
+    bool _underline{};
+    bool _strikethrough{};
 };
 
 class LabelWrapByWordTest : public LabelLayoutBaseTest
@@ -884,6 +887,19 @@ public:
     CREATE_FUNC(LabelUnderline);
 
     LabelUnderline();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    ax::Label* _label1a;
+    ax::Label* _label2a;
+};
+
+class LabelUnderlineStrikethroughMultiline : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelUnderlineStrikethroughMultiline);
+
+    LabelUnderlineStrikethroughMultiline();
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 

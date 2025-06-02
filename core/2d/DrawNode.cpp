@@ -184,10 +184,10 @@ void DrawNode::updateBlendState(CustomCommand& cmd)
     }
     else
     {
-        blendDescriptor.sourceRGBBlendFactor        = backend::BlendFactor::ONE;
-        blendDescriptor.destinationRGBBlendFactor   = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
-        blendDescriptor.sourceAlphaBlendFactor      = backend::BlendFactor::ONE;
-        blendDescriptor.destinationAlphaBlendFactor = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+        blendDescriptor.sourceRGBBlendFactor        = _blendFunc.src;
+        blendDescriptor.destinationRGBBlendFactor   = _blendFunc.dst;
+        blendDescriptor.sourceAlphaBlendFactor      = _blendFunc.src;
+        blendDescriptor.destinationAlphaBlendFactor = _blendFunc.dst;
         setOpacityModifyRGB(true);
     }
 }
@@ -468,11 +468,12 @@ void DrawNode::drawCubicBezier(const Vec2& origin,
     _drawPoly(_vertices.data(), segments + 1, false, color, thickness, true);
 }
 
-void DrawNode::drawCardinalSpline(PointArray* config,
+void DrawNode::drawCardinalSpline(const PointArray* configIn,
                                   float tension,
                                   unsigned int segments,
                                   const Color4B& color,
-                                  float thickness)
+                                  float thickness,
+                                  bool closed)
 {
     if (thickness <= 0.0f)
     {
@@ -480,16 +481,27 @@ void DrawNode::drawCardinalSpline(PointArray* config,
         return;
     }
 
-    axstd::pod_vector<Vec2> _vertices{static_cast<size_t>(segments)};
+    // Don't change the original PointArray
+    PointArray* config = configIn->clone();
+
+    if (closed && config->count() > 2)
+    {
+        config->addControlPoint(config->getControlPointAtIndex(0));
+        config->addControlPoint(config->getControlPointAtIndex(1));
+        config->insertControlPoint(config->getControlPointAtIndex(config->count() - 3), 0);
+        config->insertControlPoint(config->getControlPointAtIndex(config->count() - 4), 0);
+    }
 
     ssize_t p;
     float lt;
     float deltaT = 1.0f / config->count();
 
+    axstd::pod_vector<Vec2> _vertices{static_cast<size_t>(segments)};
+
     for (unsigned int i = 0; i < segments; i++)
     {
         float dt = (float)i / segments;
-        p  = static_cast<ssize_t>(dt / deltaT);
+        p        = static_cast<ssize_t>(dt / deltaT);
 
         // Check last control point reached
         if (p >= (config->count() - 1))
@@ -510,17 +522,25 @@ void DrawNode::drawCardinalSpline(PointArray* config,
         _vertices[i] = ccCardinalSplineAt(pp0, pp1, pp2, pp3, tension, lt);
     }
 
+    // Dont draw the first and the last point
+    if (closed && config->count() > 2)
+    {
+        auto seg = segments / (config->count() - 2);
+        for (int i = seg; i < segments - seg; i++)
+            _vertices[i - seg] = _vertices[i];
+        segments -= (seg + seg);
+    }
     _drawPoly(_vertices.data(), segments, false, color, thickness, true);
 }
 
-void DrawNode::drawCatmullRom(PointArray* points, unsigned int segments, const Color4B& color, float thickness)
+void DrawNode::drawCatmullRom(const PointArray* pointsIn, unsigned int segments, const Color4B& color, float thickness, bool closed)
 {
     if (thickness <= 0.0f)
     {
         AXLOGW("{}: thickness <= 0", __FUNCTION__);
         return;
     }
-    drawCardinalSpline(points, 0.5f, segments, color, thickness);
+    drawCardinalSpline(pointsIn, 0.5f, segments, color, thickness, closed);
 }
 
 void DrawNode::drawDot(const Vec2& pos, float radius, const Color4B& color)
@@ -577,7 +597,7 @@ void DrawNode::drawSegment(const Vec2& from,
     _drawSegment(from, to, color, thickness, etStart, etEnd);
 }
 
-void DrawNode::drawPolygon(Vec2* verts,
+void DrawNode::drawPolygon(const Vec2* verts,
                            int count,
                            const Color4B& fillColor,
                            float thickness,
@@ -592,7 +612,7 @@ void DrawNode::drawPolygon(Vec2* verts,
     _drawPolygon(verts, count, fillColor, borderColor, true, thickness, isconvex);
 }
 
-void DrawNode::drawPolygon(Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex)
+void DrawNode::drawPolygon(const Vec2* verts, int count, float thickness, const Color4B& borderColor, bool isconvex)
 {
     if (thickness < 0.0f)
     {
@@ -602,7 +622,7 @@ void DrawNode::drawPolygon(Vec2* verts, int count, float thickness, const Color4
     _drawPolygon(verts, count, Color4B::TRANSPARENT, borderColor, true, thickness, isconvex);
 }
 
-void DrawNode::drawSolidPolygon(Vec2* verts,
+void DrawNode::drawSolidPolygon(const Vec2* verts,
                                 int count,
                                 const Color4B& fillColor,
                                 float thickness,
@@ -729,6 +749,12 @@ void DrawNode::drawSolidCircle(const Vec2& center,
         radius = 0.0f;
     }
     _drawCircle(center, radius, angle, segments, false, 1.0f, 1.0f, Color4B(), color, true);
+}
+
+void DrawNode::drawColoredTriangle(const Vec2* vertices3, const Color4B* color3)
+{
+    Vec2 vertices[3] = {vertices3[0], vertices3[1], vertices3[2]};
+    _drawColoredTriangle(vertices, color3);
 }
 
 void DrawNode::drawTriangle(const Vec2* vertices3, const Color4B& color)
@@ -903,18 +929,17 @@ void DrawNode::_drawPolygon(const Vec2* verts,
     }
     if (outline)
     {
+        float width = thickness / properties.factor;
         if (thickness != 1.0f || properties.drawOrder)
         {
-            thickness *= properties.factor;
-
             for (unsigned int i = 1; i < (count); i++)
             {
                 Vec2 a  = _vertices[i - 1];
                 Vec2 b  = _vertices[i];
                 Vec2 n  = ((b - a).getPerp()).getNormalized();
                 Vec2 t  = n.getPerp();
-                Vec2 nw = n * thickness;
-                Vec2 tw = t * thickness;
+                Vec2 nw = n * width;
+                Vec2 tw = t * width;
                 Vec2 v0 = b - (nw + tw);
                 Vec2 v1 = b + (nw - tw);
                 Vec2 v2 = b - nw;
@@ -995,10 +1020,10 @@ void DrawNode::_drawPolygon(const Vec2* verts,
                 Vec2 offset0 = extrude[i].offset;
                 Vec2 offset1 = extrude[j].offset;
 
-                Vec2 inner0 = v0 - offset0 * thickness;
-                Vec2 inner1 = v1 - offset1 * thickness;
-                Vec2 outer0 = v0 + offset0 * thickness;
-                Vec2 outer1 = v1 + offset1 * thickness;
+                Vec2 inner0 = v0 - offset0 * width;
+                Vec2 inner1 = v1 - offset1 * width;
+                Vec2 outer0 = v0 + offset0 * width;
+                Vec2 outer1 = v1 + offset1 * width;
 
                 triangles[ii++] = {{inner0, borderColor, -n0}, {inner1, borderColor, -n0}, {outer1, borderColor, n0}};
 
@@ -1049,29 +1074,26 @@ void DrawNode::_drawSegment(const Vec2& from,
                             DrawNode::EndType etStart,
                             DrawNode::EndType etEnd)
 {
-    Vec2 vertices[2] = {from, to};
-    applyTransform(vertices, vertices, 2);
+    if (thickness < 1.0f)
+        thickness = 1.0f;
 
-    if (thickness <= 1.0f && !properties.drawOrder)
+    if (thickness == 1.0f && !properties.drawOrder)
     {
-        auto line = expandBufferAndGetPointer(_lines, 2);
-        _linesDirty = true;
-
-        line[0] = {vertices[0], color, Vec2::ZERO};
-        line[1] = {vertices[1], color, Vec2::ZERO};
+        _drawLine(from, to, color); // fastest way to draw a line
     }
     else
     {
-//        float fS = Director::getInstance()->getGLView()->getFrameSize().width;
-//        float dS = Director::getInstance()->getGLView()->getDesignResolutionSize().width;
-        float factor = 8;
+        Vec2 vertices[2] = {from, to};
+        applyTransform(vertices, vertices, 2);
+
+        float width = thickness / (2 * properties.factor);
 
         Vec2 a  = vertices[0];
         Vec2 b  = vertices[1];
         Vec2 n  = ((b - a).getPerp()).getNormalized();
         Vec2 t  = n.getPerp();
-        Vec2 nw = n * thickness/ factor;
-        Vec2 tw = t * thickness/ factor;
+        Vec2 nw = n * width;
+        Vec2 tw = t * width;
         Vec2 v0 = b - (nw + tw);
         Vec2 v1 = b + (nw - tw);
         Vec2 v2 = b - nw;
@@ -1175,6 +1197,19 @@ void DrawNode::_drawSegment(const Vec2& from,
         }
     }
 }
+// Internal function _drawLine => thickness is always 1 (fastes way to draw a line)
+void DrawNode::_drawLine(const Vec2& from, const Vec2& to, const Color4B& color)
+{
+    Vec2 vertices[2] = {from, to};
+    applyTransform(vertices, vertices, 2);
+
+
+    auto line = expandBufferAndGetPointer(_lines, 2);
+    _linesDirty = true;
+
+    line[0] = {vertices[0], color, Vec2::ZERO};
+    line[1] = {vertices[1], color, Vec2::ZERO};
+}
 
 void DrawNode::_drawDot(const Vec2& pos, float radius, const Color4B& color)
 {
@@ -1228,6 +1263,22 @@ void DrawNode::_drawCircle(const Vec2& center,
 
     AX_SAFE_DELETE_ARRAY(_vertices);
 }
+
+void DrawNode::_drawColoredTriangle(Vec2* vertices3,
+                             const Color4B* color3)
+{
+    unsigned int vertex_count = 3;
+
+    applyTransform(vertices3, vertices3, vertex_count);
+
+    auto triangles  = reinterpret_cast<V2F_C4B_T2F_Triangle*>(expandBufferAndGetPointer(_triangles, vertex_count));
+    _trianglesDirty = true;
+
+    triangles[0] = {{vertices3[0], color3[0], Vec2::ZERO},
+                    {vertices3[1], color3[1], Vec2::ZERO},
+                    {vertices3[2], color3[2], Vec2::ZERO}};
+}
+
 
 void DrawNode::_drawTriangle(Vec2* vertices3,
                              const Color4B& borderColor,
@@ -1553,6 +1604,18 @@ void DrawNode::applyTransform(const Vec2* from, Vec2* to, unsigned int count)
         }
     }
 }
+
+void DrawNode::Properties::setDefaultValues()
+{
+    auto fac = Director::getInstance()->getContentScaleFactor();
+    factor   = fac;
+    
+    scale     = Vec2(1.0f, 1.0f);
+    center    = Vec2(0.0f, 0.0f);
+    rotation  = 0.0f;
+    position  = Vec2(0.0f, 0.0f);
+    drawOrder = false;
+};
 
 #if defined(_WIN32)
 #    pragma pop_macro("TRANSPARENT")

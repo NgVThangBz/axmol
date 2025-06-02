@@ -567,7 +567,6 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
 
 - (void)doAnimationWhenKeyboardMoveWithDuration:(float)duration distance:(float)dis
 {
-    return;
     [UIView beginAnimations:nil context:nullptr];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDuration:duration];

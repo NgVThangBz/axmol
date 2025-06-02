@@ -69,11 +69,9 @@ class AX_DLL Image : public Object
 public:
     friend class TextureCache;
     /**
-     * @js ctor
      */
     Image();
     /**
-     * @js NA
      * @lua NA
      */
     virtual ~Image();
@@ -153,7 +151,6 @@ public:
     @param dataLen  data length expressed in (number of) bytes.
     @param ownData whether take the data memory management.
     @return true if loaded correctly.
-    * @js NA
     * @lua NA
     */
     bool initWithImageData(const uint8_t* data, ssize_t dataLen);
@@ -167,6 +164,9 @@ public:
                          int bitsPerComponent,
                          bool preMulti = false);
 
+    // only RGBA8888 supported
+    void flipRawData();
+    
     // Getters
     uint8_t* getData() { return _data + _offset; }
     ssize_t getDataLen() { return _dataLen - _offset; }

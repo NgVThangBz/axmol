@@ -159,6 +159,7 @@ NewLabelTests::NewLabelTests()
     ADD_TEST_CASE(LabelUnderlineMultiline);
     ADD_TEST_CASE(LabelItalics);
     ADD_TEST_CASE(LabelBold);
+    ADD_TEST_CASE(LabelUnderlineStrikethroughMultiline);
 
     ADD_TEST_CASE(LabelLocalizationTest);
 
@@ -2281,6 +2282,8 @@ LabelLayoutBaseTest::LabelLayoutBaseTest()
 
     this->initAlignmentOption(size);
 
+    this->initUnderlineStrikethroughOption(size);
+
     this->initDrawNode(size);
 
     this->initSliders(size);
@@ -2390,6 +2393,41 @@ void LabelLayoutBaseTest::initAlignmentOption(const ax::Size& size)
                         nullptr);
     menu->alignItemsVerticallyWithPadding(4);
     menu->setPosition(Vec2(size.width - 50, size.height / 2 - 20));
+    this->addChild(menu);
+}
+
+void LabelLayoutBaseTest::initUnderlineStrikethroughOption(const ax::Size& size)
+{
+    // add text alignment settings
+    MenuItemFont::setFontSize(12);
+    auto menu = Menu::create(MenuItemFont::create("Toggle Underline",
+        [this](Object*) {
+            if (_underline)
+            {
+                _label->disableEffect(LabelEffect::UNDERLINE);
+            }
+            else
+            {
+                _label->enableUnderline();
+            }
+            _underline = !_underline;
+        }
+    ),
+    MenuItemFont::create("Toggle Strikethrough",
+        [this](Object*) {
+            if (_strikethrough)
+            {
+                _label->disableEffect(LabelEffect::STRIKETHROUGH);
+            }
+            else
+            {
+                _label->enableStrikethrough();
+            }
+            _strikethrough = !_strikethrough;
+        }
+    ), nullptr);
+    menu->alignItemsVerticallyWithPadding(4);
+    menu->setPosition(Vec2(size.width - 60, 60));
     this->addChild(menu);
 }
 
@@ -3269,6 +3307,158 @@ std::string LabelUnderlineMultiline::subtitle() const
     return "Underline on TTF and BMfont with multiline";
 }
 
+LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
+{
+    auto s = Director::getInstance()->getWinSize();
+
+    TTFConfig ttfConf("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, true);
+
+    // Glow SDF (GPU)
+    auto label1 = Label::createWithTTF(ttfConf, "Glow1", TextHAlignment::CENTER, s.width);
+    label1->setPosition(Vec2(s.width / 2, s.height * 0.7));
+    label1->setTextColor(Color4B::GREEN);
+    label1->enableGlow(Color4B::YELLOW);
+    label1->enableUnderline();
+    label1->enableStrikethrough();
+    addChild(label1);
+
+    // Glow normal(CPU)
+    ttfConf.distanceFieldEnabled = false;
+    auto label2                    = Label::createWithTTF(ttfConf, "Glow2", TextHAlignment::CENTER, s.width);
+    label2->setPosition(Vec2(s.width / 2, s.height * 0.6));
+    label2->setTextColor(Color4B::GREEN);
+    label2->enableGlow(Color4B::YELLOW);
+    label2->enableUnderline();
+    label2->enableStrikethrough();
+    addChild(label2);
+
+    // Outline SDF(GPU)
+    ttfConf.distanceFieldEnabled = true;
+    ttfConf.outlineSize          = 2;
+    auto label3                    = Label::createWithTTF(ttfConf, "Outline1", TextHAlignment::CENTER, s.width);
+    label3->setPosition(Vec2(s.width / 2, s.height * 0.48));
+    label3->setTextColor(Color4B::RED);
+    label3->enableOutline(Color4B::BLUE);
+    label3->enableUnderline();
+    label3->enableStrikethrough();
+    addChild(label3);
+
+    // Outline normal(CPU by freetype2)
+    ttfConf.distanceFieldEnabled = false;
+    ttfConf.outlineSize          = 2;
+    auto label4                    = Label::createWithTTF(ttfConf, "Outline2", TextHAlignment::CENTER, s.width);
+    label4->setPosition(Vec2(s.width / 2, s.height * 0.36));
+    label4->setTextColor(Color4B::RED);
+    label4->enableOutline(Color4B::BLUE, 2);
+    label4->enableUnderline();
+    label4->enableStrikethrough();
+    addChild(label4);
+
+    std::string font = "fonts/arial.ttf";
+
+    // ttf
+    TTFConfig ttfConfig(font, 14);
+    ttfConfig.underline     = true;
+    ttfConfig.strikethrough = true;
+
+    const int count = 7;
+    Label* labels[count];
+
+    labels[0] = Label::createWithSystemFont("SystemFont TextVAlignment::TOP\nusing setTextColor(255, 0, 255, 100)", font, 14, Vec2::ZERO, TextHAlignment::LEFT, TextVAlignment::TOP);
+    labels[0]->setTextColor(Color4B(255, 0, 255, 100));
+    labels[0]->enableGlow(Color4B::BLUE);
+
+    labels[1] = Label::createWithSystemFont("SystemFont TextVAlignment::CENTER\nusing setColor(*RED*)", font, 14, Vec2::ZERO, TextHAlignment::RIGHT, TextVAlignment::CENTER);
+    labels[1]->setColor(Color3B::RED);
+ 
+    labels[2] = Label::createWithSystemFont("SystemFont TextVAlignment::BOTTOM\nusingsetTextColor(*YELLOW)", font, 14,
+                                           Vec2::ZERO, TextHAlignment::CENTER, TextVAlignment::BOTTOM);
+    labels[2]->setTextColor(Color4B::YELLOW);
+
+    labels[3] = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "BMFont\nwith default color", TextHAlignment::CENTER, s.width);
+
+    labels[4] = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "BMFont\nusing setTextColor(0, 255, 0, 100)",
+                                       TextHAlignment::CENTER, s.width);
+    labels[4]->setTextColor(Color4B(0, 255, 0, 100));
+
+    labels[5] = Label::createWithTTF(ttfConfig,  "TTF setColor(*BLUE*)\nwith multiline 1\nand a much more longer multiline 2",
+                                    TextHAlignment::LEFT, s.width);
+    labels[5]->setColor(Color3B::BLUE);
+
+    labels[6] = Label::createWithTTF("TTF setTextColor(*RED*)\nwith multiline 1\nand a much more longer multiline 2",
+                                    font, 14);
+    labels[6]->setTextColor(Color4B::RED);
+
+    for (int i = 0; i < count; i++)
+    {
+        labels[i]->setPosition(Vec2(labels[i]->getBoundingBox().getMaxX() +10, s.height * 0.13f * (i + 1)));
+        labels[i]->enableUnderline();
+        labels[i]->enableStrikethrough();
+        addChild(labels[i]);
+    }
+
+    Label* labelSize[10];
+    float y = 0;
+    for (int i = 0; i < 10; i++)
+    {
+        float fs     = (i + 1) * 3;
+        labelSize[i] = Label::createWithTTF("UNDERLINE", "fonts/arial.ttf", fs);
+        labelSize[i]->setPosition(s.width / 1.3, s.height -50 - y);
+        y += (i + 2) * 3;
+        labelSize[i]->enableUnderline();
+        addChild(labelSize[i]);
+    }
+
+    auto menuItemU = MenuItemFont::create("toggle underline", [=](ax::Object* sender) {
+        static bool isEnabled = true;
+        for (int i = 0; i < count; i++)
+        {
+            if (isEnabled)
+                labels[i]->disableEffect(LabelEffect::UNDERLINE);
+            else
+                labels[i]->enableUnderline();
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            if (isEnabled)
+                labelSize[i]->disableEffect(LabelEffect::UNDERLINE);
+            else
+                labelSize[i]->enableUnderline();
+        }
+        isEnabled = !isEnabled;
+    });
+    menuItemU->setFontSizeObj(12);
+    auto menuItemS = MenuItemFont::create("toggle strikethrough", [=](ax::Object* sender) {
+        static bool isEnabled = true;
+        for (int i = 0; i < count; i++)
+        {
+            if (isEnabled)
+                labels[i]->disableEffect(LabelEffect::STRIKETHROUGH);
+            else
+                labels[i]->enableStrikethrough();
+        }
+        isEnabled = !isEnabled;
+    });
+    menuItemS->setFontSizeObj(12);
+
+    auto menu = Menu::create(menuItemU, menuItemS, NULL);
+    addChild(menu);
+
+    menu->setPosition(s.width * 0.8, s.height * 0.20f);
+    menu->alignItemsVertically();
+}
+
+std::string LabelUnderlineStrikethroughMultiline::title() const
+{
+    return "Test for Issue #2328";
+}
+
+std::string LabelUnderlineStrikethroughMultiline::subtitle() const
+{
+    return "";
+    //Underline + Strikethrough + Color on TTF and BMfont with multiline ";
+}
+
 ///
 
 LabelStrikethrough::LabelStrikethrough()
@@ -3290,7 +3480,7 @@ LabelStrikethrough::LabelStrikethrough()
     addChild(_label2a, 0, kTagBitmapAtlas2);
     _label2a->setPosition(Vec2(s.width / 2, s.height * 1 / 3));
 
-    auto menuItem = MenuItemFont::create("disable underline", [&](ax::Object* sender) {
+    auto menuItem = MenuItemFont::create("disable strikethrough", [&](ax::Object* sender) {
         _label2a->disableEffect(LabelEffect::STRIKETHROUGH);
         _label1a->disableEffect(LabelEffect::STRIKETHROUGH);
     });
@@ -3298,7 +3488,7 @@ LabelStrikethrough::LabelStrikethrough()
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
     auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+    menu->setPosition(winSize.width * 0.86, winSize.height * 0.25f);
 }
 
 std::string LabelStrikethrough::title() const

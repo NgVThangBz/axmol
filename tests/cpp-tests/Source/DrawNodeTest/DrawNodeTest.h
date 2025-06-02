@@ -81,7 +81,7 @@ protected:
         "drawDot",
         "drawPoint",
         "drawPoints",
-        "drawTriangle",
+        "draw(Colored)Triangle",
         "drawSegment",
         "drawSolidTriangle",
         "drawSolidCircle",
@@ -216,6 +216,24 @@ public:
     CREATE_FUNC(DrawNodeThicknessTest);
 
     DrawNodeThicknessTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    void update(float dt);
+    void onEnter();
+
+private:
+    ax::Label* _thicknessLabel;
+    float thickness = 1.0f;
+};
+
+class DrawNodeLineDrawTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeLineDrawTest);
+
+    DrawNodeLineDrawTest();
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
@@ -387,17 +405,25 @@ private:
     float threshold = 0;
 };
 
-
-
-
-
-
 class DrawNodeSpLinesTest : public DrawNodeBaseTest
 {
 public:
     CREATE_FUNC(DrawNodeSpLinesTest);
 
     DrawNodeSpLinesTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    void update(float dt);
+};
+
+class DrawNodeSpLinesOpenClosedTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeSpLinesOpenClosedTest);
+
+    DrawNodeSpLinesOpenClosedTest();
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
