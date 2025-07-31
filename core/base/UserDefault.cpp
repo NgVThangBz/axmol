@@ -51,7 +51,7 @@ THE SOFTWARE.
 #include "pugixml/pugixml.hpp"
 #include "base/Utils.h"
 
-#define USER_DEFAULT_PLAIN_MODE 0
+#define USER_DEFAULT_PLAIN_MODE 1
 
 typedef int32_t udflen_t;
 

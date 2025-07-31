@@ -467,6 +467,7 @@ struct NTextureData
     std::string id;
     std::string filename;
     Usage type;
+    ax::Vec3 color;
     backend::SamplerAddressMode wrapS;
     backend::SamplerAddressMode wrapT;
 };
