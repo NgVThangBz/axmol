@@ -957,6 +957,15 @@ Vec2 GLViewImpl::getMonitorSize() const
     return Vec2::ZERO;
 }
 
+void GLViewImpl::setWindowSizeLimits(int minwidth, int minheight,
+                                     int maxwidth, int maxheight)
+{
+    if (_mainWindow == NULL)
+        return;
+
+    glfwSetWindowSizeLimits(_mainWindow, minwidth, minheight, maxwidth, maxheight);
+}
+
 void GLViewImpl::handleWindowSize(int w, int h)
 {
     /*
