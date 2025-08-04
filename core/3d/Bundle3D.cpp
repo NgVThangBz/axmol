@@ -240,7 +240,7 @@ bool Bundle3D::loadObj(MeshDatas& meshdatas,
             tex.type     = NTextureData::Usage::Diffuse;
             tex.wrapS    = backend::SamplerAddressMode::CLAMP_TO_EDGE;
             tex.wrapT    = backend::SamplerAddressMode::CLAMP_TO_EDGE;
-
+            tex.color = Vec3(material.diffuse[0],material.diffuse[1],material.diffuse[2]);
             snprintf(str, sizeof(str), "%d", ++i);
             materialdata.textures.emplace_back(tex);
             materialdata.id = str;

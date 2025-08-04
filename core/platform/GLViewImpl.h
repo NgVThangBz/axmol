@@ -98,7 +98,7 @@ public:
 
     void getWindowPosition(int* xpos, int* ypos);
     void getWindowSize(int* width, int* height);
-
+    void setWindowSizeLimits(int minwidth, int minheight, int maxwidth = GLFW_DONT_CARE, int maxheight = GLFW_DONT_CARE);
     int getMonitorCount() const;
     Vec2 getMonitorSize() const;
 
@@ -161,7 +161,7 @@ protected:
 #if (AX_TARGET_PLATFORM != AX_PLATFORM_MAC)  // Windows, Linux: use glad to loadGL
     bool loadGL();
 #endif
-
+    
     /* invoke when window size changed */
     void handleWindowSize(int w, int h);
 
