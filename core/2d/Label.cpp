@@ -921,7 +921,7 @@ bool Label::setBMFontFilePath(std::string_view bmfontFilePath, std::string_view 
     {
         _bmFontSize = fontSize;
     }
-
+    _contentDirty           = true;
     _bmFontPath      = bmfontFilePath;
     _bmSubTextureKey = subTextureKey;
 
