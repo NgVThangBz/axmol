@@ -310,7 +310,21 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             ::SendMessageW(_hwndEdit, EM_SETSEL, 0, -1);
         }
-        break;
+        if (_hasFocus && wParam == VK_ESCAPE)
+        {
+            _endAction = EditBoxDelegate::EditBoxEndAction::RETURN;
+            ::ShowWindow(s_previousFocusWnd, SW_HIDE);
+            ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
+            s_previousFocusWnd = s_hwndCocos;
+        }
+        if (_hasFocus && wParam == VK_TAB && _editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
+        {
+            _endAction = EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
+            ::ShowWindow(s_previousFocusWnd, SW_HIDE);
+            ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
+            s_previousFocusWnd = s_hwndCocos;
+        }
+        break; 
     case WM_CHAR:
         if (wParam == VK_RETURN)
         {
