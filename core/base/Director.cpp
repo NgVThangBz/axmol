@@ -1340,7 +1340,7 @@ void Director::createStatsLabel()
      So I added a new method called 'setIgnoreContentScaleFactor' for 'AtlasNode',
      this is not exposed to game developers, it's only used for displaying FPS now.
      */
-    float scaleFactor = 1 / AX_CONTENT_SCALE_FACTOR();
+    float scaleFactor = 3 / AX_CONTENT_SCALE_FACTOR();
 
     _FPSLabel = LabelAtlas::create(fpsString, texture, 12, 32, '.');
     _FPSLabel->retain();
@@ -1373,7 +1373,7 @@ void Director::setStatsAnchor(AnchorPreset anchor)
         static Vec2 _fpsPosition = {0, 0};
         auto safeOrigin          = getSafeAreaRect().origin;
         auto safeSize            = getSafeAreaRect().size;
-        const int height_spacing = (int)(22 / AX_CONTENT_SCALE_FACTOR());
+        const int height_spacing = (int)(66 / AX_CONTENT_SCALE_FACTOR());
 
         switch (anchor)
         {
