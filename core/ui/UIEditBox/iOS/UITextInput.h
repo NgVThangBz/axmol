@@ -26,7 +26,7 @@
 #ifndef _AXUI_TEXTINPUT_H_
 #define _AXUI_TEXTINPUT_H_
 
-static const int AX_EDIT_BOX_PADDING = 5;
+static const int AX_EDIT_BOX_PADDING = 1;
 
 /**
     This protocol provides a common interface for consolidating text input method calls
