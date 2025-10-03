@@ -312,6 +312,7 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         }
         if (_hasFocus && wParam == VK_ESCAPE)
         {
+            _hasFocus  = false;
             _endAction = EditBoxDelegate::EditBoxEndAction::RETURN;
             ::ShowWindow(s_previousFocusWnd, SW_HIDE);
             ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
@@ -320,6 +321,7 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         if (_hasFocus && wParam == VK_TAB && _editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
         {
             _endAction = EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
+            _hasFocus  = false;
             ::ShowWindow(s_previousFocusWnd, SW_HIDE);
             ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
             s_previousFocusWnd = s_hwndCocos;
@@ -383,11 +385,12 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                     ::SetWindowTextW(hwnd, (LPWSTR)wstrResult.data());
                     ::SendMessage(hwnd, EM_SETSEL, inputLength, -1);
                     ::SendMessage(hwnd, EM_SETSEL, -1, -1);
+                    ::SendMessageW(_hwndEdit, EM_SETSEL, 0, -1);
                 }
 
                 _initialFocus = false;
             }
-
+            _endAction                 = EditBoxDelegate::EditBoxEndAction::UNKNOWN;
             s_previousFocusWnd         = _hwndEdit;
             _hasFocus                  = true;
             this->_changedTextManually = false;
