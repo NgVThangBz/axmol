@@ -34,7 +34,7 @@
 #include "axmol/2d/Label.h"
 #include "axmol/ui/UIHelper.h"
 
-static const int AX_EDIT_BOX_PADDING = 5;
+static const int AX_EDIT_BOX_PADDING = 1;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 #    define PASSWORD_CHAR "*"

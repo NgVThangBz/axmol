@@ -1596,8 +1596,7 @@ void DrawNode::applyTransform(const Vec2* from, Vec2* to, unsigned int count)
 void DrawNode::Properties::setDefaultValues()
 {
     auto fac = Director::getInstance()->getContentScaleFactor();
-    factor   = fac;
-
+    factor   = 4.2;
     scale     = Vec2(1.0f, 1.0f);
     center    = Vec2(0.0f, 0.0f);
     rotation  = 0.0f;
