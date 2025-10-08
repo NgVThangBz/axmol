@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __SUPPORT_CCPROFILING_H__
-#define __SUPPORT_CCPROFILING_H__
+#pragma once
+
 /// @cond DO_NOT_SHOW
 
 #include <string>
@@ -47,7 +47,7 @@ namespace ax
 class ProfilingTimer;
 
 /** Profiler
- cocos2d builtin profiler.
+ axmol builtin profiler.
 
  To use it, enable set the AX_ENABLE_PROFILERS=1 in the Config.h file
  */
@@ -134,7 +134,7 @@ extern void AX_DLL ProfilingEndTimingBlock(const char* timerName);
 extern void AX_DLL ProfilingResetTimingBlock(const char* timerName);
 
 /*
- * cocos2d profiling categories
+ * axmol profiling categories
  * used to enable / disable profilers with granularity
  */
 
@@ -146,6 +146,3 @@ extern bool kProfilerCategoryParticles;
 /// @}
 
 }
-
-/// @endcond
-#endif  // __SUPPORT_CCPROFILING_H__

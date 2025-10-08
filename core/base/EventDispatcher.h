@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __AX_EVENT_DISPATCHER_H__
-#define __AX_EVENT_DISPATCHER_H__
+#pragma once
 
 #include <functional>
 #include <string>
@@ -48,6 +47,7 @@ namespace ax
 
 class Event;
 class EventTouch;
+class EventMouse;
 class Node;
 class EventCustom;
 class EventListenerCustom;
@@ -282,6 +282,10 @@ protected:
      * mode. */
     void dispatchTouchEvent(EventTouch* event);
 
+    /** Mouse Scroll event needs to be processed different with other events since it needs support ALL_AT_ONCE and ONE_BY_NONE
+     * mode. */
+    void dispatchMouseEvent(EventMouse* event);
+
     /** Associates node with event listener */
     void associateNodeAndEventListener(Node* node, EventListener* listener);
 
@@ -363,4 +367,3 @@ protected:
 // end of base group
 /// @}
 
-#endif  // __AX_EVENT_DISPATCHER_H__

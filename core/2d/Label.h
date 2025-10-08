@@ -25,8 +25,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _AX_LABEL_H_
-#define _AX_LABEL_H_
+#pragma once
 
 #include "2d/Node.h"
 #include "renderer/CustomCommand.h"
@@ -56,7 +55,7 @@ typedef struct _ttfConfig
 
     GlyphCollection glyphs;
     float fontSize; // The desired render font size
-    int faceSize; // The original face size of font
+    int faceSize; // The original face size of font, used when distanceFieldEnabled == true
     int outlineSize;
 
     bool distanceFieldEnabled;
@@ -741,6 +740,8 @@ protected:
         float positionY;
         int atlasIndex;
         int lineIndex;
+        float offsetX;
+        float offsetY;
     };
 
     struct BatchCommand
@@ -762,17 +763,18 @@ protected:
         CustomCommand shadowCommand;
     };
 
-    virtual void setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled = false, bool useA8Shader = false);
+    void clearTextures();
+
+    virtual bool setFontAtlas(FontAtlas* atlas, bool distanceFieldEnabled = false, bool useA8Shader = false);
     bool getFontLetterDef(char32_t character, FontLetterDefinition& letterDef) const;
 
     void computeStringNumLines();
 
     void drawSelf(bool visibleByCamera, Renderer* renderer, uint32_t flags);
 
-    bool multilineTextWrapByChar();
-    bool multilineTextWrapByWord();
-    bool multilineTextWrap(const std::function<int(const std::u32string&, int, int)>& lambda);
-    void shrinkLabelToContentSize(const std::function<bool(void)>& lambda);
+    bool multilineTextWrapByChar(bool ignoreOverflow = false);
+    bool multilineTextWrapByWord(bool ignoreOverflow = false);
+    bool multilineTextWrap(bool breakOnChar, bool ignoreOverflow);
     bool isHorizontalClamp();
     bool isVerticalClamp();
     void rescaleWithOriginalFontSize();
@@ -782,7 +784,12 @@ protected:
     void computeAlignmentOffset();
     bool computeHorizontalKernings(const std::u32string& stringToRender);
 
-    void recordLetterInfo(const ax::Vec2& point, char32_t utf32Char, int letterIndex, int lineIndex);
+    void recordLetterInfo(const ax::Vec2& point,
+                          char32_t utf32Char,
+                          int letterIndex,
+                          int lineIndex,
+                          float offsetX,
+                          float offsetY);
     void recordPlaceholderInfo(int letterIndex, char32_t utf16Char);
 
     bool updateQuads();
@@ -798,9 +805,9 @@ protected:
 #endif
     void scaleFontSize(float fontSize);
     bool setTTFConfigInternal(const TTFConfig& ttfConfig);
-    bool updateTTFConfigInternal();
+    bool updateTTFConfigInternal(unsigned int mods = 0);
     void setBMFontSizeInternal(float fontSize);
-    bool isHorizontalClamped(float letterPositionX, float letterWidth, int lineIndex);
+    bool isLetterHorizontallyClamped(float letterPositionX, float letterWidth, int lineIndex, float offsetX);
     void restoreFontSize();
     void updateLetterSpriteScale(Sprite* sprite);
     int getFirstCharLen(const std::u32string& utf32Text, int startIndex, int textLen) const;
@@ -946,5 +953,3 @@ private:
 /// @}
 
 }
-
-#endif /*_AX_LABEL_H */

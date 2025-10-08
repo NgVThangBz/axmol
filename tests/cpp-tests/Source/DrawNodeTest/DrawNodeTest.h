@@ -99,7 +99,7 @@ public:
     void setDrawOrder(Object* sender);
     void setTransform(Object* sender);
 
-    void update(float dt);
+    void update(float dt) override;
 
     virtual std::string title() const override;
     void drawDirection(const ax::Vec2* vec, const int size, ax::Vec2 offset);
@@ -114,8 +114,8 @@ public:
     // using from https://github.com/intmainreturn00/AwesomeNode/
     void generateDataPoints();
 
-    ax::PointArray *pts = nullptr;
-    ax::PointArray *pts2 = nullptr;
+    ax::PointArray* pts = nullptr;
+    ax::PointArray* pts2 = nullptr;
     float defY, defY2, dev;
     const int n = 50;
     const int grid = 10;
@@ -144,7 +144,7 @@ protected:
     // DrawNode stuff
     ax::DrawNode* drawNode = nullptr;
     ax::DrawNode* drawNodeArray[10];
- 
+
 
     // Window stuff
     ax::Vec2 origin;
@@ -162,6 +162,26 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
     void update(float dt) override;
+
+
+};
+
+const int NUM_POINTS = 10000;
+class DrawNodeJellyFishTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeJellyFishTest);
+
+    DrawNodeJellyFishTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+    void update(float dt) override;
+    void CalculatePoint(float x, float y, float t, float& px, float& py);
+    void DrawFrame();
+    void UpdateJellyPoints();
+private:
+    ax::Vec2 dots[NUM_POINTS];
 };
 
 class DrawNodeMorphTest_SolidPolygon : public DrawNodeBaseTest
@@ -173,8 +193,8 @@ public:
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
 private:
     ax::Vec2* verticesObj1[10];
@@ -196,8 +216,8 @@ public:
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
 private:
     ax::Vec2* verticesObj1[10];
@@ -220,8 +240,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
 private:
     ax::Label* _thicknessLabel;
@@ -238,8 +258,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
 private:
     // ax::Label* _lineWidthLabel;
@@ -285,8 +305,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
 };
 
@@ -300,8 +320,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
     void drawAll();
 
@@ -347,7 +367,7 @@ public:
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
-    void update(float dt);
+    void update(float dt) override;
     void drawAllv2(ax::DrawNode* drawNode, bool drawOrder);
     void drawAllv1(ax::DrawNode* drawNode);
 
@@ -368,8 +388,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
     void changeThreshold(Object* pSender, ax::ui::Slider::EventType type);
     void changeLineWidth(Object* pSender, ax::ui::Slider::EventType type);
@@ -392,8 +412,8 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
-    void onEnter();
+    void update(float dt) override;
+    void onEnter() override;
 
     void changeThreshold(Object* pSender, ax::ui::Slider::EventType type);
     void changeLineWidth(Object* pSender, ax::ui::Slider::EventType type);
@@ -415,7 +435,7 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
+    void update(float dt) override;
 };
 
 class DrawNodeSpLinesOpenClosedTest : public DrawNodeBaseTest
@@ -430,7 +450,7 @@ public:
 
     void onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event);
     void addNewControlPoint(ax::Vec2 p);
-    void update(float dt);
+    void update(float dt) override;
 
 private:
     ax::DrawNode* drawNodeCP = nullptr;
@@ -449,7 +469,7 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void update(float dt);
+    void update(float dt) override;
     void renderLine(float x1, float x2, float y, ax::Color4F color, float angle);
 
 private:

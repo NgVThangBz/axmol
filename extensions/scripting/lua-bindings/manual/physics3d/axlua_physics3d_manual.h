@@ -23,10 +23,9 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#ifndef SCRIPTING_AXLUA_PHYSICS3D_MANUAL_H__
-#define SCRIPTING_AXLUA_PHYSICS3D_MANUAL_H__
+#pragma once
 
-#if defined(AX_ENABLE_3D_PHYSICS) && AX_ENABLE_BULLET_INTEGRATION
+#if defined(AX_ENABLE_3D_PHYSICS)
 
 #include "tolua++.h"
 
@@ -48,5 +47,4 @@ TOLUA_API int register_physics3d_module(lua_State* L);
 // end group
 /// @}
 
-#endif  // #if AX_ENABLE_3D_PHYSICS && AX_ENABLE_BULLET_INTEGRATION
-#endif  // #ifndef SCRIPTING_AXLUA_PHYSICS3D_MANUAL_H__
+#endif  // #if AX_ENABLE_3D_PHYSICS

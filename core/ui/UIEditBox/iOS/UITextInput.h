@@ -23,10 +23,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _AXUI_TEXTINPUT_H_
-#define _AXUI_TEXTINPUT_H_
+#pragma once
 
-static const int AX_EDIT_BOX_PADDING = 1;
+static const int AX_EDIT_BOX_PADDING = 5;
 
 /**
     This protocol provides a common interface for consolidating text input method calls
@@ -46,5 +45,3 @@ static const int AX_EDIT_BOX_PADDING = 1;
 - (void)axui_setDelegate:(id<UITextFieldDelegate, UITextViewDelegate>)delegate;
 
 @end
-
-#endif

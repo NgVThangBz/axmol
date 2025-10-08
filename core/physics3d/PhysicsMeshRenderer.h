@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_MESH_RENDERER_H__
-#define __PHYSICS_MESH_RENDERER_H__
+#pragma once
 
 #include "base/Config.h"
 #include "3d/MeshRenderer.h"
@@ -33,8 +32,6 @@
 #include "physics3d/Physics3DComponent.h"
 
 #if defined(AX_ENABLE_3D_PHYSICS)
-
-#    if (AX_ENABLE_BULLET_INTEGRATION)
 
 namespace ax
 {
@@ -51,15 +48,15 @@ class AX_DLL PhysicsMeshRenderer : public ax::MeshRenderer
 public:
     /** creates a PhysicsMeshRenderer */
     static PhysicsMeshRenderer* create(std::string_view modelPath,
-                                   Physics3DRigidBodyDes* rigidDes,
-                                   const ax::Vec3& translateInPhysics = ax::Vec3::ZERO,
-                                   const ax::Quaternion& rotInPhsyics = ax::Quaternion::ZERO);
+                                       Physics3DRigidBodyDes* rigidDes,
+                                       const ax::Vec3& translateInPhysics = ax::Vec3::ZERO,
+                                       const ax::Quaternion& rotInPhsyics = ax::Quaternion::ZERO);
 
     /** creates a PhysicsMeshRenderer with a collider */
     static PhysicsMeshRenderer* createWithCollider(std::string_view modelPath,
-                                               Physics3DColliderDes* colliderDes,
-                                               const ax::Vec3& translateInPhysics = ax::Vec3::ZERO,
-                                               const ax::Quaternion& rotInPhsyics = ax::Quaternion::ZERO);
+                                                   Physics3DColliderDes* colliderDes,
+                                                   const ax::Vec3& translateInPhysics = ax::Vec3::ZERO,
+                                                   const ax::Quaternion& rotInPhsyics = ax::Quaternion::ZERO);
 
     /** Get the Physics3DObject. */
     Physics3DObject* getPhysicsObj() const;
@@ -82,10 +79,7 @@ protected:
 
 // end of 3d group
 /// @}
-}
-
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
+}  // namespace ax
 
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_MESH_RENDERER_H__

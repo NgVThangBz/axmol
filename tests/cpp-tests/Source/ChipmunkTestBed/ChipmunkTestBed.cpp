@@ -189,12 +189,12 @@ void ChipmunkTestBed::DrawInfo()
     max_constraints = constraints > max_constraints ? constraints : max_constraints;
 
     char buffer[1024];
-    const char* format =
-        "Arbiters: %d (%d) - "
-        "Contact Points: %d (%d)\n"
-        "Other Constraints: %d, Iterations: %d\n"
-        "Constraints x Iterations: %d (%d)\n"
-        "Time:% 5.2fs, KE:% 5.2e";
+    constexpr auto format =
+        "Arbiters: {} ({}) - "
+        "Contact Points: {} ({})\n"
+        "Other Constraints: {}, Iterations: {}\n"
+        "Constraints x Iterations: {} ({})\n"
+        "Time:{:5.2f}s, KE:{:5.2e}"sv;
 
     cpArray* bodies = _space->dynamicBodies;
     cpFloat ke      = 0.0f;
@@ -207,10 +207,10 @@ void ChipmunkTestBed::DrawInfo()
         ke += body->m * cpvdot(body->v, body->v) + body->i * body->w * body->w;
     }
 
-    sprintf(buffer, format, arbiters, max_arbiters, points, max_points, _space->constraints->num, _space->iterations,
+    auto msg = fmt::format_to_z(buffer, format, arbiters, max_arbiters, points, max_points, _space->constraints->num, _space->iterations,
             constraints, max_constraints, ChipmunkDemoTime, (ke < 1e-10f ? 0.0f : ke));
 
-    drawInfo->setString(buffer);
+    drawInfo->setString(msg);
 }
 
 static char PrintStringBuffer[1024 * 8];
@@ -309,9 +309,9 @@ ChipmunkTestBed::ChipmunkTestBed()
     // halx99: since axmol init scene default camera at 'initWithXXX' function, only change design size at scene
     // construct is ok see also: https://github.com/axmolengine/axmol/commit/581a7921554c09746616759d5a5ca6ce9d3eaa22
     auto director = Director::getInstance();
-    auto glView   = director->getGLView();
+    auto renderView   = director->getRenderView();
     Size designSize(g_designSize.width * 0.85, g_designSize.height * 0.85);
-    glView->setDesignResolutionSize(designSize.width, designSize.height, ResolutionPolicy::SHOW_ALL);
+    renderView->setDesignResolutionSize(designSize.width, designSize.height, ResolutionPolicy::SHOW_ALL);
 
     // creating a keyboard event listener
     auto listener          = EventListenerKeyboard::create();
@@ -425,7 +425,7 @@ void ChipmunkTestBed::onEnter()
     label->setString("");
 }
 
-void ChipmunkTestBed::onMouseDown(Event* event)
+bool ChipmunkTestBed::onMouseDown(Event* event)
 {
     EventMouse* e = (EventMouse*)event;
 
@@ -461,9 +461,11 @@ void ChipmunkTestBed::onMouseDown(Event* event)
         ChipmunkDemoRightDown  = cpTrue;
         ChipmunkDemoRightClick = cpTrue;
     }
+
+    return true;
 }
 
-void ChipmunkTestBed::onMouseUp(Event* event)
+bool ChipmunkTestBed::onMouseUp(Event* event)
 {
     EventMouse* e = (EventMouse*)event;
     mousePresses  = false;
@@ -476,9 +478,11 @@ void ChipmunkTestBed::onMouseUp(Event* event)
     ChipmunkDemoLeftDown   = cpFalse;
     ChipmunkDemoRightDown  = cpFalse;
     ChipmunkDemoRightClick = cpFalse;
+
+    return true;
 }
 
-void ChipmunkTestBed::onMouseMove(Event* event)
+bool ChipmunkTestBed::onMouseMove(Event* event)
 {
     EventMouse* e = (EventMouse*)event;
     auto pt = e->getLocation();
@@ -486,6 +490,8 @@ void ChipmunkTestBed::onMouseMove(Event* event)
     ChipmunkDemoMouse.y = pt.y - physicsDebugNodeOffset.y;
 
     cpBodySetPosition(mouse_body, ChipmunkDemoMouse);
+
+    return true;
 }
 
 void ChipmunkTestBed::updateInit(ChipmunkDemo tt)

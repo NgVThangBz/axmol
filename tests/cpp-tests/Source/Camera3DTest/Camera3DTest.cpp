@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "ui/UISlider.h"
 #include "platform/FileUtils.h"
 #include "renderer/backend/DriverBase.h"
+#include "base/format.h"
 
 using namespace ax;
 
@@ -895,9 +896,9 @@ void CameraCullingDemo::addMeshCallback(Object* sender)
     _layer3D->setCameraMask((unsigned short)CameraFlag::USER1);
 
     // update sprite number
-    char szText[16];
-    sprintf(szText, "%d sprits", static_cast<int32_t>(_layer3D->getChildrenCount()));
-    _labelMeshCount->setString(szText);
+    char szText[64];
+    auto text = fmt::format_to_z(szText, "{} sprits", static_cast<int32_t>(_layer3D->getChildrenCount()));
+    _labelMeshCount->setString(text);
 }
 
 void CameraCullingDemo::delMeshCallback(Object* sender)
@@ -924,9 +925,9 @@ void CameraCullingDemo::delMeshCallback(Object* sender)
     _layer3D->setCameraMask((unsigned short)CameraFlag::USER1);
 
     // update sprite number
-    char szText[16];
-    sprintf(szText, "%d sprits", static_cast<int32_t>(_layer3D->getChildrenCount()));
-    _labelMeshCount->setString(szText);
+    char szText[64];
+    auto text = fmt::format_to_z(szText, "{} sprits", static_cast<int32_t>(_layer3D->getChildrenCount()));
+    _labelMeshCount->setString(text);
 }
 
 void CameraCullingDemo::drawCameraFrustum()

@@ -7,7 +7,7 @@
 #include "base/ZipUtils.h"
 
 #include "ImGuiPresenter.h"
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "misc/cpp/imgui_stdlib.h"
 #include <zlib.h>
 #include "base/JsonWriter.h"
 #include "yasio/utils.hpp"
@@ -346,7 +346,7 @@ void SDFGen::onImGuiDraw()
         }
 
         ImGui::Separator();
-        ImGui::Text("Atals View:");
+        ImGui::Text("Atlas View:");
         ImGuiPresenter::getInstance()->image(_atlasViewer, ImVec2(viewerSize.width, viewerSize.height));
     }
 

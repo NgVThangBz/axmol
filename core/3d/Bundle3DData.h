@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __AX_BUNDLE_3D_DATA_H__
-#define __AX_BUNDLE_3D_DATA_H__
+#pragma once
 
 #include "base/Object.h"
 #include "base/Types.h"
@@ -467,7 +466,6 @@ struct NTextureData
     std::string id;
     std::string filename;
     Usage type;
-    ax::Vec3 color;
     backend::SamplerAddressMode wrapS;
     backend::SamplerAddressMode wrapT;
 };
@@ -566,4 +564,3 @@ struct Reference
 
 }
 
-#endif  //__AX_BUNDLE_3D_DATA_H__

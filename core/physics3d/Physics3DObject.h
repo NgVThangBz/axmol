@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_3D_OBJECT_H__
-#define __PHYSICS_3D_OBJECT_H__
+#pragma once
 
 #include "math/Math.h"
 #include "base/Object.h"
@@ -34,8 +33,6 @@
 #include <vector>
 
 #if defined(AX_ENABLE_3D_PHYSICS)
-
-#    if (AX_ENABLE_BULLET_INTEGRATION)
 
 class btCollisionShape;
 class btRigidBody;
@@ -497,8 +494,5 @@ protected:
 
 }
 
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
-
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_3D_OBJECT_H__

@@ -24,9 +24,7 @@
  THE SOFTWARE.
 
  ****************************************************************************/
-
-#ifndef _AX_MOUSEEVENT_H_
-#define _AX_MOUSEEVENT_H_
+#pragma once
 
 #include "base/Event.h"
 #include "math/Math.h"
@@ -75,6 +73,12 @@ public:
      * @param mouseEventCode A given mouse event type.
      */
     EventMouse(MouseEventType mouseEventCode);
+
+    /** Get mouse event type.
+     *
+     * @return The type of the event.
+     */
+    MouseEventType getMouseEventType() const { return _mouseEventType; }
 
     /** Set mouse scroll data.
      *
@@ -190,5 +194,3 @@ private:
 
 // end of base group
 /// @}
-
-#endif /* defined(_AX_MOUSEEVENT_H_) */

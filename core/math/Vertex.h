@@ -24,8 +24,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#ifndef __CCVERTEX_H__
-#define __CCVERTEX_H__
+#pragma once
 
 #include "base/Types.h"
 
@@ -41,15 +40,13 @@ namespace ax
 
 /** converts a line to a polygon */
 void AX_DLL
-ccVertexLineToPolygon(Vec2* points, float stroke, Vec2* vertices, unsigned int offset, unsigned int nuPoints);
+vertexLineToPolygon(Vec2* points, float stroke, Vec2* vertices, unsigned int offset, unsigned int nuPoints);
 
 /** returns whether or not the line intersects */
 bool AX_DLL
-ccVertexLineIntersect(float Ax, float Ay, float Bx, float By, float Cx, float Cy, float Dx, float Dy, float* T);
+vertexLineIntersect(float Ax, float Ay, float Bx, float By, float Cx, float Cy, float Dx, float Dy, float* T);
 
 }
 
 // end of base group
 /// @}
-
-#endif /* __CCVERTEX_H__ */

@@ -41,7 +41,7 @@
   - win32: whether use ANGLE GLES backend
   - osx: whether use OpenGL instead Metal backend
   - ios/tvos: whether use GLES instead Metal backend
-- AX_CORE_PROFILE: whether strip deprecated features, default `FALSE`
+- AX_CORE_PROFILE: whether strip all deprecated features, default `FALSE`, Setting this to `TRUE` before upgrading your game project helps ensure compatibility with future Axmol versions.
 - AX_ISA_LEVEL: specifiy SIMD Instructions Acceleration Level: 0~4, 0: disabled, 1: SSE2, 2: SSE4.1/NEON, 3: SSE4.2, 4: AVX2, default: 2
 - AX_GLES_PROFILE: specify GLES profile version for GLES backend, valid value `200`, `300`
 - AX_WASM_THREADS: specify wasm thread count, valid value: number: `>=0` , string: must be: `auto` or `navigator.hardwareConcurrency`(default), 
@@ -54,6 +54,7 @@ default is: `navigator.hardwareConcurrency`
 - AX_WASM_ENABLE_DEVTOOLS: whether enable web devtools aka `pause`, `resume`, `step` buttons in webpage, default: `TRUE`
 - AX_WASM_INITIAL_MEMORY: set the wasm initial memory size, default `1024MB`
 - AX_WASM_ISA_SIMD: specify the wasm simd intrinsics type, default `none`, supports `sse`, `neon`, note the `wasm-simd` not support by axmol yet
+- AX_WASM_TIMING_USE_TIMEOUT: force the wasm emscripten loop timing to use `Timeout` with FPS value of `Application::setAnimationInterval` (app still run on focus lost), default is `FALSE` with timing `requestAnimationFrame` (no run on focus lost). See https://emscripten.org/docs/api_reference/emscripten.h.html#c.emscripten_set_main_loop_timing
 
 ## The options for axmol apps
 

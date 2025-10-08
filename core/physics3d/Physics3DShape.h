@@ -24,16 +24,13 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_3D_SHAPE_H__
-#define __PHYSICS_3D_SHAPE_H__
+#pragma once
 
 #include "base/Object.h"
 #include "base/Config.h"
 #include "math/Math.h"
 
 #if defined(AX_ENABLE_3D_PHYSICS)
-
-#    if (AX_ENABLE_BULLET_INTEGRATION)
 
 class btCollisionShape;
 
@@ -133,9 +130,7 @@ public:
      */
     static Physics3DShape* createCompoundShape(const std::vector<std::pair<Physics3DShape*, Mat4>>& shapes);
 
-#        if AX_ENABLE_BULLET_INTEGRATION
     btCollisionShape* getbtShape() const { return _btShape; }
-#        endif
 
     Physics3DShape();
     ~Physics3DShape();
@@ -160,11 +155,9 @@ public:
 protected:
     ShapeType _shapeType;  // shape type
 
-#        if (AX_ENABLE_BULLET_INTEGRATION)
     btCollisionShape* _btShape;
     unsigned char* _heightfieldData;
     std::vector<Physics3DShape*> _compoundChildShapes;
-#        endif
 };
 
 // end of 3d group
@@ -172,8 +165,5 @@ protected:
 
 }
 
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
-
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_3D_SHAPE_H__

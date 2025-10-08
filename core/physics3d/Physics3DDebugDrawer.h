@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_3D_VIEWER_H__
-#define __PHYSICS_3D_VIEWER_H__
+#pragma once
 
 #include "math/Math.h"
 #include "base/Object.h"
@@ -37,8 +36,7 @@
 
 #if defined(AX_ENABLE_3D_PHYSICS)
 
-#    if (AX_ENABLE_BULLET_INTEGRATION)
-#        include "bullet/LinearMath/btIDebugDraw.h"
+#    include "bullet/LinearMath/btIDebugDraw.h"
 
 namespace ax
 {
@@ -96,10 +94,7 @@ private:
 // end of 3d group
 /// @}
 
-}
-
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
+}  // namespace ax
 
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_3D_VIEWER_H__

@@ -408,7 +408,6 @@ MeshRenderer* MeshRenderer::createMeshRendererNode(NodeData* nodedata,
                     texParams.sAddressMode = textureData->wrapS;
                     texParams.tAddressMode = textureData->wrapT;
                     tex->setTexParameters(texParams);
-//                    meshRenderer->setColor(Color3B(textureData->color.x*255,textureData->color.y*255,textureData->color.z*255));
                     _transparentMaterialHint =
                         materialData->getTextureData(NTextureData::Usage::Transparency) != nullptr;
                 }

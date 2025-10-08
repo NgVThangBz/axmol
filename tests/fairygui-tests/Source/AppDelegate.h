@@ -1,10 +1,10 @@
 #ifndef  _APP_DELEGATE_H_
 #define  _APP_DELEGATE_H_
 
-#include "cocos2d.h"
+#include "axmol.h"
 
 /**
-@brief    The cocos2d Application.
+@brief    The axmol Application.
 
 Private inheritance here hides part of interface from Director.
 */
@@ -14,7 +14,7 @@ public:
     AppDelegate();
     virtual ~AppDelegate();
 
-    virtual void initGLContextAttrs();
+    virtual void initGfxContextAttrs();
 
     /**
     @brief    Implement Director and Scene init code here.

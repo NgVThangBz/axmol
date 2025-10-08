@@ -27,6 +27,8 @@
 #include "Paddle.h"
 #include "../testResource.h"
 
+#include "base/format.h"
+
 using namespace ax;
 
 enum tagPlayer
@@ -139,7 +141,7 @@ void PongLayer::doStep(float delta)
         resetAndScoreBallForPlayer(kHighPlayer);
 }
 
-const char* _Info_Formatter = "Current force value : %0.02f, maximum possible force : %0.02f";
+#define  _Info_Formatter "Current force value : {:.02f}, maximum possible force : {:.02f}"
 char formatBuffer[256]      = {
     0,
 };
@@ -180,13 +182,13 @@ void ForceTouchTest::onTouchesMoved(const std::vector<ax::Touch*>& touches, ax::
     {
         float currentForce = t->getCurrentForce();
         float maxForce     = t->getMaxForce();
-        sprintf(formatBuffer, _Info_Formatter, currentForce, maxForce);
-        _infoLabel->setString(std::string(formatBuffer));
+        auto text = fmt::format_to_z(formatBuffer, _Info_Formatter, currentForce, maxForce);
+        _infoLabel->setString(text);
     }
 }
 
 void ForceTouchTest::onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event)
 {
-    sprintf(formatBuffer, _Info_Formatter, 0.0f, 0.0f);
-    _infoLabel->setString(std::string(formatBuffer));
+    auto text = fmt::format_to_z(formatBuffer, _Info_Formatter, 0.0f, 0.0f);
+    _infoLabel->setString(text);
 }

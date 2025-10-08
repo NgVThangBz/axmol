@@ -24,16 +24,13 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_3D_WORLD_H__
-#define __PHYSICS_3D_WORLD_H__
+#pragma once
 
 #include "math/Math.h"
 #include "base/Object.h"
 #include "base/Config.h"
 
 #if defined(AX_ENABLE_3D_PHYSICS)
-
-#    if (AX_ENABLE_BULLET_INTEGRATION)
 
 class btDynamicsWorld;
 class btDefaultCollisionConfiguration;
@@ -169,7 +166,6 @@ protected:
     bool _collisionCheckingFlag;
     bool _needGhostPairCallbackChecking;
 
-#        if (AX_ENABLE_BULLET_INTEGRATION)
     btDynamicsWorld* _btPhyiscsWorld;
     btDefaultCollisionConfiguration* _collisionConfiguration;
     btCollisionDispatcher* _dispatcher;
@@ -177,15 +173,11 @@ protected:
     btSequentialImpulseConstraintSolver* _solver;
     btGhostPairCallback* _ghostCallback;
     Physics3DDebugDrawer* _debugDrawer;
-#        endif  // AX_ENABLE_BULLET_INTEGRATION
 };
 
 // end of 3d group
 /// @}
 }
 
-#    endif
-
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_3D_WORLD_H__

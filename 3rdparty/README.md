@@ -6,7 +6,7 @@
 
 ## astcenc
 - [![Upstream](https://img.shields.io/github/v/release/ARM-software/astc-encoder?label=Upstream)](https://github.com/ARM-software/astc-encoder)
-- Version: 5.2.0
+- Version: 5.3.0
 - License: Apache-2.0
 
 ## Box2D
@@ -32,7 +32,7 @@
 
 ## Clipper2
 - [![Upstream](https://img.shields.io/github/v/tag/AngusJohnson/Clipper2?label=Upstream)](https://github.com/AngusJohnson/Clipper2)
-- Version: 1.5.3
+- Version: 1.5.4
 - License: BSL-1.0
 
 ## ConcurrentQueue
@@ -42,12 +42,12 @@
 
 ## ConvertUTF
 - Upstream: https://github.com/llvm/llvm-project
-- Version: git 2946cd7 without LLVM-specific wrappers of the functions
+- Version: git 20451cb (until Aug.13 2022) without LLVM-specific wrappers of the functions
 - License: Apache-2.0 WITH LLVM-exception
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.13.0
+- Version: 8.16.0
 - License: Curl (MIT/X)
 
 ## doctest
@@ -73,7 +73,7 @@
 
 ## FreeType
 - [![Upstream](https://img.shields.io/gitlab/v/tag/freetype/freetype?label=Upstream)](https://gitlab.freedesktop.org/freetype/freetype)
-- Version: 2.13.3
+- Version: 2.14.1
 - License: BSD-style (The FreeType Project)
 
 ## Glad
@@ -98,7 +98,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.1.0
+- Version: 3.1.2
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -114,7 +114,7 @@
 ## lua
 - plainlua
   - [![Upstream](https://img.shields.io/github/v/release/lua/lua?label=Upstream)](https://github.com/lua/lua) http://www.lua.org/
-  - Version: 5.4.7
+  - Version: 5.4.8
   - License: MIT (http://www.lua.org/license.html)
   
 - sol2
@@ -124,7 +124,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-eec7a80
+  - Version: 2.1-871db2c
   - License: MIT
 
 - tolua
@@ -165,7 +165,7 @@
 ## ogg
 - ogg
   - [![Upstream](https://img.shields.io/github/v/release/xiph/ogg?label=Upstream)](https://github.com/xiph/ogg)
-  - Version: 1.3.5
+  - Version: 1.3.6
   - License: BSD-3-Clause
 
 - opus
@@ -185,12 +185,12 @@
 
 ## OpenSSL
 - [![Upstream](https://img.shields.io/github/v/tag/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
-- Version: 3.5.0
+- Version: 3.0.17
 - License: Apache-2.0
 
 ## png
 - [![Upstream](https://img.shields.io/github/v/tag/glennrp/libpng?label=Upstream)](https://github.com/glennrp/libpng)
-- Version: 1.6.48
+- Version: 1.6.50
 - License: PNG Reference Library License version 2
 
 ## poly2tri
@@ -240,7 +240,7 @@
 
 ## webp
 - [![Upstream](https://img.shields.io/github/v/tag/webmproject/libwebp?label=Upstream)](https://github.com/webmproject/libwebp)
-- Version: 1.5.0
+- Version: 1.6.0
 - License: Google Inc
 
 ## xsxml

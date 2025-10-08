@@ -34,8 +34,7 @@
  * Adapted from cocos2d-x to cocos2d-iphone by Ricardo Quesada
  */
 
-#ifndef __CCACTION_CATMULLROM_H__
-#define __CCACTION_CATMULLROM_H__
+#pragma once
 
 #include <vector>
 
@@ -112,6 +111,11 @@ public:
      * @param index Remove the point in index.
      */
     void removeControlPointAtIndex(ssize_t index);
+
+     /** Remove all control points.
+     *
+     */
+    void clear();
 
     /** Returns the number of objects of the control point array.
      *
@@ -318,11 +322,9 @@ public:
 
 /** Returns the Cardinal Spline position for a given set of control points, tension and time */
 extern AX_DLL Vec2
-ccCardinalSplineAt(const Vec2& p0, const Vec2& p1, const Vec2& p2, const Vec2& p3, float tension, float t);
+cardinalSplineAt(const Vec2& p0, const Vec2& p1, const Vec2& p2, const Vec2& p3, float tension, float t);
 
 // end of actions group
 /// @}
 
 }
-
-#endif  // __CCACTION_CATMULLROM_H__

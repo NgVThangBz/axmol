@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __CCPHYSICS_WORLD_H__
-#define __CCPHYSICS_WORLD_H__
+#pragma once
 
 #include "base/Config.h"
 #if defined(AX_ENABLE_PHYSICS)
@@ -66,7 +65,7 @@ typedef struct PhysicsRayCastInfo
     // FIXME: correct thing to do is use `cpFloat` instead of float.
     // but in order to do so, we should include "chipmunk_types.h"
     // in Chipmunk v7.0, chipmunk_types includes all the mac types that
-    // conflicts with cocos2d Vec2, Point,... etc types. And all the CocosStudio
+    // conflicts with axmol Vec2, Point,... etc types. And all the CocosStudio
     // lib will need to use the `ax::` namespace prefix. And it is easier to do this
     // than change all the cocosstudio library (and also users code)
     float fraction;
@@ -485,4 +484,3 @@ extern const float AX_DLL PHYSICS_INFINITY;
 }
 
 #endif  // defined(AX_ENABLE_PHYSICS)
-#endif  // __CCPHYSICS_WORLD_H__

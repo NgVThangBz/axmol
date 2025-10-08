@@ -9,7 +9,7 @@
 
 #include "fmt/format.h"
 #include <memory>
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "misc/cpp/imgui_stdlib.h"
 
 NS_AX_EXT_BEGIN
 
@@ -175,11 +175,6 @@ void Inspector::setFontPath(std::string_view fontPath)
 void Inspector::setFontSize(float fontSize)
 {
     _fontSize = fontSize;
-}
-
-void Inspector::setFontGlyphId(std::string_view glyphId)
-{
-    _fontGlyphId = std::string(glyphId);
 }
 
 void Inspector::init()
@@ -405,7 +400,7 @@ void Inspector::openForScene(Scene* target)
     }
 
     auto* presenter = ImGuiPresenter::getInstance();
-    presenter->addFont(FileUtils::getInstance()->fullPathForFilename(_fontPath), _fontSize, _fontGlyphId);
+    presenter->addFont(FileUtils::getInstance()->fullPathForFilename(_fontPath), _fontSize);
     presenter->enableDPIScale();
     presenter->addRenderLoop("#insp", AX_CALLBACK_0(Inspector::mainLoop , this), target);
 }

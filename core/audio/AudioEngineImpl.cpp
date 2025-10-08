@@ -50,9 +50,11 @@ static ALCdevice* s_ALDevice       = nullptr;
 static ALCcontext* s_ALContext     = nullptr;
 static ax::AudioEngineImpl* s_instance = nullptr;
 
-static void ccALPauseDevice()
+namespace ax
 {
-    AXLOGD("{}", "===> ccALPauseDevice");
+static void pauseAudioDevice()
+{
+    AXLOGD("{}", "===> pauseAudioDevice");
 #if AX_USE_ALSOFT
     alcDevicePauseSOFT(s_ALDevice);
 #else
@@ -61,9 +63,9 @@ static void ccALPauseDevice()
 #endif
 }
 
-static void ccALResumeDevice()
+static void resumeAudioDevice()
 {
-    AXLOGD("{}", "===> ccALResumeDevice");
+    AXLOGD("{}", "===> resumeAudioDevice");
 #if AX_USE_ALSOFT
     alcDeviceResumeSOFT(s_ALDevice);
 #else
@@ -71,6 +73,7 @@ static void ccALResumeDevice()
         alcMakeContextCurrent(nullptr);
     alcMakeContextCurrent(s_ALContext);
 #endif
+}
 }
 
 #if AX_TARGET_PLATFORM == AX_PLATFORM_IOS
@@ -127,7 +130,6 @@ static void ccALResumeDevice()
 {
     static bool isAudioSessionInterrupted = false;
     static bool resumeOnBecomingActive    = false;
-    static bool pauseOnResignActive       = false;
 
     if ([notification.name isEqualToString:AVAudioSessionInterruptionNotification])
     {
@@ -136,21 +138,10 @@ static void ccALResumeDevice()
         {
             isAudioSessionInterrupted = true;
 
-            if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive)
-            {
-                AXLOGD(
-                    "AVAudioSessionInterruptionTypeBegan, application != UIApplicationStateActive, "
-                    "alcMakeContextCurrent(nullptr)");
-            }
-            else
-            {
-                AXLOGD(
-                    "AVAudioSessionInterruptionTypeBegan, application == UIApplicationStateActive, "
-                    "pauseOnResignActive = true");
-            }
+            AXLOGD("AVAudioSessionInterruptionTypeBegan, alcMakeContextCurrent(nullptr)");
 
             // We always pause device when interruption began
-            ccALPauseDevice();
+            ax::pauseAudioDevice();
         }
         else if (reason == AVAudioSessionInterruptionTypeEnded)
         {
@@ -163,7 +154,7 @@ static void ccALResumeDevice()
                     "alcMakeContextCurrent(s_ALContext)");
                 NSError* error = nil;
                 [[AVAudioSession sharedInstance] setActive:YES error:&error];
-                ccALResumeDevice();
+                ax::resumeAudioDevice();
                 if (ax::Director::getInstance()->isPaused())
                 {
                     AXLOGD("AVAudioSessionInterruptionTypeEnded, director was paused, try to resume it.");
@@ -182,12 +173,6 @@ static void ccALResumeDevice()
     else if ([notification.name isEqualToString:UIApplicationWillResignActiveNotification])
     {
         AXLOGD("UIApplicationWillResignActiveNotification");
-        if (pauseOnResignActive)
-        {
-            pauseOnResignActive = false;
-            AXLOGD("UIApplicationWillResignActiveNotification, alcMakeContextCurrent(nullptr)");
-            ccALPauseDevice();
-        }
     }
     else if ([notification.name isEqualToString:UIApplicationDidBecomeActiveNotification])
     {
@@ -195,7 +180,10 @@ static void ccALResumeDevice()
         if (resumeOnBecomingActive)
         {
             resumeOnBecomingActive = false;
-            AXLOGD("UIApplicationDidBecomeActiveNotification, alcMakeContextCurrent(s_ALContext)");
+            if (!isAudioSessionInterrupted)
+                ax::pauseAudioDevice();
+            
+            AXLOGD("UIApplicationDidBecomeActiveNotification, resume audio device");
             NSError* error = nil;
             BOOL success   = [[AVAudioSession sharedInstance] setCategory:AVAUDIOSESSION_DEFAULT_CATEGORY error:&error];
             if (!success)
@@ -205,7 +193,7 @@ static void ccALResumeDevice()
             }
             [[AVAudioSession sharedInstance] setActive:YES error:&error];
 
-            ccALResumeDevice();
+            ax::resumeAudioDevice();
         }
         else if (isAudioSessionInterrupted)
         {
@@ -214,8 +202,24 @@ static void ccALResumeDevice()
     }
     else if ([notification.name isEqualToString:AVAudioSessionRouteChangeNotification])
     {  // replay
-        ccALPauseDevice();
-        ccALResumeDevice();
+        /*
+         If app in background, just record we need resume audio device when app becoming active,
+         otherwise, the newer iphone device (at least iphone13) will report follow error:
+         AURemoteIO.cpp:1666  AUIOClient_StartIO failed (561015905) 'perm', see issue: https://github.com/axmolengine/axmol/issues/2479
+         Note: older device (e.g iphone7) will not receive route change notifiaction when app in background
+         */
+        if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive)
+        { // older device (e.g iphone7)
+            ax::pauseAudioDevice();
+            ax::resumeAudioDevice();
+        }
+        else
+        { // newer device (at least iphone13)
+            AXLOGD(
+                "AVAudioSessionRouteChangeNotification, application != UIApplicationStateActive, "
+                "resumeOnBecomingActive = true");
+            resumeOnBecomingActive = true;
+        }
     }
 }
 
@@ -486,6 +490,8 @@ bool AudioEngineImpl::init()
             alDisable(AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
 #endif
 
+            checkExtensions();
+
             AXLOGI("OpenAL was initialized successfully, vender:{}, version:{}", vender, version);
         }
     } while (false);
@@ -579,6 +585,65 @@ AUDIO_ID AudioEngineImpl::play2d(std::string_view filePath, bool loop, float vol
     return _currentAudioID;
 }
 
+int AudioEngineImpl::play3d(std::string_view filePath,
+                            const Vec3& position,
+                            float distanceScale,
+                            bool loop,
+                            float volume,
+                            float time)
+{
+    if (s_ALDevice == nullptr)
+    {
+        return AudioEngine::INVALID_AUDIO_ID;
+    }
+
+    ALuint alSource = findValidSource();
+    if (alSource == AL_INVALID)
+    {
+        return AudioEngine::INVALID_AUDIO_ID;
+    }
+
+    auto player = new AudioPlayer;
+    if (player == nullptr)
+    {
+        return AudioEngine::INVALID_AUDIO_ID;
+    }
+
+    player->_alSource       = alSource;
+    player->_loop           = loop;
+    player->_volume         = volume;
+    player->_pitch          = 1.0f;
+    player->_sourcePosition.set(position);
+    player->_distanceScale = distanceScale;
+    if (time > 0.0f)
+    {
+        player->_currTime  = time;
+        player->_timeDirty = true;
+    }
+
+    auto audioCache = preload(filePath, nullptr);
+    if (audioCache == nullptr)
+    {
+        delete player;
+        return AudioEngine::INVALID_AUDIO_ID;
+    }
+
+    player->setCache(audioCache);
+    _threadMutex.lock();
+    _audioPlayers.emplace(++_currentAudioID, player);
+    _threadMutex.unlock();
+
+    audioCache->addPlayCallback(std::bind(&AudioEngineImpl::_play3d, this, audioCache, _currentAudioID));
+
+    if (!_scheduled)
+    {
+        _scheduled = true;
+        _scheduler->schedule(AX_SCHEDULE_SELECTOR(AudioEngineImpl::update), this, 0.05f, false);
+    }
+
+    return _currentAudioID;
+}
+
 void AudioEngineImpl::_play2d(AudioCache* cache, AUDIO_ID audioID)
 {
     std::unique_lock<std::recursive_mutex> lck(_threadMutex);
@@ -603,6 +668,34 @@ void AudioEngineImpl::_play2d(AudioCache* cache, AUDIO_ID audioID)
     else
     {
         AXLOGD("AudioEngineImpl::_play2d, cache was destroyed or not ready!");
+        player->_removeByAudioEngine = true;
+    }
+}
+
+void AudioEngineImpl::_play3d(AudioCache* cache, int audioID)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioID);
+    if (iter == _audioPlayers.end())
+        return;
+    auto player = iter->second;
+
+    // Note: It maybe in sub thread or main thread :(
+    if (!*cache->_isDestroyed && cache->_state == AudioCache::State::READY)
+    {
+        if (player->play3d())
+        {
+            _scheduler->runOnAxmolThread([audioID]() {
+                if (AudioEngine::_audioIDInfoMap.find(audioID) != AudioEngine::_audioIDInfoMap.end())
+                {
+                    AudioEngine::_audioIDInfoMap[audioID].state = AudioEngine::AudioState::PLAYING;
+                }
+            });
+        }
+    }
+    else
+    {
+        AXLOGD("AudioEngineImpl::_play3d, cache was destroyed or not ready!");
         player->_removeByAudioEngine = true;
     }
 }
@@ -901,6 +994,112 @@ void AudioEngineImpl::update(float /*dt*/)
 {
     std::unique_lock<std::recursive_mutex> lck(_threadMutex);
     _updatePlayers(false);
+}
+
+void AudioEngineImpl::setPan(AUDIO_ID audioId, float value, float distance)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioId);
+    if (iter == _audioPlayers.end())
+        return;
+
+    auto player = iter->second;
+    lck.unlock();
+
+    player->_sourcePosition.set(value, 0.0f, distance);
+    player->_pan = value;
+
+    alSourcei(player->_alSource, AL_SOURCE_RELATIVE, AL_TRUE);  // relative to listener
+    alSource3f(player->_alSource, AL_POSITION, value, 0.0f, distance);
+    if (_stereoExtension)
+    {
+        // pan between -60 degrees when fully left (-1) and 60 degrees when fully right (1)
+        auto angle = static_cast<float>(M_PI) / 6.f;
+
+        float panAngles[2];
+        panAngles[0] = (1.0f - value) * angle;
+        panAngles[1] = (1.0f + value) * -angle;
+
+        alSourcefv(player->_alSource, AL_STEREO_ANGLES, panAngles);
+    }
+}
+
+float AudioEngineImpl::getPan(int audioId)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioId);
+    if (iter == _audioPlayers.end())
+        return 0.f;
+
+    auto player = iter->second;
+    lck.unlock();
+
+    return player->_pan;
+}
+
+ax::Vec3 AudioEngineImpl::getSourcePosition(int audioId)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioId);
+    if (iter == _audioPlayers.end())
+        return {};
+
+    auto player = iter->second;
+    lck.unlock();
+
+    return player->_sourcePosition;
+}
+
+void AudioEngineImpl::setSourcePosition(int audioId, const ax::Vec3& position)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioId);
+    if (iter == _audioPlayers.end())
+        return;
+
+    auto player = iter->second;
+    lck.unlock();
+
+    player->_sourcePosition.set(position);
+
+    alSource3f(player->_alSource, AL_POSITION, position.x, position.y, position.z);
+}
+
+void AudioEngineImpl::setListenerPosition(const ax::Vec3& position)
+{
+    alListener3f(AL_POSITION, position.x, position.y, position.z);
+}
+
+ax::Vec3 AudioEngineImpl::getListenerPosition()
+{
+    Vec3 pos;
+    
+    alGetListener3f(AL_POSITION, &pos.x, &pos.y, &pos.z);
+
+    return pos;
+}
+
+void AudioEngineImpl::setReverbProperties(AUDIO_ID audioId, const ReverbProperties* reverbProperties)
+{
+    std::unique_lock<std::recursive_mutex> lck(_threadMutex);
+    auto iter = _audioPlayers.find(audioId);
+    if (iter == _audioPlayers.end())
+        return;
+
+    auto player = iter->second;
+    lck.unlock();
+
+    player->setReverbProperties(reverbProperties);
+}
+
+bool AudioEngineImpl::isExtensionPresent(const char* extensionId)
+{
+    return alIsExtensionPresent(extensionId);
+}
+
+void AudioEngineImpl::checkExtensions()
+{
+    _stereoExtension = isExtensionPresent("AL_EXT_STEREO_ANGLES");
 }
 
 void AudioEngineImpl::_updatePlayers(bool forStop)

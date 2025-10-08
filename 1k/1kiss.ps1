@@ -5,7 +5,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2012-2024 HALX99
+# Copyright (c) 2012-2025 HALX99
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,8 +62,6 @@ param(
     [switch]$ndkOnly,
     [switch]$rebuild
 )
-
-$myRoot = $PSScriptRoot
 
 $HOST_WIN = 0 # targets: win,uwp,android
 $HOST_LINUX = 1 # targets: linux,android
@@ -253,7 +251,10 @@ $cmake_generators = @{
 $channels = @{}
 
 # refer to: https://developer.android.com/studio#command-line-tools-only
-$cmdlinetools_rev = '11076708' # 12.0
+$cmdlinetools_revs = @{
+    '12.0' = '11076708'
+    '19.0' = '13114758'
+}
 
 $ndk_r23d_rev = '12186248'
 # $ndk_r25d_rev = '12161346'
@@ -376,7 +377,7 @@ function eval($str, $raw = $false) {
 }
 
 function create_symlink($sourcePath, $destPath) {
-    & "$myRoot\fsync.ps1" -s $sourcePath -d $destPath -l $true 2>$null
+    & "$PSScriptRoot\fsync.ps1" -s $sourcePath -d $destPath -l $true 2>$null
     if(!$?) {
         throw "create_symlink $destPath ==> $sourcePath fail"
     }
@@ -471,16 +472,29 @@ $Global:is_clang = $TOOLCHAIN_NAME -eq 'clang'
 $Global:is_msvc = $TOOLCHAIN_NAME -eq 'msvc'
 
 # load toolset manifest
-$manifest_file = Join-Path $myRoot 'manifest.ps1'
+$manifest_file = Join-Path $PSScriptRoot 'manifest.ps1'
 if ($1k.isfile($manifest_file)) {
     . $manifest_file
 }
 
 if($1k.isfile($Global:__1k_user_profile)) {
     $1k.println("Loading user build profile: $__1k_user_profile")
-    $user_profile = ConvertFrom-Props (Get-Content $__1k_user_profile)
-    foreach($entry in $user_profile.GetEnumerator()) {
+    $profile_entries = ConvertFrom-Props (Get-Content $__1k_user_profile)
+    foreach($entry in $profile_entries.GetEnumerator()) {
         $manifest[$entry.Key] = $entry.Value
+    }
+}
+
+function unescape_path([string]$Path) {
+    return ($Path -replace '\\:', ':') -replace '\\\\', '\'
+}
+
+$Script:preferred_sdk_dir = $null
+if($1k.isfile($Global:__1k_android_local_profile)) {
+    $1k.println("Loading android local profile: $__1k_android_local_profile")
+    $profile_entries = ConvertFrom-Props (Get-Content $__1k_android_local_profile)
+    if ($profile_entries.Contains('sdk.dir')) {
+        $Script:preferred_sdk_dir = unescape_path $profile_entries['sdk.dir']
     }
 }
 
@@ -498,9 +512,9 @@ else {
 $1k.println("proj_dir=$((Get-Location).Path), install_prefix=$install_prefix")
 
 # 1kdist
-$sentry_file = Join-Path $myRoot '.gitee'
+$sentry_file = Join-Path $PSScriptRoot '.gitee'
 $mirror = if ($1k.isfile($sentry_file)) { 'gitee' } else { 'github' }
-$mirror_conf_file = $1k.realpath("$myRoot/../manifest.json")
+$mirror_conf_file = $1k.realpath("$PSScriptRoot/../manifest.json")
 $mirror_current = $null
 $devtools_url_base = $null
 $1kdist_ver = $null
@@ -561,6 +575,12 @@ function version_in_range($ver1, $verMin, $verMax) {
 # validate $env:PATH to avoid unexpected shell script behavior
 if ([Regex]::Match($env:PATH, "`'|`"").Success) {
     throw "Please remove any `' or `" from your PATH list"
+}
+
+# trim and get preferred version
+function trim_ver($pattern) {
+    $vers = $pattern.Split('~')
+    return $vers[$vers.Count -gt 1].TrimLast('+')
 }
 
 # validate cmd follow symlink recurse
@@ -750,7 +770,7 @@ function download_and_expand($url, $out, $dest) {
         $1k.mkdirs($dest)
         if ($out.EndsWith('.zip')) {
             if ($IsWin) {
-                Expand-Archive -Path $out -DestinationPath $dest
+                Expand-Archive -Path $out -DestinationPath $dest -Force
             }
             else {
                 unzip -d $dest $out | Out-Null
@@ -845,7 +865,7 @@ function find_vs() {
 
         # refer: https://learn.microsoft.com/en-us/visualstudio/install/workload-and-component-ids?view=vs-2022
         $require_comps = @('Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Product.BuildTools')
-        $vs_installs = ConvertFrom-Json "$(&$VSWHERE_EXE -version $required_vs_ver.TrimEnd('+') -format 'json' -requires $require_comps -requiresAny -prerelease)"
+        $vs_installs = ConvertFrom-Json "$(&$VSWHERE_EXE -products * -version $required_vs_ver.TrimEnd('+') -format 'json' -requires $require_comps -requiresAny -prerelease)"
         $ErrorActionPreference = $eap
 
         if ($vs_installs) {
@@ -973,6 +993,11 @@ function setup_axslcc() {
         return $axslcc_prog
     }
 
+    $axslcc_prog = (Join-Path $axslcc_bin "axslcc$EXE_SUFFIX")
+    if($1k.isfile($axslcc_prog)) {
+        $1k.del($axslcc_prog)
+    }
+
     $suffix = @('win64.zip', 'linux.tar.gz', 'osx{0}.tar.gz')[$HOST_OS_INT]
     if ($IsMacOS) {
         if ([System.VersionEx]$axslcc_ver -ge [System.VersionEx]'1.9.4.1') {
@@ -986,7 +1011,6 @@ function setup_axslcc() {
     $glscc_base_url = $mirror_current.axslcc
     fetch_pkg "$mirror_url_base$glscc_base_url/v$axslcc_ver/axslcc-$axslcc_ver-$suffix" -exrep "axslcc"
 
-    $axslcc_prog = (Join-Path $axslcc_bin "axslcc$EXE_SUFFIX")
     if ($1k.isfile($axslcc_prog)) {
         $1k.println("Using axslcc: $axslcc_prog, version: $axslcc_ver")
     } else {
@@ -1017,7 +1041,7 @@ function setup_ninja() {
 # setup cmake
 function setup_cmake($skipOS = $false) {
     $cmake_prog, $cmake_ver = find_prog -name 'cmake'
-    if ($cmake_prog -and (!$skipOS -or $cmake_prog.Contains($myRoot))) {
+    if ($cmake_prog -and (!$skipOS -or $cmake_prog.Contains($PSScriptRoot))) {
         return $cmake_prog, $cmake_ver
     }
 
@@ -1074,7 +1098,7 @@ function setup_cmake($skipOS = $false) {
             }
         }
         elseif ($IsLinux) {
-            if ($option.scope -ne 'global') {
+            if ($options.scope -ne 'global') {
                 $1k.mkdirs($cmake_root)
                 & "$cmake_pkg_path" '--skip-license' '--exclude-subdir' "--prefix=$cmake_root" 1>$null 2>$null
             }
@@ -1188,8 +1212,16 @@ function setup_unzip() {
     if ($IsWin) { return }
     $unzip_cmd_info = Get-Command 'unzip' -ErrorAction SilentlyContinue
     if (!$unzip_cmd_info) {
-        elseif ($IsLinux) {
-            if ($(which dpkg)) { sudo apt install unzip }
+        if ($IsLinux) {
+            if ($(which dpkg)) {
+                sudo apt install unzip
+            }
+            elseif($(which pacman)) {
+                sudo pacman -S --needed --noconfirm unzip
+            }
+            else {
+                Write-Warning 'Current linux distro is not official supported'
+            }
         }
         elseif ($IsMacOS) {
             brew install unzip
@@ -1261,24 +1293,38 @@ function setup_android_sdk() {
         $ndk_ver = $ndk_ver.Substring(0, $ndk_ver.Length - 1)
     }
 
-    $__1k_sdk_root = Join-Path $install_prefix 'adt/sdk'
-
-    $sdk_dirs = @()
-    $1k.insert([ref]$sdk_dirs, $env:ANDROID_HOME)
-    $1k.insert([ref]$sdk_dirs, $env:ANDROID_SDK_ROOT)
-    $1k.insert([ref]$sdk_dirs, $__1k_sdk_root)
 
     $ndk_minor_base = [int][char]'a'
 
     # looking up require ndk installed in exists sdk roots
-    $sdk_root = $null
-    foreach ($sdk_dir in $sdk_dirs) {
+    $selected_sdk_root = $null
+    if($Script:preferred_sdk_dir) {
+        $selected_sdk_root = $Script:preferred_sdk_dir
+        $1k.println("Using android sdk dir (Preferred): $selected_sdk_root")
+    }
+    elseif ($env:ANDROID_HOME) {
+        $selected_sdk_root = $env:ANDROID_HOME
+        $1k.println("Using android sdk dir from env:ANDROID_HOME: $selected_sdk_root")
+    }
+    elseif($env:ANDROID_SDK_ROOT) {
+        $selected_sdk_root = $env:ANDROID_SDK_ROOT
+        $1k.println("Using android sdk dir from env:ANDROID_SDK_ROOT: $selected_sdk_root")
+    }
+    else {
+        $selected_sdk_root = Join-Path $install_prefix 'adt/sdk'
+        $1k.println("Using android sdk dir from axmol external: $selected_sdk_root")
+    }
+
+    # C:\Users\halx99\AppData\Roaming\Google\AndroidStudio2024.3\options\android.sdk.path.xml
+    $sdk_root = $selected_sdk_root
+    $1k.mkdirs($sdk_root)
+
+    $find_ndk_in = {
+        param($sdk_dir)
         if (!$sdk_dir -or !$1k.isdir($sdk_dir)) {
-            continue
+            return $null
         }
         $1k.println("Looking require $ndk_ver$IsGraterThan in $sdk_dir")
-        $sdk_root = $sdk_dir
-        $ndk_root = $null
 
         $ndk_major = ($ndk_ver -replace '[^0-9]', '')
         $ndk_minor_off = "$ndk_major".Length + 1
@@ -1287,7 +1333,7 @@ function setup_android_sdk() {
 
         $ndk_parent = Join-Path $sdk_dir 'ndk'
         if (!$1k.isdir($ndk_parent)) {
-            continue
+            return $null
         }
 
         # find ndk in sdk
@@ -1305,33 +1351,31 @@ function setup_android_sdk() {
                 }
             }
         }
+
+        $ndk_dir = $null
         if ($IsGraterThan) {
             if ($ndk_rev_max -ge $ndk_rev_base) {
-                $ndk_root = $ndks[$ndk_rev_max]
+                $ndk_dir = $ndks[$ndk_rev_max]
             }
         }
         else {
-            $ndk_root = $ndks[$ndk_rev_base]
+            $ndk_dir = $ndks[$ndk_rev_base]
         }
 
-        if ($null -ne $ndk_root) {
-            $1k.println("Found $ndk_root in $sdk_root ...")
-            break
+        if ($null -ne $ndk_dir) {
+            $1k.println("Found $ndk_dir in $sdk_dir ...")
+            return $ndk_dir
         }
     }
 
-    if(!$sdk_root) {
-        $sdk_root = Join-Path $install_prefix 'adt/sdk'
-        $1k.mkdirs($sdk_root)
-    }
-
-    # C:\Users\halx99\AppData\Roaming\Google\AndroidStudio2024.3\options\android.sdk.path.xml
-    $1k.println("Using android sdk dir: $sdk_root")
+    $ndk_root = &$find_ndk_in $selected_sdk_root
 
     $sdk_comps = @()
 
     ### cmdline-tools ###
-    $cmdlinetools_ver = $manifest['cmdlinetools']
+    $cmdlinetools_ver = trim_ver $manifest['cmdlinetools']
+    $cmdlinetools_rev = $cmdlinetools_revs[$cmdlinetools_ver]
+
     $sdkmanager_prog, $sdkmanager_ver = $null, $null
     $cmdlinetools_prefix = Join-Path $sdk_root "cmdline-tools"
     $cmdlinetools_bin = Join-Path $cmdlinetools_prefix "$cmdlinetools_ver/bin"
@@ -1370,7 +1414,7 @@ function setup_android_sdk() {
                 "android-ndk-${ndk_r23d_rev}-linux-x86_64.zip",
                 "android-ndk-${ndk_r23d_rev}-darwin-x86_64.zip")[$HOST_OS_INT]
             $_target_os = @('win64', 'linux', 'darwin_mac')[$HOST_OS_INT]
-            . (Join-Path $myRoot 'resolv-url.ps1') -artifact $_artifact -target $_target_os -build_id $ndk_r23d_rev -manifest gcloud -out_var 'artifact_info'
+            . (Join-Path $PSScriptRoot 'resolv-url.ps1') -artifact $_artifact -target $_target_os -build_id $ndk_r23d_rev -manifest gcloud -out_var 'artifact_info'
             $artifact_url = $artifact_info[0].messageData
             $full_ver = "23.3.${ndk_r23d_rev}"
             $ndk_root = Join-Path $ndk_prefix $full_ver
@@ -1511,7 +1555,7 @@ function setup_msvc() {
 function setup_xcode() {
     $xcode_prog, $xcode_ver = find_prog -name 'xcode' -cmd "xcodebuild" -params @('-version')
     if (!$xcode_prog) {
-        throw "Missing Xcode, please install"
+        throw "The command 'xcodebuild' not work, if you confirm Xcode was installed on this computer, please execute 'sudo xcode-select -switch /Applications/Xcode.app' and try again"
     }
 }
 
@@ -1550,23 +1594,22 @@ function setup_gclient() {
 function preprocess_win() {
     $outputOptions = @()
 
-    if ($options.sdk) {
-        $outputOptions += "-DCMAKE_SYSTEM_VERSION=$($options.sdk)"
-    }
-
+    # Determine arch name
     if ($Global:is_msvc) {
-        # Generate vs2019 on github ci
-        # Determine arch name
         $arch = if ($options.a -eq 'x86') { 'Win32' } else { $options.a }
-
-        # arch
         $vs_ver = [VersionEx]$Global:VS_INST.installationVersion
         if ($vs_ver -ge [VersionEx]'16.0') {
-            $outputOptions += '-A', $arch
             if ($TOOLCHAIN_VER -match '^\d+$') {
                 $outputOptions += "-Tv$TOOLCHAIN_VER"
             } elseif($TOOLCHAIN_VER -match '^\d+\.\d+$') {
                 $outputOptions += '-T', "version=$TOOLCHAIN_VER"
+            }
+            # refer: https://cmake.org/cmake/help/latest/variable/CMAKE_GENERATOR_PLATFORM.html
+            if($options.sdk) {
+                $outputOptions += "-DCMAKE_GENERATOR_PLATFORM=$arch,version=$($options.sdk)"
+            }
+            else {
+                $outputOptions += "-DCMAKE_GENERATOR_PLATFORM=$arch"
             }
         }
         else {
@@ -1580,7 +1623,7 @@ function preprocess_win() {
             if (!$Script:cmake_generator) {
                 throw "Unsupported toolchain: $TOOLCHAIN$TOOLCHAIN_VER"
             }
-            if ($options.a -eq "x64") {
+            if ($arch -eq "x64") {
                 $Script:cmake_generator += ' Win64'
             }
         }
@@ -1598,7 +1641,13 @@ function preprocess_win() {
         }
     }
     elseif ($Global:is_clang) {
+        $outputOptions += "-DTARGET_ARCH=$($options.a)"
+        if ($options.sdk) { # clang: set preferred version, depends on project self
+            $outputOptions += "-DWINDOWS_SDK_VERSION=$($options.sdk)"
+        }
         $outputOptions += '-DCMAKE_C_COMPILER=clang', '-DCMAKE_CXX_COMPILER=clang++'
+        # export compile commands for diag purpose
+        $outputOptions += '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
         $Script:cmake_generator = 'Ninja Multi-Config'
     }
     else {
@@ -1649,6 +1698,7 @@ function preprocess_andorid() {
         $cmake_toolchain_file = Join-Path $ndk_root 'build/cmake/android.toolchain.cmake'
         $arch = $t_archs[$options.a]
         $outputOptions += "-DCMAKE_TOOLCHAIN_FILE=$cmake_toolchain_file", "-DANDROID_ABI=$arch"
+        $outputOptions += "-DANDROID_USE_LEGACY_TOOLCHAIN_FILE=false"
         # If set to ONLY, then only the roots in CMAKE_FIND_ROOT_PATH will be searched
         # If set to BOTH, then the host system paths and the paths in CMAKE_FIND_ROOT_PATH will be searched
         # If set to NEVER, then the roots in CMAKE_FIND_ROOT_PATH will be ignored and only the host system root will be used
@@ -1685,7 +1735,7 @@ function preprocess_ios() {
         $arch = 'x86_64'
     }
     if (!$cmake_toolchain_file) {
-        $cmake_toolchain_file = Join-Path $myRoot 'ios.cmake'
+        $cmake_toolchain_file = Join-Path $PSScriptRoot 'ios.cmake'
         $outputOptions += "-DCMAKE_TOOLCHAIN_FILE=$cmake_toolchain_file", "-DARCHS=$arch"
         if ($Global:is_tvos) {
             $outputOptions += '-DPLAT=tvOS'
@@ -1701,7 +1751,7 @@ function preprocess_ios() {
 }
 
 function preprocess_wasm() {
-    return , @()
+    return , @('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
 }
 
 function validHostAndToolchain() {
@@ -1825,6 +1875,15 @@ if (!$setupOnly) {
     $SOURCE_DIR = $null
 
     function resolve_out_dir($prefix) {
+        if ($prefix.EndsWith('/') -or $prefix.EndsWith('\')) {
+          if ($is_host_target) {
+            return $1k.realpath("$prefix$TARGET_CPU/")
+          }
+          else {
+              return $1k.realpath("$prefix${TARGET_OS}_$TARGET_CPU/")
+          }
+        }
+        
         if ($is_host_target) {
             if (!$is_host_cpu) {
                 $out_dir = "${prefix}${TARGET_CPU}"
@@ -2071,10 +2130,10 @@ if (!$setupOnly) {
                         &$config_cmd $CONFIG_ALL_OPTIONS -S $dm_dir -B $dm_build_dir | Out-Host ; Remove-Item $dm_build_dir -Recurse -Force
                         $1k.println("Finish dump compiler preprocessors")
                     }
-                    $CONFIG_ALL_OPTIONS += '-B', $BUILD_DIR, "-DCMAKE_INSTALL_PREFIX=$INST_DIR"
+                    $CONFIG_ALL_OPTIONS += '-B', $BUILD_DIR, "-DCMAKE_INSTALL_PREFIX:PATH=$INST_DIR"
                     if ($SOURCE_DIR) { $CONFIG_ALL_OPTIONS += '-S', $SOURCE_DIR }
                     $1k.println("CMake config command: $config_cmd $CONFIG_ALL_OPTIONS")
-                    &$config_cmd $CONFIG_ALL_OPTIONS | Out-Host
+                    &$config_cmd @CONFIG_ALL_OPTIONS | Out-Host
                     Set-Content $tempFile $hashValue -NoNewline
                 }
 
@@ -2196,7 +2255,6 @@ if (!$setupOnly) {
         Write-Output ("gn_buildargs_overrides=$gn_buildargs_overrides, Count={0}" -f $gn_buildargs_overrides.Count)
 
         $BUILD_DIR = resolve_out_dir 'out/'
-
         if ($rebuild) {
             $1k.rmdirs($BUILD_DIR)
         }

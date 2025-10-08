@@ -31,7 +31,7 @@
 
 class TestController;
 /**
-@brief    The cocos2d Application.
+@brief    The axmol Application.
 
 Private inheritance here hides part of interface from Director.
 */
@@ -41,7 +41,7 @@ public:
     AppDelegate();
     virtual ~AppDelegate();
 
-    virtual void initGLContextAttrs();
+    virtual void initGfxContextAttrs();
 
     /**
     @brief    Implement Director and ax::Scene* init code here.

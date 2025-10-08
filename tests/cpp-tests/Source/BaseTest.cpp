@@ -94,7 +94,7 @@ public:
         ScrollView::onTouchEnded(touch, event);
     }
 
-    void onMouseScroll(Event* event)
+    bool onMouseScroll(Event* event)
     {
         auto mouseEvent = static_cast<EventMouse*>(event);
         float moveY     = mouseEvent->getScrollY() * 20;
@@ -114,6 +114,8 @@ public:
             offset.y = maxOffset.y;
         }
         this->setContentOffset(offset);
+
+        return true;
     }
 
 protected:
@@ -162,12 +164,12 @@ void TestList::runThisTest()
      * otherwise, the layout will incorrect
      */
 
-    GLViewImpl* glView = (GLViewImpl*)Director::getInstance()->getGLView();
+    RenderViewImpl* renderView = (RenderViewImpl*)Director::getInstance()->getRenderView();
 #if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
-    glView->setWindowed(g_resourceSize.width, g_resourceSize.height);
+    renderView->setWindowed(g_resourceSize.width, g_resourceSize.height);
 #endif
 
-    glView->setDesignResolutionSize(g_designSize.width, g_designSize.height, ResolutionPolicy::SHOW_ALL);
+    renderView->setDesignResolutionSize(g_designSize.width, g_designSize.height, ResolutionPolicy::SHOW_ALL);
 
     auto director = Director::getInstance();
     auto scene    = Scene::create();

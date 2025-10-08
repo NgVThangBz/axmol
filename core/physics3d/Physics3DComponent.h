@@ -24,8 +24,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __PHYSICS_3D_COMPONENT_H__
-#define __PHYSICS_3D_COMPONENT_H__
+#pragma once
 
 #include "base/Config.h"
 #include "math/Math.h"
@@ -33,8 +32,6 @@
 #include "2d/Component.h"
 
 #if defined(AX_ENABLE_3D_PHYSICS)
-
-#    if (AX_ENABLE_BULLET_INTEGRATION)
 
 namespace ax
 {
@@ -145,8 +142,5 @@ protected:
 /// @}
 }
 
-#    endif  // AX_ENABLE_BULLET_INTEGRATION
-
 #endif  // defined(AX_ENABLE_3D_PHYSICS)
 
-#endif  // __PHYSICS_3D_COMPONENT_H__

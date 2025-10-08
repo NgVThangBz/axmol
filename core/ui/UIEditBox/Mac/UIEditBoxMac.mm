@@ -77,7 +77,7 @@
 
 - (void)setTextInput:(NSView<AXUITextInput>*)textInput
 {
-    if (_textInput == textInput || !textInput)
+    if (_textInput == textInput)
     {
         return;
     }
@@ -131,8 +131,8 @@
 
 - (NSWindow*)window
 {
-    auto glView = ax::Director::getInstance()->getGLView();
-    return (NSWindow*)glView->getCocoaWindow();
+    auto renderView = ax::Director::getInstance()->getRenderView();
+    return (NSWindow*)renderView->getCocoaWindow();
 }
 
 - (void)openKeyboard

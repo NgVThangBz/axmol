@@ -28,11 +28,11 @@ THE SOFTWARE.
 #include "platform/PlatformConfig.h"
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WASM
 
-#include "platform/Device.h"
-#include "platform/FileUtils.h"
+#    include "platform/Device.h"
+#    include "platform/FileUtils.h"
 
-#include <emscripten/emscripten.h>
-#include <emscripten/html5.h>
+#    include <emscripten/emscripten.h>
+#    include <emscripten/html5.h>
 
 namespace ax
 {
@@ -57,41 +57,82 @@ void Device::setAccelerometerInterval(float interval)
     // TODO: https://emscripten.org/docs/api_reference/html5.h.html?
 }
 
-Data Device::getTextureDataForText(std::string_view text, const FontDefinition& textDefinition, TextAlign align, int &width, int &height, bool& hasPremultipliedAlpha)
+Data Device::getTextureDataForText(std::string_view text,
+                                   const FontDefinition& textDefinition,
+                                   TextAlign align,
+                                   int& width,
+                                   int& height,
+                                   bool& hasPremultipliedAlpha)
 {
-    char color[8];
-    sprintf(color, "#%02x%02x%02x", textDefinition._fontFillColor.r, textDefinition._fontFillColor.g, textDefinition._fontFillColor.b);
+    char color[10];
+    fmt::format_to_z(color, "#{:02x}{:02x}{:02x}{:02x}", textDefinition._fontFillColor.r, textDefinition._fontFillColor.g,
+            textDefinition._fontFillColor.b, textDefinition._fontAlpha);
+    // clang-format off
     unsigned char* ptr = (unsigned char*)EM_ASM_PTR({
         var lines = UTF8ToString($0).split("\n");
-        var linesWidth = [];
         var fontName = UTF8ToString($1);
         var fontSize = $2;
-        var lineHeight = $2 * 1.2; // Nothing accurate
         var color = UTF8ToString($3);
         var dimWidth = $4;
         var dimHeight = $5;
         var align = $6;
 
+        // use shared canvas
         var canvas = Module.axmolSharedCanvas = Module.axmolSharedCanvas || document.createElement("canvas");
         var context = canvas.getContext('2d', { willReadFrequently: true });
         context.font = fontSize + "px " + fontName;
+        // use alphabetic baseline for text rendering
+        context.textBaseline = "alphabetic";
 
-        var canvasWidth = dimWidth;
-        var canvasHeight = dimHeight;
-        for (var i = 0; i < lines.length; i++) {
-            var lineWidth = context.measureText(lines[i]).width;
-            linesWidth[i] = lineWidth;
-            if (lineWidth > canvasWidth && dimWidth <= 0) {
-                canvasWidth = lineWidth;
+        var linesWidth = [];
+        var linesAscent = [];
+        var linesDescent = [];
+        var totalHeight = 0;
+        var maxWidth = dimWidth > 0 ? dimWidth : 0;
+
+        var defaultAscent = 0;
+        var defaultDescent = 0;
+
+        var measureDefault = ()=> {
+            if (defaultAscent == 0 && defaultDescent == 0) {
+                var metrics = context.measureText('M'); // or Hg
+                defaultAscent = (typeof metrics.actualBoundingBoxAscent === "number") ? metrics.actualBoundingBoxAscent : fontSize * 0.8;
+                defaultDescent = (typeof metrics.actualBoundingBoxDescent === "number") ? metrics.actualBoundingBoxDescent : fontSize * 0.2;
             }
         };
 
-        if (dimHeight <= 0) {
-            canvasHeight = lineHeight * lines.length;
+        // compute per line metrics
+        for (var i = 0; i < lines.length; i++) {
+            var metrics = context.measureText(lines[i]);
+            var lineWidth = metrics.width;
+            // if browser not support actualBoundingBoxAscent/descent, use fallback values
+            var ascent = (typeof metrics.actualBoundingBoxAscent === "number") ? metrics.actualBoundingBoxAscent : fontSize * 0.8;
+            var descent = (typeof metrics.actualBoundingBoxDescent === "number") ? metrics.actualBoundingBoxDescent : fontSize * 0.2;
+            var lineHeight = ascent + descent;
+			// if the line text only contains white space chars, the lineHeight will be 0, 
+			// so we re-calculate lineHeight by representative text, i.e. 'M' or 'Hg'
+            if (lineHeight == 0) {
+                measureDefault();
+                ascent = defaultAscent;
+                descent = defaultDescent;
+                lineHeight = ascent + descent;
+            }
+            linesWidth.push(lineWidth);
+            linesAscent.push(ascent);
+            linesDescent.push(descent);
+            if (dimWidth <= 0 && lineWidth > maxWidth) {
+                maxWidth = lineWidth;
+            }
+            totalHeight += lineHeight;
         }
 
-        canvasWidth = Math.ceil(canvasWidth);
-        canvasHeight = Math.ceil(canvasHeight);
+        // if dimensions are specified, use them to limit the height
+        if (dimHeight > 0) {
+            totalHeight = dimHeight;
+        }
+
+        var canvasWidth = Math.ceil(maxWidth);
+        var canvasHeight = Math.ceil(totalHeight);
 
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
@@ -99,34 +140,38 @@ Data Device::getTextureDataForText(std::string_view text, const FontDefinition& 
         context.clearRect(0, 0, canvasWidth, canvasHeight);
         context.font = fontSize + "px " + fontName;
         context.fillStyle = color;
-        context.textBaseline = "top";
+        context.textBaseline = "alphabetic";
 
-        //Vertical top
+        // vertical top
         var offsetY = 0;
-        if ((align & 0xf0) == 0x30) {
-            //Vertical center
-            offsetY = (canvasHeight - lineHeight * lines.length) / 2;
-        } else if ((align & 0xf0) == 0x20) {
-            //Vertical bottom
-            offsetY = canvasHeight - lineHeight * lines.length;
+        if ((align & 0xf0) === 0x30) {
+            // vertical center align
+            offsetY = (canvasHeight - totalHeight) / 2;
+        } else if ((align & 0xf0) === 0x20) {
+            // bottom align
+            offsetY = canvasHeight - totalHeight;
         }
 
+        // draw each line of text
         for (var i = 0; i < lines.length; i++) {
-            //Horizonal left
+            var lineH = linesAscent[i] + linesDescent[i];
+            // horizontal left
             var offsetX = 0;
-            if ((align & 0x0f) == 0x03) {
-                //Horizonal center
+            if ((align & 0x0f) === 0x03) {
                 offsetX = (canvasWidth - linesWidth[i]) / 2;
-            } else if ((align & 0x0f) == 0x02) {
-                //Horizonal right
+            } else if ((align & 0x0f) === 0x02) {
                 offsetX = canvasWidth - linesWidth[i];
             }
-            context.fillText(lines[i], offsetX, offsetY + lineHeight * i);
+            // use align left by default, offsetX remains 0
+            var baselineY = offsetY + linesAscent[i];
+            context.fillText(lines[i], offsetX, baselineY);
+            offsetY += lineH;
         }
 
+        // get pixel data from the canvas
         var data = context.getImageData(0, 0, canvasWidth, canvasHeight).data;
-        var ptr = _malloc(data.byteLength); // Cocos Data object free it
-        var buffer= new Uint8Array(Module.HEAPU8.buffer, ptr, data.byteLength);
+        var ptr = _malloc(data.byteLength);
+        var buffer = new Uint8Array(Module.HEAPU8.buffer, ptr, data.byteLength);
         buffer.set(data);
         return ptr;
     }, text.data(), textDefinition._fontName.c_str(), textDefinition._fontSize, color, textDefinition._dimensions.width, textDefinition._dimensions.height, align);
@@ -137,6 +182,8 @@ Data Device::getTextureDataForText(std::string_view text, const FontDefinition& 
     height = EM_ASM_INT({
         return Module.axmolSharedCanvas.height;
     });
+    // clang-format on
+
     hasPremultipliedAlpha = false;
 
     Data ret;
@@ -166,6 +213,6 @@ void Device::prepareSelectionFeedbackGenerator() {}
 
 void Device::selectionChanged() {}
 
-}
+}  // namespace ax
 
-#endif // AX_TARGET_PLATFORM == AX_PLATFORM_WASM
+#endif  // AX_TARGET_PLATFORM == AX_PLATFORM_WASM

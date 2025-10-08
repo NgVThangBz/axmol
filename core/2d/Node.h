@@ -28,8 +28,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __CCNODE_H__
-#define __CCNODE_H__
+#pragma once
 
 #include <cstdint>
 #include "base/Macros.h"
@@ -1854,7 +1853,7 @@ protected:
     /// Removes a child, call child->onExit(), do cleanup, remove it from children array.
     void detachChild(Node* child, ssize_t index, bool cleanup);
 
-    /// Convert cocos2d coordinates to UI windows coordinate.
+    /// Convert axmol coordinates to UI windows coordinate.
     Vec2 convertToWindowSpace(const Vec2& nodePoint) const;
 
     Mat4 transform(const Mat4& parentTransform);
@@ -2052,5 +2051,3 @@ bool AX_DLL isScreenPointInRect(const Vec2& pt, const Camera* camera, const Mat4
 /// @}
 
 }
-
-#endif  // __CCNODE_H__

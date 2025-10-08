@@ -34,7 +34,7 @@
 #include "2d/Label.h"
 #include "ui/UIHelper.h"
 
-static const int AX_EDIT_BOX_PADDING = 1;
+static const int AX_EDIT_BOX_PADDING = 5;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 #    define PASSWORD_CHAR "*"
