@@ -37,12 +37,12 @@ bool QuestionContainerSprite::init()
         label->setTag(100);
 
         // Add the background
-        auto size   = Director::getInstance()->getWinSize();
+        auto size   = Director::getInstance()->getCanvasSize();
         auto corner = Sprite::create("Images/bugs/corner.png");
 
         int width  = size.width * 0.9f - (corner->getContentSize().width * 2);
         int height = size.height * 0.15f - (corner->getContentSize().height * 2);
-        auto layer = LayerColor::create(Color4B(255, 255, 255, 255 * .75), width, height);
+        auto layer = LayerColor::create(Color32(255, 255, 255, 255 * .75), width, height);
         layer->setPosition(Vec2(-width / 2, -height / 2));
 
         // First button is blue,
@@ -51,11 +51,11 @@ bool QuestionContainerSprite::init()
         static int a = 0;
 
         if (a == 0)
-            label->setColor(Color3B::BLUE);
+            label->setColor(Color32::BLUE);
         else
         {
             AXLOGD("Color changed");
-            label->setColor(Color3B::RED);
+            label->setColor(Color32::RED);
         }
         a++;
         addChild(layer);

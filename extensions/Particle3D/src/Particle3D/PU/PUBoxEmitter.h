@@ -56,16 +56,16 @@ public:
     float getDepth() const;
     void setDepth(const float depth);
 
-    virtual CCPUBoxEmitter* clone() override;
-    virtual void copyAttributesTo(PUEmitter* emitter) override;
+    CCPUBoxEmitter* clone() override;
+    void copyAttributesTo(PUEmitter* emitter) override;
 
     CCPUBoxEmitter();
-    virtual ~CCPUBoxEmitter(){};
+    virtual ~CCPUBoxEmitter() {};
 
 protected:
     /**
      */
-    virtual void initParticlePosition(PUParticle3D* particle) override;
+    void initParticlePosition(PUParticle3D* particle) override;
 
 protected:
     float _height;
@@ -76,5 +76,4 @@ protected:
     float _yRange;
     float _zRange;
 };
-}
-
+}  // namespace ax

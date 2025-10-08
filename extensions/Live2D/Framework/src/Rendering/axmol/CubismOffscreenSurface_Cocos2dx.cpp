@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -22,7 +22,7 @@ CubismOffscreenFrame_Cocos2dx::CubismOffscreenFrame_Cocos2dx()
 
 
 void CubismOffscreenFrame_Cocos2dx::BeginDraw(CubismCommandBuffer_Cocos2dx* commandBuffer,
-                                              backend::TextureBackend* colorBufferOnFinishDrawing)
+                                              rhi::Texture* colorBufferOnFinishDrawing)
 {
     if (!IsValid())
     {
@@ -45,7 +45,7 @@ void CubismOffscreenFrame_Cocos2dx::BeginDraw(CubismCommandBuffer_Cocos2dx* comm
     }
 
     // マスク用RenderTextureをactiveにセット
-    commandBuffer->SetColorBuffer(_renderTexture->getSprite()->getTexture()->getBackendTexture());
+    commandBuffer->SetColorBuffer(_renderTexture->getSprite()->getTexture()->getRHITexture());
 }
 
 void CubismOffscreenFrame_Cocos2dx::EndDraw(CubismCommandBuffer_Cocos2dx* commandBuffer)
@@ -92,17 +92,10 @@ csmBool CubismOffscreenFrame_Cocos2dx::CreateOffscreenFrame(csmUint32 displayBuf
             _renderTexture->retain();
 
 
-            _renderTexture->getSprite()->getTexture()->setTexParameters(
-                ax::Texture2D::TexParams(
-                    ax::backend::SamplerFilter::LINEAR,                    // MagFilter
-                    ax::backend::SamplerFilter::LINEAR,                    // MinFilter
-                    ax::backend::SamplerAddressMode::CLAMP_TO_EDGE,      // AddressingMode S
-                    ax::backend::SamplerAddressMode::CLAMP_TO_EDGE       // AddressingMode T
-                )
-            );
+            _renderTexture->getSprite()->getTexture()->setTexParameters(ax::Texture2D::TexParams{});
 
             texture2d                 = _renderTexture->getSprite()->getTexture();
-            _colorBuffer              = texture2d->getBackendTexture();
+            _colorBuffer              = texture2d->getRHITexture();
             _isInheritedRenderTexture = false;
         }
         else
@@ -111,7 +104,7 @@ csmBool CubismOffscreenFrame_Cocos2dx::CreateOffscreenFrame(csmUint32 displayBuf
             _renderTexture = renderTexture;
 
             texture2d    = _renderTexture->getSprite()->getTexture();
-            _colorBuffer = texture2d->getBackendTexture();
+            _colorBuffer = texture2d->getRHITexture();
 
 
             _isInheritedRenderTexture = true;
@@ -119,12 +112,12 @@ csmBool CubismOffscreenFrame_Cocos2dx::CreateOffscreenFrame(csmUint32 displayBuf
 
         if (_colorBuffer)
         {
-            _viewPortSize = csmRectF(0.0f, 0.0f, texture2d->getContentSizeInPixels().width,
+            _viewportSize = csmRectF(0.0f, 0.0f, texture2d->getContentSizeInPixels().width,
                                      texture2d->getContentSizeInPixels().height);
         }
         else
         {
-            _viewPortSize = csmRectF(0.0f, 0.0f, _bufferWidth, _bufferHeight);
+            _viewportSize = csmRectF(0.0f, 0.0f, _bufferWidth, _bufferHeight);
         }
 
         _bufferWidth = displayBufferWidth;
@@ -168,7 +161,7 @@ csmUint32 CubismOffscreenFrame_Cocos2dx::GetBufferHeight() const
 
 csmRectF CubismOffscreenFrame_Cocos2dx::GetViewPortSize() const
 {
-    return _viewPortSize;
+    return _viewportSize;
 }
 
 csmBool CubismOffscreenFrame_Cocos2dx::IsValid() const

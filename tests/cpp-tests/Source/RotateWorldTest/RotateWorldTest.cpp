@@ -1,5 +1,6 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -43,18 +44,18 @@ void TestLayer::onEnter()
 
     float x, y;
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     x         = size.width;
     y         = size.height;
 
     // auto array = [UIFont familyNames];
     // for( String *s in array )
     //     NSLog( s );
-    auto label = Label::createWithSystemFont("a Cocos2D-4.0 fork", "Tahoma", 52);
+    auto label = Label::createWithSystemFont("Axmol (Cocos2D-4.0 fork)", "Tahoma", 52);
     label->setPosition(Vec2(x / 2, y / 3.5));
     addChild(label);
 
-    auto sprite        = Sprite::create(s_pathAxmolLogo);
+    auto sprite = Sprite::create(s_pathAxmolLogo);
     sprite->setScale(1.5f);
     sprite->setPosition(Vec2(x / 2, y / 1.5));
     addChild(sprite, -1);
@@ -71,7 +72,7 @@ void SpriteLayer::onEnter()
 
     float x, y;
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     x         = size.width;
     y         = size.height;
 
@@ -120,14 +121,14 @@ void RotateWorldMainLayer::onEnter()
 
     float x, y;
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     x         = size.width;
     y         = size.height;
 
-    auto blue  = LayerColor::create(Color4B(0, 0, 255, 255));
-    auto red   = LayerColor::create(Color4B(255, 0, 0, 255));
-    auto dark = LayerColor::create(Color4B(2, 2, 2, 255));
-    auto white = LayerColor::create(Color4B(255, 255, 255, 255));
+    auto blue  = LayerColor::create(Color32(0, 0, 255, 255));
+    auto red   = LayerColor::create(Color32(255, 0, 0, 255));
+    auto dark  = LayerColor::create(Color32(2, 2, 2, 255));
+    auto white = LayerColor::create(Color32(255, 255, 255, 255));
 
     blue->setScale(0.5f);
     blue->setPosition(Vec2(-x / 4, -y / 4));

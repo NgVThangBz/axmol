@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include "2d/Node.h"
-#include "math/Math.h"
+#include "axmol/2d/Node.h"
+#include "axmol/math/Math.h"
 #include <vector>
 #include <map>
 #include <list>
@@ -49,7 +49,7 @@ struct AX_EX_DLL Particle3D
     // property of particles
     Vec3 position;           // position
     Quaternion orientation;  //  Orientation of the particle.
-    Vec4 color;              // particle color
+    Color color;             // particle color
     Vec2 lb_uv;              // left bottom uv
     Vec2 rt_uv;              // right top uv
     float width;             // Own width
@@ -67,8 +67,8 @@ public:
     typedef typename std::list<T*> PoolList;
     typedef typename std::list<T*>::iterator PoolIterator;
 
-    DataPool(){};
-    ~DataPool(){};
+    DataPool() {};
+    ~DataPool() {};
 
     T* createData()
     {
@@ -170,22 +170,22 @@ public:
     /**
      * override function
      */
-    virtual void update(float delta) override;
+    void update(float delta) override;
 
     /**
      * override function
      */
-    virtual void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
 
     /**
      * override function
      */
-    virtual void setBlendFunc(const BlendFunc& blendFunc) override;
+    void setBlendFunc(const BlendFunc& blendFunc) override;
 
     /**
      * override function
      */
-    virtual const BlendFunc& getBlendFunc() const override;
+    const BlendFunc& getBlendFunc() const override;
 
     /**
      * particle system play control
@@ -296,5 +296,4 @@ protected:
     bool _isEnabled;
 };
 
-}
-
+}  // namespace ax

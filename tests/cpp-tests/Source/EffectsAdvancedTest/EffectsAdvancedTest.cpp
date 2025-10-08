@@ -63,7 +63,7 @@ void Effect1::onEnter()
     //     Lens3D is Grid3D and it's size is (15,10)
     //     Waves3D is Grid3D and it's size is (15,10)
 
-    auto size  = Director::getInstance()->getWinSize();
+    auto size  = Director::getInstance()->getCanvasSize();
     auto lens  = Lens3D::create(0.0f, Size(15, 10), Vec2(size.width / 2, size.height / 2), 240);
     auto waves = Waves3D::create(10, Size(15, 10), 18, 15);
 
@@ -258,7 +258,7 @@ void Issue631::onEnter()
     removeChild(_bgNode, true);
 
     // background
-    auto layer = LayerColor::create(Color4B(255, 0, 0, 255));
+    auto layer = LayerColor::create(Color32(255, 0, 0, 255));
     addChild(layer, -10);
     auto sprite = Sprite::create("Images/grossini.png");
     sprite->setPosition(50, 80);
@@ -266,10 +266,10 @@ void Issue631::onEnter()
 
     // foreground
     auto layer2BaseGrid = NodeGrid::create();
-    auto layer2         = LayerColor::create(Color4B(0, 255, 0, 255));
+    auto layer2         = LayerColor::create(Color32(0, 255, 0, 255));
     auto fog            = Sprite::create("Images/Fog.png");
 
-    BlendFunc bf = {backend::BlendFactor::SRC_ALPHA, backend::BlendFactor::ONE_MINUS_SRC_ALPHA};
+    BlendFunc bf = {rhi::BlendFactor::SRC_ALPHA, rhi::BlendFactor::ONE_MINUS_SRC_ALPHA};
     fog->setBlendFunc(bf);
     layer2->addChild(fog, 1);
     addChild(layer2BaseGrid, 1);

@@ -28,12 +28,12 @@
  */
 
 #include "ControlSwitch.h"
-#include "2d/Sprite.h"
-#include "2d/ActionTween.h"
-#include "2d/Label.h"
-#include "2d/ClippingNode.h"
-#include "renderer/Shaders.h"
-#include "2d/RenderTexture.h"
+#include "axmol/2d/Sprite.h"
+#include "axmol/2d/ActionTween.h"
+#include "axmol/2d/Label.h"
+#include "axmol/2d/ClippingNode.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/2d/RenderTexture.h"
 
 NS_AX_EXT_BEGIN
 // ControlSwitchSprite
@@ -72,7 +72,7 @@ public:
     /**
      * @lua NA
      */
-    virtual void updateTweenAction(float value, std::string_view key) override;
+    void updateTweenAction(float value, std::string_view key) override;
 
     /** Contains the position (in x-axis) of the slider inside the receiver. */
     float _sliderXPosition;
@@ -397,7 +397,7 @@ bool ControlSwitch::onTouchBegan(Touch* pTouch, Event* /*pEvent*/)
 
     _initialTouchXPosition = location.x - _switchSprite->getSliderXPosition();
 
-    _switchSprite->getThumbSprite()->setColor(Color3B::GRAY);
+    _switchSprite->getThumbSprite()->setColor(Color32::GRAY);
     _switchSprite->needsLayout();
 
     return true;
@@ -417,7 +417,7 @@ void ControlSwitch::onTouchEnded(Touch* pTouch, Event* /*pEvent*/)
 {
     Vec2 location = this->locationFromTouch(pTouch);
 
-    _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
+    _switchSprite->getThumbSprite()->setColor(Color32::WHITE);
 
     if (hasMoved())
     {
@@ -433,7 +433,7 @@ void ControlSwitch::onTouchCancelled(Touch* pTouch, Event* /*pEvent*/)
 {
     Vec2 location = this->locationFromTouch(pTouch);
 
-    _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
+    _switchSprite->getThumbSprite()->setColor(Color32::WHITE);
 
     if (hasMoved())
     {

@@ -27,7 +27,7 @@
 #include "lua-bindings/manual/tolua_fix.h"
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include "lua-bindings/manual/LuaEngine.h"
-#include "audio/AudioEngine.h"
+#include "axmol/audio/AudioEngine.h"
 
 static int lua_get_AudioProfile_name(lua_State* L)
 {
@@ -60,7 +60,7 @@ tolua_lerror:
 
 static int lua_set_AudioProfile_name(lua_State* L)
 {
-    int argc                    = 0;
+    int argc               = 0;
     ax::AudioProfile* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -130,7 +130,7 @@ tolua_lerror:
 
 static int lua_set_AudioProfile_maxInstances(lua_State* L)
 {
-    int argc                    = 0;
+    int argc               = 0;
     ax::AudioProfile* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -200,7 +200,7 @@ tolua_lerror:
 
 static int lua_set_AudioProfile_minDelay(lua_State* L)
 {
-    int argc                    = 0;
+    int argc               = 0;
     ax::AudioProfile* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -258,7 +258,7 @@ int axlua_audioengine_AudioEngine_setFinishCallback(lua_State* tolua_S)
     if (argc == 2)
     {
         int arg0;
-        ok &= luaval_to_int32(tolua_S, 2, (int*)&arg0, "ax.AudioEngine:setFinishCallback");
+        ok &= luaval_to_int(tolua_S, 2, (int*)&arg0, "ax.AudioEngine:setFinishCallback");
 
 #if _AX_DEBUG >= 1
         if (!toluafix_isfunction(tolua_S, 3, "LUA_FUNCTION", 0, &tolua_err))

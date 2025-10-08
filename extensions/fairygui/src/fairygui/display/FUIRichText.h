@@ -1,7 +1,7 @@
 #ifndef __FUIRICHTEXT_H__
 #define __FUIRICHTEXT_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUIMacros.h"
 #include "TextFormat.h"
 #include "utils/html/HtmlParser.h"
@@ -32,8 +32,8 @@ public:
     bool isAnchorTextUnderline();
     void setAnchorTextUnderline(bool enable);
 
-    const ax::Color3B& getAnchorFontColor();
-    void setAnchorFontColor(const ax::Color3B& color);
+    const ax::Color32& getAnchorFontColor();
+    void setAnchorFontColor(const ax::Color32& color);
 
     void setObjectFactory(const std::function<HtmlObject*(HtmlElement*)>& value) { _objectFactory = value; }
     HtmlParseOptions& parseOptions() { return _parseOptions; }

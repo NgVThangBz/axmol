@@ -42,7 +42,7 @@ if not view then
     director:setRenderView(view)
 end
 
-local framesize = view:getFrameSize()
+local framesize = view:getWindowSize()
 local textureCache = director:getTextureCache()
 local spriteFrameCache = ax.SpriteFrameCache:getInstance()
 local animationCache = ax.AnimationCache:getInstance()
@@ -83,10 +83,10 @@ local function setDesignResolution(r, framesize)
 end
 
 local function setConstants()
-    local sizeInPixels = view:getFrameSize()
+    local sizeInPixels = view:getWindowSize()
     display.sizeInPixels = {width = sizeInPixels.width, height = sizeInPixels.height}
 
-    local viewsize = director:getWinSize()
+    local viewsize = director:getCanvasSize()
     display.contentScaleFactor = director:getContentScaleFactor()
     display.size               = {width = viewsize.width, height = viewsize.height}
     display.width              = display.size.width
@@ -161,11 +161,11 @@ if type(AX_DESIGN_RESOLUTION) == "table" then
     display.setAutoScale(AX_DESIGN_RESOLUTION)
 end
 
-display.COLOR_WHITE = ax.c3b(255, 255, 255)
-display.COLOR_BLACK = ax.c3b(0, 0, 0)
-display.COLOR_RED   = ax.c3b(255, 0, 0)
-display.COLOR_GREEN = ax.c3b(0, 255, 0)
-display.COLOR_BLUE  = ax.c3b(0, 0, 255)
+display.COLOR_WHITE = ax.color32(255, 255, 255, 255)
+display.COLOR_BLACK = ax.color32(0, 0, 0, 255)
+display.COLOR_RED   = ax.color32(255, 0, 0, 255)
+display.COLOR_GREEN = ax.color32(0, 255, 0, 255)
+display.COLOR_BLUE  = ax.color32(0, 0, 255, 255)
 
 display.AUTO_SIZE      = 0
 display.FIXED_SIZE     = 1
@@ -186,7 +186,7 @@ display.CENTER_BOTTOM = ax.p(0.5, 0)
 
 display.SCENE_TRANSITIONS = {
     CROSSFADE       = {ax.TransitionCrossFade},
-    FADE            = {ax.TransitionFade, ax.c3b(0, 0, 0)},
+    FADE            = {ax.TransitionFade, ax.color32(0, 0, 0, 255)},
     FADEBL          = {ax.TransitionFadeBL},
     FADEDOWN        = {ax.TransitionFadeDown},
     FADETR          = {ax.TransitionFadeTR},
@@ -295,14 +295,14 @@ function display.newLayer(...)
         layer = ax.Layer:create()
     elseif c == 1 then
         -- /** creates a Layer with color. Width and height are the window size. */
-        -- static LayerColor * create(const Color4B& color);
+        -- static LayerColor * create(const Color32& color);
         layer = ax.LayerColor:create(ax.convertColor(params[1], "4b"))
     elseif c == 2 then
         -- /** creates a Layer with color, width and height in Points */
-        -- static LayerColor * create(const Color4B& color, const Size& size);
+        -- static LayerColor * create(const Color32& color, const Size& size);
         --
         -- /** Creates a full-screen Layer with a gradient between start and end. */
-        -- static LayerGradient* create(const Color4B& start, const Color4B& end);
+        -- static LayerGradient* create(const Color32& start, const Color32& end);
         local color1 = ax.convertColor(params[1], "4b")
         local p2 = params[2]
         assert(type(p2) == "table" and (p2.width or p2.r), "display.newLayer() - invalid paramerter 2")
@@ -313,10 +313,10 @@ function display.newLayer(...)
         end
     elseif c == 3 then
         -- /** creates a Layer with color, width and height in Points */
-        -- static LayerColor * create(const Color4B& color, GLfloat width, GLfloat height);
+        -- static LayerColor * create(const Color32& color, GLfloat width, GLfloat height);
         --
         -- /** Creates a full-screen Layer with a gradient between start and end in the direction of v. */
-        -- static LayerGradient* create(const Color4B& start, const Color4B& end, const Vec2& v);
+        -- static LayerGradient* create(const Color32& start, const Color32& end, const Vec2& v);
         local color1 = ax.convertColor(params[1], "4b")
         local p2 = params[2]
         local p2type = type(p2)
@@ -369,16 +369,10 @@ function display.newSprite(source, x, y, params)
             end
 
             -- create sprite from image file
-            if display.TEXTURES_PIXEL_FORMAT[source] then
-                ax.Texture2D:setDefaultAlphaPixelFormat(display.TEXTURES_PIXEL_FORMAT[source])
-            end
             if not scale9 then
                 sprite = spriteClass:create(source)
             else
                 sprite = spriteClass:create(source, params.rect, params.capInsets)
-            end
-            if display.TEXTURES_PIXEL_FORMAT[source] then
-                ax.Texture2D:setDefaultAlphaPixelFormat(ax.TEXTURE_PF_BGRA8)
             end
             break
         elseif sourceType ~= "userdata" then
@@ -494,16 +488,10 @@ function display.removeImage(imageFilename)
 end
 
 function display.loadSpriteFrames(dataFilename, imageFilename, callback)
-    if display.TEXTURES_PIXEL_FORMAT[imageFilename] then
-        ax.Texture2D:setDefaultAlphaPixelFormat(display.TEXTURES_PIXEL_FORMAT[imageFilename])
-    end
     if not callback then
         spriteFrameCache:addSpriteFrames(dataFilename, imageFilename)
     else
         spriteFrameCache:addSpriteFramesAsync(dataFilename, imageFilename, callback)
-    end
-    if display.TEXTURES_PIXEL_FORMAT[imageFilename] then
-        ax.Texture2D:setDefaultAlphaPixelFormat(ax.TEXTURE_PF_BGRA8)
     end
 end
 

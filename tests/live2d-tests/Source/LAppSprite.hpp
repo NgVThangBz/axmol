@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -9,7 +9,7 @@
 
 #include "Rendering/axmol/CubismRenderer_Cocos2dx.hpp"
 #include "Rendering/axmol/CubismCommandBuffer_Cocos2dx.hpp"
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 
 using namespace ax;
 
@@ -44,7 +44,7 @@ public:
     * @param[in]       textureId    テクスチャID
     * @param[in]       programId    シェーダID
     */
-    LAppSprite(backend::Program* program);
+    LAppSprite(rhi::Program* program);
 
     /**
     * @brief デストラクタ
@@ -55,7 +55,7 @@ public:
     * @brief テクスチャIDを指定して描画する
     *
     */
-    void RenderImmidiate(Csm::Rendering::CubismCommandBuffer_Cocos2dx* commandBuffer, backend::TextureBackend* texture, float uvVertex[8]) const;
+    void RenderImmidiate(Csm::Rendering::CubismCommandBuffer_Cocos2dx* commandBuffer, rhi::Texture* texture, float uvVertex[8]) const;
 
     /**
      * @brief 色設定
@@ -71,6 +71,6 @@ private:
 
     float _spriteColor[4];  ///< 表示カラー
 
-    ax::backend::Program* _program;
+    ax::rhi::Program* _program;
 };
 

@@ -2,7 +2,7 @@
 #define __GEARCOLOR_H__
 
 #include "FairyGUIMacros.h"
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "GearBase.h"
 
 NS_FGUI_BEGIN
@@ -30,11 +30,11 @@ private:
     class GearColorValue
     {
     public:
-        ax::Color3B color;
-        ax::Color3B outlineColor;
+        ax::Color32 color;
+        ax::Color32 outlineColor;
 
         GearColorValue();
-        GearColorValue(const ax::Color3B& color, const ax::Color3B& outlineColor);
+        GearColorValue(const ax::Color32& color, const ax::Color32& outlineColor);
     };
 
     std::unordered_map<std::string, GearColorValue> _storage;

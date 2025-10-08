@@ -26,9 +26,9 @@
 
 #pragma once
 
-#include "2d/Layer.h"
-#include "base/EventListenerTouch.h"
-#include "2d/ActionTween.h"
+#include "axmol/2d/Layer.h"
+#include "axmol/base/EventListenerTouch.h"
+#include "axmol/2d/ActionTween.h"
 #include "extensions/ExtensionMacros.h"
 #include "extensions/ExtensionExport.h"
 
@@ -50,11 +50,11 @@ public:
     /**
      * @lua NA
      */
-    virtual void scrollViewDidScroll(ScrollView* view){};
+    virtual void scrollViewDidScroll(ScrollView* view) {};
     /**
      * @lua NA
      */
-    virtual void scrollViewDidZoom(ScrollView* view){};
+    virtual void scrollViewDidZoom(ScrollView* view) {};
 };
 
 /**
@@ -234,20 +234,20 @@ public:
     virtual void onTouchCancelled(Touch* touch, Event* event);
 
     // Overrides
-    virtual void setContentSize(const Size& size) override;
-    virtual const Size& getContentSize() const override;
+    void setContentSize(const Size& size) override;
+    const Size& getContentSize() const override;
     /**
      * @lua NA
      */
-    virtual void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
+    void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
 
     using Node::addChild;
-    virtual void addChild(Node* child, int zOrder, int tag) override;
-    virtual void addChild(Node* child, int zOrder, std::string_view name) override;
+    void addChild(Node* child, int zOrder, int tag) override;
+    void addChild(Node* child, int zOrder, std::string_view name) override;
 
-    virtual void removeAllChildren() override;
-    virtual void removeAllChildrenWithCleanup(bool cleanup) override;
-    virtual void removeChild(Node* child, bool cleanup = true) override;
+    void removeAllChildren() override;
+    void removeAllChildrenWithCleanup(bool cleanup) override;
+    void removeChild(Node* child, bool cleanup = true) override;
     /**
      * CCActionTweenDelegate
      */
@@ -369,8 +369,8 @@ protected:
     /** Touch listener */
     EventListenerTouchOneByOne* _touchListener;
 
-    //CustomCommand _beforeDrawCommand;
-    //CustomCommand _afterDrawCommand;
+    // CustomCommand _beforeDrawCommand;
+    // CustomCommand _afterDrawCommand;
 
     /**
      * Action created with setContentOffsetInDuration(), saved so it can be halted

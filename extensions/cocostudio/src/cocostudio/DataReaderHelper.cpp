@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "platform/FileUtils.h"
-#include "base/Director.h"
-#include "base/Scheduler.h"
-#include "base/Utils.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/base/Director.h"
+#include "axmol/base/Scheduler.h"
+#include "axmol/base/Utils.h"
 
 #include "pugixml/pugixml.hpp"
 
@@ -459,7 +459,7 @@ void DataReaderHelper::addDataAsyncCallBack(float /*dt*/)
             pDataInfo->configFileQueue.pop();
         }
 
-        Object* target           = pAsyncStruct->target;
+        Object* target        = pAsyncStruct->target;
         SEL_SCHEDULE selector = pAsyncStruct->selector;
 
         --_asyncRefCount;
@@ -590,7 +590,7 @@ ArmatureData* DataReaderHelper::decodeArmature(pugi::xml_node& armatureXML, Data
         pugi::xml_node parentXML;
         if (!parentName.empty())
         {
-            parentXML                 = armatureXML.child(BONE);
+            parentXML          = armatureXML.child(BONE);
             auto parentNameStr = parentName;
             while (parentXML)
             {
@@ -713,8 +713,8 @@ MovementData* DataReaderHelper::decodeMovement(pugi::xml_node& movementXML,
 {
     MovementData* movementData = new MovementData();
 
-    auto movName = movementXML.attribute(A_NAME).as_string();
-    movementData->name  = movName;
+    auto movName       = movementXML.attribute(A_NAME).as_string();
+    movementData->name = movName;
 
     pugiext::query_attribute(movementXML, A_DURATION, &movementData->duration);
     pugiext::query_attribute(movementXML, A_DURATION_TO, &movementData->durationTo);
@@ -950,20 +950,20 @@ FrameData* DataReaderHelper::decodeFrame(pugi::xml_node& frameXML,
         break;
         case BLEND_ADD:
         {
-            frameData->blendFunc.src = backend::BlendFactor::SRC_ALPHA;
-            frameData->blendFunc.dst = backend::BlendFactor::ONE;
+            frameData->blendFunc.src = rhi::BlendFactor::SRC_ALPHA;
+            frameData->blendFunc.dst = rhi::BlendFactor::ONE;
         }
         break;
         case BLEND_MULTIPLY:
         {
-            frameData->blendFunc.src = backend::BlendFactor::DST_COLOR;
-            frameData->blendFunc.dst = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+            frameData->blendFunc.src = rhi::BlendFactor::DST_COLOR;
+            frameData->blendFunc.dst = rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
         }
         break;
         case BLEND_SCREEN:
         {
-            frameData->blendFunc.src = backend::BlendFactor::ONE;
-            frameData->blendFunc.dst = backend::BlendFactor::ONE_MINUS_SRC_COLOR;
+            frameData->blendFunc.src = rhi::BlendFactor::ONE;
+            frameData->blendFunc.dst = rhi::BlendFactor::ONE_MINUS_SRC_COLOR;
         }
         break;
         default:
@@ -1131,7 +1131,7 @@ void DataReaderHelper::addDataFromJsonCache(std::string_view fileContent, DataIn
     json.ParseStream<0>(stream);
     if (json.HasParseError())
     {
-        AXLOGD("GetParseError {}\n",  static_cast<int>(json.GetParseError()));
+        AXLOGD("GetParseError {}\n", static_cast<int>(json.GetParseError()));
     }
 
     dataInfo->contentScale = DICTOOL->getFloatValue_json(json, CONTENT_SCALE, 1.0f);
@@ -1417,8 +1417,7 @@ MovementData* DataReaderHelper::decodeMovement(const rapidjson::Value& json, Dat
     {
         movementData->scale = DICTOOL->getFloatValue_json(json, A_MOVEMENT_SCALE, 1.0f);
     }
-    movementData->tweenEasing =
-        (TweenType)(DICTOOL->getIntValue_json(json, A_TWEEN_EASING, ax::tweenfunc::Linear));
+    movementData->tweenEasing = (TweenType)(DICTOOL->getIntValue_json(json, A_TWEEN_EASING, ax::tweenfunc::Linear));
 
     const char* name = DICTOOL->getStringValue_json(json, A_NAME);
     if (name != nullptr)

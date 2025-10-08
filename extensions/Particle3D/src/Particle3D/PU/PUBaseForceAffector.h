@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "math/Math.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUAffector.h"
 
 namespace ax
@@ -55,7 +55,7 @@ public:
     ForceApplication getForceApplication() const;
     void setForceApplication(ForceApplication forceApplication);
 
-    virtual void copyAttributesTo(PUAffector* affector) override;
+    void copyAttributesTo(PUAffector* affector) override;
 
     PUBaseForceAffector();
     virtual ~PUBaseForceAffector();
@@ -65,5 +65,4 @@ protected:
     Vec3 _scaledVector;
     ForceApplication _forceApplication;
 };
-}
-
+}  // namespace ax

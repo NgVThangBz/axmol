@@ -3,8 +3,8 @@
 
 #include "FairyGUIMacros.h"
 #include "GObject.h"
-#include "cocos2d.h"
-#include "ui/UIScale9Sprite.h"
+#include "axmol/cocos2d.h"
+#include "axmol/ui/UIScale9Sprite.h"
 
 NS_FGUI_BEGIN
 
@@ -21,8 +21,8 @@ public:
     FlipType getFlip() const;
     void setFlip(FlipType value);
 
-    ax::Color3B getColor() const;
-    void setColor(const ax::Color3B& value);
+    ax::Color32 getColor() const;
+    void setColor(const ax::Color32& value);
 
     FillMethod getFillMethod() const;
     void setFillMethod(FillMethod value);

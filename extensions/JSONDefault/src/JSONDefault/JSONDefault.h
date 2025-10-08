@@ -26,7 +26,7 @@ THE SOFTWARE.
 ****************************************************************************/
 #pragma once
 
-#include "platform/PlatformMacros.h"
+#include "axmol/platform/PlatformMacros.h"
 #include "extensions/ExtensionMacros.h"
 #include <string>
 
@@ -256,4 +256,3 @@ protected:
 NS_AX_EXT_END
 // end of extensions group
 /** @} */
-

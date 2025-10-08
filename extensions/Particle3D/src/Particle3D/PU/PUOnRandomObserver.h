@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUObserver.h"
 #include <vector>
 #include <string>
@@ -47,29 +47,28 @@ public:
 
     /** See ParticleObserver::_preProcessParticles()
      */
-    virtual void preUpdateObserver(float deltaTime) override;
+    void preUpdateObserver(float deltaTime) override;
 
     /** See ParticleObserver::_processParticle()
      */
-    virtual void updateObserver(PUParticle3D* particle, float deltaTime, bool firstParticle) override;
+    void updateObserver(PUParticle3D* particle, float deltaTime, bool firstParticle) override;
 
     /**
      */
-    virtual bool observe(PUParticle3D* particle, float timeElapsed) override;
+    bool observe(PUParticle3D* particle, float timeElapsed) override;
 
     /**
      */
     float getThreshold() const { return _threshold; };
     void setThreshold(float threshold) { _threshold = threshold; };
 
-    virtual void copyAttributesTo(PUObserver* observer) override;
+    void copyAttributesTo(PUObserver* observer) override;
 
     PUOnRandomObserver();
-    virtual ~PUOnRandomObserver(){};
+    virtual ~PUOnRandomObserver() {};
 
 protected:
     float _threshold;  // Value between 0..1
 };
 
-}
-
+}  // namespace ax

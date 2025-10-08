@@ -25,9 +25,9 @@ THE SOFTWARE.
 #pragma once
 
 #include "TimelineMacro.h"
-#include "renderer/Renderer.h"
+#include "axmol/renderer/Renderer.h"
 #include "cocostudio/CocosStudioExport.h"
-#include "base/Map.h"
+#include "axmol/base/Map.h"
 
 #include "BoneNode.h"
 
@@ -54,7 +54,7 @@ public:
      *@brief: change displays
      *@param: boneSkinNameMap, map <name of bone, name of skin to display which added to bone>
      */
-    void changeSkins(const hlookup::string_map<std::string>& boneSkinNameMap);
+    void changeSkins(const axstd::string_map<std::string>& boneSkinNameMap);
 
     /**
      *@brief: change displays
@@ -67,22 +67,20 @@ public:
      *@param: groupName, key
      *@param: boneSkinNameMap, map <name of bone, name of skin to display which added to bone>
      */
-    void addSkinGroup(std::string_view groupName, hlookup::string_map<std::string> boneSkinNameMap);
+    void addSkinGroup(std::string_view groupName, axstd::string_map<std::string> boneSkinNameMap);
 
     ax::Rect getBoundingBox() const override;
 
     SkeletonNode();
     virtual ~SkeletonNode();
-    virtual bool init() override;
+    bool init() override;
 
 protected:
-    virtual void updateVertices() override;
-    virtual void updateColor() override;
+    void updateVertices() override;
+    void updateColor() override;
 
-    virtual void visit(ax::Renderer* renderer,
-                       const ax::Mat4& parentTransform,
-                       uint32_t parentFlags) override;
-    virtual void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
+    virtual void visit(ax::Renderer* renderer, const ax::Mat4& parentTransform, uint32_t parentFlags) override;
+    void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
 
 protected:
     ax::StringMap<BoneNode*> _subBonesMap;
@@ -91,14 +89,13 @@ private:
     struct VertexData
     {
         ax::Vec3 vertex;
-        ax::Color4F color;
+        ax::Color color;
     };
 
     ax::Vec2 _squareVertices[8];
     VertexData _vertexData[8];
 
-    hlookup::string_map<hlookup::string_map<std::string>>
-        _skinGroupMap;  // map< suit name, map< bone name, skin name> >
+    axstd::string_map<axstd::string_map<std::string>> _skinGroupMap;  // map< suit name, map< bone name, skin name> >
     AX_DISALLOW_COPY_AND_ASSIGN(SkeletonNode);
 
     void checkSubBonesDirty();

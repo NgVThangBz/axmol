@@ -9,12 +9,15 @@ macro(ax_depend)
 
     if(WINRT)
       list(APPEND PLATFORM_SPECIFIC_LIBS windowscodecs Advapi32 runtimeobject Dwrite)
-    elseif(NOT AX_USE_COMPAT_GL) # ONLY Win32 Apps support DesktopGL if not use ANGLE
+    elseif(AX_RENDER_API STREQUAL "gl" AND NOT AX_GLES_PROFILE) # ONLY Win32 Apps support DesktopGL if not use ANGLE
       list(APPEND PLATFORM_SPECIFIC_LIBS opengl32)
     endif()
   elseif(LINUX)
     # need review those libs: X11 Xi Xrandr Xxf86vm Xinerama Xcursor rt m
-    list(APPEND PLATFORM_SPECIFIC_LIBS dl X11 Xi Xrandr Xxf86vm Xinerama Xcursor rt m fontconfig)
+    list(APPEND PLATFORM_SPECIFIC_LIBS dl rt m fontconfig)
+
+    # x11 libs
+    list(APPEND PLATFORM_SPECIFIC_LIBS X11 Xi Xrandr Xxf86vm Xinerama Xcursor)
 
     if(_AX_HAVE_VLC)
       list(APPEND PLATFORM_SPECIFIC_LIBS vlc vlccore)
@@ -76,7 +79,7 @@ macro(ax_depend)
         ${COREAUDIO_LIBRARY}
         ${SYSTEMCONFIGURATION_LIBRARY}
       )
-      if(AX_USE_COMPAT_GL)
+      if(AX_RENDER_API STREQUAL "gl")
         find_library(OPENGL_LIBRARY OpenGL)
         list(APPEND PLATFORM_SPECIFIC_LIBS ${OPENGL_LIBRARY})
       endif()
@@ -103,7 +106,7 @@ macro(ax_depend)
         ${_AX_APPLE_LIBS}
       )
 
-      if(AX_USE_COMPAT_GL)
+      if(AX_RENDER_API STREQUAL "gl")
         find_library(OPENGLES_LIBRARY OpenGLES)
         list(APPEND PLATFORM_SPECIFIC_LIBS ${OPENGLES_LIBRARY})
       endif()
@@ -116,8 +119,8 @@ macro(ax_depend)
       endif()
     endif()
   elseif(WASM)
-    if(AX_ENABLE_AUDIO)
-      list(APPEND openal) # refer to: https://emscripten.org/docs/porting/Audio.html
+    if(AX_ENABLE_AUDIO AND NOT AX_USE_ALSOFT)
+      list(APPEND PLATFORM_SPECIFIC_LIBS openal) # refer to: https://emscripten.org/docs/porting/Audio.html
     endif()
   endif()
 endmacro()

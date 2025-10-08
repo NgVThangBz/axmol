@@ -26,9 +26,9 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
-#include "3d/AABB.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
+#include "axmol/3d/AABB.h"
 #include <vector>
 
 namespace ax
@@ -86,5 +86,4 @@ public:
     /** Merges another Sphere into the current sphere */
     void merge(const PUSphere& oth);
 };
-}
-
+}  // namespace ax

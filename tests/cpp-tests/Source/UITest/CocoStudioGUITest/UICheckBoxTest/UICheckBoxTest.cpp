@@ -53,7 +53,7 @@ bool UICheckBoxTest::init()
 
         // Add the alert
         Text* alert = Text::create("CheckBox", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -104,15 +104,15 @@ void UICheckBoxTest::printWidgetResources(ax::Object* sender)
     AXLOGD("backGroundFile  Name : {}, Type: {}", backGroundFileName.file, backGroundFileName.type);
     ax::ResourceData backGroundSelectedFileName = _checkBox->getBackPressedFile();
     AXLOGD("backGroundSelectedFile  Name : {}, Type: {}", backGroundSelectedFileName.file,
-          backGroundSelectedFileName.type);
+           backGroundSelectedFileName.type);
     ax::ResourceData backGroundDisabledFileName = _checkBox->getBackDisabledFile();
     AXLOGD("backGroundDisabledFile  Name : {}, Type: {}", backGroundDisabledFileName.file,
-          backGroundDisabledFileName.type);
+           backGroundDisabledFileName.type);
     ax::ResourceData frontCrossFileName = _checkBox->getCrossNormalFile();
     AXLOGD("frontCrossFile  Name : {}, Type: {}", frontCrossFileName.file, frontCrossFileName.type);
     ax::ResourceData frontCrossDisabledFileName = _checkBox->getCrossDisabledFile();
     AXLOGD("frontCrossDisabledFile  Name : {}, Type: {}", frontCrossDisabledFileName.file,
-          frontCrossDisabledFileName.type);
+           frontCrossDisabledFileName.type);
 }
 
 // UICheckBoxDefaultBehaviorTest
@@ -134,7 +134,7 @@ bool UICheckBoxDefaultBehaviorTest::init()
 
         // Add the alert
         Text* alert = Text::create("Only left two and the last checkbox can be clicked!", "fonts/Marker Felt.ttf", 20);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -190,7 +190,7 @@ bool UICheckBoxCopyTest::init()
 
         // Add the alert
         Text* alert = Text::create("Two checkbox are identical.", "fonts/Marker Felt.ttf", 20);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);

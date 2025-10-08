@@ -2,11 +2,11 @@ local GameOverLayer = {
 
     create = function(self, content)
         local label = ax.Label:createWithTTF(content, "fonts/Marker Felt.ttf", 32)
-        local winSize = ax.Director:getInstance():getWinSize()
-        label:setColor(ax.c3b(0, 0, 0))
-        label:setPosition(winSize.width/2, winSize.height/2)
+        local canvasSize = ax.Director:getInstance():getCanvasSize()
+        label:setColor(ax.color32(0, 0, 0))
+        label:setPosition(canvasSize.width/2, canvasSize.height/2)
 
-        local layer = ax.LayerColor:create(ax.c4b(0, 128, 255, 255))
+        local layer = ax.LayerColor:create(ax.color32(0, 128, 255, 255))
         layer:addChild(label)
         layer:runAction(ax.Sequence:create(ax.DelayTime:create(3), ax.CallFunc:create(self.gameOverDone)))
 

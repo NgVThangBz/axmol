@@ -132,9 +132,7 @@ public:
      *    @brief    Add ArmatureFileInfo, it is managed by ArmatureDataManager.
      *            It will load data in a new thread
      */
-    void addArmatureFileInfoAsync(std::string_view configFilePath,
-                                  ax::Object* target,
-                                  ax::SEL_SCHEDULE selector);
+    void addArmatureFileInfoAsync(std::string_view configFilePath, ax::Object* target, ax::SEL_SCHEDULE selector);
 
     /**
      *    @brief    Add ArmatureFileInfo, it is managed by ArmatureDataManager.
@@ -197,7 +195,7 @@ private:
 
     bool _autoLoadSpriteFile;
 
-    hlookup::string_map<RelativeData> _relativeDatas;
+    axstd::string_map<RelativeData> _relativeDatas;
 };
 
 }  // namespace cocostudio

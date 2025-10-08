@@ -28,9 +28,9 @@
 #include "cocostudio/WidgetReader/TabControlReader/TabControlReader.h"
 #include "cocostudio/FlatBuffersSerialize.h"
 #include "cocostudio/ActionTimeline/CSLoader.h"
-#include "ui/UITabControl.h"
-#include "platform/FileUtils.h"
-#include "2d/SpriteFrameCache.h"
+#include "axmol/ui/UITabControl.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/2d/SpriteFrameCache.h"
 
 using namespace ax;
 using namespace cocostudio;
@@ -229,7 +229,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
     int fontsize = 12;
     std::string text;
-    ax::Color4B textColor(255, 255, 255, 255);
+    ax::Color32 textColor(255, 255, 255, 255);
     std::string fontName;
 
     int backgroundboxResourceType = 0;
@@ -283,7 +283,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
             attribute = child.first_attribute();
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "R")
@@ -311,7 +311,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -346,7 +346,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -381,7 +381,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -416,7 +416,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -451,7 +451,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -483,7 +483,7 @@ flatbuffers::Offset<flatbuffers::Table> TabHeaderReader::createOptionsWithFlatBu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -533,7 +533,7 @@ void TabHeaderReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers:
     header->setTitleFontSize(options->fontSize());
     header->setTitleText(options->titleText()->c_str());
     auto textColor = options->textColor();
-    Color4B titleColor(textColor->r(), textColor->g(), textColor->b(), textColor->a());
+    Color32 titleColor(textColor->r(), textColor->g(), textColor->b(), textColor->a());
     header->setTitleColor(titleColor);
 
     auto resourceData = options->fontRes();

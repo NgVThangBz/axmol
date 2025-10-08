@@ -42,7 +42,7 @@ IntervalTest::IntervalTest()
 {
     _time0 = _time1 = _time2 = _time3 = _time4 = 0.0f;
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     // sun
     auto sun = ParticleSun::create();
     sun->setTexture(Director::getInstance()->getTextureCache()->addImage("Images/fire.png"));
@@ -60,45 +60,37 @@ IntervalTest::IntervalTest()
     _label4 = Label::createWithBMFont("fonts/bitmapFontTest4.fnt", "0");
 
     scheduleUpdate();
-    schedule(
-        [&](float dt) {
-            _time1 += dt;
+    schedule([&](float dt) {
+        _time1 += dt;
 
-            char tmp[10];
-            auto str = fmt::format_to_z(tmp, "{:2.1f}", _time1);
-            _label1->setString(str);
-        },
-        "step_1");
+        char tmp[10];
+        auto str = fmt::format_to_z(tmp, "{:2.1f}", _time1);
+        _label1->setString(str);
+    }, "step_1");
 
-    schedule(
-        [&](float dt) {
-            _time2 += dt;
+    schedule([&](float dt) {
+        _time2 += dt;
 
-            char tmp[10];
-            auto str = fmt::format_to_z(tmp, "{:2.1f}", _time2);
-            _label2->setString(str);
-        },
-        0.5, "step_2");
+        char tmp[10];
+        auto str = fmt::format_to_z(tmp, "{:2.1f}", _time2);
+        _label2->setString(str);
+    }, 0.5, "step_2");
 
-    schedule(
-        [&](float dt) {
-            _time3 += dt;
+    schedule([&](float dt) {
+        _time3 += dt;
 
-            char tmp[10];
-            auto str = fmt::format_to_z(tmp, "{:2.1f}", _time3);
-            _label3->setString(str);
-        },
-        1, "step_3");
+        char tmp[10];
+        auto str = fmt::format_to_z(tmp, "{:2.1f}", _time3);
+        _label3->setString(str);
+    }, 1, "step_3");
 
-    schedule(
-        [&](float dt) {
-            _time4 += dt;
+    schedule([&](float dt) {
+        _time4 += dt;
 
-            char tmp[10];
-            auto str = fmt::format_to_z(tmp, "{:2.1f}", _time4);
-            _label4->setString(str);
-        },
-        2, "step_4");
+        char tmp[10];
+        auto str = fmt::format_to_z(tmp, "{:2.1f}", _time4);
+        _label4->setString(str);
+    }, 2, "step_4");
 
     _label0->setPosition(s.width * 1 / 6, s.height / 2);
     _label1->setPosition(s.width * 2 / 6, s.height / 2);

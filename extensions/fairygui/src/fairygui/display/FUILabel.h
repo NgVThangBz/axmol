@@ -1,7 +1,7 @@
 #ifndef __FUILABEL_H__
 #define __FUILABEL_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUIMacros.h"
 #include "TextFormat.h"
 
@@ -21,7 +21,7 @@ public:
     TextFormat* getTextFormat() const { return _textFormat; }
     void applyTextFormat();
 
-    void setUnderlineColor(const ax::Color3B& value);
+    void setUnderlineColor(const ax::Color32& value);
 
 #if defined(AX_VERSION)
     bool setBMFontFilePath(std::string_view bmfontFilePath,

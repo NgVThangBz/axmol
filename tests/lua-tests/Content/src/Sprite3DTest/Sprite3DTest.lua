@@ -1,6 +1,6 @@
 require "axmol.3d.3dConstants"
 
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 local scheduler = ax.Director:getInstance():getScheduler()
 local attributeNames =
 {
@@ -344,8 +344,8 @@ function Animate3DTest:addSprite3D()
     local fileName = "MeshRendererTest/tortoise.c3b"
     local sprite = ax.Sprite3D:create(fileName)
     sprite:setScale(0.1)
-    local winSize = ax.Director:getInstance():getWinSize()
-    sprite:setPosition(ax.p(winSize.width * 4.0 / 5.0, winSize.height / 2.0))
+    local canvasSize = ax.Director:getInstance():getCanvasSize()
+    sprite:setPosition(ax.p(canvasSize.width * 4.0 / 5.0, canvasSize.height / 2.0))
     self:addChild(sprite)
 
     self._sprite = sprite
@@ -361,13 +361,13 @@ function Animate3DTest:addSprite3D()
         self._state = State.SWIMMING
     end
 
-    self._moveAction = ax.MoveTo:create(4.0, ax.p(winSize.width / 5.0, winSize.height / 2.0))
+    self._moveAction = ax.MoveTo:create(4.0, ax.p(canvasSize.width / 5.0, canvasSize.height / 2.0))
     self._moveAction:retain()
 
     local function reachEndCallBack()
-        local winSize = ax.Director:getInstance():getWinSize()
+        local canvasSize = ax.Director:getInstance():getCanvasSize()
         self._sprite:stopActionByTag(100)
-        local inverse = ax.MoveTo:create(4.0, ax.p(winSize.width - self._sprite:getPositionX(), winSize.height / 2.0))
+        local inverse = ax.MoveTo:create(4.0, ax.p(canvasSize.width - self._sprite:getPositionX(), canvasSize.height / 2.0))
         inverse:retain()
         self._moveAction:release()
         self._moveAction = inverse
@@ -718,7 +718,7 @@ function Sprite3DWithOBBPerfromanceTest:ctor()
     local eventDispatcher = self:getEventDispatcher()
     eventDispatcher:addEventListenerWithSceneGraphPriority(listener, self)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     self:initDrawBox()
 
     self:addNewSpriteWithCoords(ax.p(s.width/2, s.height/2))
@@ -730,13 +730,13 @@ function Sprite3DWithOBBPerfromanceTest:ctor()
     decrease:registerScriptTapHandler(function(tag, sender)
         self:delOBBWithCount(10)
     end)
-    decrease:setColor(ax.c3b(0, 200, 20))
+    decrease:setColor(ax.color32(0, 200, 20))
 
     local increase =  ax.MenuItemFont:create(" + ")
     increase:registerScriptTapHandler(function(tag, sender)
         self:addOBBWithCount(10)
     end)
-    increase:setColor(ax.c3b(0, 200, 20))
+    increase:setColor(ax.color32(0, 200, 20))
 
     local menu = ax.Menu:create(decrease, increase)
     menu:alignItemsHorizontally()
@@ -747,7 +747,7 @@ function Sprite3DWithOBBPerfromanceTest:ctor()
     ttfConfig.fontFilePath = "fonts/Marker Felt.ttf"
     ttfConfig.fontSize = 30
     self._labelCubeCount = ax.Label:createWithTTF(ttfConfig,"0 cubes")
-    self._labelCubeCount:setColor(ax.c3b(0,200,20))
+    self._labelCubeCount:setColor(ax.color32(0,200,20))
     self._labelCubeCount:setPosition(ax.p(s.width/2, s.height-90))
     self:addChild(self._labelCubeCount)
 
@@ -774,7 +774,7 @@ function Sprite3DWithOBBPerfromanceTest:ctor()
                 corners[i] = {}
             end
             corners = self._obbt:getCorners(corners)
-            self._drawDebug:drawCube(corners, ax.c4f(0, 0, 1, 1))
+            self._drawDebug:drawCube(corners, ax.color(0, 0, 1, 1))
         end
 
         if #self._obb > 0 then
@@ -788,9 +788,9 @@ function Sprite3DWithOBBPerfromanceTest:ctor()
 
                 corners = self._obb[i]:getCorners(corners)
                 if self._obbt:intersects(self._obb[i]) then
-                    self._drawOBB:drawCube(corners, ax.c4f(1, 0, 0, 1))
+                    self._drawOBB:drawCube(corners, ax.color(1, 0, 0, 1))
                 else
-                    self._drawOBB:drawCube(corners, ax.c4f(0, 1, 0, 1))
+                    self._drawOBB:drawCube(corners, ax.color(0, 1, 0, 1))
                 end
 
             end
@@ -800,7 +800,7 @@ end
 
 function Sprite3DWithOBBPerfromanceTest:addOBBWithCount( value )
     for i=1,value do
-        local randompos = ax.p(math.random() * ax.Director:getInstance():getWinSize().width, math.random() * ax.Director:getInstance():getWinSize().height)
+        local randompos = ax.p(math.random() * ax.Director:getInstance():getCanvasSize().width, math.random() * ax.Director:getInstance():getCanvasSize().height)
         local extents = ax.vec3(10, 10, 10)
         local aabb = ax.AABB:new({x = -10, y = -10, z = -10}, extents)
         local obb = ax.OBB:new(aabb)
@@ -845,7 +845,7 @@ end
 
 function Sprite3DWithOBBPerfromanceTest:calculateRayByLocationInView(ray, location)
     local dir = ax.Director:getInstance()
-    local view = dir:getWinSize()
+    local view = dir:getCanvasSize()
     local mat = ax.mat4.new(dir:getMatrix(ax.MATRIX_STACK_TYPE.PROJECTION))
     local src = ax.vec3(location.x, location.y, -1)
     local nearPoint = {}
@@ -867,7 +867,7 @@ function Sprite3DWithOBBPerfromanceTest:addNewSpriteWithCoords(vec2)
     local fileName = "MeshRendererTest/tortoise.c3b"
     local sprite = ax.Sprite3D:create(fileName)
     sprite:setScale(0.1)
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     sprite:setPosition(ax.p(s.width * 4.0 / 5.0, s.height / 2.0))
     self:addChild(sprite)
     self._sprite = sprite
@@ -880,7 +880,7 @@ function Sprite3DWithOBBPerfromanceTest:addNewSpriteWithCoords(vec2)
     self._moveAction = ax.MoveTo:create(4.0, ax.p(s.width / 5.0, s.height / 2.0))
     self._moveAction:retain()
     local function reachEndCallBack()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
         self._sprite:stopActionByTag(100)
         local inverse = ax.MoveTo:create(4.0, ax.p(s.width - self._sprite:getPositionX(), s.height / 2.0))
         inverse:retain()
@@ -1020,7 +1020,7 @@ function AsyncLoadSprite3DTest:onEnter()
 
         local function callback(sprite, index)
             local node = self:getChildByTag(101)
-            local s = ax.Director:getInstance():getWinSize()
+            local s = ax.Director:getInstance():getCanvasSize()
             local width = s.width / (#paths)
             local point = ax.p(width * (0.5 + index), s.height / 2.0)
             sprite:setPosition(point)
@@ -1049,7 +1049,7 @@ function AsyncLoadSprite3DTest:onEnter()
     end
     item1:registerScriptTapHandler(menuCallback_asyncLoadSprite)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     item1:setPosition( s.width * 0.5, s.height * 0.8)
 
     local menu = ax.Menu:create(item1)
@@ -1101,7 +1101,7 @@ function Sprite3DCubeMapTest:subtitle()
 end
 
 function Sprite3DCubeMapTest:onEnter()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     self:addNewSpriteWithCoords(ax.p(s.width / 2, s.height / 2))
     Helper.initWithLayer(self)
     Helper.titleLabel:setString(self:title())
@@ -1110,7 +1110,7 @@ end
 
 function Sprite3DCubeMapTest:onExit()
     local targetPlatform = ax.Application:getInstance():getTargetPlatform()
-    if targetPlatform == ax.PLATFORM_ANDROID  or targetPlatform == ax.PLATFORM_WINRT  then
+    if targetPlatform == ax.PLATFORM_OS_ANDROID  or targetPlatform == ax.PLATFORM_OS_WINRT  or targetPlatform == ax.PLATFORM_OS_WP8  then
         ax.Director:getInstance():getEventDispatcher():removeEventListener(self._backToForegroundListener)
     end
 end
@@ -1123,7 +1123,7 @@ function Sprite3DCubeMapTest:addNewSpriteWithCoords(pos)
     --create a teapot
     self._teapot = ax.Sprite3D:create("MeshRendererTest/teapot.c3b")
 
-    local program = axb.ProgramManager:getInstance():loadProgram('custom/cube_map_vs', 'custom/cube_map_fs')
+    local program = axrhi.ProgramManager:getInstance():loadProgram('custom/cube_map_vs', 'custom/cube_map_fs')
     local programState = ccb.ProgramState:new(program)
 
     self._textureCube = ax.TextureCube:create("MeshRendererTest/skybox/left.jpg", "MeshRendererTest/skybox/right.jpg",
@@ -1136,7 +1136,7 @@ function Sprite3DCubeMapTest:addNewSpriteWithCoords(pos)
 
     --pass the texture sampler to our custom shader
     local locCubeTex = programState:getUniformLocation("u_cubeTex")
-    local cubeTexture = self._textureCube:getBackendTexture()
+    local cubeTexture = self._textureCube:getRHITexture()
     programState:setTexture(locCubeTex, 0, cubeTexture)
 
     self._teapot:setProgramState(programState)
@@ -1229,7 +1229,7 @@ function Sprite3DNormalMappingTest:onEnter()
     local radius = 100.0
     local angle = 0.0
     local reverseDir = false
-    local light = ax.PointLight:create(ax.vec3(0.0, 0.0, 0.0), ax.c3b(255, 255, 255), 1000.0)
+    local light = ax.PointLight:create(ax.vec3(0.0, 0.0, 0.0), ax.color32(255, 255, 255), 1000.0)
     local function lightUpdate()
         light:setPosition3D(ax.vec3(radius * math.cos(angle), 0.0, radius * math.sin(angle)))
         if reverseDir == true then

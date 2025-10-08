@@ -27,12 +27,12 @@
 #pragma once
 
 #include <vector>
-#include "renderer/RenderState.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/CallbackCommand.h"
-#include "renderer/backend/Buffer.h"
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/renderer/RenderState.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/CallbackCommand.h"
+#include "axmol/rhi/Buffer.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 
 namespace ax
 {
@@ -57,13 +57,13 @@ public:
     public:
         Element();
 
-        Element(const Vec3& position, float width, float texCoord, const Vec4& colour, const Quaternion& orientation);
+        Element(const Vec3& position, float width, float texCoord, const Color& colour, const Quaternion& orientation);
 
         Vec3 position;
         float width;
         /// U or V texture coord depending on options
         float texCoord;
-        Vec4 color;
+        Color color;
 
         // Only used when mFaceCamera == false
         Quaternion orientation;
@@ -310,34 +310,29 @@ protected:
     /// Chain segment has no elements
     static const size_t SEGMENT_EMPTY;
 
-    struct VertexInfo
-    {
-        Vec3 position;
-        Vec2 uv;
-        Vec4 color;
-    };
     MeshCommand _meshCommand;
     RenderState::StateBlock _stateBlock;
-    Texture2D* _texture                  = nullptr;
-    backend::ProgramState* _programState = nullptr;
-    backend::Buffer* _indexBuffer        = nullptr;  // index buffer
-    backend::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
+    Texture2D* _texture              = nullptr;
+    rhi::ProgramState* _programState = nullptr;
+    rhi::VertexLayout* _vertexLayout = nullptr;
+    rhi::Buffer* _indexBuffer        = nullptr;  // index buffer
+    rhi::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
 
-    std::vector<VertexInfo> _vertices;
+    std::vector<V3F_T2F_C4F> _vertices;
     std::vector<uint16_t> _indices;
 
     std::string _texFile;
 
-    backend::UniformLocation _locColor;
-    backend::UniformLocation _locTexture;
-    backend::UniformLocation _locPMatrix;
+    rhi::UniformLocation _locColor;
+    rhi::UniformLocation _locTexture;
+    rhi::UniformLocation _locPMatrix;
 
     // renderer state cache variables
-    bool _rendererDepthTestEnabled                 = true;
-    backend::CompareFunction _rendererDepthCmpFunc = backend::CompareFunction::LESS;
-    backend::CullMode _rendererCullMode            = backend::CullMode::BACK;
-    backend::Winding _rendererWinding              = backend::Winding::COUNTER_CLOCK_WISE;
-    bool _rendererDepthWrite                       = false;
+    bool _rendererDepthTestEnabled         = true;
+    rhi::CompareFunc _rendererDepthCmpFunc = rhi::CompareFunc::LESS;
+    rhi::CullMode _rendererCullMode        = rhi::CullMode::BACK;
+    rhi::Winding _rendererWinding          = rhi::Winding::COUNTER_CLOCK_WISE;
+    bool _rendererDepthWrite               = false;
 };
 
-}
+}  // namespace ax

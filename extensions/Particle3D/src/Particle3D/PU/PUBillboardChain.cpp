@@ -25,18 +25,17 @@
  ****************************************************************************/
 #include "Particle3D/PU/PUBillboardChain.h"
 #include <stddef.h>  // offsetof
-#include "base/Types.h"
+#include "axmol/base/Types.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
-#include "base/Director.h"
-#include "renderer/Shaders.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/Renderer.h"
-#include "renderer/TextureCache.h"
-#include "renderer/backend/Types.h"
-#include "renderer/backend/Buffer.h"
-#include "renderer/backend/DriverBase.h"
-#include "2d/Camera.h"
-#include "3d/MeshRenderer.h"
+#include "axmol/base/Director.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/TextureCache.h"
+#include "axmol/rhi/Buffer.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/2d/Camera.h"
+#include "axmol/3d/MeshRenderer.h"
 
 namespace ax
 {
@@ -45,7 +44,7 @@ const size_t PUBillboardChain::SEGMENT_EMPTY = std::numeric_limits<size_t>::max(
 //-----------------------------------------------------------------------
 PUBillboardChain::Element::Element() {}
 //-----------------------------------------------------------------------
-PUBillboardChain::Element::Element(const Vec3& pos, float w, float tex, const Vec4& col, const Quaternion& ori)
+PUBillboardChain::Element::Element(const Vec3& pos, float w, float tex, const Color& col, const Quaternion& ori)
     : position(pos), width(w), texCoord(tex), color(col), orientation(ori)
 {}
 //-----------------------------------------------------------------------
@@ -77,7 +76,7 @@ PUBillboardChain::PUBillboardChain(std::string_view /*name*/,
 {
 
     _stateBlock.setCullFace(false);
-    _stateBlock.setCullFaceSide(backend::CullMode::BACK);
+    _stateBlock.setCullFaceSide(rhi::CullMode::BACK);
     _stateBlock.setDepthTest(false);
     _stateBlock.setDepthWrite(false);
     _stateBlock.setBlend(true);
@@ -96,6 +95,7 @@ PUBillboardChain::~PUBillboardChain()
     AX_SAFE_RELEASE(_programState);
     AX_SAFE_RELEASE(_vertexBuffer);
     AX_SAFE_RELEASE(_indexBuffer);
+    AX_SAFE_RELEASE(_vertexLayout);
 }
 //-----------------------------------------------------------------------
 void PUBillboardChain::setupChainContainers()
@@ -157,15 +157,15 @@ void PUBillboardChain::setupBuffers()
         AX_SAFE_RELEASE_NULL(_vertexBuffer);
         AX_SAFE_RELEASE_NULL(_indexBuffer);
 
-        size_t stride = sizeof(VertexInfo);
-        _vertexBuffer = backend::DriverBase::getInstance()->newBuffer(
-            stride * _chainElementList.size() * 2, backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
-        VertexInfo vi = {Vec3(0.0f, 0.0f, 0.0f), Vec2(0.0f, 0.0f), Vec4::ONE};
+        size_t stride = sizeof(V3F_T2F_C4F);
+        _vertexBuffer = rhi::DriverBase::getInstance()->createBuffer(
+            stride * _chainElementList.size() * 2, rhi::BufferType::VERTEX, rhi::BufferUsage::DYNAMIC);
+        V3F_T2F_C4F vi = {Vec3(0.0f, 0.0f, 0.0f), Vec2(0.0f, 0.0f), Color::WHITE};
         _vertices.resize(_chainElementList.size() * 2, vi);
 
         _indexBuffer =
-            backend::DriverBase::getInstance()->newBuffer(_chainCount * _maxElementsPerChain * 6 * sizeof(uint16_t),
-                                                      backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
+            rhi::DriverBase::getInstance()->createBuffer(_chainCount * _maxElementsPerChain * 6 * sizeof(uint16_t),
+                                                         rhi::BufferType::VERTEX, rhi::BufferUsage::DYNAMIC);
 
         _indices.resize(_chainCount * _maxElementsPerChain * 6, 0);
 
@@ -404,7 +404,7 @@ void PUBillboardChain::updateVertexBuffer(const Mat4& camMat)
     if (!_vertexContentDirty)
         return;
 
-    VertexInfo vi = {Vec3(0.0f, 0.0f, 0.0f), Vec2(0.0f, 0.0f), Vec4::ONE};
+    V3F_T2F_C4F vi = {Vec3(0.0f, 0.0f, 0.0f), Vec2(0.0f, 0.0f), Color::WHITE};
     _vertices.assign(_vertices.size(), vi);
     // HardwareVertexBufferSharedPtr pBuffer =
     //	_vertexData->vertexBufferBinding->getBuffer(0);
@@ -501,15 +501,15 @@ void PUBillboardChain::updateVertexBuffer(const Mat4& camMat)
                     {
                         //*pFloat++ = elem.texCoord;
                         //*pFloat++ = _otherTexCoordRange[0];
-                        _vertices[vertexIndex + 0].uv.x = elem.texCoord;
-                        _vertices[vertexIndex + 0].uv.y = _otherTexCoordRange[0];
+                        _vertices[vertexIndex + 0].texCoord.x = elem.texCoord;
+                        _vertices[vertexIndex + 0].texCoord.y = _otherTexCoordRange[0];
                     }
                     else
                     {
                         //*pFloat++ = _otherTexCoordRange[0];
                         //*pFloat++ = elem.texCoord;
-                        _vertices[vertexIndex + 0].uv.x = _otherTexCoordRange[0];
-                        _vertices[vertexIndex + 0].uv.y = elem.texCoord;
+                        _vertices[vertexIndex + 0].texCoord.x = _otherTexCoordRange[0];
+                        _vertices[vertexIndex + 0].texCoord.y = elem.texCoord;
                     }
                     // pBase = static_cast<void*>(pFloat);
                 }
@@ -538,15 +538,15 @@ void PUBillboardChain::updateVertexBuffer(const Mat4& camMat)
                     {
                         //*pFloat++ = elem.texCoord;
                         //*pFloat++ = _otherTexCoordRange[1];
-                        _vertices[vertexIndex + 1].uv.x = elem.texCoord;
-                        _vertices[vertexIndex + 1].uv.y = _otherTexCoordRange[1];
+                        _vertices[vertexIndex + 1].texCoord.x = elem.texCoord;
+                        _vertices[vertexIndex + 1].texCoord.y = _otherTexCoordRange[1];
                     }
                     else
                     {
                         //*pFloat++ = _otherTexCoordRange[1];
                         //*pFloat++ = elem.texCoord;
-                        _vertices[vertexIndex + 1].uv.x = _otherTexCoordRange[1];
-                        _vertices[vertexIndex + 1].uv.y = elem.texCoord;
+                        _vertices[vertexIndex + 1].texCoord.x = _otherTexCoordRange[1];
+                        _vertices[vertexIndex + 1].texCoord.y = elem.texCoord;
                     }
                 }
 
@@ -556,7 +556,7 @@ void PUBillboardChain::updateVertexBuffer(const Mat4& camMat)
                 laste = e;
                 // vertexIndex += 2;
             }  // element
-        }      // segment valid?
+        }  // segment valid?
 
     }  // each segment
 
@@ -638,19 +638,20 @@ void PUBillboardChain::init(std::string_view texFile)
         if (tex)
         {
             _texture      = tex;
-            auto* program = backend::Program::getBuiltinProgram(backend::ProgramType::PARTICLE_TEXTURE_3D);
-            _programState = new backend::ProgramState(program);
+            auto* program = axpm->getBuiltinProgram(rhi::ProgramType::PARTICLE_TEXTURE_3D);
+            _programState = new rhi::ProgramState(program);
         }
     }
 
     if (!_programState)
     {
-        auto* program = backend::Program::getBuiltinProgram(backend::ProgramType::PARTICLE_COLOR_3D);
-        _programState = new backend::ProgramState(program);
+        auto* program = axpm->getBuiltinProgram(rhi::ProgramType::PARTICLE_COLOR_3D);
+        _programState = new rhi::ProgramState(program);
     }
 
-    auto& pipelineDescriptor        = _meshCommand.getPipelineDescriptor();
-    pipelineDescriptor.programState = _programState;
+    Object::assign(_vertexLayout, _programState->getVertexLayout());
+
+    _meshCommand.setWeakPSVL(_programState, _vertexLayout);
 
     _locColor   = _programState->getUniformLocation("u_color");
     _locPMatrix = _programState->getUniformLocation("u_PMatrix");
@@ -661,7 +662,7 @@ void PUBillboardChain::init(std::string_view texFile)
 
     _stateBlock.setDepthTest(true);
     _stateBlock.setDepthWrite(false);
-    _stateBlock.setCullFaceSide(backend::CullMode::BACK);
+    _stateBlock.setCullFaceSide(rhi::CullMode::BACK);
     _stateBlock.setCullFace(true);
 
     _meshCommand.setBeforeCallback(AX_CALLBACK_0(PUBillboardChain::onBeforeDraw, this));
@@ -692,7 +693,7 @@ void PUBillboardChain::render(Renderer* renderer, const Mat4& transform, Particl
 
             if (_texture)
             {
-                _programState->setTexture(_locTexture, 0, _texture->getBackendTexture());
+                _programState->setTexture(_locTexture, 0, _texture->getRHITexture());
             }
 
             auto uColor = Vec4(1, 1, 1, 1);
@@ -721,13 +722,12 @@ void PUBillboardChain::setBlendFunc(const BlendFunc& blendFunc)
 void PUBillboardChain::onBeforeDraw()
 {
     auto* renderer            = Director::getInstance()->getRenderer();
-    auto& pipelineDescriptor  = _meshCommand.getPipelineDescriptor();
     _rendererDepthTestEnabled = renderer->getDepthTest();
-    _rendererDepthCmpFunc     = renderer->getDepthCompareFunction();
+    _rendererDepthCmpFunc     = renderer->getDepthCompareFunc();
     _rendererCullMode         = renderer->getCullMode();
     _rendererDepthWrite       = renderer->getDepthWrite();
     _rendererWinding          = renderer->getWinding();
-    _stateBlock.bind(&pipelineDescriptor);
+    _stateBlock.bind(&_meshCommand);
     renderer->setDepthTest(true);
 }
 
@@ -735,7 +735,7 @@ void PUBillboardChain::onAfterDraw()
 {
     auto* renderer = Director::getInstance()->getRenderer();
     renderer->setDepthTest(_rendererDepthTestEnabled);
-    renderer->setDepthCompareFunction(_rendererDepthCmpFunc);
+    renderer->setDepthCompareFunc(_rendererDepthCmpFunc);
     renderer->setCullMode(_rendererCullMode);
     renderer->setDepthWrite(_rendererDepthWrite);
     renderer->setWinding(_rendererWinding);
@@ -785,4 +785,4 @@ void PUBillboardChain::onAfterDraw()
 //}
 //---------------------------------------------------------------------
 
-}
+}  // namespace ax

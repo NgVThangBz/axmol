@@ -1,4 +1,4 @@
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 local scheduler = ax.Director:getInstance():getScheduler()
 
 local kTagTileMap = 1
@@ -43,7 +43,7 @@ function LabelFNTColorAndOpacity.create()
 
     m_time = 0
 
-    local col = ax.LayerColor:create( ax.c4b(128,128,128,255) )
+    local col = ax.LayerColor:create( ax.color32(128,128,128,255) )
     layer:addChild(col, -10)
 
     local label1 = ax.Label:createWithBMFont("fonts/bitmapFontTest2.fnt", "Test")
@@ -62,7 +62,7 @@ function LabelFNTColorAndOpacity.create()
     local label2 = ax.Label:createWithBMFont("fonts/bitmapFontTest2.fnt", "Test")
     -- testing anchors
     label2:setAnchorPoint( ax.p(0.5, 0.5) )
-    label2:setColor(ax.c3b(255, 0, 0 ))
+    label2:setColor(ax.color32(255, 0, 0 ))
     layer:addChild(label2, 0, kTagBitmapAtlas2)
 
     label2:runAction(repeatAction:clone())
@@ -123,11 +123,11 @@ function LabelFNTSpriteActions.create()
     Helper.initWithLayer(layer)
     LabelFNTSpriteActions.layer = layer
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local drawNode = ax.DrawNode:create()
-    drawNode:drawLine( ax.p(0, s.height/2), ax.p(s.width, s.height/2), ax.c4f(1,1,1,1))
-    drawNode:drawLine( ax.p(s.width/2, 0), ax.p(s.width/2, s.height), ax.c4f(1,1,1,1))
+    drawNode:drawLine( ax.p(0, s.height/2), ax.p(s.width, s.height/2), ax.color(1,1,1,1))
+    drawNode:drawLine( ax.p(s.width/2, 0), ax.p(s.width/2, s.height), ax.color(1,1,1,1))
     layer:addChild(drawNode, -10)
 
     -- Upper Label
@@ -209,7 +209,7 @@ function LabelFNTPadding:create()
     local label = ax.Label:createWithBMFont("fonts/bitmapFontTest4.fnt", "abcdefg")
     layer:addChild(label)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     label:setPosition( ax.p(s.width/2, s.height/2) )
     label:setAnchorPoint( ax.p(0.5, 0.5) )
@@ -233,7 +233,7 @@ function LabelFNTOffset:create()
     Helper.initWithLayer(layer)
     LabelFNTOffset.layer = layer
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local label = ax.Label:createWithBMFont("fonts/bitmapFontTest5.fnt", "FaFeFiFoFu")
     layer:addChild(label)
     label:setPosition( ax.p(s.width/2, s.height/2+50) )
@@ -265,10 +265,10 @@ function LabelFNTColor:create()
     LabelFNTColor.layer = layer
     Helper.initWithLayer(layer)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local label = ax.Label:createWithBMFont("fonts/bitmapFontTest5.fnt", "Blue")
-    label:setColor( ax.c3b(0, 0, 255 ))
+    label:setColor( ax.color32(0, 0, 255 ))
     layer:addChild(label)
     label:setPosition( ax.p(s.width/2, s.height/4) )
     label:setAnchorPoint( ax.p(0.5, 0.5) )
@@ -277,13 +277,13 @@ function LabelFNTColor:create()
     layer:addChild(label)
     label:setPosition( ax.p(s.width/2, 2*s.height/4) )
     label:setAnchorPoint( ax.p(0.5, 0.5) )
-    label:setColor( ax.c3b(255, 0, 0) )
+    label:setColor( ax.color32(255, 0, 0) )
 
     label = ax.Label:createWithBMFont("fonts/bitmapFontTest5.fnt", "Green")
     layer:addChild(label)
     label:setPosition( ax.p(s.width/2, 3*s.height/4) )
     label:setAnchorPoint( ax.p(0.5, 0.5) )
-    label:setColor( ax.c3b(0, 255, 0 ))
+    label:setColor( ax.color32(0, 255, 0 ))
     label:setString("Green")
 
     Helper.titleLabel:setString("New Label + .FNT file")
@@ -303,13 +303,13 @@ function LabelTTFColor:create()
     LabelTTFColor.layer = layer
     Helper.initWithLayer(layer)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath="fonts/arial.ttf"
     ttfConfig.fontSize=18
 
     local label1 = ax.Label:createWithTTF(ttfConfig,"Green", ax.VERTICAL_TEXT_ALIGNMENT_CENTER, s.width)
-    label1:setTextColor( ax.c4b(0, 255, 0, 255))
+    label1:setTextColor( ax.color32(0, 255, 0, 255))
     layer:addChild(label1)
     label1:setPosition( ax.p(s.width/2, s.height/5 * 1.5) )
     label1:setAnchorPoint( ax.p(0.5, 0.5) )
@@ -318,13 +318,13 @@ function LabelTTFColor:create()
     layer:addChild(label2)
     label2:setPosition( ax.p(s.width/2, s.height/5 * 2.0) )
     label2:setAnchorPoint( ax.p(0.5, 0.5) )
-    label2:setTextColor( ax.c4b(255, 0, 0, 255) )
+    label2:setTextColor( ax.color32(255, 0, 0, 255) )
 
     local label3 = ax.Label:createWithTTF(ttfConfig, "Blue", ax.VERTICAL_TEXT_ALIGNMENT_CENTER, s.width)
     layer:addChild(label3)
     label3:setPosition( ax.p(s.width/2, s.height/5 * 2.5) )
     label3:setAnchorPoint( ax.p(0.5, 0.5) )
-    label3:setTextColor( ax.c4b(0, 0, 255, 255))
+    label3:setTextColor( ax.color32(0, 0, 255, 255))
 
     Helper.titleLabel:setString("New Label + .TTF")
     Helper.subtitleLabel:setString("Uses the new Label with TTF. Testing Color")
@@ -351,7 +351,7 @@ function LabelFNTHundredLabels:create()
         local label = ax.Label:createWithBMFont("fonts/bitmapFontTest.fnt", str)
         layer:addChild(label)
 
-        local s = ax.Director:getInstance():getWinSize()
+        local s = ax.Director:getInstance():getCanvasSize()
 
         local p = ax.p( math.random() * s.width, math.random() * s.height)
         label:setPosition( p )
@@ -436,7 +436,7 @@ function LabelFNTandTTFEmpty.create()
     LabelFNTandTTFEmpty.layer = layer
     Helper.initWithLayer(layer)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     -- ax.LabelBMFont
     local label1 = ax.Label:createWithBMFont("fonts/bitmapFontTest3.fnt", "", ax.TEXT_ALIGNMENT_CENTER,s.width)
@@ -488,7 +488,7 @@ function LabelFNTRetina.create()
     local layer = ax.Layer:create()
     Helper.initWithLayer(layer)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     -- ax.LabelBMFont
     local label1 = ax.Label:createWithBMFont("fonts/konqa32.fnt", "TESTING RETINA DISPLAY")
@@ -511,7 +511,7 @@ function LabelFNTGlyphDesigner.create()
     local layer = ax.Layer:create()
     Helper.initWithLayer(layer)
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local label1 = ax.Label:createWithBMFont("fonts/futura-48.fnt", "TESTING RETINA DISPLAY")
     label1:setAnchorPoint(ax.p(0.5, 0.5))
@@ -532,7 +532,7 @@ function LabelTTFUnicodeChinese.create()
     Helper.titleLabel:setString("New Label + .TTF file Chinese")
     Helper.subtitleLabel:setString("Testing new Label + TTF with Chinese character")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath="fonts/HKYuanMini.ttf"
     ttfConfig.fontSize=28
@@ -556,7 +556,7 @@ function LabelFNTUnicodeChinese.create()
     local layer = ax.Layer:create()
     Helper.initWithLayer(layer)
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
     local lable = ax.Label:createWithBMFont("fonts/bitmapFontChinese.fnt", "中国")
     lable:setAnchorPoint(ax.p(0.5,0.5))
     lable:setPosition(ax.p(size.width / 2, size.height /2))
@@ -600,7 +600,7 @@ function LabelFNTMultiLineAlignment.create()
     local layer = ax.Layer:create()
     Helper.initWithLayer(layer)
     -- ask director the the window size
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
 
     -- create and initialize a Label
     LabelFNTMultiLineAlignment._pLabelShouldRetain = ax.Label:createWithBMFont("fonts/markerFelt.fnt", LongSentencesExample, ax.TEXT_ALIGNMENT_CENTER, size.width/1.5)
@@ -625,7 +625,7 @@ function LabelFNTMultiLineAlignment.create()
     stringMenu:addChild(mixed)
     stringMenu:alignItemsVertically()
 
-    longSentences:setColor(ax.c3b(255, 0, 0))
+    longSentences:setColor(ax.color32(255, 0, 0))
     LabelFNTMultiLineAlignment._pLastSentenceItem = longSentences
 
     longSentences:setTag(LongSentences)
@@ -648,7 +648,7 @@ function LabelFNTMultiLineAlignment.create()
 
     alignmentMenu:alignItemsHorizontallyWithPadding(alignmentItemPadding)
 
-    center:setColor(ax.c3b(255, 0, 0))
+    center:setColor(ax.color32(255, 0, 0))
     LabelFNTMultiLineAlignment._pLastAlignmentItem = center
     left:setTag(LeftAlign)
     center:setTag(CenterAlign)
@@ -688,11 +688,11 @@ function LabelFNTMultiLineAlignment.create()
             return
         end
 
-        local winSize = ax.Director:getInstance():getWinSize()
+        local canvasSize = ax.Director:getInstance():getCanvasSize()
         local location = touches[1]:getLocationInView()
 
         LabelFNTMultiLineAlignment._pArrowsShouldRetain:setPosition(
-            math.max(math.min(location.x, ArrowsMax*winSize.width), ArrowsMin*winSize.width),
+            math.max(math.min(location.x, ArrowsMax*canvasSize.width), ArrowsMin*canvasSize.width),
             LabelFNTMultiLineAlignment._pArrowsShouldRetain:getPositionY())
 
         local labelWidth = math.abs(LabelFNTMultiLineAlignment._pArrowsShouldRetain:getPositionX() - LabelFNTMultiLineAlignment._pLabelShouldRetain:getPositionX()) * 2
@@ -729,8 +729,8 @@ end
 
 function LabelFNTMultiLineAlignment.stringChanged(tag, sender)
     local item = sender
-    item:setColor(ax.c3b(255, 0, 0))
-    LabelFNTMultiLineAlignment._pLastAlignmentItem:setColor(ax.c3b(255, 255, 255))
+    item:setColor(ax.color32(255, 0, 0))
+    LabelFNTMultiLineAlignment._pLastAlignmentItem:setColor(ax.color32(255, 255, 255))
     LabelFNTMultiLineAlignment._pLastAlignmentItem = item
 
     if item:getTag() == LongSentences then
@@ -747,8 +747,8 @@ end
 function LabelFNTMultiLineAlignment.alignmentChanged(tag, sender)
     -- cclog("LabelFNTMultiLineAlignment.alignmentChanged, tag:"..tag)
     local item = sender
-    item:setColor(ax.c3b(255, 0, 0))
-    LabelFNTMultiLineAlignment._pLastAlignmentItem:setColor(ax.c3b(255, 255, 255))
+    item:setColor(ax.color32(255, 0, 0))
+    LabelFNTMultiLineAlignment._pLastAlignmentItem:setColor(ax.color32(255, 255, 255))
     LabelFNTMultiLineAlignment._pLastAlignmentItem = item
 
     if tag == LeftAlign then
@@ -779,7 +779,7 @@ function LabelFNTUNICODELanguages.create()
     Helper.titleLabel:setString("New Label + .FNT + UNICODE")
     Helper.subtitleLabel:setString("You should see 3 different labels:\nIn Spanish, Chinese, and Japanese")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local label1 = ax.Label:createWithBMFont("fonts/arial-unicode-26.fnt", "Buen día", ax.TEXT_ALIGNMENT_CENTER, 200)
     label1:setAnchorPoint(ax.p(0.5,0.5))
@@ -809,7 +809,7 @@ function LabelTTFAlignmentNew.create()
     Helper.titleLabel:setString("New Label + TTF")
     Helper.subtitleLabel:setString("Tests alignment values")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath="fonts/tahoma.ttf"
     ttfConfig.fontSize=16
@@ -842,7 +842,7 @@ function LabelTTFUnicodeNew.create()
     Helper.titleLabel:setString("New Label + TTF unicode")
     Helper.subtitleLabel:setString("Uses the new Label with TTF. Testing unicode")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local vStep = s.height/9
     local vSize = s.height
 
@@ -885,9 +885,9 @@ function LabelFNTBounds.create()
     Helper.titleLabel:setString("New Label + .FNT + Bounds")
     Helper.subtitleLabel:setString("You should see string enclosed by a box")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
-    local colorlayer = ax.LayerColor:create(ax.c4b(128,128,128,255))
+    local colorlayer = ax.LayerColor:create(ax.color32(128,128,128,255))
     layer:addChild(colorlayer, -10)
 
     -- ax.LabelBMFont
@@ -901,7 +901,7 @@ end
 
 function LabelFNTBounds.draw()
     -- ax.size labelSize = label1:getContentSize()
-    -- ax.size origin = ax.Director:getInstance():getWinSize()
+    -- ax.size origin = ax.Director:getInstance():getCanvasSize()
 
     -- origin.width = origin.width / 2 - (labelSize.width / 2)
     -- origin.height = origin.height / 2 - (labelSize.height / 2)
@@ -927,7 +927,7 @@ function LabelTTFLongLineWrapping.create()
     Helper.titleLabel:setString("New Label + .TTF")
     Helper.subtitleLabel:setString("Uses the new Label with TTF. Testing auto-wrapping")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath = "fonts/arial.ttf"
     ttfConfig.fontSize = 14
@@ -957,7 +957,7 @@ function LabelTTFDynamicAlignment.create()
     LabelTTFDynamicAlignment._label       = nil
     LabelTTFDynamicAlignment._eHorizAlign = ax.TEXT_ALIGNMENT_LEFT
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath = "fonts/arial.ttf"
     ttfConfig.fontSize = 23
@@ -991,7 +991,7 @@ function LabelTTFDynamicAlignment.create()
 end
 
 function LabelTTFDynamicAlignment.updateAlignment()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     LabelTTFDynamicAlignment._label:setAlignment(LabelTTFDynamicAlignment._eHorizAlign)
 end
 
@@ -1036,15 +1036,15 @@ function LabelTTFCJKWrappingTest.create()
     layer:addChild(drawNode)
     drawNode:drawSegment(
         ax.p(size.width * 0.1, size.height * 0.8),
-        ax.p(size.width * 0.1, 0), 1, ax.c4f(1, 0, 0, 1))
+        ax.p(size.width * 0.1, 0), 1, ax.color(1, 0, 0, 1))
     drawNode:drawSegment(
         ax.p(size.width * 0.85, size.height * 0.8),
-        ax.p(size.width * 0.85, 0), 1, ax.c4f(1, 0, 0, 1))
+        ax.p(size.width * 0.85, 0), 1, ax.color(1, 0, 0, 1))
 
     local label1 = ax.Label:createWithTTF(
         ttfConfig, "你好，Axmol Label。",
         ax.TEXT_ALIGNMENT_LEFT, size.width * 0.75)
-    label1:setTextColor(ax.c4b(128, 255, 255, 255))
+    label1:setTextColor(ax.color32(128, 255, 255, 255))
     label1:setPosition(ax.p(size.width * 0.1, size.height * 0.6))
     label1:setAnchorPoint(ax.p(0, 0.5))
     layer:addChild(label1)
@@ -1052,7 +1052,7 @@ function LabelTTFCJKWrappingTest.create()
     local label2 = ax.Label:createWithTTF(
         ttfConfig, "早上好，Axmol Label。",
         ax.TEXT_ALIGNMENT_LEFT, size.width * 0.75)
-    label2:setTextColor(ax.c4b(255, 128, 255, 255))
+    label2:setTextColor(ax.color32(255, 128, 255, 255))
     label2:setPosition(ax.p(size.width * 0.1, size.height * 0.4))
     label2:setAnchorPoint(ax.p(0, 0.5))
     layer:addChild(label2)
@@ -1060,7 +1060,7 @@ function LabelTTFCJKWrappingTest.create()
     local label3 = ax.Label:createWithTTF(
         ttfConfig, "美好的一天啊美好的一天啊美好的一天啊",
         ax.TEXT_ALIGNMENT_LEFT, size.width * 0.75)
-    label3:setColor(ax.c4b(255, 255, 128, 255))
+    label3:setColor(ax.color32(255, 255, 128, 255))
     label3:setPosition(ax.p(size.width * 0.1, size.height * 0.2))
     label3:setAnchorPoint(ax.p(0, 0.5))
     layer:addChild(label3)
@@ -1079,7 +1079,7 @@ function LabelTTFFontsTestNew.create()
     Helper.titleLabel:setString("New Label + TTF")
     Helper.subtitleLabel:setString("")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local ttfPaths =
     {
@@ -1121,7 +1121,7 @@ function LabelBMFontTestNew.create()
     Helper.titleLabel:setString("New Label + FNT")
     Helper.subtitleLabel:setString("Uses the new Label with .FNT file")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local label1 = ax.Label:createWithBMFont("fonts/bitmapFontTest2.fnt", "Hello World, this is testing the new Label using fnt file", ax.TEXT_ALIGNMENT_CENTER, s.width)
     label1:setAnchorPoint(ax.p(0.5,0.5))
@@ -1141,7 +1141,7 @@ function LabelTTFDistanceField.create()
     Helper.titleLabel:setString("New Label + .TTF")
     Helper.subtitleLabel:setString("Testing rendering base on DistanceField")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local ttfConfig = {}
     ttfConfig.fontFilePath = "fonts/arial.ttf"
     ttfConfig.fontSize = 40
@@ -1152,7 +1152,7 @@ function LabelTTFDistanceField.create()
     local label1 = ax.Label:createWithTTF(ttfConfig,"Distance Field",ax.TEXT_ALIGNMENT_CENTER,s.width)
     label1:setAnchorPoint(ax.p(0.5,0.5))
     label1:setPosition(ax.p(s.width/2, s.height/2))
-    label1:setTextColor( ax.c4b(0, 255, 0, 255) )
+    label1:setTextColor( ax.color32(0, 255, 0, 255) )
     local action = ax.Sequence:create(ax.DelayTime:create(1.0),
         ax.ScaleTo:create(6.0,5.0,5.0),
         ax.ScaleTo:create(6.0,1.0,1.0))
@@ -1161,7 +1161,7 @@ function LabelTTFDistanceField.create()
 
     local label2 = ax.Label:createWithTTF(ttfConfig,"Distance Field",ax.TEXT_ALIGNMENT_CENTER,s.width)
     label2:setPosition( ax.p(s.width/2, s.height/5) )
-    label2:setTextColor( ax.c4b(255, 0, 0, 255))
+    label2:setTextColor( ax.color32(255, 0, 0, 255))
     label2:setAnchorPoint(ax.p(0.5, 0.5))
     layer:addChild(label2)
 
@@ -1178,9 +1178,9 @@ function LabelOutlineAndGlowTest.create()
     Helper.titleLabel:setString("New Label + .TTF")
     Helper.subtitleLabel:setString("Testing outline and glow of label")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
-    local col = ax.LayerColor:create( ax.c4b(200, 191, 231, 255))
+    local col = ax.LayerColor:create( ax.color32(200, 191, 231, 255))
     layer:addChild(col)
 
     local ttfConfig = {}
@@ -1194,24 +1194,24 @@ function LabelOutlineAndGlowTest.create()
     local label1 = ax.Label:createWithTTF(ttfConfig,"Glow",ax.TEXT_ALIGNMENT_CENTER,s.width)
     label1:setAnchorPoint(ax.p(0.5,0.5))
     label1:setPosition(ax.p(s.width/2, s.height * 0.7))
-    label1:setTextColor( ax.c4b(0, 255, 0, 255) )
-    label1:enableGlow(ax.c4b(255, 255, 0, 255))
+    label1:setTextColor( ax.color32(0, 255, 0, 255) )
+    label1:enableGlow(ax.color32(255, 255, 0, 255))
     layer:addChild(label1)
 
     ttfConfig.outlineSize = 1
     local label2 = ax.Label:createWithTTF(ttfConfig,"Outline",ax.TEXT_ALIGNMENT_CENTER,s.width)
     label2:setPosition( ax.p(s.width/2, s.height * 0.6))
-    label2:setTextColor( ax.c4b(255, 0, 0, 255))
+    label2:setTextColor( ax.color32(255, 0, 0, 255))
     label2:setAnchorPoint(ax.p(0.5, 0.5))
-    label2:enableOutline(ax.c4b(0,0,255,255))
+    label2:enableOutline(ax.color32(0,0,255,255))
     layer:addChild(label2)
 
     ttfConfig.outlineSize = 2
     local label3 = ax.Label:createWithTTF(ttfConfig,"Outline",ax.TEXT_ALIGNMENT_CENTER,s.width)
     label3:setPosition( ax.p(s.width/2, s.height * 0.48))
-    label3:setTextColor( ax.c4b(255, 0, 0, 255))
+    label3:setTextColor( ax.color32(255, 0, 0, 255))
     label3:setAnchorPoint(ax.p(0.5, 0.5))
-    label3:enableOutline(ax.c4b(0,0,255,255))
+    label3:enableOutline(ax.color32(0,0,255,255))
     layer:addChild(label3)
 
     return layer
@@ -1287,7 +1287,7 @@ function LabelCrashTest.create()
     ttfConfig.glyphs       = ax.GLYPHCOLLECTION_DYNAMIC
     ttfConfig.customGlyphs = nil
     ttfConfig.distanceFieldEnabled = true
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local label1 = ax.Label:createWithTTF(ttfConfig,"Test崩溃123", ax.TEXT_ALIGNMENT_CENTER, s.width)
     label1:setPosition( ax.p(s.width/2, s.height/2) )
     label1:setAnchorPoint(ax.p(0.5, 0.5))
@@ -1306,9 +1306,9 @@ function LabelShadowTest.create()
     Helper.titleLabel:setString("New Label + .TTF")
     Helper.subtitleLabel:setString("Testing shadow of label")
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
 
-    local bg = ax.LayerColor:create(ax.c4b(200,191,231,255))
+    local bg = ax.LayerColor:create(ax.color32(200,191,231,255))
     layer:addChild(bg)
 
     local ttfConfig = {}
@@ -1320,21 +1320,21 @@ function LabelShadowTest.create()
 
     local shadowLabelTTF = ax.Label:createWithTTF(ttfConfig, "TTF:Shadow")
     shadowLabelTTF:setPosition(ax.p(size.width/2, size.height*0.65))
-    shadowLabelTTF:setTextColor(ax.c4b(255, 0, 0, 255))
-    shadowLabelTTF:enableShadow(ax.c4b(0, 0, 0, 255))
+    shadowLabelTTF:setTextColor(ax.color32(255, 0, 0, 255))
+    shadowLabelTTF:enableShadow(ax.color32(0, 0, 0, 255))
     layer:addChild(shadowLabelTTF)
 
     local shadowLabelOutline = ax.Label:createWithTTF(ttfConfig,"TTF:Shadow")
     shadowLabelOutline:setPosition(ax.p(size.width/2, size.height*0.5))
-    shadowLabelOutline:setTextColor(ax.c4b(255, 0, 0, 255))
-    shadowLabelOutline:enableOutline(ax.c4b(255, 255, 0, 255), 1)
-    shadowLabelOutline:enableShadow(ax.c4b(0, 0, 0, 255))
+    shadowLabelOutline:setTextColor(ax.color32(255, 0, 0, 255))
+    shadowLabelOutline:enableOutline(ax.color32(255, 255, 0, 255), 1)
+    shadowLabelOutline:enableShadow(ax.color32(0, 0, 0, 255))
     layer:addChild(shadowLabelOutline)
 
     local shadowLabelBMFont = ax.Label:createWithBMFont("fonts/bitmapFontTest.fnt", "BMFont:Shadow")
     shadowLabelBMFont:setPosition( ax.p(size.width/2, size.height*0.35) )
-    shadowLabelBMFont:setColor(ax.c3b(255, 0, 0))
-    shadowLabelBMFont:enableShadow(ax.c4b(0, 255, 0, 255))
+    shadowLabelBMFont:setColor(ax.color32(255, 0, 0))
+    shadowLabelBMFont:enableShadow(ax.color32(0, 255, 0, 255))
     layer:addChild(shadowLabelBMFont)
 
     local function sliderEvent(sender, eventType)
@@ -1342,9 +1342,9 @@ function LabelShadowTest.create()
             local  slider = layer:getChildByTag(1)
             local  slider2 = layer:getChildByTag(2)
             local offset = ax.size(slider:getPercent() - 50,50 - slider2:getPercent())
-            shadowLabelTTF:enableShadow(ax.c4b(0, 0, 0, 255),offset)
-            shadowLabelBMFont:enableShadow(ax.c4b(0, 255, 0, 255),offset)
-            shadowLabelOutline:enableShadow(ax.c4b(0, 0, 0, 255),offset)
+            shadowLabelTTF:enableShadow(ax.color32(0, 0, 0, 255),offset)
+            shadowLabelBMFont:enableShadow(ax.color32(0, 255, 0, 255),offset)
+            shadowLabelOutline:enableShadow(ax.color32(0, 0, 0, 255),offset)
         end
     end
 
@@ -1395,7 +1395,7 @@ function LabelCharMapColorTest.create()
     layer:addChild(label2, 0, kTagSprite2)
     label2:setAnchorPoint(ax.p(0.0, 0.0))
     label2:setPosition( ax.p(10, 200) )
-    label2:setColor( ax.c3b(255, 0, 0) )
+    label2:setColor( ax.color32(255, 0, 0) )
 
     local fade = ax.FadeOut:create(1.0)
     local fade_in = fade:reverse()
@@ -1445,7 +1445,7 @@ function LabelFontNameTest.create()
     Helper.titleLabel:setString("New Label Test")
     Helper.subtitleLabel:setString("create label by font name,compatible with old labelTTF")
 
-    local  size = ax.Director:getInstance():getWinSize()
+    local  size = ax.Director:getInstance():getCanvasSize()
 
     local label1 = ax.Label:create()
     label1:setString("Default Font")
@@ -1478,10 +1478,10 @@ function LabelAlignmentTest.create()
     Helper.subtitleLabel:setString("Select the buttons on the sides to change alignment")
 
     local blockSize = ax.size(200, 160)
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local pos = ax.p((s.width - blockSize.width) / 2, (s.height - blockSize.height) / 2)
-    local colorLayer = ax.LayerColor:create(ax.c4b(100, 100, 100, 255), blockSize.width, blockSize.height)
+    local colorLayer = ax.LayerColor:create(ax.color32(100, 100, 100, 255), blockSize.width, blockSize.height)
     colorLayer:setAnchorPoint(ax.p(0.0, 0.0))
     colorLayer:setPosition(pos)
 
@@ -1615,7 +1615,7 @@ function LabelIssue4428Test.create()
     Helper.subtitleLabel:setString("Reorder issue #4428.The label should be flipped vertically.")
 
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
 
     local label = ax.Label:createWithBMFont( "fonts/bitmapFontTest3.fnt", "123\n456")
     label:setPosition(ax.p(size.width /2.0, size.height / 2.0))
@@ -1644,16 +1644,16 @@ function LabelTTFOldNew.create()
     Helper.titleLabel:setString("New / Old TTF")
     Helper.subtitleLabel:setString("Comparison between old(red) and new(white) TTF label")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local delta = s.height/4
 
     local label1 = ax.Label:createWithSystemFont("Axmol Label Test", "arial", 24)
     layer:addChild(label1, 0, kTagBitmapAtlas1)
     label1:setPosition(ax.p(s.width/2, delta * 2))
-    label1:setColor(ax.c3b(255, 0, 0))
+    label1:setColor(ax.color32(255, 0, 0))
 
     local labelSize = label1:getContentSize()
-    local origin    = ax.Director:getInstance():getWinSize()
+    local origin    = ax.Director:getInstance():getCanvasSize()
     origin.width = origin.width   / 2 - (labelSize.width / 2)
     origin.height = origin.height / 2 - (labelSize.height / 2)
     local vertices =
@@ -1664,7 +1664,7 @@ function LabelTTFOldNew.create()
         ax.p(origin.width, labelSize.height + origin.height),
     }
     local drawNode = ax.DrawNode:create()
-    drawNode:drawPoly(vertices, 4, true, ax.c4f(1,0,0,1))
+    drawNode:drawPoly(vertices, 4, true, ax.color(1,0,0,1))
     layer:addChild(drawNode)
 
     local ttfConfig = {}
@@ -1675,7 +1675,7 @@ function LabelTTFOldNew.create()
     label2:setPosition(ax.p(s.width/2, delta * 2))
 
     labelSize = label2:getContentSize()
-    origin    = ax.Director:getInstance():getWinSize()
+    origin    = ax.Director:getInstance():getCanvasSize()
     origin.width = origin.width   / 2 - (labelSize.width / 2)
     origin.height = origin.height / 2 - (labelSize.height / 2)
     local vertices2 =
@@ -1686,7 +1686,7 @@ function LabelTTFOldNew.create()
         ax.p(origin.width, labelSize.height + origin.height),
     }
     local drawNode2 = ax.DrawNode:create()
-    drawNode2:drawPoly(vertices2, 4, true, ax.c4f(1,1,1,1))
+    drawNode2:drawPoly(vertices2, 4, true, ax.color(1,1,1,1))
     layer:addChild(drawNode2)
 
     return layer

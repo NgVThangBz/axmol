@@ -29,7 +29,7 @@
 #include "cocostudio/ComExtensionData.h"
 
 #include "flatbuffers/flatbuffers.h"
-#include "ui/UILayoutComponent.h"
+#include "axmol/ui/UILayoutComponent.h"
 
 using namespace ax;
 using namespace flatbuffers;
@@ -90,7 +90,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
     Vec2 position;
     Vec2 scale(1.0f, 1.0f);
     Vec2 anchorPoint;
-    Color4B color(255, 255, 255, 255);
+    Color32 color(255, 255, 255, 255);
 
     Vec2 size;
     bool flipX        = false;
@@ -258,7 +258,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -279,7 +279,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "ScaleX")
@@ -300,7 +300,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "ScaleX")
@@ -321,7 +321,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "A")
@@ -350,7 +350,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -371,7 +371,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -392,7 +392,7 @@ Offset<Table> NodeReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -451,14 +451,14 @@ void NodeReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
     bool visible        = options->visible() != 0;
     float w             = options->size()->width();
     float h             = options->size()->height();
-    int alpha           = options->alpha();
-    Color3B color(options->color()->r(), options->color()->g(), options->color()->b());
+    int alpha           = options->alpha();  // FIXME: redundant, should we use options->color()->a() instead?
+    Color32 color(options->color()->r(), options->color()->g(), options->color()->b(), alpha);
 
     // x-studio 10.0.593.0: read from .csb.
     node->setCascadeColorEnabled(options->cascadeColorEnabled());
     node->setCascadeOpacityEnabled(options->cascadeOpacityEnabled());
 
-    std::string customProperty = options->customProperty()->c_str();
+    std::string_view customProperty = options->customProperty()->c_str();
 
     node->setName(name);
 
@@ -482,8 +482,6 @@ void NodeReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
         node->setVisible(visible);
     //        if (w != 0 || h != 0)
     node->setContentSize(Size(w, h));
-    if (alpha != 255)
-        node->setOpacity(alpha);
 
     node->setColor(color);
 

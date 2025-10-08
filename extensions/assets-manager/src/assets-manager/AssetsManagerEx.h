@@ -29,9 +29,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/EventDispatcher.h"
-#include "platform/FileUtils.h"
-#include "network/Downloader.h"
+#include "axmol/base/EventDispatcher.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/network/Downloader.h"
 
 #include "EventAssetsManagerEx.h"
 
@@ -40,7 +40,6 @@
 #include "extensions/ExtensionExport.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
-
 
 struct zlib_filefunc_def_s;
 
@@ -245,7 +244,7 @@ private:
     std::shared_ptr<network::Downloader> _downloader;
 
     //! The reference to the local assets
-    const hlookup::string_map<Manifest::Asset>* _assets = nullptr;
+    const axstd::string_map<Manifest::Asset>* _assets = nullptr;
 
     //! The path to store successfully downloaded version.
     std::string _storagePath;
@@ -315,7 +314,7 @@ private:
     double _totalSize;
 
     //! Downloaded size for each file
-    hlookup::string_map<double> _downloadedSize;
+    axstd::string_map<double> _downloadedSize;
 
     //! Total number of assets to download
     int _totalToDownload = 0;
@@ -335,4 +334,3 @@ private:
 };
 
 NS_AX_EXT_END
-

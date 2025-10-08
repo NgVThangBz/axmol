@@ -30,14 +30,14 @@
 #    include "lua-bindings/manual/LuaBasicConversions.h"
 #    include "lua-bindings/manual/LuaValue.h"
 #    include "lua-bindings/manual/LuaEngine.h"
-#    include "2d/Scene.h"
+#    include "axmol/2d/Scene.h"
 
 #    ifndef AX_SAFE_DELETE_ARRAY
 #        define do                 \
             {                      \
                 if (p)             \
                 {                  \
-                    delete[](p);   \
+                    delete[] (p);  \
                     (p) = nullptr; \
                 }                  \
             }                      \
@@ -46,9 +46,9 @@
 
 int axlua_physics_PhysicsBody_getJoints(lua_State* tolua_S)
 {
-    int argc                   = 0;
-    ax::PhysicsBody* cobj = nullptr;
-    bool ok                    = true;
+    int argc             = 0;
+    ax::PhysicsBody* obj = nullptr;
+    bool ok              = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -59,12 +59,12 @@ int axlua_physics_PhysicsBody_getJoints(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsBody*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsBody*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsBody_getJoints'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsBody_getJoints'", NULL);
         return 0;
     }
 #    endif
@@ -77,7 +77,7 @@ int axlua_physics_PhysicsBody_getJoints(lua_State* tolua_S)
 
             if (!ok)
                 return 0;
-            auto& ret = cobj->getJoints();
+            auto& ret = obj->getJoints();
 
             lua_newtable(tolua_S);
 
@@ -112,8 +112,8 @@ tolua_lerror:
 
 int axlua_physics_PhysicsWorld_getScene(lua_State* tolua_S)
 {
-    int argc                    = 0;
-    ax::PhysicsWorld* cobj = nullptr;
+    int argc              = 0;
+    ax::PhysicsWorld* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -124,12 +124,12 @@ int axlua_physics_PhysicsWorld_getScene(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsWorld_getScene'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsWorld_getScene'", NULL);
         return 0;
     }
 #    endif
@@ -137,7 +137,7 @@ int axlua_physics_PhysicsWorld_getScene(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 0)
     {
-        ax::Scene& ret = cobj->getScene();
+        ax::Scene& ret = obj->getScene();
         do
         {
             auto className = getLuaTypeName<Object>(&ret, "ax.Scene");
@@ -162,9 +162,9 @@ tolua_lerror:
 
 int axlua_physics_PhysicsWorld_rayCast(lua_State* tolua_S)
 {
-    int argc                    = 0;
-    ax::PhysicsWorld* cobj = nullptr;
-    bool ok                     = true;
+    int argc              = 0;
+    ax::PhysicsWorld* obj = nullptr;
+    bool ok               = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -175,12 +175,12 @@ int axlua_physics_PhysicsWorld_rayCast(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsWorld_rayCast'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsWorld_rayCast'", NULL);
         return 0;
     }
 #    endif
@@ -195,10 +195,8 @@ int axlua_physics_PhysicsWorld_rayCast(lua_State* tolua_S)
         auto stack           = LuaEngine::getInstance()->getLuaStack();
         do
         {
-            arg0 = [handler, stack](ax::PhysicsWorld& world, const ax::PhysicsRayCastInfo& info,
-                             void* data) -> bool {
-                
-                auto Ls    = stack->getLuaState();
+            arg0 = [handler, stack](ax::PhysicsWorld& world, const ax::PhysicsRayCastInfo& info, void* data) -> bool {
+                auto Ls = stack->getLuaState();
                 tolua_pushusertype(Ls, (void*)(&world), getLuaTypeName(&world, "ax.PhysicsWorld"));
                 physics_raycastinfo_to_luaval(Ls, info);
                 return stack->executeFunctionByHandler(handler, 2);
@@ -212,7 +210,7 @@ int axlua_physics_PhysicsWorld_rayCast(lua_State* tolua_S)
             stack->removeScriptHandler(handler);
             return 0;
         }
-        cobj->rayCast(arg0, arg1, arg2, nullptr);
+        obj->rayCast(arg0, arg1, arg2, nullptr);
         stack->removeScriptHandler(handler);
         lua_settop(tolua_S, 1);
         return 1;
@@ -229,9 +227,9 @@ tolua_lerror:
 }
 int axlua_physics_PhysicsWorld_queryRect(lua_State* tolua_S)
 {
-    int argc                    = 0;
-    ax::PhysicsWorld* cobj = nullptr;
-    bool ok                     = true;
+    int argc              = 0;
+    ax::PhysicsWorld* obj = nullptr;
+    bool ok               = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -242,12 +240,12 @@ int axlua_physics_PhysicsWorld_queryRect(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsWorld_queryRect'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsWorld_queryRect'", NULL);
         return 0;
     }
 #    endif
@@ -255,17 +253,16 @@ int axlua_physics_PhysicsWorld_queryRect(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 2)
     {
-        std::function<bool(ax::PhysicsWorld&, ax::PhysicsShape&, void*)> arg0;
+        std::function<bool(ax::PhysicsWorld&, ax::PhysicsCollider&, void*)> arg0;
         ax::Rect arg1;
         LUA_FUNCTION handler = toluafix_ref_function(tolua_S, 2, 0);
         auto stack           = LuaEngine::getInstance()->getLuaStack();
         do
         {
-            arg0 = [handler,stack](ax::PhysicsWorld& world, ax::PhysicsShape& shape, void* data) -> bool {
-               
-                auto Ls    = stack->getLuaState();
+            arg0 = [handler, stack](ax::PhysicsWorld& world, ax::PhysicsCollider& shape, void* data) -> bool {
+                auto Ls = stack->getLuaState();
                 tolua_pushusertype(Ls, (void*)(&world), getLuaTypeName(&world, "ax.PhysicsWorld"));
-                toluafix_pushusertype_object(Ls, shape._ID, &shape._luaID, (void*)(&shape), "ax.PhysicsShape");
+                toluafix_pushusertype_object(Ls, shape._ID, &shape._luaID, (void*)(&shape), "ax.PhysicsCollider");
                 return stack->executeFunctionByHandler(handler, 2);
             };
         } while (0);
@@ -276,7 +273,7 @@ int axlua_physics_PhysicsWorld_queryRect(lua_State* tolua_S)
             stack->removeScriptHandler(handler);
             return 0;
         }
-        cobj->queryRect(arg0, arg1, nullptr);
+        obj->queryRect(arg0, arg1, nullptr);
         stack->removeScriptHandler(handler);
         lua_settop(tolua_S, 1);
         return 1;
@@ -294,9 +291,9 @@ tolua_lerror:
 
 int axlua_physics_PhysicsWorld_queryPoint(lua_State* tolua_S)
 {
-    int argc                    = 0;
-    ax::PhysicsWorld* cobj = nullptr;
-    bool ok                     = true;
+    int argc              = 0;
+    ax::PhysicsWorld* obj = nullptr;
+    bool ok               = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -307,12 +304,12 @@ int axlua_physics_PhysicsWorld_queryPoint(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsWorld*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsWorld_queryPoint'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsWorld_queryPoint'", NULL);
         return 0;
     }
 #    endif
@@ -320,16 +317,16 @@ int axlua_physics_PhysicsWorld_queryPoint(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 2)
     {
-        std::function<bool(ax::PhysicsWorld&, ax::PhysicsShape&, void*)> arg0;
+        std::function<bool(ax::PhysicsWorld&, ax::PhysicsCollider&, void*)> arg0;
         ax::Vec2 arg1;
         LUA_FUNCTION handler = toluafix_ref_function(tolua_S, 2, 0);
         auto stack           = LuaEngine::getInstance()->getLuaStack();
         do
         {
-            arg0 = [handler,stack](ax::PhysicsWorld& world, ax::PhysicsShape& shape, void* data) -> bool {
-                auto Ls    = stack->getLuaState();
+            arg0 = [handler, stack](ax::PhysicsWorld& world, ax::PhysicsCollider& shape, void* data) -> bool {
+                auto Ls = stack->getLuaState();
                 tolua_pushusertype(Ls, (void*)(&world), getLuaTypeName(&world, "ax.PhysicsWorld"));
-                toluafix_pushusertype_object(Ls, shape._ID, &shape._luaID, (void*)(&shape), "ax.PhysicsShape");
+                toluafix_pushusertype_object(Ls, shape._ID, &shape._luaID, (void*)(&shape), "ax.PhysicsCollider");
                 return stack->executeFunctionByHandler(handler, 2);
             };
             assert(false);
@@ -340,7 +337,7 @@ int axlua_physics_PhysicsWorld_queryPoint(lua_State* tolua_S)
             stack->removeScriptHandler(handler);
             return 0;
         }
-        cobj->queryPoint(arg0, arg1, nullptr);
+        obj->queryPoint(arg0, arg1, nullptr);
         stack->removeScriptHandler(handler);
         lua_settop(tolua_S, 1);
         return 1;
@@ -375,7 +372,7 @@ int axlua_physics_PhysicsBody_createPolygon(lua_State* tolua_S)
     if (argc == 1)
     {
         ax::Vec2* arg0 = nullptr;
-        int arg1            = 0;
+        int arg1       = 0;
         do
         {
             ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsBody:createPolygon");
@@ -756,7 +753,7 @@ tolua_lerror:
     return 0;
 }
 
-int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
+int axlua_physics_PhysicsCollider_recenterPoints(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -766,7 +763,7 @@ int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShape", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsCollider", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
@@ -778,7 +775,7 @@ int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
         int arg1 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShape:recenterPoints");
+            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsCollider:recenterPoints");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
@@ -789,7 +786,7 @@ int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
             AX_SAFE_DELETE_ARRAY(arg0);
             return 0;
         }
-        ax::PhysicsShape::recenterPoints(arg0, arg1);
+        ax::PhysicsCollider::recenterPoints(arg0, arg1);
         vec2_array_to_luaval(tolua_S, arg0, arg1);
         AX_SAFE_DELETE_ARRAY(arg0);
 
@@ -802,19 +799,19 @@ int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
         ax::Vec2 arg2;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShape:recenterPoints");
+            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsCollider:recenterPoints");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_vec2(tolua_S, 3, &arg2, "ax.PhysicsShape:recenterPoints");
+        ok &= luaval_to_vec2(tolua_S, 3, &arg2, "ax.PhysicsCollider:recenterPoints");
         if (!ok)
         {
             AX_SAFE_DELETE_ARRAY(arg0);
             return 0;
         }
-        ax::PhysicsShape::recenterPoints(arg0, arg1, arg2);
+        ax::PhysicsCollider::recenterPoints(arg0, arg1, arg2);
         vec2_array_to_luaval(tolua_S, arg0, arg1);
         AX_SAFE_DELETE_ARRAY(arg0);
         return 1;
@@ -823,12 +820,12 @@ int axlua_physics_PhysicsShape_recenterPoints(lua_State* tolua_S)
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShape_recenterPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsCollider_recenterPoints'.", &tolua_err);
 #    endif
     return 0;
 }
 
-int axlua_physics_PhysicsShape_getPolygonCenter(lua_State* tolua_S)
+int axlua_physics_PhysicsCollider_getPolygonCenter(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -838,7 +835,7 @@ int axlua_physics_PhysicsShape_getPolygonCenter(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShape", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsCollider", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
@@ -850,7 +847,7 @@ int axlua_physics_PhysicsShape_getPolygonCenter(lua_State* tolua_S)
         int arg1 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShape:getPolygonCenter");
+            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsCollider:getPolygonCenter");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
@@ -861,7 +858,7 @@ int axlua_physics_PhysicsShape_getPolygonCenter(lua_State* tolua_S)
             AX_SAFE_DELETE_ARRAY(arg0);
             return 0;
         }
-        ax::Vec2 ret = ax::PhysicsShape::getPolygonCenter(arg0, arg1);
+        ax::Vec2 ret = ax::PhysicsCollider::getPolygonCenter(arg0, arg1);
         AX_SAFE_DELETE_ARRAY(arg0);
         vec2_to_luaval(tolua_S, ret);
         return 1;
@@ -870,31 +867,31 @@ int axlua_physics_PhysicsShape_getPolygonCenter(lua_State* tolua_S)
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShape_getPolygonCenter'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsCollider_getPolygonCenter'.", &tolua_err);
 #    endif
     return 0;
 }
 
-int axlua_physics_PhysicsShapeBox_getPoints(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderBox_getPoints(lua_State* tolua_S)
 {
-    int argc                       = 0;
-    ax::PhysicsShapeBox* cobj = nullptr;
+    int argc                    = 0;
+    ax::PhysicsColliderBox* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsShapeBox", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsColliderBox", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsShapeBox*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsColliderBox*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsShapeBox_getPoints'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsColliderBox_getPoints'", NULL);
         return 0;
     }
 #    endif
@@ -903,7 +900,7 @@ int axlua_physics_PhysicsShapeBox_getPoints(lua_State* tolua_S)
     if (argc == 0)
     {
         ax::Vec2 arg0[4];
-        cobj->getPoints(arg0);
+        obj->getPoints(arg0);
         vec2_array_to_luaval(tolua_S, arg0, 4);
         return 1;
     }
@@ -912,32 +909,32 @@ int axlua_physics_PhysicsShapeBox_getPoints(lua_State* tolua_S)
 
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeBox_getPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderBox_getPoints'.", &tolua_err);
 #    endif
 
     return 0;
 }
 
-int axlua_physics_PhysicsShapePolygon_getPoints(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderPolygon_getPoints(lua_State* tolua_S)
 {
-    int argc                           = 0;
-    ax::PhysicsShapePolygon* cobj = nullptr;
+    int argc                        = 0;
+    ax::PhysicsColliderPolygon* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsShapePolygon", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsColliderPolygon", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsShapePolygon*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsColliderPolygon*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsShapePolygon_getPoints'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsColliderPolygon_getPoints'", NULL);
         return 0;
     }
 #    endif
@@ -945,9 +942,9 @@ int axlua_physics_PhysicsShapePolygon_getPoints(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 0)
     {
-        int count           = cobj->getPointsCount();
+        int count      = obj->getPointsCount();
         ax::Vec2* arg0 = new ax::Vec2[count];
-        cobj->getPoints(arg0);
+        obj->getPoints(arg0);
         vec2_array_to_luaval(tolua_S, arg0, count);
         AX_SAFE_DELETE_ARRAY(arg0);
         return 1;
@@ -957,13 +954,13 @@ int axlua_physics_PhysicsShapePolygon_getPoints(lua_State* tolua_S)
 
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapePolygon_getPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderPolygon_getPoints'.", &tolua_err);
 #    endif
 
     return 0;
 }
 
-int axlua_physics_PhysicsShapePolygon_create(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderPolygon_create(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -973,19 +970,22 @@ int axlua_physics_PhysicsShapePolygon_create(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShapePolygon", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsColliderPolygon", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
     argc = lua_gettop(tolua_S) - 1;
 
-    if (argc == 1)
+    if (argc == 2)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapePolygon:create");
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderPolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderPolygon:create");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
@@ -994,76 +994,82 @@ int axlua_physics_PhysicsShapePolygon_create(lua_State* tolua_S)
 
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapePolygon* ret = ax::PhysicsShapePolygon::create(arg0, arg1);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapePolygon>(tolua_S, "ax.PhysicsShapePolygon",
-                                                       (ax::PhysicsShapePolygon*)ret);
-        return 1;
-    }
-    if (argc == 2)
-    {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
-        do
-        {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapePolygon:create");
-            if (nullptr == arg0)
-            {
-                LUA_PRECONDITION(arg0, "Invalid Native Object");
-            }
-        } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapePolygon:create");
-        if (!ok)
-        {
-            AX_SAFE_DELETE_ARRAY(arg0);
-            return 0;
-        }
-        ax::PhysicsShapePolygon* ret = ax::PhysicsShapePolygon::create(arg0, arg1, arg2);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapePolygon>(tolua_S, "ax.PhysicsShapePolygon",
-                                                       (ax::PhysicsShapePolygon*)ret);
+        ax::PhysicsColliderPolygon* ret = ax::PhysicsColliderPolygon::create(arg0, arg1, arg2);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderPolygon>(tolua_S, "ax.PhysicsColliderPolygon",
+                                                     (ax::PhysicsColliderPolygon*)ret);
         return 1;
     }
     if (argc == 3)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
-        ax::Vec2 arg3;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapePolygon:create");
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderPolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderPolygon:create");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapePolygon:create");
-        ok &= luaval_to_vec2(tolua_S, 4, &arg3, "ax.PhysicsShapePolygon:create");
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderPolygon:create");
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapePolygon* ret = ax::PhysicsShapePolygon::create(arg0, arg1, arg2, arg3);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapePolygon>(tolua_S, "ax.PhysicsShapePolygon",
-                                                       (ax::PhysicsShapePolygon*)ret);
+        ax::PhysicsColliderPolygon* ret = ax::PhysicsColliderPolygon::create(arg0, arg1, arg2, arg3);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderPolygon>(tolua_S, "ax.PhysicsColliderPolygon",
+                                                     (ax::PhysicsColliderPolygon*)ret);
+        return 1;
+    }
+    if (argc == 4)
+    {
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
+        ax::Vec2 arg4;
+        do
+        {
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderPolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderPolygon:create");
+            if (nullptr == arg0)
+            {
+                LUA_PRECONDITION(arg0, "Invalid Native Object");
+            }
+        } while (0);
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderPolygon:create");
+        ok &= luaval_to_vec2(tolua_S, 5, &arg4, "ax.PhysicsColliderPolygon:create");
+        if (!ok)
+        {
+            AX_SAFE_DELETE_ARRAY(arg1);
+            return 0;
+        }
+        ax::PhysicsColliderPolygon* ret = ax::PhysicsColliderPolygon::create(arg0, arg1, arg2, arg3, arg4);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderPolygon>(tolua_S, "ax.PhysicsColliderPolygon",
+                                                     (ax::PhysicsColliderPolygon*)ret);
         return 1;
     }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "create", argc, 2);
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapePolygon_create'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderPolygon_create'.", &tolua_err);
 #    endif
     return 0;
 }
-int axlua_physics_PhysicsShapePolygon_calculateArea(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderPolygon_calculateArea(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -1073,7 +1079,7 @@ int axlua_physics_PhysicsShapePolygon_calculateArea(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShapePolygon", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsColliderPolygon", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
@@ -1085,7 +1091,7 @@ int axlua_physics_PhysicsShapePolygon_calculateArea(lua_State* tolua_S)
         int arg1 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapePolygon:calculateArea");
+            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsColliderPolygon:calculateArea");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
@@ -1096,7 +1102,7 @@ int axlua_physics_PhysicsShapePolygon_calculateArea(lua_State* tolua_S)
             AX_SAFE_DELETE_ARRAY(arg0);
             return 0;
         }
-        double ret = ax::PhysicsShapePolygon::calculateArea(arg0, arg1);
+        double ret = ax::PhysicsColliderPolygon::calculateArea(arg0, arg1);
         AX_SAFE_DELETE_ARRAY(arg0);
         tolua_pushnumber(tolua_S, (lua_Number)ret);
         return 1;
@@ -1105,105 +1111,31 @@ int axlua_physics_PhysicsShapePolygon_calculateArea(lua_State* tolua_S)
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapePolygon_calculateArea'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderPolygon_calculateArea'.", &tolua_err);
 #    endif
     return 0;
 }
-int axlua_physics_PhysicsShapePolygon_calculateMoment(lua_State* tolua_S)
+
+int axlua_physics_PhysicsColliderEdgeBox_getPoints(lua_State* tolua_S)
 {
-    int argc = 0;
-    bool ok  = true;
+    int argc                        = 0;
+    ax::PhysicsColliderEdgeBox* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShapePolygon", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsColliderEdgeBox", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
-    argc = lua_gettop(tolua_S) - 1;
+    obj = (ax::PhysicsColliderEdgeBox*)tolua_tousertype(tolua_S, 1, 0);
 
-    if (argc == 2)
+#    if _AX_DEBUG >= 1
+    if (!obj)
     {
-        double arg0;
-        ax::Vec2* arg1;
-        int arg2 = 0;
-        ok &= luaval_to_number(tolua_S, 2, &arg0, "ax.PhysicsShapePolygon:calculateMoment");
-        do
-        {
-            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsShapePolygon:calculateMoment");
-            if (nullptr == arg1)
-            {
-                LUA_PRECONDITION(arg1, "Invalid Native Object");
-            }
-        } while (0);
-        if (!ok)
-        {
-            AX_SAFE_DELETE_ARRAY(arg1);
-            return 0;
-        }
-        double ret = ax::PhysicsShapePolygon::calculateMoment(arg0, arg1, arg2);
-        AX_SAFE_DELETE_ARRAY(arg1);
-        tolua_pushnumber(tolua_S, (lua_Number)ret);
-        return 1;
-    }
-    if (argc == 2)
-    {
-        double arg0;
-        ax::Vec2* arg1;
-        int arg2 = 0;
-        ax::Vec2 arg3;
-        ok &= luaval_to_number(tolua_S, 2, &arg0, "ax.PhysicsShapePolygon:calculateMoment");
-        do
-        {
-            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsShapePolygon:calculateMoment");
-            if (nullptr == arg1)
-            {
-                LUA_PRECONDITION(arg1, "Invalid Native Object");
-            }
-        } while (0);
-        ok &= luaval_to_vec2(tolua_S, 4, &arg3, "ax.PhysicsShapePolygon:calculateMoment");
-        if (!ok)
-        {
-            AX_SAFE_DELETE_ARRAY(arg1);
-            return 0;
-        }
-        double ret = ax::PhysicsShapePolygon::calculateMoment(arg0, arg1, arg2, arg3);
-        AX_SAFE_DELETE_ARRAY(arg1);
-        tolua_pushnumber(tolua_S, (lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "calculateMoment", argc, 3);
-    return 0;
-#    if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapePolygon_calculateMoment'.", &tolua_err);
-#    endif
-    return 0;
-}
-
-int axlua_physics_PhysicsShapeEdgeBox_getPoints(lua_State* tolua_S)
-{
-    int argc                           = 0;
-    ax::PhysicsShapeEdgeBox* cobj = nullptr;
-
-#    if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#    endif
-
-#    if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsShapeEdgeBox", 0, &tolua_err))
-        goto tolua_lerror;
-#    endif
-
-    cobj = (ax::PhysicsShapeEdgeBox*)tolua_tousertype(tolua_S, 1, 0);
-
-#    if _AX_DEBUG >= 1
-    if (!cobj)
-    {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsShapeEdgeBox_getPoints'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsColliderEdgeBox_getPoints'", NULL);
         return 0;
     }
 #    endif
@@ -1211,9 +1143,9 @@ int axlua_physics_PhysicsShapeEdgeBox_getPoints(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 0)
     {
-        int count           = cobj->getPointsCount();
+        int count      = obj->getPointsCount();
         ax::Vec2* arg0 = new ax::Vec2[count];
-        cobj->getPoints(arg0);
+        obj->getPoints(arg0);
         vec2_array_to_luaval(tolua_S, arg0, count);
         AX_SAFE_DELETE_ARRAY(arg0);
         return 1;
@@ -1223,33 +1155,32 @@ int axlua_physics_PhysicsShapeEdgeBox_getPoints(lua_State* tolua_S)
 
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeEdgeBox_getPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderEdgeBox_getPoints'.", &tolua_err);
 #    endif
 
     return 0;
 }
 
-int axlua_physics_PhysicsShapeEdgePolygon_getPoints(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderEdgePolygon_getPoints(lua_State* tolua_S)
 {
-    int argc                               = 0;
-    ax::PhysicsShapeEdgePolygon* cobj = nullptr;
+    int argc                            = 0;
+    ax::PhysicsColliderEdgePolygon* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsShapeEdgePolygon", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsColliderEdgePolygon", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsShapeEdgePolygon*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsColliderEdgePolygon*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsShapeEdgePolygon_getPoints'",
-                    NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsColliderEdgePolygon_getPoints'", NULL);
         return 0;
     }
 #    endif
@@ -1257,9 +1188,9 @@ int axlua_physics_PhysicsShapeEdgePolygon_getPoints(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 0)
     {
-        int count           = cobj->getPointsCount();
+        int count      = obj->getPointsCount();
         ax::Vec2* arg0 = new ax::Vec2[count];
-        cobj->getPoints(arg0);
+        obj->getPoints(arg0);
         vec2_array_to_luaval(tolua_S, arg0, count);
         AX_SAFE_DELETE_ARRAY(arg0);
         return 1;
@@ -1269,32 +1200,32 @@ int axlua_physics_PhysicsShapeEdgePolygon_getPoints(lua_State* tolua_S)
 
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeEdgePolygon_getPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderEdgePolygon_getPoints'.", &tolua_err);
 #    endif
 
     return 0;
 }
 
-int axlua_physics_PhysicsShapeEdgeChain_getPoints(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderEdgeChain_getPoints(lua_State* tolua_S)
 {
-    int argc                             = 0;
-    ax::PhysicsShapeEdgeChain* cobj = nullptr;
+    int argc                          = 0;
+    ax::PhysicsColliderEdgeChain* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsShapeEdgeChain", 0, &tolua_err))
+    if (!tolua_isusertype(tolua_S, 1, "ax.PhysicsColliderEdgeChain", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::PhysicsShapeEdgeChain*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::PhysicsColliderEdgeChain*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_physics_PhysicsShapeEdgeChain_getPoints'", NULL);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_physics_PhysicsColliderEdgeChain_getPoints'", NULL);
         return 0;
     }
 #    endif
@@ -1302,9 +1233,9 @@ int axlua_physics_PhysicsShapeEdgeChain_getPoints(lua_State* tolua_S)
     argc = lua_gettop(tolua_S) - 1;
     if (argc == 0)
     {
-        int count           = cobj->getPointsCount();
+        int count      = obj->getPointsCount();
         ax::Vec2* arg0 = new ax::Vec2[count];
-        cobj->getPoints(arg0);
+        obj->getPoints(arg0);
         vec2_array_to_luaval(tolua_S, arg0, count);
         AX_SAFE_DELETE_ARRAY(arg0);
         return 1;
@@ -1314,7 +1245,7 @@ int axlua_physics_PhysicsShapeEdgeChain_getPoints(lua_State* tolua_S)
 
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeEdgeChain_getPoints'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderEdgeChain_getPoints'.", &tolua_err);
 #    endif
 
     return 0;
@@ -1337,8 +1268,7 @@ static int toaxlua_EventListenerPhysicsContact_registerScriptHandler(lua_State* 
 #    if _AX_DEBUG >= 1
     if (nullptr == self)
     {
-        tolua_error(tolua_S,
-                    "invalid 'self' in function 'toaxlua_EventListenerPhysicsContact_registerScriptHandler'\n",
+        tolua_error(tolua_S, "invalid 'self' in function 'toaxlua_EventListenerPhysicsContact_registerScriptHandler'\n",
                     nullptr);
         return 0;
     }
@@ -1430,7 +1360,7 @@ tolua_lerror:
 #    endif
 }
 
-int axlua_physics_PhysicsShapeEdgePolygon_create(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderEdgePolygon_create(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -1440,97 +1370,106 @@ int axlua_physics_PhysicsShapeEdgePolygon_create(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShapeEdgePolygon", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsColliderEdgePolygon", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
     argc = lua_gettop(tolua_S) - 1;
 
-    if (argc == 1)
-    {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        do
-        {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgePolygon:create");
-            if (nullptr == arg0)
-            {
-                LUA_PRECONDITION(arg0, "Invalid Native Object");
-            }
-        } while (0);
-        if (!ok)
-        {
-            AX_SAFE_DELETE_ARRAY(arg0);
-            return 0;
-        }
-        ax::PhysicsShapeEdgePolygon* ret = ax::PhysicsShapeEdgePolygon::create(arg0, arg1);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgePolygon>(tolua_S, "ax.PhysicsShapeEdgePolygon",
-                                                           (ax::PhysicsShapeEdgePolygon*)ret);
-        return 1;
-    }
     if (argc == 2)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgePolygon:create");
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgePolygon:create");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapeEdgePolygon:create");
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapeEdgePolygon* ret = ax::PhysicsShapeEdgePolygon::create(arg0, arg1, arg2);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgePolygon>(tolua_S, "ax.PhysicsShapeEdgePolygon",
-                                                           (ax::PhysicsShapeEdgePolygon*)ret);
+        ax::PhysicsColliderEdgePolygon* ret = ax::PhysicsColliderEdgePolygon::create(arg0, arg1, arg2);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgePolygon>(tolua_S, "ax.PhysicsColliderEdgePolygon",
+                                                         (ax::PhysicsColliderEdgePolygon*)ret);
         return 1;
     }
     if (argc == 3)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
-        double arg3;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgePolygon:create");
-            if (nullptr == arg0)
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgePolygon:create");
+            if (nullptr == arg1)
             {
-                LUA_PRECONDITION(arg0, "Invalid Native Object");
+                LUA_PRECONDITION(arg1, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapeEdgePolygon:create");
-        ok &= luaval_to_number(tolua_S, 4, &arg3, "ax.PhysicsShapeEdgePolygon:create");
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderEdgePolygon:create");
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapeEdgePolygon* ret = ax::PhysicsShapeEdgePolygon::create(arg0, arg1, arg2, arg3);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgePolygon>(tolua_S, "ax.PhysicsShapeEdgePolygon",
-                                                           (ax::PhysicsShapeEdgePolygon*)ret);
+        ax::PhysicsColliderEdgePolygon* ret = ax::PhysicsColliderEdgePolygon::create(arg0, arg1, arg2, arg3);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgePolygon>(tolua_S, "ax.PhysicsColliderEdgePolygon",
+                                                         (ax::PhysicsColliderEdgePolygon*)ret);
+        return 1;
+    }
+    if (argc == 4)
+    {
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
+        double arg4;
+        do
+        {
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgePolygon:create");
+            if (nullptr == arg1)
+            {
+                LUA_PRECONDITION(arg1, "Invalid Native Object");
+            }
+        } while (0);
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderEdgePolygon:create");
+        ok &= luaval_to_number(tolua_S, 5, &arg4, "ax.PhysicsColliderEdgePolygon:create");
+        if (!ok)
+        {
+            AX_SAFE_DELETE_ARRAY(arg1);
+            return 0;
+        }
+        ax::PhysicsColliderEdgePolygon* ret = ax::PhysicsColliderEdgePolygon::create(arg0, arg1, arg2, arg3, arg4);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgePolygon>(tolua_S, "ax.PhysicsColliderEdgePolygon",
+                                                         (ax::PhysicsColliderEdgePolygon*)ret);
         return 1;
     }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "create", argc, 2);
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeEdgePolygon_create'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderEdgePolygon_create'.", &tolua_err);
 #    endif
     return 0;
 }
 
-int axlua_physics_PhysicsShapeEdgeChain_create(lua_State* tolua_S)
+int axlua_physics_PhysicsColliderEdgeChain_create(lua_State* tolua_S)
 {
     int argc = 0;
     bool ok  = true;
@@ -1540,92 +1479,101 @@ int axlua_physics_PhysicsShapeEdgeChain_create(lua_State* tolua_S)
 #    endif
 
 #    if _AX_DEBUG >= 1
-    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsShapeEdgeChain", 0, &tolua_err))
+    if (!tolua_isusertable(tolua_S, 1, "ax.PhysicsColliderEdgeChain", 0, &tolua_err))
         goto tolua_lerror;
 #    endif
 
     argc = lua_gettop(tolua_S) - 1;
 
-    if (argc == 1)
-    {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        do
-        {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgeChain:create");
-            if (nullptr == arg0)
-            {
-                LUA_PRECONDITION(arg0, "Invalid Native Object");
-            }
-        } while (0);
-        if (!ok)
-        {
-            AX_SAFE_DELETE_ARRAY(arg0);
-            return 0;
-        }
-        ax::PhysicsShapeEdgeChain* ret = ax::PhysicsShapeEdgeChain::create(arg0, arg1);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgeChain>(tolua_S, "ax.PhysicsShapeEdgeChain",
-                                                         (ax::PhysicsShapeEdgeChain*)ret);
-        return 1;
-    }
     if (argc == 2)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgeChain:create");
-            if (nullptr == arg0)
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgeChain:create");
+            if (nullptr == arg1)
             {
-                LUA_PRECONDITION(arg0, "Invalid Native Object");
+                LUA_PRECONDITION(arg1, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapeEdgeChain:create");
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapeEdgeChain* ret = ax::PhysicsShapeEdgeChain::create(arg0, arg1, arg2);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgeChain>(tolua_S, "ax.PhysicsShapeEdgeChain",
-                                                         (ax::PhysicsShapeEdgeChain*)ret);
+        ax::PhysicsColliderEdgeChain* ret = ax::PhysicsColliderEdgeChain::create(arg0, arg1, arg2);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgeChain>(tolua_S, "ax.PhysicsColliderEdgeChain",
+                                                       (ax::PhysicsColliderEdgeChain*)ret);
         return 1;
     }
     if (argc == 3)
     {
-        ax::Vec2* arg0;
-        int arg1 = 0;
-        ax::PhysicsMaterial arg2;
-        double arg3;
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
         do
         {
-            ok = luaval_to_array_of_vec2(tolua_S, 2, &arg0, &arg1, "ax.PhysicsShapeEdgeChain:create");
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgeChain:create");
             if (nullptr == arg0)
             {
                 LUA_PRECONDITION(arg0, "Invalid Native Object");
             }
         } while (0);
-        ok &= luaval_to_physics_material(tolua_S, 3, &arg2, "ax.PhysicsShapeEdgeChain:create");
-        ok &= luaval_to_number(tolua_S, 4, &arg3, "ax.PhysicsShapeEdgeChain:create");
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderEdgeChain:create");
         if (!ok)
         {
-            AX_SAFE_DELETE_ARRAY(arg0);
+            AX_SAFE_DELETE_ARRAY(arg1);
             return 0;
         }
-        ax::PhysicsShapeEdgeChain* ret = ax::PhysicsShapeEdgeChain::create(arg0, arg1, arg2, arg3);
-        AX_SAFE_DELETE_ARRAY(arg0);
-        object_to_luaval<ax::PhysicsShapeEdgeChain>(tolua_S, "ax.PhysicsShapeEdgeChain",
-                                                         (ax::PhysicsShapeEdgeChain*)ret);
+        ax::PhysicsColliderEdgeChain* ret = ax::PhysicsColliderEdgeChain::create(arg0, arg1, arg2, arg3);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgeChain>(tolua_S, "ax.PhysicsColliderEdgeChain",
+                                                       (ax::PhysicsColliderEdgeChain*)ret);
+        return 1;
+    }
+    if (argc == 4)
+    {
+        ax::PhysicsBody* arg0;
+        ax::Vec2* arg1;
+        int arg2 = 0;
+        ax::PhysicsMaterial arg3;
+        double arg4;
+        do
+        {
+            ok &= luaval_to_object<ax::PhysicsBody>(tolua_S, 2, "ax.PhysicsBody", &arg0,
+                                                    "ax.PhysicsColliderEdgePolygon:create");
+            ok = luaval_to_array_of_vec2(tolua_S, 3, &arg1, &arg2, "ax.PhysicsColliderEdgeChain:create");
+            if (nullptr == arg0)
+            {
+                LUA_PRECONDITION(arg0, "Invalid Native Object");
+            }
+        } while (0);
+        ok &= luaval_to_physics_material(tolua_S, 4, &arg3, "ax.PhysicsColliderEdgeChain:create");
+        ok &= luaval_to_number(tolua_S, 5, &arg4, "ax.PhysicsColliderEdgeChain:create");
+        if (!ok)
+        {
+            AX_SAFE_DELETE_ARRAY(arg1);
+            return 0;
+        }
+        ax::PhysicsColliderEdgeChain* ret = ax::PhysicsColliderEdgeChain::create(arg0, arg1, arg2, arg3, arg4);
+        AX_SAFE_DELETE_ARRAY(arg1);
+        object_to_luaval<ax::PhysicsColliderEdgeChain>(tolua_S, "ax.PhysicsColliderEdgeChain",
+                                                       (ax::PhysicsColliderEdgeChain*)ret);
         return 1;
     }
     luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "create", argc, 2);
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
-    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsShapeEdgeChain_create'.", &tolua_err);
+    tolua_error(tolua_S, "#ferror in function 'axlua_physics_PhysicsColliderEdgeChain_create'.", &tolua_err);
 #    endif
     return 0;
 }
@@ -1651,83 +1599,80 @@ int register_all_ax_physics_manual(lua_State* tolua_S)
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShape");
+    lua_pushstring(tolua_S, "ax.PhysicsCollider");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "recenterPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShape_recenterPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsCollider_recenterPoints);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "getPolygonCenter");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShape_getPolygonCenter);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsCollider_getPolygonCenter);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "getPolyonCenter");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShape_getPolygonCenter);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsCollider_getPolygonCenter);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShapeBox");
+    lua_pushstring(tolua_S, "ax.PhysicsColliderBox");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "getPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeBox_getPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderBox_getPoints);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShapeEdgeBox");
+    lua_pushstring(tolua_S, "ax.PhysicsColliderEdgeBox");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "getPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeEdgeBox_getPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderEdgeBox_getPoints);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShapePolygon");
+    lua_pushstring(tolua_S, "ax.PhysicsColliderPolygon");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "getPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapePolygon_getPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderPolygon_getPoints);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "create");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapePolygon_create);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderPolygon_create);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "calculateArea");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapePolygon_calculateArea);
-        lua_rawset(tolua_S, -3);
-        lua_pushstring(tolua_S, "calculateMoment");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapePolygon_calculateMoment);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderPolygon_calculateArea);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShapeEdgePolygon");
+    lua_pushstring(tolua_S, "ax.PhysicsColliderEdgePolygon");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "getPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeEdgePolygon_getPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderEdgePolygon_getPoints);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "create");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeEdgePolygon_create);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderEdgePolygon_create);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
 
-    lua_pushstring(tolua_S, "ax.PhysicsShapeEdgeChain");
+    lua_pushstring(tolua_S, "ax.PhysicsColliderEdgeChain");
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
         lua_pushstring(tolua_S, "getPoints");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeEdgeChain_getPoints);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderEdgeChain_getPoints);
         lua_rawset(tolua_S, -3);
         lua_pushstring(tolua_S, "create");
-        lua_pushcfunction(tolua_S, axlua_physics_PhysicsShapeEdgeChain_create);
+        lua_pushcfunction(tolua_S, axlua_physics_PhysicsColliderEdgeChain_create);
         lua_rawset(tolua_S, -3);
     }
     lua_pop(tolua_S, 1);
@@ -1770,8 +1715,7 @@ int register_all_ax_physics_manual(lua_State* tolua_S)
     lua_rawget(tolua_S, LUA_REGISTRYINDEX);
     if (lua_istable(tolua_S, -1))
     {
-        tolua_function(tolua_S, "registerScriptHandler",
-                       toaxlua_EventListenerPhysicsContact_registerScriptHandler);
+        tolua_function(tolua_S, "registerScriptHandler", toaxlua_EventListenerPhysicsContact_registerScriptHandler);
     }
     lua_pop(tolua_S, 1);
 

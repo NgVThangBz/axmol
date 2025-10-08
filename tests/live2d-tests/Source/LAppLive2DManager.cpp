@@ -18,8 +18,8 @@
 #endif
 
 //cocos2d
-#include "base/Director.h"
-#include "renderer/backend/DriverBase.h"
+#include "axmol/base/Director.h"
+#include "axmol/rhi/DriverBase.h"
 
 using namespace Csm;
 using namespace LAppDefine;
@@ -74,8 +74,8 @@ LAppLive2DManager::LAppLive2DManager()
 
     CreateShader();
 
-    int width = static_cast<int>(ax::Director::getInstance()->getRenderView()->getFrameSize().width);
-    int height = static_cast<int>(ax::Director::getInstance()->getRenderView()->getFrameSize().height);
+    int width = static_cast<int>(ax::Director::getInstance()->getRenderView()->getWindowSize().width);
+    int height = static_cast<int>(ax::Director::getInstance()->getRenderView()->getWindowSize().height);
 
     // 画面全体を覆うサイズ
     _sprite = new LAppSprite(_program);
@@ -98,7 +98,7 @@ LAppLive2DManager::LAppLive2DManager()
     }
 
 #ifdef CSM_TARGET_ANDROID_ES2
-    char *exts = (char*)backend::DriverBase::getInstance()->getExtension();
+    char *exts = (char*)rhi::DriverBase::getInstance()->getExtension();
     if(strstr(exts, "GL_NV_shader_framebuffer_fetch ")){
         Rendering::CubismRenderer_Cocos2dx::SetExtShaderMode( true , true );
     }
@@ -196,7 +196,7 @@ void LAppLive2DManager::OnTap(csmFloat32 x, csmFloat32 y)
 void LAppLive2DManager::OnUpdate(Csm::Rendering::CubismCommandBuffer_Cocos2dx* commandBuffer) const
 {
     Director* director = Director::getInstance();
-    Size window = director->getWinSize();
+    Size window = director->getCanvasSize();
 
     Csm::Rendering::CubismRenderer_Cocos2dx::StartFrame(commandBuffer);
 
@@ -244,7 +244,7 @@ void LAppLive2DManager::OnUpdate(Csm::Rendering::CubismCommandBuffer_Cocos2dx* c
             Csm::Rendering::CubismCommandBuffer_Cocos2dx* lastCommandBuffer = commandBuffer;
 
             _sprite->SetColor(1.0f, 1.0f, 1.0f, 0.25f + (float)i * 0.5f);
-            _sprite->RenderImmidiate(commandBuffer, _renderBuffer->GetColorBuffer()->getBackendTexture(), uvVertex);
+            _sprite->RenderImmidiate(commandBuffer, _renderBuffer->GetColorBuffer()->getRHITexture(), uvVertex);
 
             // 元に戻す
             commandBuffer = lastCommandBuffer;

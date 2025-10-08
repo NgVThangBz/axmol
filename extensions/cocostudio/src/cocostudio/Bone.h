@@ -30,8 +30,8 @@ THE SOFTWARE.
 #include "DecorativeDisplay.h"
 #include "DisplayManager.h"
 #include "CocosStudioExport.h"
-#include "2d/Node.h"
-#include "math/Math.h"
+#include "axmol/2d/Node.h"
+#include "axmol/math/Math.h"
 
 namespace cocostudio
 {
@@ -66,7 +66,7 @@ public:
     /**
      * Initializes an empty Bone with nothing init.
      */
-    virtual bool init() override;
+    bool init() override;
 
     /**
      * Initializes a Bone with the specified name
@@ -133,16 +133,16 @@ public:
 
     void update(float delta) override;
 
-    void updateDisplayedColor(const ax::Color3B& parentColor) override;
+    void updateDisplayedColor(const ax::Color32& parentColor) override;
     void updateDisplayedOpacity(uint8_t parentOpacity) override;
 
     //! Update color to render display
-    virtual void updateColor() override;
+    void updateColor() override;
 
     //! Update zorder
     void updateZOrder();
 
-    virtual void setLocalZOrder(int zOrder) override;
+    void setLocalZOrder(int zOrder) override;
 
     Tween* getTween();
 
@@ -153,7 +153,7 @@ public:
     virtual bool isTransformDirty() { return _boneTransformDirty; }
 
     virtual ax::Mat4 getNodeToArmatureTransform() const;
-    virtual ax::Mat4 getNodeToWorldTransform() const override;
+    ax::Mat4 getNodeToWorldTransform() const override;
 
     ax::Node* getDisplayRenderNode();
     DisplayType getDisplayRenderNodeType();

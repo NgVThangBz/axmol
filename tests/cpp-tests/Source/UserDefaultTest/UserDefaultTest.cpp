@@ -30,7 +30,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
 using namespace std;
 
@@ -43,7 +43,7 @@ UserDefaultTests::UserDefaultTests()
 
 UserDefaultTest::UserDefaultTest()
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("UserDefault test Log data see console", "fonts/arial.ttf", 22);
     addChild(label, 0);
     label->setPosition(Vec2(s.width / 2, s.height - 50));

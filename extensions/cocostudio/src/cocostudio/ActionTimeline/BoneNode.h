@@ -24,16 +24,16 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "base/Protocols.h"
-#include "2d/Node.h"
-#include "renderer/CustomCommand.h"
+#include "axmol/base/Protocols.h"
+#include "axmol/2d/Node.h"
+#include "axmol/renderer/CustomCommand.h"
 #include "TimelineMacro.h"
 #include "cocostudio/CocosStudioExport.h"
 #include "SkinNode.h"
 
 namespace ax
 {
-namespace backend
+namespace rhi
 {
 class ProgramState;
 }
@@ -51,11 +51,11 @@ public:
 
     using Node::addChild;
     // add child, and add child to bone list and skeleton's sub bone map or add it to skin list
-    virtual void addChild(ax::Node* child, int localZOrder, std::string_view name) override;
-    virtual void addChild(ax::Node* child, int localZOrder, int tag) override;
+    void addChild(ax::Node* child, int localZOrder, std::string_view name) override;
+    void addChild(ax::Node* child, int localZOrder, int tag) override;
 
     // remove child, and remove child from bone list and skeleton's sub bone map or remove it from skin list
-    virtual void removeChild(Node* child, bool cleanup) override;
+    void removeChild(Node* child, bool cleanup) override;
 
     // get child bone list
     virtual const ax::Vector<BoneNode*>& getChildBones() const { return _childBones; }
@@ -110,8 +110,8 @@ public:
     ax::Vector<SkinNode*> getAllSubSkins() const;
 
     // blendFunc
-    virtual void setBlendFunc(const ax::BlendFunc& blendFunc) override;
-    virtual const ax::BlendFunc& getBlendFunc() const override { return _blendFunc; }
+    void setBlendFunc(const ax::BlendFunc& blendFunc) override;
+    const ax::BlendFunc& getBlendFunc() const override { return _blendFunc; }
 
     // debug draw show, bone's debugdraw can be draw when bone is visible
     // when bone's added to skeleton, DebugDrawEnabled controlled by skeleton's DebugDrawEnabled
@@ -127,8 +127,8 @@ public:
     virtual float getDebugDrawWidth() const { return _rackWidth; }
 
     // bone's debug draw's width
-    virtual void setDebugDrawColor(const ax::Color4F& color);
-    virtual ax::Color4F getDebugDrawColor() const { return _rackColor; }
+    virtual void setDebugDrawColor(const ax::Color& color);
+    virtual ax::Color getDebugDrawColor() const { return _rackColor; }
 
     // get bone's bounding box, depends on getVisibleSkinsRect, apply on node to parent's transform
     ax::Rect getBoundingBox() const override;
@@ -139,22 +139,22 @@ public:
     virtual ax::Rect getVisibleSkinsRect() const;
 
     // transform & draw
-    virtual void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
+    void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
 
     // set local zorder, and dirty the debugdraw to make debugdraw's render layer right
-    virtual void setLocalZOrder(int localZOrder) override;
+    void setLocalZOrder(int localZOrder) override;
 
     // set name, and replace the subbone map in skeleton
-    virtual void setName(std::string_view name) override;
+    void setName(std::string_view name) override;
 
     // set visible, and dirty the debugdraw to make debugdraw's render layer right
-    virtual void setVisible(bool visible) override;
+    void setVisible(bool visible) override;
 
     // set contentsize, and recalculate debugdraw
-    virtual void setContentSize(const ax::Size& contentSize) override;
+    void setContentSize(const ax::Size& contentSize) override;
 
     // set localzorder, and recalculate debugdraw
-    virtual void setAnchorPoint(const ax::Vec2& anchorPoint) override;
+    void setAnchorPoint(const ax::Vec2& anchorPoint) override;
 
 #ifdef AX_STUDIO_ENABLED_VIEW
     // hit test , bonePoint is in self coordinate
@@ -163,7 +163,7 @@ public:
 
     BoneNode() = default;
     virtual ~BoneNode();
-    virtual bool init() override;
+    bool init() override;
 
 protected:
     virtual void addToChildrenListHelper(Node* child);
@@ -182,21 +182,19 @@ protected:
     virtual void removeFromSkinList(SkinNode* skin);
 
     // sort all _children ,  bone list and skin list
-    virtual void sortAllChildren() override;
+    void sortAllChildren() override;
 
     virtual void updateVertices();
-    virtual void updateColor() override;
+    void updateColor() override;
 
     // bone's color and opacity cannot cascade to bone
-    virtual void updateDisplayedColor(const ax::Color3B& parentColor) override;
-    virtual void updateDisplayedOpacity(uint8_t parentOpacity) override;
-    virtual void disableCascadeOpacity() override;
-    virtual void disableCascadeColor() override;
+    void updateDisplayedColor(const ax::Color32& parentColor) override;
+    void updateDisplayedOpacity(uint8_t parentOpacity) override;
+    void disableCascadeOpacity() override;
+    void disableCascadeColor() override;
 
     // override Node::visit, just visit bones in children
-    virtual void visit(ax::Renderer* renderer,
-                       const ax::Mat4& parentTransform,
-                       uint32_t parentFlags) override;
+    void visit(ax::Renderer* renderer, const ax::Mat4& parentTransform, uint32_t parentFlags) override;
 
     // a help function for SkeletonNode
     // for batch bone's draw to _rootSkeleton
@@ -212,14 +210,14 @@ protected:
 
 protected:
     ax::CustomCommand _customCommand;
-    ax::backend::UniformLocation _mvpLocation;
+    ax::rhi::UniformLocation _mvpLocation;
 
     ax::BlendFunc _blendFunc = ax::BlendFunc::ALPHA_NON_PREMULTIPLIED;
 
-    bool _isRackShow            = false;
-    ax::Color4F _rackColor = ax::Color4F::WHITE;
-    float _rackLength           = 50.0f;
-    float _rackWidth            = 20.0f;
+    bool _isRackShow     = false;
+    ax::Color _rackColor = ax::Color::WHITE;
+    float _rackLength    = 50.0f;
+    float _rackWidth     = 20.0f;
 
     ax::Vector<BoneNode*> _childBones;
     ax::Vector<SkinNode*> _boneSkins;
@@ -228,7 +226,7 @@ protected:
 private:
     struct VertexData
     {
-        ax::Color4F squareColor;
+        ax::Color squareColor;
         ax::Vec3 noMVPVertices;
     };
 

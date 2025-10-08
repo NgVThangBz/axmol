@@ -7,16 +7,18 @@ define_property(TARGET
   FULL_DOCS "use to save depend libs of axmol lua project"
 )
 
-if(MSVC)
-  cmake_minimum_required(VERSION 3.25...4.1)
+if(WINDOWS)
+  cmake_minimum_required(VERSION 3.27...4.1)
   cmake_policy(SET CMP0141 NEW)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
-endif()
 
-if(WINDOWS)
   set(_NUGET_PACKAGE_DIR "${_AX_ROOT}/cache/packages" CACHE INTERNAL "" FORCE)
   file(TO_NATIVE_PATH ${_NUGET_PACKAGE_DIR} _NUGET_PACKAGE_DIR_N)
   set(_NUGET_PACKAGE_DIR_N "${_NUGET_PACKAGE_DIR_N}" CACHE INTERNAL "" FORCE)
+
+  if(${MSVC_VERSION} LESS 1900)
+    message(FATAL_ERROR "MSVC_VER=1900 required, your version is:${MSVC_VERSION}")
+  endif()
 endif()
 
 # UWP min deploy target support, VS property: targetPlatformMinVersion
@@ -33,27 +35,15 @@ elseif(WIN32)
   set(AX_MSEDGE_WEBVIEW2_VERSION "1.0.3485.44" CACHE STRING "")
 endif()
 
+if(ANDROID OR LINUX)
+  set(CMAKE_C_FLAGS "-fPIC ${CMAKE_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "-fPIC ${CMAKE_CXX_FLAGS}")
+endif()
+
 # config c standard
 if(WINDOWS)
-  message(STATUS "CMAKE_HOST_SYSTEM_VERSION: ${CMAKE_HOST_SYSTEM_VERSION}")
-  message(STATUS "CMAKE_SYSTEM_VERSION: ${CMAKE_SYSTEM_VERSION}")
-  message(STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
-
-  if(DEFINED CMAKE_VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION)
-    message(STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION}")
-  endif()
-
-  if(NOT CMAKE_SYSTEM_VERSION)
-    set(CMAKE_SYSTEM_VERSION ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
-  endif()
-
-  # Fix win32 llvm-clang
-  if(NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
-    set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION ${CMAKE_SYSTEM_VERSION})
-  endif()
-
   # CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION aka selected windows sdk version
-  if(${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION} VERSION_GREATER_EQUAL "10.0.22000.0")
+  if(${WINDOWS_SDK_VERSION} VERSION_GREATER_EQUAL "10.0.22000.0")
     set(CMAKE_C_STANDARD 11)
   else()
     # windows sdk < 10.0.22000.0, The c11 header stdalign.h was missing, so workaroud fallback C standard to 99
@@ -75,8 +65,8 @@ if(NOT DEFINED CMAKE_C_STANDARD_REQUIRED)
   set(CMAKE_C_STANDARD_REQUIRED ON)
 endif()
 
-# config c++ standard, minimal require c++20
-set(_AX_MIN_CXX_STD 20)
+# config c++ standard, minimal require c++23
+set(_AX_MIN_CXX_STD 23)
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD ${_AX_MIN_CXX_STD})
@@ -107,63 +97,8 @@ endif()
 # remark: The feature scan for modules was added in cmake 3.28
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-# check compiler on windows
-if(WINDOWS)
-  # not support other compile tools except MSVC for now
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message(STATUS "Using Windows clang generate axmol project, CLANG_VERSION: ${CLANG_VERSION_STRING}")
-    set(FUZZ_CLANG TRUE) # clang-cl or clang++
-
-    if(NOT MSVC)
-      set(FULL_CLANG TRUE) # clang++
-    else()
-      set(FUZZ_MSVC TRUE) # clang-cl
-    endif()
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    # Visual Studio 2015, MSVC_VERSION 1900      (v140 toolset)
-    # Visual Studio 2017, MSVC_VERSION 1910-1919 (v141 toolset)
-    set(FUZZ_MSVC TRUE)
-    set(FULL_MSVC TRUE)
-
-    if(${MSVC_VERSION} EQUAL 1900 OR ${MSVC_VERSION} GREATER 1900)
-      message(STATUS "Using Windows MSVC generate axmol project, MSVC_VERSION:${MSVC_VERSION}")
-    else()
-      message(FATAL_ERROR "Using Windows MSVC generate axmol project, MSVC_VERSION:${MSVC_VERSION} lower than needed")
-    endif()
-  else()
-    message(FATAL_ERROR "Please using Windows MSVC/LLVM-Clang compile axmol project")
-  endif()
-endif()
-
 if(EMSCRIPTEN_VERSION)
-  message(STATUS "Using emsdk generate axmol project, EMSCRIPTEN_VERSION: ${EMSCRIPTEN_VERSION}")
-endif()
-
-set(_ax_compile_options)
-
-if(FUZZ_MSVC)
-  list(APPEND _ax_compile_options /GF)
-  set(CMAKE_CXX_FLAGS "/Zc:char8_t- ${CMAKE_CXX_FLAGS}")
-else() # others
-  set(CMAKE_CXX_FLAGS "-fno-char8_t ${CMAKE_CXX_FLAGS}")
-endif()
-
-if(APPLE)
-  add_compile_options("$<$<COMPILE_LANGUAGE:OBJC>:-Werror=objc-method-access>")
-  add_compile_options("$<$<COMPILE_LANGUAGE:OBJCXX>:-Werror=objc-method-access>")
-endif()
-
-set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "Library postfix for debug builds. Normally left blank." FORCE)
-set(CMAKE_PLATFORM_NO_VERSIONED_SONAME TRUE CACHE BOOL "Disable dynamic libraries symblink." FORCE)
-
-if(ANDROID)
-  # Ensure fseeko available on ndk > 23
-  math(EXPR _ARCH_BITS "${CMAKE_SIZEOF_VOID_P} * 8")
-  add_definitions(-D_FILE_OFFSET_BITS=${_ARCH_BITS})
-
-  # set hash style to both for android old device compatible
-  # see also: https://github.com/axmolengine/axmol/discussions/614
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--hash-style=both")
+  message(STATUS "Using emsdk, version: ${EMSCRIPTEN_VERSION}")
 endif()
 
 # Set macro definitions for special platforms
@@ -173,35 +108,10 @@ function(use_ax_compile_define target)
   # !important axmol not use double precision
   # target_compile_definitions(${target} PUBLIC CP_USE_CGTYPES=0)
   # target_compile_definitions(${target} PUBLIC CP_USE_DOUBLES=0)
-  if(APPLE)
-    target_compile_definitions(${target} PUBLIC __APPLE__)
-
-    if(AX_USE_GL)
-      target_compile_definitions(${target}
-        PUBLIC AX_USE_GL=1
-        PUBLIC GL_SILENCE_DEPRECATION=1
-      )
-
-      if(NOT _AX_USE_PREBUILT)
-        target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
-      endif()
-    endif()
-  elseif(LINUX)
+  if(LINUX)
     ax_config_pred(${target} AX_ENABLE_VLC_MEDIA)
     target_compile_definitions(${target} PUBLIC _GNU_SOURCE)
-  elseif(ANDROID)
-    if(NOT _AX_USE_PREBUILT)
-      target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
-    endif()
-
-    target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
-  elseif(EMSCRIPTEN)
-    target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
   elseif(WINDOWS)
-    if(NOT _AX_USE_PREBUILT)
-      target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
-    endif()
-
     ax_config_pred(${target} AX_ENABLE_VLC_MEDIA)
     target_compile_definitions(${target}
       PUBLIC WIN32
@@ -211,13 +121,29 @@ function(use_ax_compile_define target)
       PUBLIC _UNICODE
       PUBLIC _CRT_SECURE_NO_WARNINGS
       PUBLIC _SCL_SECURE_NO_WARNINGS
-
       # PUBLIC GLAD_GLAPI_EXPORT
     )
 
     if(BUILD_SHARED_LIBS)
       target_compile_definitions(${target} PRIVATE AX_DLLEXPORT INTERFACE AX_DLLIMPORT)
     endif()
+  endif()
+
+  # render api
+  if(AX_RENDER_API STREQUAL "gl")
+    target_compile_definitions(${target} PUBLIC AX_RENDER_API=1)
+    if(APPLE)
+      target_compile_definitions(${target} PUBLIC GL_SILENCE_DEPRECATION=1)
+    endif()
+    if(AX_GLES_PROFILE)
+      target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=${AX_GLES_PROFILE})
+    else()
+      target_compile_definitions(${target} PUBLIC AX_GLES_PROFILE=0)
+    endif()
+  elseif(AX_RENDER_API STREQUAL "mtl")
+    target_compile_definitions(${target} PUBLIC AX_RENDER_API=2)
+  elseif(AX_RENDER_API STREQUAL "d3d")
+    target_compile_definitions(${target} PUBLIC AX_RENDER_API=3)
   endif()
 endfunction()
 
@@ -236,11 +162,44 @@ function(use_ax_compile_options target)
   endif()
 endfunction()
 
+# ----------- begin of axmol compile and link flags ===========
+set(_ax_compile_opts)  # list: common compile options for all languages
+set(_ax_link_opts)     # list: common link options for all languages
+set(_ax_cxx_flags)     # list: extra compile flags for C++ only
+set(_ax_c_flags)
+
+if(FUZZ_MSVC)
+  list(APPEND _ax_compile_opts /GF)
+  list(APPEND _ax_cxx_flags "/Zc:char8_t-")
+else() # others
+  list(APPEND _ax_cxx_flags "-fno-char8_t")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND _ax_compile_opts "-Wno-unknown-attributes")
+    if(NOT APPLE)
+      list(APPEND _ax_compile_opts "-Wno-deprecated-literal-operator")
+    endif()
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    list(APPEND _ax_compile_opts "-Wno-attributes")
+  else()
+    message(AUTHOR_WARNING "Unknown compiler, may not works")
+  endif()
+endif()
+
+if(APPLE)
+  list(APPEND _ax_compile_opts
+    "$<$<COMPILE_LANGUAGE:OBJC>:-Werror=objc-method-access>"
+    "$<$<COMPILE_LANGUAGE:OBJCXX>:-Werror=objc-method-access>"
+  )
+endif()
+
 if(EMSCRIPTEN)
-  # Tell emcc build port libjpeg in cache and add link flag manually to
+  # Tell emcc build port libjpeg(not in sysroot)
+  list(APPEND _ax_c_flags "-sUSE_LIBJPEG=1")
+
   # fix build fail on windows host when cmake invoking emscan-deps (raise unknown options)
-  set(_AX_EM_C_FLAGS "-sUSE_LIBJPEG=1")
-  set(_AX_EM_LD_FLAGS -ljpeg)
+  list(APPEND _ax_link_opts  "-ljpeg")
+
+  # list(APPEND _ax_link_opts "-sASSERTIONS=1")
 
   set(AX_WASM_THREADS "4" CACHE STRING "Wasm threads count")
   set(_threads_hint "")
@@ -256,23 +215,55 @@ if(EMSCRIPTEN)
 
   message(STATUS "AX_WASM_THREADS=${AX_WASM_THREADS}${_threads_hint}")
 
-  if(AX_WASM_THREADS MATCHES "^([0-9]+)$" OR AX_WASM_THREADS STREQUAL "navigator.hardwareConcurrency")
-    list(APPEND _ax_compile_options -pthread)
-    list(APPEND _AX_EM_LD_FLAGS -pthread -sPTHREAD_POOL_SIZE=${AX_WASM_THREADS})
+  if((AX_WASM_THREADS MATCHES "^([0-9]+)$" AND AX_WASM_THREADS GREATER 0) OR AX_WASM_THREADS STREQUAL "navigator.hardwareConcurrency")
+    list(APPEND _ax_compile_opts -pthread)
+    list(APPEND _ax_link_opts -pthread -sPTHREAD_POOL_SIZE=${AX_WASM_THREADS})
   endif()
 
-  set(AX_WASM_INITIAL_MEMORY "128MB" CACHE STRING "")
-  list(APPEND _AX_EM_LD_FLAGS -sINITIAL_MEMORY=${AX_WASM_INITIAL_MEMORY} -sALLOW_MEMORY_GROWTH=1)
+  option(AX_WASM_ALLOW_MEMORY_GROWTH "Allow wasm memory growth" ON)
+  if(AX_WASM_ALLOW_MEMORY_GROWTH)
+    set(AX_WASM_INITIAL_MEMORY "128MB" CACHE STRING "")
+    list(APPEND _ax_link_opts -sALLOW_MEMORY_GROWTH=1)
+  else()
+    set(AX_WASM_INITIAL_MEMORY "1024MB" CACHE STRING "")
+  endif()
 
-  # list(APPEND _AX_EM_LD_FLAGS -sALLOW_MEMORY_GROWTH=1)
-
-  # apply emcc c flags & link flags
-  string(APPEND CMAKE_C_FLAGS " ${_AX_EM_C_FLAGS}")
-  add_link_options(${_AX_EM_LD_FLAGS})
+  list(APPEND _ax_link_opts -sINITIAL_MEMORY=${AX_WASM_INITIAL_MEMORY})
 endif()
 
 # apply axmol spec compile options
-add_compile_options(${_ax_compile_options})
+if(_ax_compile_opts)
+  add_compile_options(${_ax_compile_opts})
+endif()
+
+if(_ax_link_opts)
+  add_link_options(${_ax_link_opts})
+endif()
+
+if(_ax_c_flags)
+  string(JOIN " " _ax_c_flags "${_ax_c_flags}")
+  string(APPEND CMAKE_C_FLAGS " ${_ax_c_flags}")
+endif()
+
+if(_ax_cxx_flags)
+  string(JOIN " " _ax_cxx_flags "${_ax_cxx_flags}")
+  string(APPEND CMAKE_CXX_FLAGS " ${_ax_cxx_flags}")
+endif()
+
+set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "Library postfix for debug builds. Normally left blank." FORCE)
+set(CMAKE_PLATFORM_NO_VERSIONED_SONAME TRUE CACHE BOOL "Disable dynamic libraries symblink." FORCE)
+
+if(ANDROID)
+  # Ensure fseeko available on ndk > 23
+  math(EXPR _ARCH_BITS "${CMAKE_SIZEOF_VOID_P} * 8")
+  add_definitions(-D_FILE_OFFSET_BITS=${_ARCH_BITS})
+
+  # set hash style to both for android old device compatible
+  # see also: https://github.com/axmolengine/axmol/discussions/614
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--hash-style=both")
+endif()
+
+# =========== end fo axmol compile and link flags ===========
 
 if(APPLE)
   enable_language(C CXX OBJC OBJCXX)

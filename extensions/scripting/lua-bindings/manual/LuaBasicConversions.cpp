@@ -26,7 +26,7 @@
 
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include "lua-bindings/manual/tolua_fix.h"
-#include "base/Utils.h"
+#include "axmol/base/Utils.h"
 #include <sstream>
 
 std::unordered_map<uintptr_t, const char*> g_luaType;
@@ -47,16 +47,16 @@ void luaval_to_native_err(lua_State* L, const char* msg, tolua_Error* err, const
             int narg = err->index;
             if (err->array)
                 AXLOGD("{}\n     {} argument #{} is array of '{}'; array of '{}' expected.\n", msg + 2, funcName, narg,
-                      provided, expected);
+                       provided, expected);
             else
                 AXLOGD("{}\n     {} argument #{} is '{}'; '{}' expected.\n", msg + 2, funcName, narg, provided,
-                      expected);
+                       expected);
         }
         else if (msg[1] == 'v')
         {
             if (err->array)
                 AXLOGD("{}\n     {} value is array of '{}'; array of '{}' expected.\n", funcName, msg + 2, provided,
-                      expected);
+                       expected);
             else
                 AXLOGD("{}\n     {} value is '{}'; '{}' expected.\n", msg + 2, funcName, provided, expected);
         }
@@ -83,30 +83,6 @@ bool luaval_is_usertype(lua_State* L, int lo, const char* type, int def)
     return false;
 }
 
-bool luaval_to_ushort(lua_State* L, int lo, unsigned short* outValue, const char* funcName)
-{
-    if (nullptr == L || nullptr == outValue)
-        return false;
-
-    bool ok = true;
-
-    tolua_Error tolua_err;
-    if (!tolua_isnumber(L, lo, 0, &tolua_err))
-    {
-#if _AX_DEBUG >= 1
-        luaval_to_native_err(L, "#ferror:", &tolua_err, funcName);
-#endif
-        ok = false;
-    }
-
-    if (ok)
-    {
-        *outValue = (unsigned short)tolua_tonumber(L, lo, 0);
-    }
-
-    return ok;
-}
-
 bool luaval_to_float(lua_State* L, int lo, float* outValue, const char* funcName)
 {
     if (NULL == L || NULL == outValue)
@@ -131,7 +107,7 @@ bool luaval_to_float(lua_State* L, int lo, float* outValue, const char* funcName
     return ok;
 }
 
-bool luaval_to_int32(lua_State* L, int lo, int* outValue, const char* funcName)
+bool luaval_to_integer(lua_State* L, int lo, lua_Integer* outValue, const char* funcName)
 {
     if (NULL == L || NULL == outValue)
         return false;
@@ -149,71 +125,7 @@ bool luaval_to_int32(lua_State* L, int lo, int* outValue, const char* funcName)
 
     if (ok)
     {
-        /**
-         When we want to convert the number value from the Lua to int, we would call lua_tonumber to implement.It would
-         experience two phase conversion: int -> double, double->int.But,for the 0x80000000 which the min value of int,
-         the int cast may return an undefined result,like 0x7fffffff.So we must use the (int)(unsigned
-         int)lua_tonumber() to get predictable results for 0x80000000.In this place,we didn't use lua_tointeger, because
-         it may produce different results depending on the compiler,e.g:for iPhone4s,it also get wrong value for
-         0x80000000.
-         */
-        unsigned int estimateValue = (unsigned int)lua_tonumber(L, lo);
-        if (estimateValue == std::numeric_limits<int>::min())
-        {
-            *outValue = (int)estimateValue;
-        }
-        else
-        {
-            *outValue = (int)lua_tonumber(L, lo);
-        }
-    }
-
-    return ok;
-}
-
-bool luaval_to_uint32(lua_State* L, int lo, unsigned int* outValue, const char* funcName)
-{
-    if (NULL == L || NULL == outValue)
-        return false;
-
-    bool ok = true;
-
-    tolua_Error tolua_err;
-    if (!tolua_isnumber(L, lo, 0, &tolua_err))
-    {
-#if _AX_DEBUG >= 1
-        luaval_to_native_err(L, "#ferror:", &tolua_err, funcName);
-#endif
-        ok = false;
-    }
-
-    if (ok)
-    {
-        *outValue = (unsigned int)tolua_tonumber(L, lo, 0);
-    }
-
-    return ok;
-}
-
-bool luaval_to_uint16(lua_State* L, int lo, uint16_t* outValue, const char* funcName)
-{
-    if (NULL == L || NULL == outValue)
-        return false;
-
-    bool ok = true;
-
-    tolua_Error tolua_err;
-    if (!tolua_isnumber(L, lo, 0, &tolua_err))
-    {
-#if _AX_DEBUG >= 1
-        luaval_to_native_err(L, "#ferror:", &tolua_err, funcName);
-#endif
-        ok = false;
-    }
-
-    if (ok)
-    {
-        *outValue = (unsigned char)tolua_tonumber(L, lo, 0);
+        *outValue = lua_tointeger(L, lo);
     }
 
     return ok;
@@ -491,7 +403,7 @@ bool luaval_to_blendfunc(lua_State* L, int lo, ax::BlendFunc* outValue, const ch
         lua_gettable(L, lo);
         if (!lua_isnil(L, -1))
         {
-            outValue->src = static_cast<ax::backend::BlendFactor>(lua_tointeger(L, -1));
+            outValue->src = static_cast<ax::rhi::BlendFactor>(lua_tointeger(L, -1));
         }
         lua_pop(L, 1);
 
@@ -499,7 +411,7 @@ bool luaval_to_blendfunc(lua_State* L, int lo, ax::BlendFunc* outValue, const ch
         lua_gettable(L, lo);
         if (!lua_isnil(L, -1))
         {
-            outValue->dst = static_cast<ax::backend::BlendFactor>(lua_tointeger(L, -1));
+            outValue->dst = static_cast<ax::rhi::BlendFactor>(lua_tointeger(L, -1));
         }
         lua_pop(L, 1);
     }
@@ -542,7 +454,7 @@ bool luaval_to_physics_material(lua_State* L, int lo, PhysicsMaterial* outValue,
     }
     return ok;
 }
-#endif  //#if defined(AX_ENABLE_PHYSICS)
+#endif  // #if defined(AX_ENABLE_PHYSICS)
 
 bool luaval_to_ssize_t(lua_State* L, int lo, ssize_t* outValue, const char* funcName)
 {
@@ -666,7 +578,7 @@ bool luaval_to_rect(lua_State* L, int lo, Rect* outValue, const char* funcName)
     return ok;
 }
 
-bool luaval_to_color4b(lua_State* L, int lo, Color4B* outValue, const char* funcName)
+bool luaval_to_color32(lua_State* L, int lo, Color32* outValue, const char* funcName)
 {
     if (NULL == L || NULL == outValue)
         return false;
@@ -708,7 +620,7 @@ bool luaval_to_color4b(lua_State* L, int lo, Color4B* outValue, const char* func
     return ok;
 }
 
-bool luaval_to_color4f(lua_State* L, int lo, Color4F* outValue, const char* funcName)
+bool luaval_to_color(lua_State* L, int lo, ax::Color* outValue, const char* funcName)
 {
     if (NULL == L || NULL == outValue)
         return false;
@@ -744,43 +656,6 @@ bool luaval_to_color4f(lua_State* L, int lo, Color4F* outValue, const char* func
         lua_pushstring(L, "a");
         lua_gettable(L, lo);
         outValue->a = lua_isnil(L, -1) ? 0.0f : (float)lua_tonumber(L, -1);
-        lua_pop(L, 1);
-    }
-
-    return ok;
-}
-
-bool luaval_to_color3b(lua_State* L, int lo, Color3B* outValue, const char* funcName)
-{
-    if (NULL == L || NULL == outValue)
-        return false;
-
-    bool ok = true;
-
-    tolua_Error tolua_err;
-    if (!tolua_istable(L, lo, 0, &tolua_err))
-    {
-#if _AX_DEBUG >= 1
-        luaval_to_native_err(L, "#ferror:", &tolua_err, funcName);
-#endif
-        ok = false;
-    }
-
-    if (ok)
-    {
-        lua_pushstring(L, "r");
-        lua_gettable(L, lo);
-        outValue->r = lua_isnil(L, -1) ? 0 : static_cast<uint8_t>(lua_tonumber(L, -1));
-        lua_pop(L, 1);
-
-        lua_pushstring(L, "g");
-        lua_gettable(L, lo);
-        outValue->g = lua_isnil(L, -1) ? 0 : static_cast<uint8_t>(lua_tonumber(L, -1));
-        lua_pop(L, 1);
-
-        lua_pushstring(L, "b");
-        lua_gettable(L, lo);
-        outValue->b = lua_isnil(L, -1) ? 0 : static_cast<uint8_t>(lua_tonumber(L, -1));
         lua_pop(L, 1);
     }
 
@@ -896,7 +771,7 @@ bool luaval_to_fontdefinition(lua_State* L, int lo, FontDefinition* outValue, co
         outValue->_stroke._strokeEnabled = false;
 
         // white text by default
-        outValue->_fontFillColor = Color3B::WHITE;
+        outValue->_fontFillColor = Color32::WHITE;
 
         lua_pushstring(L, "fontName");
         lua_gettable(L, lo);
@@ -922,7 +797,7 @@ bool luaval_to_fontdefinition(lua_State* L, int lo, FontDefinition* outValue, co
         lua_gettable(L, lo);
         if (!lua_isnil(L, -1))
         {
-            luaval_to_color3b(L, lua_gettop(L), &outValue->_fontFillColor);
+            luaval_to_color32(L, lua_gettop(L), &outValue->_fontFillColor);
         }
         lua_pop(L, 1);
 
@@ -982,13 +857,13 @@ bool luaval_to_fontdefinition(lua_State* L, int lo, FontDefinition* outValue, co
             {
                 // default stroke values
                 outValue->_stroke._strokeSize  = 1;
-                outValue->_stroke._strokeColor = Color3B::BLUE;
+                outValue->_stroke._strokeColor = Color32::BLUE;
 
                 lua_pushstring(L, "strokeColor");
                 lua_gettable(L, lo);
                 if (!lua_isnil(L, -1))
                 {
-                    luaval_to_color3b(L, lua_gettop(L), &outValue->_stroke._strokeColor);
+                    luaval_to_color32(L, lua_gettop(L), &outValue->_stroke._strokeColor);
                 }
                 lua_pop(L, 1);
 
@@ -1682,7 +1557,7 @@ bool luaval_to_mesh_vertex_attrib(lua_State* L, int lo, ax::MeshVertexAttrib* re
 
         lua_pushstring(L, "type"); /* L: paramStack key */
         lua_gettable(L, lo);       /* L: paramStack paramStack[lo][key] */
-        ret->type = (backend::VertexFormat)(int)lua_tonumber(L, -1);
+        ret->type = (rhi::VertexFormat)(int)lua_tonumber(L, -1);
         lua_pop(L, 1);
 
         lua_pushstring(L, "vertexAttrib"); /* L: paramStack key */
@@ -1833,22 +1708,22 @@ bool luaval_to_texparams(lua_State* L, int lo, ax::Texture2D::TexParams* outValu
     {
         lua_pushstring(L, "minFilter");
         lua_gettable(L, lo);
-        outValue->minFilter = static_cast<backend::SamplerFilter>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
+        outValue->minFilter = static_cast<rhi::SamplerFilter>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
         lua_pop(L, 1);
 
         lua_pushstring(L, "magFilter");
         lua_gettable(L, lo);
-        outValue->magFilter = static_cast<backend::SamplerFilter>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
+        outValue->magFilter = static_cast<rhi::SamplerFilter>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
         lua_pop(L, 1);
 
         lua_pushstring(L, "wrapS");
         lua_gettable(L, lo);
-        outValue->sAddressMode = static_cast<backend::SamplerAddressMode>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
+        outValue->sAddressMode = static_cast<rhi::SamplerAddressMode>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
         lua_pop(L, 1);
 
         lua_pushstring(L, "wrapT");
         lua_gettable(L, lo);
-        outValue->tAddressMode = static_cast<backend::SamplerAddressMode>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
+        outValue->tAddressMode = static_cast<rhi::SamplerAddressMode>(lua_isnil(L, -1) ? 0 : lua_tointeger(L, -1));
         lua_pop(L, 1);
     }
     return ok;
@@ -1885,7 +1760,7 @@ bool luaval_to_tex2f(lua_State* L, int lo, ax::Tex2F* outValue, const char* func
     return ok;
 }
 
-bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, const char* funcName)
+bool luaval_to_v3f_c4f_t2f(lua_State* L, int lo, ax::V3F_T2F_C4F* outValue, const char* funcName)
 {
     if (nullptr == L || nullptr == outValue)
         return false;
@@ -1903,7 +1778,7 @@ bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, cons
 
     if (ok)
     {
-        lua_pushstring(L, "vertices");
+        lua_pushstring(L, "position");
         lua_gettable(L, lo);
         if (!tolua_istable(L, lua_gettop(L), 0, &tolua_err))
         {
@@ -1911,7 +1786,7 @@ bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, cons
             return false;
         }
 
-        ok &= luaval_to_vec3(L, lua_gettop(L), &outValue->vertices);
+        ok &= luaval_to_vec3(L, lua_gettop(L), &outValue->position);
         if (!ok)
         {
             lua_pop(L, 1);
@@ -1919,14 +1794,14 @@ bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, cons
         }
         lua_pop(L, 1);
 
-        lua_pushstring(L, "colors");
+        lua_pushstring(L, "color");
         lua_gettable(L, lo);
         if (!tolua_istable(L, lua_gettop(L), 0, &tolua_err))
         {
             lua_pop(L, 1);
             return false;
         }
-        ok &= luaval_to_color4b(L, lua_gettop(L), &outValue->colors);
+        ok &= luaval_to_color(L, lua_gettop(L), &outValue->color);
         if (!ok)
         {
             lua_pop(L, 1);
@@ -1934,14 +1809,14 @@ bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, cons
         }
         lua_pop(L, 1);
 
-        lua_pushstring(L, "texCoords");
+        lua_pushstring(L, "texCoord");
         lua_gettable(L, lo);
         if (!tolua_istable(L, lua_gettop(L), 0, &tolua_err))
         {
             lua_pop(L, 1);
             return false;
         }
-        ok &= luaval_to_tex2f(L, lua_gettop(L), &outValue->texCoords);
+        ok &= luaval_to_tex2f(L, lua_gettop(L), &outValue->texCoord);
         if (!ok)
         {
             lua_pop(L, 1);
@@ -2038,10 +1913,7 @@ bool luaval_to_std_vector_vec3(lua_State* L, int lo, std::vector<ax::Vec3>* ret,
     return ok;
 }
 
-bool luaval_to_std_vector_v3f_c4b_t2f(lua_State* L,
-                                      int lo,
-                                      std::vector<ax::V3F_C4B_T2F>* ret,
-                                      const char* funcName)
+bool luaval_to_std_vector_v3f_c4b_t2f(lua_State* L, int lo, std::vector<ax::V3F_T2F_C4F>* ret, const char* funcName)
 {
     if (nullptr == L || nullptr == ret || lua_gettop(L) < lo)
         return false;
@@ -2060,14 +1932,14 @@ bool luaval_to_std_vector_v3f_c4b_t2f(lua_State* L,
     if (ok)
     {
         size_t len = lua_objlen(L, lo);
-        ax::V3F_C4B_T2F value;
+        ax::V3F_T2F_C4F value;
         for (size_t i = 0; i < len; i++)
         {
             lua_pushnumber(L, i + 1);
             lua_gettable(L, lo);
             if (lua_istable(L, lua_gettop(L)))
             {
-                ok &= luaval_to_v3f_c4b_t2f(L, lua_gettop(L), &value);
+                ok &= luaval_to_v3f_c4f_t2f(L, lua_gettop(L), &value);
                 if (ok)
                 {
                     ret->emplace_back(value);
@@ -2075,7 +1947,7 @@ bool luaval_to_std_vector_v3f_c4b_t2f(lua_State* L,
             }
             else
             {
-                AXASSERT(false, "V3F_C4B_T2F type is needed");
+                AXASSERT(false, "V3F_T2F_C4F type is needed");
             }
             lua_pop(L, 1);
         }
@@ -2280,7 +2152,7 @@ void physics_raycastinfo_to_luaval(lua_State* L, const PhysicsRayCastInfo& info)
     lua_newtable(L); /* L: table */
 
     lua_pushstring(L, "shape"); /* L: table key */
-    PhysicsShape* shape = info.shape;
+    PhysicsCollider* shape = info.shape;
     if (shape == nullptr)
     {
         lua_pushnil(L);
@@ -2289,7 +2161,7 @@ void physics_raycastinfo_to_luaval(lua_State* L, const PhysicsRayCastInfo& info)
     {
         int ID     = (int)(shape->_ID);
         int* luaID = &(shape->_luaID);
-        toluafix_pushusertype_object(L, ID, luaID, (void*)shape, "ax.PhysicsShape");
+        toluafix_pushusertype_object(L, ID, luaID, (void*)shape, "ax.PhysicsCollider");
     }
     lua_rawset(L, -3); /* table[key] = value, L: table */
 
@@ -2333,7 +2205,7 @@ void physics_contactdata_to_luaval(lua_State* L, const PhysicsContactData* data)
     lua_pushnumber(L, data->POINT_MAX);
     lua_rawset(L, -3);
 }
-#endif  //#if defined(AX_ENABLE_PHYSICS)
+#endif  // #if defined(AX_ENABLE_PHYSICS)
 
 void size_to_luaval(lua_State* L, const Size& sz)
 {
@@ -2367,63 +2239,48 @@ void rect_to_luaval(lua_State* L, const Rect& rt)
     lua_rawset(L, -3);                             /* table[key] = value, L: table */
 }
 
-void color4b_to_luaval(lua_State* L, const Color4B& color)
+void color32_to_luaval(lua_State* L, const Color32& color)
 {
     if (NULL == L)
         return;
-    lua_newtable(L);                     /* L: table */
-    lua_pushstring(L, "r");              /* L: table key */
+    lua_newtable(L);                        /* L: table */
+    lua_pushstring(L, "r");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.r); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "g");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "g");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.g); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "b");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "b");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.b); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "a");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "a");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.a); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
 }
 
-void color4f_to_luaval(lua_State* L, const Color4F& color)
+void color_to_luaval(lua_State* L, const ax::Color& color)
 {
     if (NULL == L)
         return;
-    lua_newtable(L);                     /* L: table */
-    lua_pushstring(L, "r");              /* L: table key */
+    lua_newtable(L);                        /* L: table */
+    lua_pushstring(L, "r");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.r); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "g");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "g");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.g); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "b");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "b");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.b); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "a");              /* L: table key */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
+    lua_pushstring(L, "a");                 /* L: table key */
     lua_pushnumber(L, (lua_Number)color.a); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
+    lua_rawset(L, -3);                      /* table[key] = value, L: table */
 }
 
-void std_thread_id_to_luaval(lua_State* L, const std::thread::id& value) {
+void std_thread_id_to_luaval(lua_State* L, const std::thread::id& value)
+{
     auto threadHash = std::hash<std::thread::id>{}(value);
     lua_pushinteger(L, threadHash);
-}
-
-void color3b_to_luaval(lua_State* L, const Color3B& color)
-{
-    if (NULL == L)
-        return;
-    lua_newtable(L);                     /* L: table */
-    lua_pushstring(L, "r");              /* L: table key */
-    lua_pushnumber(L, (lua_Number)color.r); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "g");              /* L: table key */
-    lua_pushnumber(L, (lua_Number)color.g); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
-    lua_pushstring(L, "b");              /* L: table key */
-    lua_pushnumber(L, (lua_Number)color.b); /* L: table key value*/
-    lua_rawset(L, -3);                   /* table[key] = value, L: table */
 }
 
 void affinetransform_to_luaval(lua_State* L, const AffineTransform& inValue)
@@ -2471,7 +2328,7 @@ void fontdefinition_to_luaval(lua_State* L, const FontDefinition& inValue)
     lua_pushnumber(L, (lua_Number)inValue._vertAlignment); /* L: table key value*/
     lua_rawset(L, -3);                                     /* table[key] = value, L: table */
     lua_pushstring(L, "fontFillColor");                    /* L: table key */
-    color3b_to_luaval(L, inValue._fontFillColor);          /* L: table key value*/
+    color32_to_luaval(L, inValue._fontFillColor);          /* L: table key value*/
     lua_rawset(L, -3);                                     /* table[key] = value, L: table */
     lua_pushstring(L, "fontDimensions");                   /* L: table key */
     size_to_luaval(L, inValue._dimensions);                /* L: table key value*/
@@ -2500,7 +2357,7 @@ void fontdefinition_to_luaval(lua_State* L, const FontDefinition& inValue)
     lua_rawset(L, -3);                                  /* table[key] = value, L: table */
 
     lua_pushstring(L, "strokeColor");                   /* L: table key */
-    color3b_to_luaval(L, inValue._stroke._strokeColor); /* L: table key value*/
+    color32_to_luaval(L, inValue._stroke._strokeColor); /* L: table key value*/
     lua_rawset(L, -3);                                  /* table[key] = value, L: table */
 
     lua_pushstring(L, "strokeSize");                            /* L: table key */
@@ -2980,7 +2837,7 @@ void std_map_string_string_to_luaval(lua_State* L, const std::map<std::string, s
     }
 }
 
-bool luaval_to_std_map_string_string(lua_State* L, int lo, hlookup::string_map<std::string>* ret, const char* funcName)
+bool luaval_to_std_map_string_string(lua_State* L, int lo, axstd::string_map<std::string>* ret, const char* funcName)
 {
     if (nullptr == L || nullptr == ret || lua_gettop(L) < lo)
         return false;
@@ -3031,13 +2888,13 @@ void node_to_luaval(lua_State* L, const char* type, ax::Node* node)
     object_to_luaval<ax::Node>(L, type, node);
 }
 
-bool luaval_to_vertexLayout(lua_State* L, int pos, ax::backend::VertexLayout& outLayout, const char* message)
+bool luaval_to_vertexLayout(lua_State* L, int pos, ax::rhi::VertexLayout& outLayout, const char* message)
 {
     if (L == nullptr)
         return false;
 
-    ax::backend::VertexLayout* tmp = nullptr;
-    auto ret = luaval_to_object<ax::backend::VertexLayout>(L, pos, "ax.VertexLayout", &tmp, message);
+    ax::rhi::VertexLayout* tmp = nullptr;
+    auto ret                   = luaval_to_object<ax::rhi::VertexLayout>(L, pos, "ax.VertexLayout", &tmp, message);
     if (!tmp)
     {
         return false;
@@ -3046,10 +2903,7 @@ bool luaval_to_vertexLayout(lua_State* L, int pos, ax::backend::VertexLayout& ou
     return ret;
 }
 
-bool luaval_to_samplerDescriptor(lua_State* L,
-                                 int pos,
-                                 ax::backend::SamplerDescriptor& output,
-                                 const char* message)
+bool luaval_to_samplerDesc(lua_State* L, int pos, ax::rhi::SamplerDesc& output, const char* message)
 {
     if (L == nullptr)
         return false;
@@ -3058,7 +2912,7 @@ bool luaval_to_samplerDescriptor(lua_State* L,
     lua_gettable(L, pos);
     if (!lua_isnil(L, -1))
     {
-        output.magFilter = static_cast<ax::backend::SamplerFilter>(lua_tointeger(L, -1));
+        output.magFilter = static_cast<ax::rhi::SamplerFilter>(lua_tointeger(L, -1));
     }
     lua_pop(L, 1);
 
@@ -3066,7 +2920,7 @@ bool luaval_to_samplerDescriptor(lua_State* L,
     lua_gettable(L, pos);
     if (!lua_isnil(L, -1))
     {
-        output.minFilter = static_cast<ax::backend::SamplerFilter>(lua_tointeger(L, -1));
+        output.minFilter = static_cast<ax::rhi::SamplerFilter>(lua_tointeger(L, -1));
     }
     lua_pop(L, 1);
 
@@ -3074,7 +2928,7 @@ bool luaval_to_samplerDescriptor(lua_State* L,
     lua_gettable(L, pos);
     if (!lua_isnil(L, -1))
     {
-        output.sAddressMode = static_cast<ax::backend::SamplerAddressMode>(lua_tointeger(L, -1));
+        output.sAddressMode = static_cast<ax::rhi::SamplerAddressMode>(lua_tointeger(L, -1));
     }
     lua_pop(L, 1);
 
@@ -3082,20 +2936,20 @@ bool luaval_to_samplerDescriptor(lua_State* L,
     lua_gettable(L, pos);
     if (!lua_isnil(L, -1))
     {
-        output.tAddressMode = static_cast<ax::backend::SamplerAddressMode>(lua_tointeger(L, -1));
+        output.tAddressMode = static_cast<ax::rhi::SamplerAddressMode>(lua_tointeger(L, -1));
     }
     lua_pop(L, 1);
 
     return true;
 }
 
-bool luaval_to_stageUniformLocation(lua_State* L, int pos, ax::backend::StageUniformLocation& loc, const char* message)
+bool luaval_to_stageUniformLocation(lua_State* L, int pos, ax::rhi::StageUniformLocation& loc, const char* message)
 {
     if (L == nullptr)
         return false;
 
     if (pos < 0)
-        pos -= 1; // since we'll be pushing keys for table access
+        pos -= 1;  // since we'll be pushing keys for table access
 
     lua_pushstring(L, "location");
     lua_gettable(L, pos);
@@ -3118,7 +2972,7 @@ bool luaval_to_stageUniformLocation(lua_State* L, int pos, ax::backend::StageUni
     return true;
 }
 
-void stageUniformLocation_to_luaval(lua_State* L, const ax::backend::StageUniformLocation& loc)
+void stageUniformLocation_to_luaval(lua_State* L, const ax::rhi::StageUniformLocation& loc)
 {
     if (L == nullptr)
         return;
@@ -3134,7 +2988,7 @@ void stageUniformLocation_to_luaval(lua_State* L, const ax::backend::StageUnifor
     lua_rawset(L, -3);
 }
 
-bool luaval_to_uniformLocation(lua_State* L, int pos, ax::backend::UniformLocation& loc, const char* message)
+bool luaval_to_uniformLocation(lua_State* L, int pos, ax::rhi::UniformLocation& loc, const char* message)
 {
     if (L == nullptr)
         return false;
@@ -3145,7 +2999,7 @@ bool luaval_to_uniformLocation(lua_State* L, int pos, ax::backend::UniformLocati
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }
-    luaval_to_stageUniformLocation(L, -1, loc.vertStage, "");
+    luaval_to_stageUniformLocation(L, -1, loc.stages[1], "");
     lua_pop(L, 1);
 
     lua_pushstring(L, "fragStage");
@@ -3154,13 +3008,13 @@ bool luaval_to_uniformLocation(lua_State* L, int pos, ax::backend::UniformLocati
     {
         AXASSERT(false, "invalidate UniformLocation value");
     }
-    luaval_to_stageUniformLocation(L, -1, loc.fragStage, "");
+    luaval_to_stageUniformLocation(L, -1, loc.stages[0], "");
     lua_pop(L, 1);
 
     return true;
 }
 
-void uniformLocation_to_luaval(lua_State* L, const ax::backend::UniformLocation& loc)
+void uniformLocation_to_luaval(lua_State* L, const ax::rhi::UniformLocation& loc)
 {
     if (L == nullptr)
         return;
@@ -3168,15 +3022,15 @@ void uniformLocation_to_luaval(lua_State* L, const ax::backend::UniformLocation&
     lua_newtable(L);
 
     lua_pushstring(L, "vertStage");
-    stageUniformLocation_to_luaval(L, loc.vertStage);
+    stageUniformLocation_to_luaval(L, loc.stages[1]);
     lua_rawset(L, -3);
 
     lua_pushstring(L, "fragStage");
-    stageUniformLocation_to_luaval(L, loc.fragStage);
+    stageUniformLocation_to_luaval(L, loc.stages[0]);
     lua_rawset(L, -3);
 }
 
-void program_activeattrs_to_luaval(lua_State* L, const hlookup::string_map<ax::backend::AttributeBindInfo>& attrs)
+void program_activeattrs_to_luaval(lua_State* L, const axstd::string_map<ax::rhi::VertexInputDesc>& attrs)
 {
     if (L == nullptr)
         return;
@@ -3189,7 +3043,7 @@ void program_activeattrs_to_luaval(lua_State* L, const hlookup::string_map<ax::b
             continue;
 
         lua_newtable(L);
-        lua_pushstring(L, "attributeName");
+        lua_pushstring(L, "varName");
         lua_pushstring(L, p.first.c_str());
         lua_rawset(L, -3);
 
@@ -3197,12 +3051,12 @@ void program_activeattrs_to_luaval(lua_State* L, const hlookup::string_map<ax::b
         lua_pushinteger(L, p.second.location);
         lua_rawset(L, -3);
 
-        lua_pushstring(L, "size");
-        lua_pushinteger(L, p.second.size);
+        lua_pushstring(L, "count");
+        lua_pushinteger(L, p.second.count);
         lua_rawset(L, -3);
 
-        lua_pushstring(L, "type");
-        lua_pushinteger(L, p.second.type);
+        lua_pushstring(L, "format");
+        lua_pushinteger(L, p.second.format);
         lua_rawset(L, -3);
 
         lua_pushstring(L, p.first.c_str());

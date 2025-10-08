@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "2d/SpriteFrameCache.h"
+#include "axmol/2d/SpriteFrameCache.h"
 
 #include "ArmatureDataManager.h"
 #include "TransformHelp.h"
@@ -188,7 +188,9 @@ void ArmatureDataManager::addArmatureFileInfo(std::string_view configFilePath)
     DataReaderHelper::getInstance()->addDataFromFile(configFilePath);
 }
 
-void ArmatureDataManager::addArmatureFileInfoAsync(std::string_view configFilePath, Object* target, SEL_SCHEDULE selector)
+void ArmatureDataManager::addArmatureFileInfoAsync(std::string_view configFilePath,
+                                                   Object* target,
+                                                   SEL_SCHEDULE selector)
 {
     addRelativeData(configFilePath);
 

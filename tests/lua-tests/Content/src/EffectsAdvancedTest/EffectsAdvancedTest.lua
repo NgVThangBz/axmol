@@ -54,7 +54,7 @@ local function Effect1()
     --     Lens3D is Grid3D and it's size is (15,10)
     --     Waves3D is Grid3D and it's size is (15,10)
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
     local  lens = ax.Lens3D:create(0.0, ax.size(15,10), ax.p(size.width/2,size.height/2), 240)
     local  waves = ax.Waves3D:create(10, ax.size(15,10), 18, 15)
 
@@ -220,7 +220,7 @@ local function Issue631()
     ret:removeChild(bg, true)
 
     -- background
-    local  layer = ax.LayerColor:create( ax.c4b(255,0,0,255) )
+    local  layer = ax.LayerColor:create( ax.color32(255,0,0,255) )
     ret:addChild(layer, -10)
     local  sprite = ax.Sprite:create("Images/grossini.png")
     sprite:setPosition( ax.p(50,80) )
@@ -228,7 +228,7 @@ local function Issue631()
 
     -- foreground
     local  layer2BaseGrid = ax.NodeGrid:create()
-    local  layer2 = ax.LayerColor:create(ax.c4b( 0, 255,0,255 ) )
+    local  layer2 = ax.LayerColor:create(ax.color32( 0, 255,0,255 ) )
     local  fog = ax.Sprite:create("Images/Fog.png")
 
     --local bf = BlendFunc()

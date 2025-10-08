@@ -23,11 +23,11 @@ THE SOFTWARE.
 ****************************************************************************/
 #include "SkeletonNode.h"
 
-#include "base/Director.h"
-#include "math/TransformUtils.h"
-#include "renderer/Renderer.h"
-#include "renderer/Shaders.h"
-#include "base/Utils.h"
+#include "axmol/base/Director.h"
+#include "axmol/math/TransformUtils.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/base/Utils.h"
 #include <stack>
 
 NS_TIMELINE_BEGIN
@@ -50,11 +50,9 @@ bool SkeletonNode::init()
     updateVertices();
 
     // init _customCommand
-    auto& pipelineDescriptor = _customCommand.getPipelineDescriptor();
-    auto* program =
-        ax::backend::Program::getBuiltinProgram(ax::backend::ProgramType::POSITION_COLOR);  // TODO: noMVP?
-    setProgramState(new ax::backend::ProgramState(program), true);
-    pipelineDescriptor.programState = _programState;
+    auto* program = axpm->getBuiltinProgram(ax::rhi::ProgramType::POSITION_COLOR);  // TODO: noMVP?
+    setProgramState(new ax::rhi::ProgramState(program), true);
+    _customCommand.setWeakPSVL(_programState, _vertexLayout);
 
     _mvpLocation = _programState->getUniformLocation("u_MVPMatrix");
 
@@ -65,7 +63,7 @@ bool SkeletonNode::init()
     _customCommand.updateIndexBuffer(indices, sizeof(indices));
 
     // init _batchBoneCommand
-    _batchBoneCommand.getPipelineDescriptor().programState = _programState;
+    _batchBoneCommand.setWeakPSVL(_programState, _vertexLayout);
 
     _rootSkeleton = this;
     return true;
@@ -74,9 +72,9 @@ bool SkeletonNode::init()
 ax::Rect SkeletonNode::getBoundingBox() const
 {
     float minx, miny, maxx, maxy = 0;
-    minx = miny = maxx        = maxy;
+    minx = miny = maxx   = maxy;
     ax::Rect boundingBox = getVisibleSkinsRect();
-    bool first                = true;
+    bool first           = true;
     if (!boundingBox.equals(ax::Rect::ZERO))
     {
         minx  = boundingBox.getMinX();
@@ -89,7 +87,7 @@ ax::Rect SkeletonNode::getBoundingBox() const
     for (const auto& bone : allbones)
     {
         ax::Rect r = RectApplyAffineTransform(bone->getVisibleSkinsRect(),
-                                                   bone->getNodeToParentAffineTransform(bone->getRootSkeletonNode()));
+                                              bone->getNodeToParentAffineTransform(bone->getRootSkeletonNode()));
         if (r.equals(ax::Rect::ZERO))
             continue;
 
@@ -282,7 +280,7 @@ void SkeletonNode::batchDrawAllSubBones()
 #endif  // AX_STUDIO_ENABLED_VIEW
 }
 
-void SkeletonNode::changeSkins(const hlookup::string_map<std::string>& boneSkinNameMap)
+void SkeletonNode::changeSkins(const axstd::string_map<std::string>& boneSkinNameMap)
 {
     for (auto&& boneskin : boneSkinNameMap)
     {
@@ -316,7 +314,7 @@ const ax::StringMap<BoneNode*>& SkeletonNode::getAllSubBonesMap() const
     return _subBonesMap;
 }
 
-void SkeletonNode::addSkinGroup(std::string_view groupName, hlookup::string_map<std::string> boneSkinNameMap)
+void SkeletonNode::addSkinGroup(std::string_view groupName, axstd::string_map<std::string> boneSkinNameMap)
 {
     _skinGroupMap.emplace(groupName, std::move(boneSkinNameMap));
 }

@@ -1,0 +1,70 @@
+apply plugin: 'com.android.library'
+apply from: '../dsl/axmol.gradle'
+
+def buildProfiles = AxmolUtils.resolveBasicBuildProfiles(project)
+
+android {
+    namespace = 'dev.axmol.lib'
+    def targetSdk = buildProfiles['targetSdk']
+    def minSdk = buildProfiles['minSdk']
+    compileSdk = targetSdk.toInteger()
+
+    defaultConfig {
+        minSdkVersion minSdk
+        targetSdkVersion targetSdk
+        versionCode 1
+        versionName "1.0"
+    }
+
+    sourceSets.main {
+        aidl.srcDir "../java/src"
+        java.srcDir "../java/src"
+        manifest.srcFile "AndroidManifest.xml"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    buildFeatures {
+        aidl = true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: '../java/libs', include: ['*.jar'])
+
+    def media3_ver = buildProfiles['media3']
+    def annotation_ver = buildProfiles['annotation']
+    def appcompat_ver = buildProfiles['appcompat']
+    def guava_ver = buildProfiles['guava']
+
+    // refer to: https://developer.android.com/jetpack/androidx/releases/media3?hl=zh-cn#declaring_dependencies
+    // For media playback using ExoPlayer
+    api "androidx.media3:media3-exoplayer:$media3_ver"
+
+    // For DASH playback support with ExoPlayer
+    //api "androidx.media3:media3-exoplayer-dash:$media3_version"
+    // For HLS playback support with ExoPlayer
+    //api "androidx.media3:media3-exoplayer-hls:$media3_version"
+    // For RTSP playback support with ExoPlayer
+    //api "androidx.media3:media3-exoplayer-rtsp:$media3_version"
+    // For ad insertion using the Interactive Media Ads SDK with ExoPlayer
+    //api "androidx.media3:media3-exoplayer-ima:$media3_version"
+
+    implementation "androidx.annotation:annotation:$annotation_ver"
+    implementation "androidx.appcompat:appcompat:$appcompat_ver"
+
+    api ("com.google.guava:guava:$guava_ver-android") {
+        // Exclude dependencies that are only used by Guava at compile time
+        // (but declared as runtime deps) [internal b/168188131].
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        exclude group: 'org.checkerframework', module: 'checker-compat-qual'
+        exclude group: 'org.checkerframework', module: 'checker-qual'
+        exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+        exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
+        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
+    }
+}

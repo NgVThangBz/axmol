@@ -11,7 +11,7 @@ add_library(${target_name} STATIC
 )
 
 target_include_directories(${target_name} PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
-target_include_directories(${target_name} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src/webp")
+target_include_directories(${target_name} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/src")
 target_compile_definitions(${target_name} PRIVATE HAVE_CONFIG_H=1)
 
 if(AX_ISA_SIMD MATCHES "neon")

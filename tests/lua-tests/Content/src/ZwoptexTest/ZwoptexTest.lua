@@ -9,7 +9,7 @@ local function ZwoptexGenericTest()
                                 "Coordinate Formats, Rotation, Trimming, flipX/Y")
     local spriteFrameIndex = 0
     local counter = 0
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local schedulerEntry = nil
     local schedulerFlipSpriteEntry = nil
     local sprite1 = nil
@@ -19,7 +19,7 @@ local function ZwoptexGenericTest()
         ax.SpriteFrameCache:getInstance():addSpriteFrames("zwoptex/grossini.plist")
         ax.SpriteFrameCache:getInstance():addSpriteFrames("zwoptex/grossini-generic.plist")
 
-        local layer1 = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 85, 121)
+        local layer1 = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 85, 121)
         layer1:setPosition(ax.p(s.width/2-80 - (85.0 * 0.5), s.height/2 - (121.0 * 0.5)))
         ret:addChild(layer1)
 
@@ -30,7 +30,7 @@ local function ZwoptexGenericTest()
         sprite1:setFlippedX(false)
         sprite1:setFlippedY(false)
 
-        local layer2 = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 85, 121)
+        local layer2 = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 85, 121)
         layer2:setPosition(ax.p(s.width/2+80 - (85.0 * 0.5), s.height/2 - (121.0 * 0.5)))
         ret:addChild(layer2)
 

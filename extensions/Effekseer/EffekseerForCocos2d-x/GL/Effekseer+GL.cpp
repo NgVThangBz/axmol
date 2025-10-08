@@ -1,10 +1,10 @@
 #include "../EffekseerForCocos2d-x.h"
-#ifndef AX_USE_METAL
+#if AX_RENDER_API == AX_RENDER_API_GL
 
 #include "../../EffekseerRendererCommon/ModelLoader.h"
 #include "../../EffekseerRendererGL/EffekseerRendererGL.h"
 #include "../../EffekseerRendererGL/EffekseerRenderer/EffekseerRendererGL.MaterialLoader.h"
-#include "renderer/backend/opengl/TextureGL.h"
+#include "axmol/rhi/opengl/TextureGL.h"
 
 namespace efk {
 
@@ -109,11 +109,7 @@ public:
 		if (g_deviceObjectCollection == nullptr)
 		{
 #if AX_GLES_PROFILE
-#if AX_GLES_PROFILE == 300
             g_deviceObjectCollection = Effekseer::MakeRefPtr<EffekseerGraphicsDevice>(EffekseerRendererGL::OpenGLDeviceType::OpenGLES3);
-#else
-			g_deviceObjectCollection = Effekseer::MakeRefPtr<EffekseerGraphicsDevice>(EffekseerRendererGL::OpenGLDeviceType::OpenGLES2);
-#endif
 #else
 			g_deviceObjectCollection = Effekseer::MakeRefPtr<EffekseerGraphicsDevice>(EffekseerRendererGL::OpenGLDeviceType::OpenGL3);
 #endif
@@ -146,11 +142,11 @@ Effekseer::ModelLoaderRef CreateModelLoader(Effekseer::FileInterfaceRef effectFi
 
 void UpdateTextureData(::Effekseer::TextureRef textureData, cocos2d::Texture2D* texture)
 {
-	auto textureGL = static_cast<cocos2d::backend::Texture2DGL*>(texture->getBackendTexture());
+	auto textureImpl = static_cast<ax::rhi::gl::TextureImpl*>(texture->getRHITexture());
 
 	auto device = EffekseerGraphicsDevice::create().DownCast<::EffekseerRendererGL::Backend::GraphicsDevice>();
 
-	auto backend = device->CreateTexture(textureGL->getHandler(), texture->hasMipmaps(), []() -> void {});
+	auto backend = device->CreateTexture(textureImpl->internalHandle(), texture->hasMipmaps(), []() -> void {});
 	textureData->SetBackend(backend);
 }
 

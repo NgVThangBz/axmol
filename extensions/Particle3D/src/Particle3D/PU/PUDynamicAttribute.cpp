@@ -25,8 +25,8 @@
  ****************************************************************************/
 
 #include "PUDynamicAttribute.h"
-#include "base/Random.h"
-#include "platform/StdC.h"
+#include "axmol/base/Random.h"
+#include "axmol/platform/StdC.h"
 
 namespace ax
 {
@@ -450,4 +450,4 @@ float PUDynamicAttributeHelper::calculate(PUDynamicAttribute* dyn, float x, floa
 
     return defaultValue;
 }
-}
+}  // namespace ax

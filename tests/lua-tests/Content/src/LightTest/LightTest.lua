@@ -20,7 +20,7 @@ function LightTest:init()
     self:addSprite()
     self:addLights()
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local camera = ax.Camera:createPerspective(60, s.width/s.height, 1.0, 1000.0)
     camera:setCameraFlag(ax.CameraFlag.USER1)
     camera:setPosition3D(ax.vec3(0.0, 100, 100))
@@ -128,7 +128,7 @@ function LightTest:init()
 end
 
 function LightTest:addSprite()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local fileName = "MeshRendererTest/orc.c3b"
     local sprite1 = ax.Sprite3D:create(fileName)
@@ -168,23 +168,23 @@ function LightTest:addSprite()
 end
 
 function LightTest:addLights()
-    local s = ax.Director:getInstance():getWinSize()
-    self._ambientLight = ax.AmbientLight:create(ax.c3b(200, 200, 200))
+    local s = ax.Director:getInstance():getCanvasSize()
+    self._ambientLight = ax.AmbientLight:create(ax.color32(200, 200, 200))
     self._ambientLight:setEnabled(true)
     self:addChild(self._ambientLight)
     self._ambientLight:setCameraMask(2)
 
-    self._directionalLight = ax.DirectionLight:create(ax.vec3(-1.0, -1.0, 0.0), ax.c3b(200, 200, 200))
+    self._directionalLight = ax.DirectionLight:create(ax.vec3(-1.0, -1.0, 0.0), ax.color32(200, 200, 200))
     self._directionalLight:setEnabled(false)
     self:addChild(self._directionalLight)
     self._directionalLight:setCameraMask(2)
 
-    self._pointLight = ax.PointLight:create(ax.vec3(0.0, 0.0, 0.0), ax.c3b(200, 200, 200), 10000.0)
+    self._pointLight = ax.PointLight:create(ax.vec3(0.0, 0.0, 0.0), ax.color32(200, 200, 200), 10000.0)
     self._pointLight:setEnabled(false)
     self:addChild(self._pointLight)
     self._pointLight:setCameraMask(2)
 
-    self._spotLight = ax.SpotLight:create(ax.vec3(-1.0, -1.0, 0.0), ax.vec3(0.0, 0.0, 0.0), ax.c3b(200, 200, 200), 0.0, 0.5, 10000.0)
+    self._spotLight = ax.SpotLight:create(ax.vec3(-1.0, -1.0, 0.0), ax.vec3(0.0, 0.0, 0.0), ax.color32(200, 200, 200), 0.0, 0.5, 10000.0)
     self._spotLight:setEnabled(false)
     self:addChild(self._spotLight)
     self._spotLight:setCameraMask(2)

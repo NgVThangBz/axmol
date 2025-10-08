@@ -2,7 +2,7 @@ local    MAX_COUNT = 9
 local    LINE_SPACE = 40
 local    kItemTagBasic = 5432
 
-local Winsize = ax.Director:getInstance():getWinSize()
+local Winsize = ax.Director:getInstance():getCanvasSize()
 
 local testNames = {
     "Bug-350",
@@ -99,14 +99,14 @@ local function BugTest458()
         local pCorner = ax.Sprite:create("Images/bugs/corner.png")
         local nWidth = Winsize.width * 0.9 - (pCorner:getContentSize().width * 2)
         local nHeight = Winsize.height * 0.15  - (pCorner:getContentSize().height * 2)
-        local pColorLayer = ax.LayerColor:create(ax.c4b(255, 255, 255, 255 * .75), nWidth, nHeight)
+        local pColorLayer = ax.LayerColor:create(ax.color32(255, 255, 255, 255 * .75), nWidth, nHeight)
         pColorLayer:setPosition(ax.p(-nWidth / 2, -nHeight / 2))
         --First button is blue,Second is red,Used for testing - change later
         if (0 == nColorFlag) then
-            pLabel:setColor(ax.c3b(0,0,255))
+            pLabel:setColor(ax.color32(0,0,255))
         else
             print("Color changed")
-            pLabel:setColor(ax.c3b(255,0,0))
+            pLabel:setColor(ax.color32(255,0,0))
         end
         nColorFlag = nColorFlag + 1
         pSprite:addChild(pColorLayer)
@@ -167,11 +167,11 @@ local function BugTest458()
     end
     local pMenuItemSprite = ax.MenuItemSprite:create(pQuestion1,pQuestion2)
     pMenuItemSprite:registerScriptTapHandler(menuCallback)
-    local pLayerColor1 = ax.LayerColor:create(ax.c4b(0,0,255,255), 100, 100)
+    local pLayerColor1 = ax.LayerColor:create(ax.color32(0,0,255,255), 100, 100)
 --  question->release()
 --  question2->release()
 
-    local pLayerColor2 = ax.LayerColor:create(ax.c4b(255,0,0,255), 100, 100)
+    local pLayerColor2 = ax.LayerColor:create(ax.color32(255,0,0,255), 100, 100)
     local pMenuItemSprite2 = ax.MenuItemSprite:create(pLayerColor1, pLayerColor2)
     pMenuItemSprite2:registerScriptTapHandler(menuCallback)
     local pMenu = ax.Menu:create(pMenuItemSprite, pMenuItemSprite2)
@@ -205,7 +205,7 @@ local function BugTest624()
 		local pNewPlayer = BugTest624_2()
 		CreateBugsTestBackMenuItem(pNewPlayer)
         pScene:addChild(pNewPlayer)
-        ax.Director:getInstance():replaceScene(ax.TransitionFade:create(2.0, pScene, ax.c3b(255,255,255)))
+        ax.Director:getInstance():replaceScene(ax.TransitionFade:create(2.0, pScene, ax.color32(255,255,255)))
 	end
 
 
@@ -238,7 +238,7 @@ function BugTest624_2()
 		local pNewPlayer = BugTest624()
 		CreateBugsTestBackMenuItem(pNewPlayer)
         pScene:addChild(pNewPlayer)
-        ax.Director:getInstance():replaceScene(ax.TransitionFade:create(2.0, pScene, ax.c3b(255,0,0)))
+        ax.Director:getInstance():replaceScene(ax.TransitionFade:create(2.0, pScene, ax.color32(255,0,0)))
 	end
 
 	local function BugTest624_2_OnEnterOrExit(tag)
@@ -289,7 +289,7 @@ local function BugTest914()
     local layerColor = nil
 
     for i = 0, 4 do
-       layerColor = ax.LayerColor:create(ax.c4b(i*20, i*20, i*20,255))
+       layerColor = ax.LayerColor:create(ax.color32(i*20, i*20, i*20,255))
        layerColor:setContentSize(ax.size(i*100, i*100))
        layerColor:setPosition(ax.p(Winsize.width/2, Winsize.height/2))
        layerColor:setAnchorPoint(ax.p(0.5, 0.5))
@@ -343,10 +343,10 @@ end
 local function BugTest1159()
     local pLayer = ax.Layer:create()
 
-    local background = ax.LayerColor:create(ax.c4b(255, 0, 255, 255))
+    local background = ax.LayerColor:create(ax.color32(255, 0, 255, 255))
     pLayer:addChild(background)
 
-    local sprite_a   = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 700, 700)
+    local sprite_a   = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 700, 700)
     sprite_a:setAnchorPoint(ax.p(0.5, 0.5))
     sprite_a:setIgnoreAnchorPointForPosition(false)
     sprite_a:setPosition(ax.p(0.0, Winsize.height/2))
@@ -354,7 +354,7 @@ local function BugTest1159()
     local seq = ax.Sequence:create(ax.MoveTo:create(1.0, ax.p(1024.0, 384.0)), ax.MoveTo:create(1.0, ax.p(0.0, 384.0)))
     sprite_a:runAction(ax.RepeatForever:create(seq))
 
-    local sprite_b = ax.LayerColor:create(ax.c4b(0, 0, 255, 255), 400, 400)
+    local sprite_b = ax.LayerColor:create(ax.color32(0, 0, 255, 255), 400, 400)
     sprite_b:setAnchorPoint(ax.p(0.5, 0.5))
     sprite_b:setIgnoreAnchorPointForPosition(false)
     sprite_b:setPosition(ax.p(Winsize.width/2, Winsize.height/2))
@@ -394,7 +394,7 @@ end
 local function BugTest1174()
     local layer = ax.Layer:create()
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
 
 
     local subtitleLabel = ax.Label:createWithTTF("The results output on the console", s_thonburiPath, 24)

@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUEventHandler.h"
 #include <vector>
 #include <string>
@@ -69,12 +69,12 @@ public:
         DoAffectorEventHandler is defined, or if the Affector is not found, other
         ParticleTechniques are searched.
     */
-    virtual void handle(PUParticleSystem3D* particleSystem, PUParticle3D* particle, float timeElapsed) override;
+    void handle(PUParticleSystem3D* particleSystem, PUParticle3D* particle, float timeElapsed) override;
 
-    virtual void copyAttributesTo(PUEventHandler* eventHandler) override;
+    void copyAttributesTo(PUEventHandler* eventHandler) override;
 
     PUDoAffectorEventHandler();
-    virtual ~PUDoAffectorEventHandler(){};
+    virtual ~PUDoAffectorEventHandler() {};
 
 protected:
     // Identifies the name of affector
@@ -84,5 +84,4 @@ protected:
     bool _prePost;
 };
 
-}
-
+}  // namespace ax

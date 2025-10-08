@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUObserver.h"
 #include <vector>
 #include <string>
@@ -44,28 +44,27 @@ public:
 
     /**
      */
-    virtual void notifyStart() override;
+    void notifyStart() override;
 
     /**
      */
-    virtual bool observe(PUParticle3D* particle, float timeElapsed) override;
+    bool observe(PUParticle3D* particle, float timeElapsed) override;
 
     /** The _processParticle() function is overridden, because we don't observe an individual particle.
         even if there isn't a particle left anymore (and that is the situation we want to validate).
     */
-    virtual void updateObserver(PUParticle3D* particle, float timeElapsed, bool firstParticle) override;
+    void updateObserver(PUParticle3D* particle, float timeElapsed, bool firstParticle) override;
 
     /** Instead of the _processParticle(), the _postProcessParticles() is used because it is called
         even if there isn't a particle left anymore (and that is the situation we want to validate).
     */
-    virtual void postUpdateObserver(float timeElapsed) override;
+    void postUpdateObserver(float timeElapsed) override;
 
     PUOnClearObserver() : PUObserver(), _continue(false) {}
-    virtual ~PUOnClearObserver(){};
+    virtual ~PUOnClearObserver() {};
 
 protected:
     bool _continue;
 };
 
-}
-
+}  // namespace ax

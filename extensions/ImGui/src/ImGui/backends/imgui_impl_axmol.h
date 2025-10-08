@@ -4,10 +4,10 @@
 #pragma once
 #include "imgui.h"
 #include <functional>
-#include "platform/PlatformConfig.h"
+#include "axmol/platform/PlatformConfig.h"
 
-#ifdef AX_USE_GL
-#    include "renderer/backend/opengl/OpenGLState.h"
+#if AX_RENDER_API == AX_RENDER_API_GL
+#    include "axmol/rhi/opengl/OpenGLState.h"
 #endif
 
 extern "C" {
@@ -22,7 +22,9 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_NewFrame();
 IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data);
 IMGUI_IMPL_API void ImGui_ImplAxmol_RenderPlatform();
 
-IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window);
+IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window, ImGuiViewport* viewport);
+
+IMGUI_IMPL_API void ImGui_ImplAxmol_OnDestroyWindow(GLFWwindow* window, ImGuiViewport* viewport);
 
 IMGUI_IMPL_API void ImGui_ImplAxmol_PostCommand(std::function<void()>&& func);
 

@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "base/Object.h"
+#include "axmol/base/Object.h"
 #include "Particle3D/PU/PUScriptTranslator.h"
 #include "Particle3D/PU/PUAffector.h"
 #include "Particle3D/PU/PUAlignAffectorTranslator.h"
@@ -101,5 +101,4 @@ protected:
     PUVortexAffectorTranslator _vortexAffectorTranslator;
 };
 
-}
-
+}  // namespace ax

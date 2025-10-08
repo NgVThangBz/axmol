@@ -26,7 +26,7 @@
 #ifndef _BOX2D_TEST_H_
 #define _BOX2D_TEST_H_
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "box2d/box2d.h"
 #include "../BaseTest.h"
 #include "extensions/axmol-ext.h"
@@ -53,13 +53,14 @@ public:
 
     void toggleDebugCallback(ax::Object* sender);
 
-private:
-    b2World* world;
+    b2BodyId createRigibody(b2BodyDef*);
 
-    ax::Texture2D* _spriteTexture;
-    ax::DrawNode* drawBox2D;
-    ax::extension::PhysicsDebugNodeBox2D g_debugDraw;
-    bool showDebugDraw = true;
+private:
+    b2WorldId world{};
+
+    ax::Texture2D* _spriteTexture{nullptr};
+    ax::extension::PhysicsDebugNode* _debugDrawNode{nullptr};
+    bool showDebugDraw{true};
 };
 
 #endif

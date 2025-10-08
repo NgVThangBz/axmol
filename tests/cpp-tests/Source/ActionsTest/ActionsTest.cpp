@@ -2,6 +2,7 @@
 Copyright (c) 2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
 https://axmol.dev/
 
@@ -26,13 +27,13 @@ THE SOFTWARE.
 
 #include "ActionsTest.h"
 #include "../testResource.h"
-#include "ui/CocosGUI.h"
+#include "axmol/ui/CocosGUI.h"
 
-#include "renderer/Renderer.h"
-#include "renderer/CustomCommand.h"
-#include "renderer/GroupCommand.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/CustomCommand.h"
+#include "axmol/renderer/GroupCommand.h"
 
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
 using namespace ax;
 using namespace ax::ui;
@@ -141,7 +142,7 @@ void ActionsDemo::onExit()
 
 void ActionsDemo::centerSprites(unsigned int numberOfSprites)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     if (numberOfSprites == 0)
     {
@@ -171,7 +172,7 @@ void ActionsDemo::centerSprites(unsigned int numberOfSprites)
 
 void ActionsDemo::alignSpritesLeft(unsigned int numberOfSprites)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     if (numberOfSprites == 1)
     {
@@ -204,7 +205,7 @@ void ActionMove::onEnter()
 
     centerSprites(3);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto actionTo     = MoveTo::create(2, Vec2(s.width - 40, s.height - 40));
     auto actionBy     = MoveBy::create(2, Vec2(80.0f, 80.0f));
@@ -231,7 +232,7 @@ void ActionMove3D::onEnter()
 
     centerSprites(3);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     _tamara->setPosition3D(Vec3(s.width - 40, s.height - 40, 0.0f));
     _kathia->setPosition3D(Vec3(40.0f, 40.0f, 0.0f));
@@ -337,18 +338,18 @@ void ActionRotationalSkewVSStandardSkew::onEnter()
     _grossini->removeFromParentAndCleanup(true);
     _kathia->removeFromParentAndCleanup(true);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     Size boxSize(100.0f, 100.0f);
 
-    auto box = LayerColor::create(Color4B(255, 255, 0, 255));
+    auto box = LayerColor::create(Color32(255, 255, 0, 255));
     box->setAnchorPoint(Vec2(0.5f, 0.5f));
     box->setContentSize(boxSize);
     box->setIgnoreAnchorPointForPosition(false);
     box->setPosition(s.width / 2, s.height - 100 - box->getContentSize().height / 2);
     this->addChild(box);
 
-    auto label = Label::createWithTTF("Standard cocos2d Skew", "fonts/Marker Felt.ttf", 16.0f);
+    auto label = Label::createWithTTF("Standard axmol Skew", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 2, s.height - 100 + label->getContentSize().height);
     this->addChild(label);
 
@@ -357,7 +358,7 @@ void ActionRotationalSkewVSStandardSkew::onEnter()
 
     box->runAction(Sequence::create(actionTo, actionToBack, nullptr));
 
-    box = LayerColor::create(Color4B(255, 255, 0, 255));
+    box = LayerColor::create(Color32(255, 255, 0, 255));
     box->setAnchorPoint(Vec2(0.5f, 0.5f));
     box->setContentSize(boxSize);
     box->setIgnoreAnchorPointForPosition(false);
@@ -387,19 +388,19 @@ void ActionSkewRotateScale::onEnter()
 
     Size boxSize(100.0f, 100.0f);
 
-    auto box = LayerColor::create(Color4B(255, 255, 0, 255));
+    auto box = LayerColor::create(Color32(255, 255, 0, 255));
     box->setAnchorPoint(Vec2(0.0f, 0.0f));
     box->setPosition(190, 110);
     box->setContentSize(boxSize);
 
     static float markrside = 10.0f;
-    auto uL                = LayerColor::create(Color4B(255, 0, 0, 255));
+    auto uL                = LayerColor::create(Color32(255, 0, 0, 255));
     box->addChild(uL);
     uL->setContentSize(Size(markrside, markrside));
     uL->setPosition(0.f, boxSize.height - markrside);
     uL->setAnchorPoint(Vec2(0.0f, 0.0f));
 
-    auto uR = LayerColor::create(Color4B(0, 0, 255, 255));
+    auto uR = LayerColor::create(Color32(0, 0, 255, 255));
     box->addChild(uR);
     uR->setContentSize(Size(markrside, markrside));
     uR->setPosition(boxSize.width - markrside, boxSize.height - markrside);
@@ -511,7 +512,7 @@ void ActionBezier::onEnter()
 {
     ActionsDemo::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     //
     // startPosition can be any coordinate, but since the movement
@@ -646,7 +647,7 @@ void ActionAnimate::onEnter()
     //
     // Manual animation
     //
-    auto animation   = Animation::create();
+    auto animation = Animation::create();
     char szName[100];
     for (int i = 1; i < 15; i++)
     {
@@ -751,7 +752,7 @@ void ActionSequence2::onEnter()
 
 void ActionSequence2::callback1()
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 1 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 1, s.height / 2);
 
@@ -760,7 +761,7 @@ void ActionSequence2::callback1()
 
 void ActionSequence2::callback2(Node* sender)
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 2 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 2, s.height / 2);
 
@@ -769,7 +770,7 @@ void ActionSequence2::callback2(Node* sender)
 
 void ActionSequence2::callback3(Node* sender, int32_t data)
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 3 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 3, s.height / 2);
 
@@ -894,7 +895,7 @@ void ActionCallFunction::onEnter()
                                     CallFunc::create(
                                         // lambda
                                         [&]() {
-        auto s     = Director::getInstance()->getWinSize();
+        auto s     = Director::getInstance()->getCanvasSize();
         auto label = Label::createWithTTF("called:lambda callback", "fonts/Marker Felt.ttf", 16.0f);
         label->setPosition(s.width / 4 * 1, s.height / 2 - 40);
         this->addChild(label);
@@ -916,7 +917,7 @@ void ActionCallFunction::onEnter()
 
 void ActionCallFunction::callback1()
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 1 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 1, s.height / 2);
 
@@ -925,7 +926,7 @@ void ActionCallFunction::callback1()
 
 void ActionCallFunction::callback2(Node* sender)
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 2 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 2, s.height / 2);
 
@@ -936,7 +937,7 @@ void ActionCallFunction::callback2(Node* sender)
 
 void ActionCallFunction::callback3(Node* sender, int32_t data)
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto label = Label::createWithTTF("callback 3 called", "fonts/Marker Felt.ttf", 16.0f);
     label->setPosition(s.width / 4 * 3, s.height / 2);
     addChild(label);
@@ -1238,14 +1239,14 @@ void ActionFollow::onEnter()
     ActionsDemo::onEnter();
 
     centerSprites(1);
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     DrawNode* drawNode = DrawNode::create();
     float x            = s.width * 2 - 100;
     float y            = s.height;
 
     Vec2 vertices[] = {Vec2(5.0f, 5.0f), Vec2(x - 5, 5.0f), Vec2(x - 5, y - 5), Vec2(5.0f, y - 5)};
-    drawNode->drawPoly(vertices, 4, true, Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
+    drawNode->drawPoly(vertices, 4, true, Color(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
 
     this->addChild(drawNode);
 
@@ -1275,14 +1276,14 @@ void ActionFollowWithOffset::onEnter()
     ActionsDemo::onEnter();
 
     centerSprites(1);
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     DrawNode* drawNode = DrawNode::create();
     float x            = s.width * 2 - 100;
     float y            = s.height;
 
     Vec2 vertices[] = {Vec2(5.0f, 5.0f), Vec2(x - 5, 5.0f), Vec2(x - 5, y - 5), Vec2(5.0f, y - 5)};
-    drawNode->drawPoly(vertices, 4, true, Color4F(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
+    drawNode->drawPoly(vertices, 4, true, Color(AXRANDOM_0_1(), AXRANDOM_0_1(), AXRANDOM_0_1(), 1.0f));
 
     this->addChild(drawNode);
 
@@ -1376,7 +1377,7 @@ void ActionStacked::onEnter()
     listener->onTouchesEnded = AX_CALLBACK_2(ActionStacked::onTouchesEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     this->addNewSpriteWithCoords(Vec2(s.width / 2, s.height / 2));
 }
 
@@ -1460,7 +1461,7 @@ std::string ActionMoveJumpStacked::title() const
 
 void ActionMoveBezierStacked::runActionsInSprite(Sprite* sprite)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // sprite 1
     BezierConfig bezier;
@@ -1491,7 +1492,7 @@ void ActionCatmullRomStacked::onEnter()
 
     this->centerSprites(2);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     //
     // sprite 1 (By)
@@ -1524,7 +1525,7 @@ void ActionCatmullRomStacked::onEnter()
 
     auto drawNode1 = DrawNode::create();
     drawNode1->setPosition(Vec2(50.0f, 50.0f));
-    drawNode1->drawCatmullRom(array, 50, Color4F(1.0f, 1.0f, 0.0f, 0.5f));
+    drawNode1->drawCatmullRom(array, 50, Color(1.0f, 1.0f, 0.0f, 0.5f));
     this->addChild(drawNode1);
 
     //
@@ -1553,7 +1554,7 @@ void ActionCatmullRomStacked::onEnter()
                                                               MoveBy::create(0.05f, Vec2(-10.0f, 0.0f)), nullptr)));
 
     auto drawNode2 = DrawNode::create();
-    drawNode2->drawCatmullRom(array2, 50, Color4F(1.0, 0.0, 0.0, 0.5));
+    drawNode2->drawCatmullRom(array2, 50, Color(1.0, 0.0, 0.0, 0.5));
     this->addChild(drawNode2);
 }
 
@@ -1577,7 +1578,7 @@ void ActionCardinalSplineStacked::onEnter()
 
     this->centerSprites(2);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto array = PointArray::create(20);
 
@@ -1606,7 +1607,7 @@ void ActionCardinalSplineStacked::onEnter()
 
     auto drawNode1 = DrawNode::create();
     drawNode1->setPosition(Vec2(50.0f, 50.0f));
-    drawNode1->drawCardinalSpline(array, 0, 100, Color4F(1.0f, 0.0f, 1.0f, 1.0f));
+    drawNode1->drawCardinalSpline(array, 0, 100, Color(1.0f, 0.0f, 1.0f, 1.0f));
     this->addChild(drawNode1);
 
     //
@@ -1629,7 +1630,7 @@ void ActionCardinalSplineStacked::onEnter()
 
     auto drawNode2 = DrawNode::create();
     drawNode2->setPosition(Vec2(s.width / 2, 50.0f));
-    drawNode2->drawCardinalSpline(array, 1, 100, Color4F(0.0f, 0.0f, 1.0f, 1.0f));
+    drawNode2->drawCardinalSpline(array, 1, 100, Color(0.0f, 0.0f, 1.0f, 1.0f));
     this->addChild(drawNode2);
 }
 
@@ -1655,12 +1656,10 @@ void Issue1305::onEnter()
     _spriteTmp->runAction(CallFunc::create(std::bind(&Issue1305::print, this, _spriteTmp)));
     _spriteTmp->retain();
 
-    scheduleOnce(
-        [&](float dt) {
+    scheduleOnce([&](float dt) {
         _spriteTmp->setPosition(250, 250);
         addChild(_spriteTmp);
-    },
-        2, "update_key");
+    }, 2, "update_key");
 }
 
 void Issue1305::print(Node* sender)
@@ -1921,7 +1920,7 @@ void ActionCatmullRom::onEnter()
 
     this->centerSprites(2);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     //
     // sprite 1 (By)
@@ -1951,7 +1950,7 @@ void ActionCatmullRom::onEnter()
 
     auto drawNode1 = DrawNode::create();
     drawNode1->setPosition(Vec2(50.0f, 50.0f));
-    drawNode1->drawCatmullRom(array, 50, Color4F(1.0f, 0.0f, 1.0f, 1.0f));
+    drawNode1->drawCatmullRom(array, 50, Color(1.0f, 0.0f, 1.0f, 1.0f));
     this->addChild(drawNode1);
 
     //
@@ -1977,7 +1976,7 @@ void ActionCatmullRom::onEnter()
     _kathia->runAction(seq2);
 
     auto drawNode2 = DrawNode::create();
-    drawNode2->drawCatmullRom(array2, 50, Color4F(0.0f, 1.0f, 1.0f, 1.0f));
+    drawNode2->drawCatmullRom(array2, 50, Color(0.0f, 1.0f, 1.0f, 1.0f));
     this->addChild(drawNode2);
 }
 
@@ -2001,7 +2000,7 @@ void ActionCardinalSpline::onEnter()
 
     this->centerSprites(2);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto array = PointArray::create(20);
 
@@ -2027,7 +2026,7 @@ void ActionCardinalSpline::onEnter()
 
     auto drawNode1 = DrawNode::create();
     drawNode1->setPosition(Vec2(50.0f, 50.0f));
-    drawNode1->drawCardinalSpline(array, 0, 100, Color4F(1.0f, 0.0f, 1.0f, 1.0f));
+    drawNode1->drawCardinalSpline(array, 0, 100, Color(1.0f, 0.0f, 1.0f, 1.0f));
     this->addChild(drawNode1);
 
     //
@@ -2046,7 +2045,7 @@ void ActionCardinalSpline::onEnter()
 
     auto drawNode2 = DrawNode::create();
     drawNode2->setPosition(Vec2(s.width / 2, 50.0f));
-    drawNode2->drawCardinalSpline(array, 1, 100, Color4F(1.0f, 0.0f, 1.0f, 1.0f));
+    drawNode2->drawCardinalSpline(array, 1, 100, Color(1.0f, 0.0f, 1.0f, 1.0f));
     this->addChild(drawNode2);
 }
 
@@ -2079,23 +2078,19 @@ void PauseResumeActions::onEnter()
     _grossini->runAction(RepeatForever::create(RotateBy::create(3.0f, -360.0f)));
     _kathia->runAction(RepeatForever::create(RotateBy::create(3.0f, 360.0f)));
 
-    this->schedule(
-        [&](float dt) {
+    this->schedule([&](float dt) {
         AXLOGD("Pausing");
         auto director = Director::getInstance();
 
         _pausedTargets = director->getActionManager()->pauseAllRunningActions();
-    },
-        3, false, 0, "pause_key");
+    }, 3, false, 0, "pause_key");
 
-    this->schedule(
-        [&](float dt) {
+    this->schedule([&](float dt) {
         AXLOGD("Resuming");
         auto director = Director::getInstance();
         director->getActionManager()->resumeTargets(_pausedTargets);
         _pausedTargets.clear();
-    },
-        5, false, 0, "resume_key");
+    }, 5, false, 0, "resume_key");
 }
 
 std::string PauseResumeActions::title() const
@@ -2129,7 +2124,7 @@ void ActionResize::onEnter()
         "ImageView Content ResizeTo ResizeBy action. \nTop: ResizeTo/ResizeBy on a 9-slice ImageView  \nBottom: "
         "ScaleTo/ScaleBy on a 9-slice ImageView (for comparison)",
         "fonts/Marker Felt.ttf", 14);
-    alert->setColor(Color3B(159, 168, 176));
+    alert->setColor(Color32(159, 168, 176));
     alert->setPosition(
         Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.125f));
 
@@ -2206,7 +2201,7 @@ void ActionFloatTest::onEnter()
 
     centerSprites(3);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // create float action with duration and from to value, using lambda function we can easily animate any property of
     // the Node.
@@ -2432,9 +2427,8 @@ void ActionCoroutineTest::onEnter()
     auto action = ActionCoroutine::create(AX_CALLBACK_0(ActionCoroutineTest::coroutineCallback, this));
     this->runAction(action);
 
-    auto s = Director::getInstance()->getWinSize();
-    _label =
-        Label::createWithTTF(fmt::format("frame count : {}", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
+    auto s = Director::getInstance()->getCanvasSize();
+    _label = Label::createWithTTF(fmt::format("frame count : {}", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
     _label->setPosition(s.width / 2, s.height / 2 + 100);
     addChild(_label, 1, 1);
 
@@ -2459,22 +2453,19 @@ std::string ActionCoroutineTest::subtitle() const
 
 Coroutine ActionCoroutineTest::coroutineCallback()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
-    auto label1 =
-        Label::createWithTTF(fmt::format("First ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
+    auto label1 = Label::createWithTTF(fmt::format("First ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
     label1->setPosition(s.width / 4 * 1, s.height / 2);
     addChild(label1);
     co_yield DelayTime::create(3.0f);  // delay 3s
 
-    auto label2 =
-        Label::createWithTTF(fmt::format("after 3sec ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
+    auto label2 = Label::createWithTTF(fmt::format("after 3sec ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
     label2->setPosition(s.width / 4 * 2, s.height / 2);
     addChild(label2);
     co_yield nullptr;  // next frame
 
-    auto label3 =
-        Label::createWithTTF(fmt::format("next frame ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
+    auto label3 = Label::createWithTTF(fmt::format("next frame ({})", _frameCount), "fonts/Marker Felt.ttf", 16.0f);
     label3->setPosition(s.width / 4 * 3, s.height / 2);
     addChild(label3);
 

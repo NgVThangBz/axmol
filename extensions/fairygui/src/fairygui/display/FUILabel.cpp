@@ -6,10 +6,11 @@
 NS_FGUI_BEGIN
 using namespace ax;
 
-static Color3B toGrayed(const Color3B& source)
+static Color32 toGrayed(const Color32& source)
 {
-    Color3B c = source;
+    Color32 c = source;
     c.r = c.g = c.b = c.r * 0.299f + c.g * 0.587f + c.b * 0.114f;
+    c.a = source.a; // keep alpha
     return c;
 }
 
@@ -60,7 +61,7 @@ void FUILabel::applyTextFormat()
             }
 
             if (oldType == LabelType::BMFONT)
-                setTextColor((Color4B)_textFormat->color);
+                setTextColor((Color32)_textFormat->color);
         }
     }
 
@@ -86,7 +87,7 @@ void FUILabel::applyTextFormat()
 
     if (_currentLabelType != LabelType::BMFONT || _bmFontCanTint)
     {
-        //setTextColor((Color4B)(_grayed ? toGrayed(_textFormat->color) : _textFormat->color));
+        //setTextColor((Color32)(_grayed ? toGrayed(_textFormat->color) : _textFormat->color));
         setColor(_grayed ? toGrayed(_textFormat->color) : _textFormat->color);
     }
 
@@ -110,12 +111,12 @@ void FUILabel::applyTextFormat()
     setVerticalAlignment(_textFormat->verticalAlign);
 
     if (_textFormat->hasEffect(TextFormat::OUTLINE))
-        enableOutline((Color4B)(_grayed ? toGrayed(_textFormat->outlineColor) : _textFormat->outlineColor), _textFormat->outlineSize);
+        enableOutline((Color32)(_grayed ? toGrayed(_textFormat->outlineColor) : _textFormat->outlineColor), _textFormat->outlineSize);
     else
         disableEffect(LabelEffect::OUTLINE);
 
     if (_textFormat->hasEffect(TextFormat::SHADOW))
-        enableShadow((Color4B)(_grayed ? toGrayed(_textFormat->shadowColor) : _textFormat->shadowColor), _textFormat->shadowOffset);
+        enableShadow((Color32)(_grayed ? toGrayed(_textFormat->shadowColor) : _textFormat->shadowColor), _textFormat->shadowOffset);
     else if (!_textFormat->bold)
         disableEffect(LabelEffect::SHADOW);
 }
@@ -164,15 +165,15 @@ void FUILabel::setGrayed(bool value)
         _grayed = value;
 
         if (_currentLabelType != LabelType::BMFONT)
-            setTextColor((Color4B)(_grayed ? toGrayed(_textFormat->color) : _textFormat->color));
+            setTextColor((Color32)(_grayed ? toGrayed(_textFormat->color) : _textFormat->color));
         else if (_bmFontCanTint)
             setColor(_grayed ? toGrayed(_textFormat->color) : _textFormat->color);
 
         if (_textFormat->hasEffect(TextFormat::OUTLINE))
-            enableOutline((Color4B)(_grayed ? toGrayed(_textFormat->outlineColor) : _textFormat->outlineColor), _textFormat->outlineSize);
+            enableOutline((Color32)(_grayed ? toGrayed(_textFormat->outlineColor) : _textFormat->outlineColor), _textFormat->outlineSize);
 
         if (_textFormat->hasEffect(TextFormat::SHADOW))
-            enableShadow((Color4B)(_grayed ? toGrayed(_textFormat->shadowColor) : _textFormat->shadowColor), _textFormat->shadowOffset);
+            enableShadow((Color32)(_grayed ? toGrayed(_textFormat->shadowColor) : _textFormat->shadowColor), _textFormat->shadowOffset);
     }
 }
 
@@ -191,7 +192,7 @@ void FUILabel::updateFontScale()
     }
 }
 
-void FUILabel::setUnderlineColor(const ax::Color3B& value)
+void FUILabel::setUnderlineColor(const ax::Color32& value)
 {
     //NOT IMPLEMENTED
 }

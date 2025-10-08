@@ -23,10 +23,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "2d/SpriteFrame.h"
-#include "2d/SpriteFrameCache.h"
-#include "base/Director.h"
-#include "renderer/Renderer.h"
+#include "axmol/2d/SpriteFrame.h"
+#include "axmol/2d/SpriteFrameCache.h"
+#include "axmol/base/Director.h"
+#include "axmol/renderer/Renderer.h"
 
 #include "Skin.h"
 #include "TransformHelp.h"
@@ -145,10 +145,10 @@ void Skin::updateTransform()
     // If it is not visible, or one of its ancestors is not visible, then do nothing:
     if (!_visible)
     {
-        _quad.br.vertices.setZero();
-        _quad.tl.vertices.setZero();
-        _quad.tr.vertices.setZero();
-        _quad.bl.vertices.setZero();
+        _quad.br.position.setZero();
+        _quad.tl.position.setZero();
+        _quad.tr.position.setZero();
+        _quad.bl.position.setZero();
     }
     else
     {
@@ -193,10 +193,10 @@ void Skin::updateTransform()
         float dx = x1 * cr - y2 * sr2 + x;
         float dy = x1 * sr + y2 * cr2 + y;
 
-        _quad.bl.vertices.set(RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), _positionZ);
-        _quad.br.vertices.set(RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), _positionZ);
-        _quad.tl.vertices.set(RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), _positionZ);
-        _quad.tr.vertices.set(RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), _positionZ);
+        _quad.bl.position.set(RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), _positionZ);
+        _quad.br.position.set(RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), _positionZ);
+        _quad.tl.position.set(RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), _positionZ);
+        _quad.tr.position.set(RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), _positionZ);
     }
 
     // MARMALADE CHANGE: ADDED CHECK FOR nullptr, TO PERMIT SPRITES WITH NO BATCH NODE / TEXTURE ATLAS
@@ -228,8 +228,7 @@ void Skin::draw(Renderer* renderer, const Mat4& /*transform*/, uint32_t flags)
 {
     auto mv = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 
-    auto& pipelineDescriptor        = _quadCommand.getPipelineDescriptor();
-    pipelineDescriptor.programState = getProgramState();
+    _quadCommand.setWeakPSVL(_programState, _vertexLayout);
 
     // TODO: implement z order
     _quadCommand.init(_globalZOrder, _texture, _blendFunc, &_quad, 1, mv, flags);

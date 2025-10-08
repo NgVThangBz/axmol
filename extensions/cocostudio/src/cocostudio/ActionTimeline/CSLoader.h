@@ -27,9 +27,9 @@
 #include "cocostudio/DictionaryHelper.h"
 #include "cocostudio/CocosStudioExport.h"
 
-#include "base/ObjectFactory.h"
-#include "base/Data.h"
-#include "ui/UIWidget.h"
+#include "axmol/base/ObjectFactory.h"
+#include "axmol/base/Data.h"
+#include "axmol/ui/UIWidget.h"
 
 #include "flatbuffers/flatbuffers.h"
 
@@ -173,5 +173,4 @@ protected:
     std::string _csBuildID;
 };
 
-}
-
+}  // namespace ax

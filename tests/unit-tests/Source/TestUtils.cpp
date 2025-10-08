@@ -1,12 +1,12 @@
 #include <doctest.h>
-#include "base/Types.h"
+#include "axmol/base/Types.h"
 #include "TestUtils.h"
 
 namespace ax
 {
 
-
-doctest::String toString(const Vec2& value) {
+doctest::String toString(const Vec2& value)
+{
     std::string s;
     s.append("(");
     s.append(std::to_string(value.u));
@@ -16,7 +16,8 @@ doctest::String toString(const Vec2& value) {
     return s.c_str();
 }
 
-doctest::String toString(const Vec3& value) {
+doctest::String toString(const Vec3& value)
+{
     std::string s;
     s.append("(");
     s.append(std::to_string(value.x));
@@ -28,7 +29,8 @@ doctest::String toString(const Vec3& value) {
     return s.c_str();
 }
 
-doctest::String toString(const Color4B& value) {
+doctest::String toString(const Color32& value)
+{
     std::string s;
     s.append("(");
     s.append(std::to_string(value.r));
@@ -42,5 +44,4 @@ doctest::String toString(const Color4B& value) {
     return s.c_str();
 }
 
-
-}
+}  // namespace ax

@@ -34,7 +34,7 @@
 
 #include "Bug-14327.h"
 
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 
@@ -44,7 +44,7 @@ bool Bug14327Layer::init()
 {
     if (BugsTestBase::init())
     {
-        auto renderView        = Director::getInstance()->getRenderView();
+        auto renderView    = Director::getInstance()->getRenderView();
         auto visibleOrigin = renderView->getVisibleOrigin();
         auto visibleSize   = renderView->getVisibleSize();
 
@@ -64,7 +64,7 @@ bool Bug14327Layer::init()
         std::string pNormalSprite = "extensions/green_edit.png";
         _edit = ui::EditBox::create(editBoxSize + Size(0, 20), ui::Scale9Sprite::create(pNormalSprite));
         _edit->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2, visibleOrigin.y + visibleSize.height / 2));
-        _edit->setFontColor(Color3B::RED);
+        _edit->setFontColor(Color32::RED);
         _edit->setReturnType(ui::EditBox::KeyboardReturnType::DONE);
         _edit->setDelegate(this);
         this->addChild(_edit);
@@ -83,7 +83,8 @@ void Bug14327Layer::update(float dt)
     {
         ldiv_t ret = ldiv(delta, 60L);
         char buf[100];
-        auto infoStr = fmt::format_to_z(buf, "{}{:02d}:{:02d}", "Edit control will be removed after ", ret.quot, ret.rem);
+        auto infoStr =
+            fmt::format_to_z(buf, "{}{:02d}:{:02d}", "Edit control will be removed after ", ret.quot, ret.rem);
         _TTFShowTime->setString(infoStr);
     }
     else

@@ -1,5 +1,5 @@
 #include "FUIContainer.h"
-#include "base/StencilStateManager.h"
+#include "axmol/base/StencilStateManager.h"
 #include "utils/ToolSet.h"
 #include "GComponent.h"
 
@@ -286,7 +286,7 @@ void FUIContainer::setCameraMask(unsigned short mask, bool applyChildren)
 }
 
 #if COCOS2D_VERSION >= 0x00040000
-void FUIContainer::setProgramStateRecursively(Node* node, backend::ProgramState* programState)
+void FUIContainer::setProgramStateRecursively(Node* node, rhi::ProgramState* programState)
 {
     _originalStencilProgramState[node] = node->getProgramState();
     node->setProgramState(programState);
@@ -323,7 +323,7 @@ void FUIContainer::onBeforeVisitScissor()
     }
     else
     {
-        _rectClippingSupport->_clippingOldRect = renderView->getScissorRect();
+        _rectClippingSupport->_clippingOldRect = renderView->getScissorInPoints();
         clippingRect = ToolSet::intersection(clippingRect, _rectClippingSupport->_clippingOldRect);
     }
 
@@ -410,8 +410,8 @@ void FUIContainer::visit(ax::Renderer * renderer, const ax::Mat4 & parentTransfo
         if (alphaThreshold < 1)
         {
 #if COCOS2D_VERSION >= 0x00040000
-            auto* program = backend::Program::getBuiltinProgram(backend::ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST);
-            auto programState = new backend::ProgramState(program);
+            auto* program = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST);
+            auto programState = new rhi::ProgramState(program);
             auto alphaLocation = programState->getUniformLocation("u_alpha_value");
             programState->setUniform(alphaLocation, &alphaThreshold, sizeof(alphaThreshold));
             setProgramStateRecursively(_stencilClippingSupport->_stencil, programState);

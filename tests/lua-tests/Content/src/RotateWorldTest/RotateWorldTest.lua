@@ -1,5 +1,5 @@
 
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 
 local function CreateSpriteLayer()
 	local layer = ax.Layer:create()
@@ -69,10 +69,10 @@ local function CreateRotateWorldLayer()
     x = size.width
     y = size.height
 
-    local blue =  ax.LayerColor:create(ax.c4b(0,0,255,255))
-    local red =   ax.LayerColor:create(ax.c4b(255,0,0,255))
-    local green = ax.LayerColor:create(ax.c4b(0,255,0,255))
-    local white = ax.LayerColor:create(ax.c4b(255,255,255,255))
+    local blue =  ax.LayerColor:create(ax.color32(0,0,255,255))
+    local red =   ax.LayerColor:create(ax.color32(255,0,0,255))
+    local green = ax.LayerColor:create(ax.color32(0,255,0,255))
+    local white = ax.LayerColor:create(ax.color32(255,255,255,255))
 
     blue:setScale(0.5)
     blue:setPosition(ax.p(- x / 4, - y / 4))

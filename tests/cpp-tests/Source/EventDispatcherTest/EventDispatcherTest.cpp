@@ -35,91 +35,106 @@
 
 using namespace ax;
 
-namespace {
+namespace
+{
 
-    class TextButton : public Label {
-    public:
-        static TextButton *
-        create(std::string_view text, const std::function<void(TextButton *)> &onTriggered) {
-            auto ret = new TextButton();
+class TextButton : public Label
+{
+public:
+    static TextButton* create(std::string_view text, const std::function<void(TextButton*)>& onTriggered)
+    {
+        auto ret = new TextButton();
 
-            TTFConfig ttfconfig("fonts/arial.ttf", 25);
-            if (ret->setTTFConfig(ttfconfig)) {
-                ret->setString(text);
-                ret->_onTriggered = onTriggered;
+        TTFConfig ttfconfig("fonts/arial.ttf", 25);
+        if (ret->setTTFConfig(ttfconfig))
+        {
+            ret->setString(text);
+            ret->_onTriggered = onTriggered;
 
-                ret->autorelease();
+            ret->autorelease();
 
-                return ret;
-            }
-
-            delete ret;
-            return nullptr;
+            return ret;
         }
 
-        void setEnabled(bool enabled) {
-            _enabled = enabled;
-            if (_enabled) {
-                this->setColor(Color3B::WHITE);
-            } else {
-                this->setColor(Color3B::GRAY);
-            }
+        delete ret;
+        return nullptr;
+    }
+
+    void setEnabled(bool enabled)
+    {
+        _enabled = enabled;
+        if (_enabled)
+        {
+            this->setColor(Color32::WHITE);
         }
-
-    private:
-        TextButton() : _onTriggered(nullptr), _enabled(true) {
-            auto listener = EventListenerTouchOneByOne::create();
-            listener->setSwallowTouches(true);
-
-            listener->onTouchBegan = AX_CALLBACK_2(TextButton::onTouchBegan, this);
-            listener->onTouchEnded = AX_CALLBACK_2(TextButton::onTouchEnded, this);
-            listener->onTouchCancelled = AX_CALLBACK_2(TextButton::onTouchCancelled, this);
-
-            _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+        else
+        {
+            this->setColor(Color32::GRAY);
         }
+    }
 
-        bool touchHits(Touch *touch) {
-            auto hitPos = this->convertToNodeSpace(touch->getLocation());
-            if (hitPos.x >= 0 && hitPos.y >= 0 && hitPos.x <= _contentSize.width &&
-                hitPos.y <= _contentSize.height) {
-                return true;
-            }
-            return false;
+private:
+    TextButton() : _onTriggered(nullptr), _enabled(true)
+    {
+        auto listener = EventListenerTouchOneByOne::create();
+        listener->setSwallowTouches(true);
+
+        listener->onTouchBegan     = AX_CALLBACK_2(TextButton::onTouchBegan, this);
+        listener->onTouchEnded     = AX_CALLBACK_2(TextButton::onTouchEnded, this);
+        listener->onTouchCancelled = AX_CALLBACK_2(TextButton::onTouchCancelled, this);
+
+        _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    }
+
+    bool touchHits(Touch* touch)
+    {
+        auto hitPos = this->convertToNodeSpace(touch->getLocation());
+        if (hitPos.x >= 0 && hitPos.y >= 0 && hitPos.x <= _contentSize.width && hitPos.y <= _contentSize.height)
+        {
+            return true;
         }
+        return false;
+    }
 
-        bool onTouchBegan(Touch *touch, Event *event) {
+    bool onTouchBegan(Touch* touch, Event* event)
+    {
+        auto hits = touchHits(touch);
+        if (hits)
+        {
+            scaleButtonTo(0.95f);
+        }
+        return hits;
+    }
+
+    void onTouchEnded(Touch* touch, Event* event)
+    {
+        if (_enabled)
+        {
             auto hits = touchHits(touch);
-            if (hits) {
-                scaleButtonTo(0.95f);
+            if (hits && _onTriggered)
+            {
+                _onTriggered(this);
             }
-            return hits;
         }
 
-        void onTouchEnded(Touch *touch, Event *event) {
-            if (_enabled) {
-                auto hits = touchHits(touch);
-                if (hits && _onTriggered) {
-                    _onTriggered(this);
-                }
-            }
+        scaleButtonTo(1);
+    }
 
-            scaleButtonTo(1);
-        }
+    void onTouchCancelled(Touch* touch, Event* event) { scaleButtonTo(1); }
 
-        void onTouchCancelled(Touch *touch, Event *event) { scaleButtonTo(1); }
+    void scaleButtonTo(float scale)
+    {
+        auto action = ScaleTo::create(0.05f, scale);
+        action->setTag(10000);
+        stopActionByTag(10000);
+        runAction(action);
+    }
 
-        void scaleButtonTo(float scale) {
-            auto action = ScaleTo::create(0.05f, scale);
-            action->setTag(10000);
-            stopActionByTag(10000);
-            runAction(action);
-        }
+    std::function<void(TextButton*)> _onTriggered;
 
-        std::function<void(TextButton *)> _onTriggered;
-
-        bool _enabled;
-    };
-}
+    bool _enabled;
+};
+}  // namespace
 
 EventDispatcherTests::EventDispatcherTests()
 {
@@ -290,7 +305,7 @@ protected:
             if (rect.containsPoint(locationInNode))
             {
                 AXLOGD("TouchableSprite: onTouchBegan ...");
-                this->setColor(Color3B::RED);
+                this->setColor(Color32::RED);
                 return true;
             }
             return false;
@@ -298,7 +313,7 @@ protected:
 
         listener->onTouchEnded = [this](Touch* touch, Event* event) {
             AXLOGD("TouchableSprite: onTouchEnded ...");
-            this->setColor(Color3B::WHITE);
+            this->setColor(Color32::WHITE);
 
             if (_removeListenerOnTouchEnded)
             {
@@ -400,13 +415,13 @@ void RemoveListenerWhenDispatching::onEnter()
 
         if (rect.containsPoint(locationInNode))
         {
-            sprite1->setColor(Color3B::RED);
+            sprite1->setColor(Color32::RED);
             return true;
         }
         return false;
     };
 
-    listener1->onTouchEnded = [=](Touch* touch, Event* event) { sprite1->setColor(Color3B::WHITE); };
+    listener1->onTouchEnded = [=](Touch* touch, Event* event) { sprite1->setColor(Color32::WHITE); };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, sprite1);
 
@@ -415,24 +430,23 @@ void RemoveListenerWhenDispatching::onEnter()
     addChild(statusLabel);
     std::shared_ptr<bool> enable(new bool(true));
     // Enable/Disable item
-    auto toggleItem = MenuItemToggle::createWithCallback(
-        [this, enable, listener1, statusLabel, sprite1](Object* sender) {
-            if (*enable)
-            {
-                _eventDispatcher->removeEventListener(listener1);
-                statusLabel->setString("The sprite could not be touched!");
+    auto toggleItem =
+        MenuItemToggle::createWithCallback([this, enable, listener1, statusLabel, sprite1](Object* sender) {
+        if (*enable)
+        {
+            _eventDispatcher->removeEventListener(listener1);
+            statusLabel->setString("The sprite could not be touched!");
 
-                (*enable) = false;
-            }
-            else
-            {
-                _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, sprite1);
-                statusLabel->setString("The sprite could be touched!");
+            (*enable) = false;
+        }
+        else
+        {
+            _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, sprite1);
+            statusLabel->setString("The sprite could be touched!");
 
-                (*enable) = true;
-            }
-        },
-        MenuItemFont::create("Enabled"), MenuItemFont::create("Disabled"), nullptr);
+            (*enable) = true;
+        }
+    }, MenuItemFont::create("Enabled"), MenuItemFont::create("Disabled"), nullptr);
 
     toggleItem->setPosition(origin + Vec2(size.width / 2, 80.0f));
     auto menu = Menu::create(toggleItem, nullptr);
@@ -549,7 +563,7 @@ void LabelKeyboardEventTest::onEnter()
     listener->onKeyPressed = [](EventKeyboard::KeyCode keyCode, Event* event) {
         char buf[100];
         auto infoStr = fmt::format_to_z(buf, "Key {} was pressed!", (int)keyCode);
-        auto label = static_cast<Label*>(event->getCurrentTarget());
+        auto label   = static_cast<Label*>(event->getCurrentTarget());
         label->setString(infoStr);
 
         switch (keyCode)
@@ -589,16 +603,16 @@ void LabelKeyboardEventTest::onEnter()
     listener->onKeyReleased = [](EventKeyboard::KeyCode keyCode, Event* event) {
         char buf[100];
         auto infoStr = fmt::format_to_z(buf, "Key {} was released!", (int)keyCode);
-        auto label = static_cast<Label*>(event->getCurrentTarget());
+        auto label   = static_cast<Label*>(event->getCurrentTarget());
         label->setString(infoStr);
     };
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, statusLabel);
 #else
-    auto& layerSize = this->getContentSize();
+    auto& layerSize            = this->getContentSize();
     static AnchorPreset anchor = AnchorPreset::BOTTOM_LEFT;
-    anchor = AnchorPreset::BOTTOM_LEFT;
-    auto playPrev = TextButton::create("Show Fps Prev Pos", [=](TextButton* button) {
+    anchor                     = AnchorPreset::BOTTOM_LEFT;
+    auto playPrev              = TextButton::create("Show Fps Prev Pos", [=](TextButton* button) {
         if (anchor > AnchorPreset::BOTTOM_LEFT)
         {
             anchor = static_cast<AnchorPreset>((int)anchor - 1);
@@ -739,15 +753,15 @@ void RemoveAndRetainNodeTest::onEnter()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, _sprite);
 
     this->runAction(Sequence::create(DelayTime::create(5.0f), CallFunc::create([this]() {
-                                         _spriteSaved = true;
-                                         _sprite->retain();
-                                         _sprite->removeFromParentAndCleanup(false);
-                                     }),
+        _spriteSaved = true;
+        _sprite->retain();
+        _sprite->removeFromParentAndCleanup(false);
+    }),
                                      DelayTime::create(5.0f), CallFunc::create([this]() {
-                                         _spriteSaved = false;
-                                         this->addChild(_sprite);
-                                         _sprite->release();
-                                     }),
+        _spriteSaved = false;
+        this->addChild(_sprite);
+        _sprite->release();
+    }),
                                      nullptr));
 }
 
@@ -860,7 +874,7 @@ void DirectorEventTest::onEnter()
 {
     EventDispatcherTestDemo::onEnter();
 
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
 
     TTFConfig ttfConfig("fonts/arial.ttf", 20);
 
@@ -1177,9 +1191,9 @@ bool StopPropagationTest::isPointInNode(Vec2 pt, Node* node)
 
 bool StopPropagationTest::isPointInTopHalfAreaOfScreen(Vec2 pt)
 {
-    Size winSize = Director::getInstance()->getWinSize();
+    Size canvasSize = Director::getInstance()->getCanvasSize();
 
-    if (pt.y >= winSize.height / 2)
+    if (pt.y >= canvasSize.height / 2)
     {
         return true;
     }
@@ -1222,7 +1236,7 @@ PauseResumeTargetTest::PauseResumeTargetTest()
         sprite3->getListener()->setEnabled(false);
         _eventDispatcher->pauseEventListenersForTarget(this, true);
 
-        auto colorLayer = LayerColor::create(Color4B(0, 0, 255, 100));
+        auto colorLayer = LayerColor::create(Color32(0, 0, 255, 100));
         this->addChild(colorLayer, 99999);
 
         auto closeItem = MenuItemFont::create("close", [this, colorLayer, sprite3](Object* /*sender*/) {
@@ -1370,7 +1384,7 @@ PauseResumeTargetTest3::PauseResumeTargetTest3()
             if (rect.containsPoint(locationInNode))
             {
                 AXLOGD("TouchableSprite: onTouchBegan ...");
-                _touchableSprite->setColor(Color3B::RED);
+                _touchableSprite->setColor(Color32::RED);
                 return true;
             }
             return false;
@@ -1378,7 +1392,7 @@ PauseResumeTargetTest3::PauseResumeTargetTest3()
 
         listener->onTouchEnded = [this](Touch* touch, Event* event) {
             AXLOGD("TouchableSprite: onTouchEnded ...");
-            _touchableSprite->setColor(Color3B::WHITE);
+            _touchableSprite->setColor(Color32::WHITE);
         };
 
         _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, _touchableSprite);
@@ -1704,18 +1718,18 @@ Issue8194::Issue8194()
     // dispatch custom event in another custom event, make the custom event "Issue8194" take effect immediately
     _listener =
         getEventDispatcher()->addCustomEventListener(Director::EVENT_AFTER_UPDATE, [this](ax::EventCustom* event) {
-            if (nodesAdded)
-            {
-                // AXLOGD("Fire Issue8194 Event");
-                getEventDispatcher()->dispatchCustomEvent("Issue8194");
+        if (nodesAdded)
+        {
+            // AXLOGD("Fire Issue8194 Event");
+            getEventDispatcher()->dispatchCustomEvent("Issue8194");
 
-                // clear test nodes and listeners
-                getEventDispatcher()->removeCustomEventListeners("Issue8194");
-                removeChildByTag(tagA);
-                removeChildByTag(tagB);
-                nodesAdded = false;
-            }
-        });
+            // clear test nodes and listeners
+            getEventDispatcher()->removeCustomEventListeners("Issue8194");
+            removeChildByTag(tagA);
+            removeChildByTag(tagB);
+            nodesAdded = false;
+        }
+    });
 
     // When click this menuitem, it will add two node A and B, then send a custom event.
     // Because Node B's localZOrder < A's, the custom event should process by node B.
@@ -1724,22 +1738,20 @@ Issue8194::Issue8194()
         auto nodeA = Node::create();
         addChild(nodeA, 1, tagA);
 
-        ax::EventListenerCustom* listenerA =
-            ax::EventListenerCustom::create("Issue8194", [&](ax::EventCustom* event) {
-                _subtitleLabel->setString("Bug has been fixed.");
-                event->stopPropagation();
-            });
+        ax::EventListenerCustom* listenerA = ax::EventListenerCustom::create("Issue8194", [&](ax::EventCustom* event) {
+            _subtitleLabel->setString("Bug has been fixed.");
+            event->stopPropagation();
+        });
         getEventDispatcher()->addEventListenerWithSceneGraphPriority(listenerA, nodeA);
 
         // add nodeB to scene
         auto nodeB = Node::create();
         addChild(nodeB, -1, tagB);
 
-        ax::EventListenerCustom* listenerB =
-            ax::EventListenerCustom::create("Issue8194", [&](ax::EventCustom* event) {
-                _subtitleLabel->setString("Bug exist yet.");
-                event->stopPropagation();
-            });
+        ax::EventListenerCustom* listenerB = ax::EventListenerCustom::create("Issue8194", [&](ax::EventCustom* event) {
+            _subtitleLabel->setString("Bug exist yet.");
+            event->stopPropagation();
+        });
         getEventDispatcher()->addEventListenerWithSceneGraphPriority(listenerB, nodeB);
 
         nodesAdded = true;

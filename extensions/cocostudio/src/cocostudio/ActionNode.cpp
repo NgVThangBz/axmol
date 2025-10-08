@@ -24,11 +24,11 @@ THE SOFTWARE.
 
 #include "ActionNode.h"
 #include "ActionFrameEasing.h"
-#include "ui/UIWidget.h"
-#include "ui/UIHelper.h"
-#include "ui/UILayout.h"
+#include "axmol/ui/UIWidget.h"
+#include "axmol/ui/UIHelper.h"
+#include "axmol/ui/UILayout.h"
 #include "CocoLoader.h"
-#include "base/Utils.h"
+#include "axmol/base/Utils.h"
 #include "ActionManagerEx.h"
 
 using namespace ax;
@@ -179,7 +179,7 @@ void ActionNode::initWithDictionary(const rapidjson::Value& dic, Object* root)
             actionFrame->setFrameIndex(frameInex);
             actionFrame->setEasingType(frameTweenType);
             actionFrame->setEasingParameter(frameTweenParameter);
-            actionFrame->setColor(Color3B(colorR, colorG, colorB));
+            actionFrame->setColor(Color32(colorR, colorG, colorB));
             auto cActionArray = _frameArray.at((int)kKeyframeFade);
             cActionArray->pushBack(actionFrame);
             actionFrame->release();
@@ -350,7 +350,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
                 actionFrame->setEasingType(frameTweenType);
                 actionFrame->setEasingParameter(frameTweenParameter);
                 actionFrame->setFrameIndex(frameIndex);
-                actionFrame->setColor(Color3B(colorR, colorG, colorB));
+                actionFrame->setColor(Color32(colorR, colorG, colorB));
                 auto cActionArray = _frameArray.at((int)kKeyframeTint);
                 cActionArray->pushBack(actionFrame);
             }

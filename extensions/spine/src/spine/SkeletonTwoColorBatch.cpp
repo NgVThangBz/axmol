@@ -29,60 +29,68 @@
 
 #include <spine/spine-axmol.h>
 
-#include "base/Types.h"
-#include "base/Utils.h"
+#include "axmol/base/Types.h"
+#include "axmol/base/Utils.h"
 #include <algorithm>
 #include <spine/Extension.h>
 #include <stddef.h>// offsetof
 
-#include "renderer/backend/DriverBase.h"
-#include "renderer/Shaders.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/renderer/Shaders.h"
 #include "xxhash.h"
 
 USING_NS_AX;
 #define EVENT_AFTER_DRAW_RESET_POSITION "director_after_draw"
-using std::max;
-#define INITIAL_SIZE (10000)
+#define INITIAL_SIZE (2000)
 #define MAX_VERTICES 64000
 #define MAX_INDICES 64000
 
 namespace {
 
-	std::shared_ptr<backend::ProgramState> __twoColorProgramState = nullptr;
-	backend::UniformLocation __locPMatrix;
-	backend::UniformLocation __locTexture;
+	static ax::retain_ptr<rhi::ProgramState> __twoColorProgramState;
+    static ax::retain_ptr<rhi::VertexLayout> __twoColorVertexLayout;
+	rhi::UniformLocation __locPMatrix;
+	rhi::UniformLocation __locTexture;
 
-	static void updateProgramStateLayout(backend::ProgramState *programState) {
+	static void updateProgramStateLayout(ProgramState* programState, rhi::VertexLayout*& layout)
+    {
 		__locPMatrix = programState->getUniformLocation("u_PMatrix");
 		__locTexture = programState->getUniformLocation("u_tex0");
 
-		auto locPosition = programState->getAttributeLocation("a_position");
-        auto locTexcoord = programState->getAttributeLocation("a_texCoord");
-		auto locColor = programState->getAttributeLocation("a_color");
-		auto locColor2 = programState->getAttributeLocation("a_color2");
+		auto locPosition = programState->getVertexInputDesc("a_position");
+        auto locTexcoord = programState->getVertexInputDesc("a_texCoord");
+        auto locColor    = programState->getVertexInputDesc("a_color");
+        auto locColor2   = programState->getVertexInputDesc("a_color2");
 
-        auto vertexLayout = programState->getMutableVertexLayout();
-        vertexLayout->setAttrib("a_position", locPosition, backend::VertexFormat::FLOAT3,
+        auto layoutDesc = axvlm->allocateVertexLayoutDesc();
+        layoutDesc.startLayout(4);
+        layoutDesc.addAttrib("a_position", locPosition, rhi::VertexFormat::FLOAT3,
                                      offsetof(spine::V3F_C4B_C4B_T2F, position), false);
-        vertexLayout->setAttrib("a_color", locColor, backend::VertexFormat::UBYTE4,
+        layoutDesc.addAttrib("a_color", locColor, rhi::VertexFormat::UBYTE4,
                                      offsetof(spine::V3F_C4B_C4B_T2F, color), true);
-        vertexLayout->setAttrib("a_color2", locColor2, backend::VertexFormat::UBYTE4,
+        layoutDesc.addAttrib("a_color2", locColor2, rhi::VertexFormat::UBYTE4,
                                      offsetof(spine::V3F_C4B_C4B_T2F, color2), true);
-        vertexLayout->setAttrib("a_texCoord", locTexcoord, backend::VertexFormat::FLOAT2,
-                                     offsetof(spine::V3F_C4B_C4B_T2F, texCoords), false);
-        vertexLayout->setStride(sizeof(spine::V3F_C4B_C4B_T2F));
+        layoutDesc.addAttrib("a_texCoord", locTexcoord, rhi::VertexFormat::FLOAT2,
+                                     offsetof(spine::V3F_C4B_C4B_T2F, texCoord), false);
+        layoutDesc.endLayout();
+
+        layout = axvlm->acquireVertexLayout(std::move(layoutDesc));
 	}
 
-	static void initTwoColorProgramState() {
+	static void initTwoColorProgramState()
+        {
 		if (__twoColorProgramState) {
 			return;
 		}
 		auto program       = ProgramManager::getInstance()->loadProgram("custom/spineTwoColorTint_vs",
                                                                                       "custom/spineTwoColorTint_fs");
-		auto *programState = new backend::ProgramState(program);
-		updateProgramStateLayout(programState);
+		auto *programState = new rhi::ProgramState(program);
 
-		__twoColorProgramState = std::shared_ptr<backend::ProgramState>(programState);
+        rhi::VertexLayout* layout{nullptr};
+        updateProgramStateLayout(programState, layout);
+        __twoColorVertexLayout.reset(layout, axstd::adopt_object);
+
+		__twoColorProgramState.reset(programState, axstd::adopt_object);
 	}
 
 }// namespace
@@ -93,7 +101,7 @@ namespace spine {
 		_type = RenderCommand::Type::CUSTOM_COMMAND;
 	}
 
-	void TwoColorTrianglesCommand::init(float globalOrder, axmol::Texture2D *texture, axmol::backend::ProgramState *programState, BlendFunc blendType, const TwoColorTriangles &triangles, const Mat4 &mv, uint32_t flags) {
+	void TwoColorTrianglesCommand::init(float globalOrder, axmol::Texture2D *texture, axmol::rhi::ProgramState *programState, BlendFunc blendType, const TwoColorTriangles &triangles, const Mat4 &mv, uint32_t flags) {
 
 		updateCommandPipelineDescriptor(programState);
 		const axmol::Mat4 &projectionMat = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
@@ -101,7 +109,7 @@ namespace spine {
 		auto finalMatrix = projectionMat * mv;
 
 		_programState->setUniform(_locPMatrix, finalMatrix.m, sizeof(finalMatrix.m));
-		_programState->setTexture(_locTexture, 0, texture->getBackendTexture());
+		_programState->setTexture(_locTexture, 0, texture->getRHITexture());
 
 
 		RenderCommand::init(globalOrder, mv, flags);
@@ -116,13 +124,13 @@ namespace spine {
 		_mv = mv;
 
 		if (_blendType.src != blendType.src || _blendType.dst != blendType.dst ||
-			_texture != texture->getBackendTexture() || _pipelineDescriptor.programState != _programState) {
-			_texture = texture->getBackendTexture();
+			_texture != texture->getRHITexture() || _pipelineDesc.programState != _programState) {
+			_texture = texture->getRHITexture();
 			_blendType = blendType;
 
 			_prog = _programState->getProgram();
 
-			auto &blendDescriptor = _pipelineDescriptor.blendDescriptor;
+			auto &blendDescriptor = _pipelineDesc.blendDesc;
 			blendDescriptor.blendEnabled = true;
 			blendDescriptor.sourceRGBBlendFactor = blendDescriptor.sourceAlphaBlendFactor = blendType.src;
 			blendDescriptor.destinationRGBBlendFactor = blendDescriptor.destinationAlphaBlendFactor = blendType.dst;
@@ -132,14 +140,13 @@ namespace spine {
 	}
 
 
-	void TwoColorTrianglesCommand::updateCommandPipelineDescriptor(axmol::backend::ProgramState *programState) {
+	void TwoColorTrianglesCommand::updateCommandPipelineDescriptor(axmol::rhi::ProgramState *programState) {
 		// OPTIMIZE ME: all commands belong a same Node should share a same programState like SkeletonBatch
 		if (!__twoColorProgramState) {
 			initTwoColorProgramState();
 		}
 
 		bool needsUpdateStateLayout = false;
-		auto &pipelinePS = _pipelineDescriptor.programState;
 		if (programState != nullptr) {
 			if (_programState != programState) {
 				AX_SAFE_RELEASE(_programState);
@@ -154,17 +161,25 @@ namespace spine {
 		}
 
 		AXASSERT(_programState, "programState should not be null");
-		pipelinePS = _programState;
 
-		if (needsUpdateStateLayout)
-			updateProgramStateLayout(pipelinePS);
-
+		if (needsUpdateStateLayout) {
+            AX_SAFE_RELEASE_NULL(_vertexLayout);
+			updateProgramStateLayout(_programState, _vertexLayout);
+        }
+        else
+        {
+            Object::assign(_vertexLayout, __twoColorVertexLayout.get());
+        }
+        
 		_locPMatrix = __locPMatrix;
-		_locTexture = __locTexture;
+        _locTexture = __locTexture;
+
+        setWeakPSVL(_programState, _vertexLayout);
 	}
 
 	TwoColorTrianglesCommand::~TwoColorTrianglesCommand() {
 		AX_SAFE_RELEASE_NULL(_programState);
+        AX_SAFE_RELEASE_NULL(_vertexLayout);
 	}
 
 	void TwoColorTrianglesCommand::generateMaterialID() {
@@ -175,8 +190,8 @@ namespace spine {
 		{
 			void *texture;
 			void *prog;
-			backend::BlendFactor src;
-			backend::BlendFactor dst;
+			rhi::BlendFactor src;
+			rhi::BlendFactor dst;
 		} hashMe;
 
 		// NOTE: Initialize hashMe struct to make the value of padding bytes be filled with zero.
@@ -299,7 +314,7 @@ namespace spine {
 		_indices.setSize(_indices.size() - numIndices, 0);
 	}
 
-	TwoColorTrianglesCommand *SkeletonTwoColorBatch::addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, backend::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags) {
+	TwoColorTrianglesCommand *SkeletonTwoColorBatch::addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, rhi::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags) {
 		TwoColorTrianglesCommand *command = nextFreeCommand();
 		command->init(globalOrder, texture, programState, blendType, triangles, mv, flags);
 		command->updateVertexAndIndexBuffer(renderer, triangles.verts, triangles.vertCount, triangles.indices, triangles.indexCount);

@@ -10,7 +10,7 @@
 #include "Type/csmVector.hpp"
 #include "Model/CubismModel.hpp"
 #include <float.h>
-#include "renderer/backend/DriverBase.h"
+#include "axmol/rhi/DriverBase.h"
 
 using namespace ax;
 
@@ -142,7 +142,7 @@ CubismClippingContext* CubismClippingManager_Cocos2dx::FindSameClip(const csmInt
     return NULL; //見つからなかった
 }
 
-void CubismClippingManager_Cocos2dx::SetupClippingContext(CubismModel& model, CubismRenderer_Cocos2dx* renderer, backend::TextureBackend* lastColorBuffer, csmRectF lastViewport)
+void CubismClippingManager_Cocos2dx::SetupClippingContext(CubismModel& model, CubismRenderer_Cocos2dx* renderer, rhi::Texture* lastColorBuffer, csmRectF lastViewport)
 {
     _currentFrameNo++;
 
@@ -581,7 +581,7 @@ CubismClippingContext::CubismClippingContext(CubismClippingManager_Cocos2dx* man
 
         drawCommandBuffer = CSM_NEW CubismCommandBuffer_Cocos2dx::DrawCommandBuffer();
         drawCommandBuffer->GetCommandDraw()->GetCommand()->setDrawType(ax::CustomCommand::DrawType::ELEMENT);
-        drawCommandBuffer->GetCommandDraw()->GetCommand()->setPrimitiveType(ax::backend::PrimitiveType::TRIANGLE);
+        drawCommandBuffer->GetCommandDraw()->GetCommand()->setPrimitiveType(ax::rhi::PrimitiveType::TRIANGLE);
         drawCommandBuffer->CreateVertexBuffer(vertexSize, drawableVertexCount * 2);      // Vertices + UVs
         drawCommandBuffer->CreateIndexBuffer(drawableVertexIndexCount);
 
@@ -650,16 +650,16 @@ void CubismRendererProfile_Cocos2dx::Save()
 
 
     // モデル描画直前のFBOとビューポートを保存
-    // _lastColorBuffer = GetCocos2dRenderer()->getRenderTargetAttachment(backend::TargetBufferFlags::COLOR);
-    // _lastDepthBuffer      = GetCocos2dRenderer()->getRenderTargetAttachment(backend::TargetBufferFlags::DEPTH);
-    // _lastStencilBuffer    = GetCocos2dRenderer()->getRenderTargetAttachment(backend::TargetBufferFlags::STENCIL);
+    // _lastColorBuffer = GetCocos2dRenderer()->getRenderTargetAttachment(rhi::TargetBufferFlags::COLOR);
+    // _lastDepthBuffer      = GetCocos2dRenderer()->getRenderTargetAttachment(rhi::TargetBufferFlags::DEPTH);
+    // _lastStencilBuffer    = GetCocos2dRenderer()->getRenderTargetAttachment(rhi::TargetBufferFlags::STENCIL);
     // _lastRenderTargetFlag = GetCocos2dRenderer()->getRenderTargetFlag();
     // _lastColorBuffer  = nullptr; // unused
     _lastRenderTarget = GetCocos2dRenderer()->getRenderTarget();
 	//_lastRenderTargetFlag = _lastRenderTarget->getTargetFlags();
 	_lastColorBuffer  = _lastRenderTarget->_color[0].texture;
-	_lastDepthBuffer = _lastRenderTarget->_depth.texture;
-	_lastStencilBuffer = _lastRenderTarget->_stencil.texture;
+	_lastDepthBuffer = _lastRenderTarget->_depthStencil.texture;
+	_lastStencilBuffer = _lastRenderTarget->_depthStencil.texture;
     _lastViewport = csmRectF(GetCocos2dRenderer()->getViewport().x, GetCocos2dRenderer()->getViewport().y, GetCocos2dRenderer()->getViewport().w, GetCocos2dRenderer()->getViewport().h);
 }
 
@@ -682,15 +682,14 @@ void CubismRendererProfile_Cocos2dx::Restore()
 
         auto restoringRT = _lastRenderTarget;
 		restoringRT->setColorAttachment(_lastColorBuffer);
-		restoringRT->setDepthAttachment(_lastDepthBuffer);
-        restoringRT->setStencilAttachment(_lastStencilBuffer);
+		restoringRT->setDepthStencilAttachment(_lastDepthBuffer);
 		// restoringRT->setTargetFlags(_lastRenderTargetFlag);
         cmd->func        = [=]() -> void {
             GetCocos2dRenderer()->setRenderTarget(restoringRT);
         };
         // AddCommand([=]() -> void { GetCocos2dRenderer()->setRenderTarget(_lastRenderTarget); });
     }
-    GetCocos2dRenderer()->setViewPort(_lastViewport.X, _lastViewport.Y, _lastViewport.Width, _lastViewport.Height);
+    GetCocos2dRenderer()->setViewport(_lastViewport.X, _lastViewport.Y, _lastViewport.Width, _lastViewport.Height);
 }
 
 
@@ -910,23 +909,23 @@ void CubismShader_Cocos2dx::GenerateShaders()
 #endif
 
     // SetupMask
-    _shaderSets[0]->AttributePositionLocation = _shaderSets[0]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[0]->AttributeTexCoordLocation = _shaderSets[0]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[0]->AttributePositionLocation = _shaderSets[0]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[0]->AttributeTexCoordLocation = _shaderSets[0]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[0]->SamplerTexture0Location = _shaderSets[0]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[0]->UniformClipMatrixLocation = _shaderSets[0]->ShaderProgram->getUniformLocation("u_clipMatrix");
     _shaderSets[0]->UnifromChannelFlagLocation = _shaderSets[0]->ShaderProgram->getUniformLocation("u_channelFlag");
     _shaderSets[0]->UniformBaseColorLocation = _shaderSets[0]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常
-    _shaderSets[1]->AttributePositionLocation = _shaderSets[1]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[1]->AttributeTexCoordLocation = _shaderSets[1]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[1]->AttributePositionLocation = _shaderSets[1]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[1]->AttributeTexCoordLocation = _shaderSets[1]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[1]->SamplerTexture0Location = _shaderSets[1]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[1]->UniformMatrixLocation = _shaderSets[1]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[1]->UniformBaseColorLocation = _shaderSets[1]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常（クリッピング）
-    _shaderSets[2]->AttributePositionLocation = _shaderSets[2]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[2]->AttributeTexCoordLocation = _shaderSets[2]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[2]->AttributePositionLocation = _shaderSets[2]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[2]->AttributeTexCoordLocation = _shaderSets[2]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[2]->SamplerTexture0Location = _shaderSets[2]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[2]->SamplerTexture1Location = _shaderSets[2]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[2]->UniformMatrixLocation = _shaderSets[2]->ShaderProgram->getUniformLocation("u_matrix");
@@ -935,8 +934,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[2]->UniformBaseColorLocation = _shaderSets[2]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常（クリッピング・反転）
-    _shaderSets[3]->AttributePositionLocation = _shaderSets[3]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[3]->AttributeTexCoordLocation = _shaderSets[3]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[3]->AttributePositionLocation = _shaderSets[3]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[3]->AttributeTexCoordLocation = _shaderSets[3]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[3]->SamplerTexture0Location = _shaderSets[3]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[3]->SamplerTexture1Location = _shaderSets[3]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[3]->UniformMatrixLocation = _shaderSets[3]->ShaderProgram->getUniformLocation("u_matrix");
@@ -945,15 +944,15 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[3]->UniformBaseColorLocation = _shaderSets[3]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常（PremultipliedAlpha）
-    _shaderSets[4]->AttributePositionLocation = _shaderSets[4]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[4]->AttributeTexCoordLocation = _shaderSets[4]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[4]->AttributePositionLocation = _shaderSets[4]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[4]->AttributeTexCoordLocation = _shaderSets[4]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[4]->SamplerTexture0Location = _shaderSets[4]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[4]->UniformMatrixLocation = _shaderSets[4]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[4]->UniformBaseColorLocation = _shaderSets[4]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常（クリッピング、PremultipliedAlpha）
-    _shaderSets[5]->AttributePositionLocation = _shaderSets[5]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[5]->AttributeTexCoordLocation = _shaderSets[5]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[5]->AttributePositionLocation = _shaderSets[5]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[5]->AttributeTexCoordLocation = _shaderSets[5]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[5]->SamplerTexture0Location = _shaderSets[5]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[5]->SamplerTexture1Location = _shaderSets[5]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[5]->UniformMatrixLocation = _shaderSets[5]->ShaderProgram->getUniformLocation("u_matrix");
@@ -962,8 +961,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[5]->UniformBaseColorLocation = _shaderSets[5]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 通常（クリッピング・反転、PremultipliedAlpha）
-    _shaderSets[6]->AttributePositionLocation = _shaderSets[6]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[6]->AttributeTexCoordLocation = _shaderSets[6]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[6]->AttributePositionLocation = _shaderSets[6]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[6]->AttributeTexCoordLocation = _shaderSets[6]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[6]->SamplerTexture0Location = _shaderSets[6]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[6]->SamplerTexture1Location = _shaderSets[6]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[6]->UniformMatrixLocation = _shaderSets[6]->ShaderProgram->getUniformLocation("u_matrix");
@@ -972,15 +971,15 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[6]->UniformBaseColorLocation = _shaderSets[6]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算
-    _shaderSets[7]->AttributePositionLocation = _shaderSets[7]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[7]->AttributeTexCoordLocation = _shaderSets[7]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[7]->AttributePositionLocation = _shaderSets[7]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[7]->AttributeTexCoordLocation = _shaderSets[7]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[7]->SamplerTexture0Location = _shaderSets[7]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[7]->UniformMatrixLocation = _shaderSets[7]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[7]->UniformBaseColorLocation = _shaderSets[7]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算（クリッピング）
-    _shaderSets[8]->AttributePositionLocation = _shaderSets[8]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[8]->AttributeTexCoordLocation = _shaderSets[8]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[8]->AttributePositionLocation = _shaderSets[8]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[8]->AttributeTexCoordLocation = _shaderSets[8]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[8]->SamplerTexture0Location = _shaderSets[8]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[8]->SamplerTexture1Location = _shaderSets[8]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[8]->UniformMatrixLocation = _shaderSets[8]->ShaderProgram->getUniformLocation("u_matrix");
@@ -989,8 +988,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[8]->UniformBaseColorLocation = _shaderSets[8]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算（クリッピング・反転）
-    _shaderSets[9]->AttributePositionLocation = _shaderSets[9]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[9]->AttributeTexCoordLocation = _shaderSets[9]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[9]->AttributePositionLocation = _shaderSets[9]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[9]->AttributeTexCoordLocation = _shaderSets[9]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[9]->SamplerTexture0Location = _shaderSets[9]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[9]->SamplerTexture1Location = _shaderSets[9]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[9]->UniformMatrixLocation = _shaderSets[9]->ShaderProgram->getUniformLocation("u_matrix");
@@ -999,15 +998,15 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[9]->UniformBaseColorLocation = _shaderSets[9]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算（PremultipliedAlpha）
-    _shaderSets[10]->AttributePositionLocation = _shaderSets[10]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[10]->AttributeTexCoordLocation = _shaderSets[10]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[10]->AttributePositionLocation = _shaderSets[10]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[10]->AttributeTexCoordLocation = _shaderSets[10]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[10]->SamplerTexture0Location = _shaderSets[10]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[10]->UniformMatrixLocation = _shaderSets[10]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[10]->UniformBaseColorLocation = _shaderSets[10]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算（クリッピング、PremultipliedAlpha）
-    _shaderSets[11]->AttributePositionLocation = _shaderSets[11]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[11]->AttributeTexCoordLocation = _shaderSets[11]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[11]->AttributePositionLocation = _shaderSets[11]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[11]->AttributeTexCoordLocation = _shaderSets[11]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[11]->SamplerTexture0Location = _shaderSets[11]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[11]->SamplerTexture1Location = _shaderSets[11]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[11]->UniformMatrixLocation = _shaderSets[11]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1016,8 +1015,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[11]->UniformBaseColorLocation = _shaderSets[11]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 加算（クリッピング・反転、PremultipliedAlpha）
-    _shaderSets[12]->AttributePositionLocation = _shaderSets[12]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[12]->AttributeTexCoordLocation = _shaderSets[12]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[12]->AttributePositionLocation = _shaderSets[12]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[12]->AttributeTexCoordLocation = _shaderSets[12]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[12]->SamplerTexture0Location = _shaderSets[12]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[12]->SamplerTexture1Location = _shaderSets[12]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[12]->UniformMatrixLocation = _shaderSets[12]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1026,15 +1025,15 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[12]->UniformBaseColorLocation = _shaderSets[12]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算
-    _shaderSets[13]->AttributePositionLocation = _shaderSets[13]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[13]->AttributeTexCoordLocation = _shaderSets[13]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[13]->AttributePositionLocation = _shaderSets[13]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[13]->AttributeTexCoordLocation = _shaderSets[13]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[13]->SamplerTexture0Location = _shaderSets[13]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[13]->UniformMatrixLocation = _shaderSets[13]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[13]->UniformBaseColorLocation = _shaderSets[13]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算（クリッピング）
-    _shaderSets[14]->AttributePositionLocation = _shaderSets[14]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[14]->AttributeTexCoordLocation = _shaderSets[14]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[14]->AttributePositionLocation = _shaderSets[14]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[14]->AttributeTexCoordLocation = _shaderSets[14]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[14]->SamplerTexture0Location = _shaderSets[14]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[14]->SamplerTexture1Location = _shaderSets[14]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[14]->UniformMatrixLocation = _shaderSets[14]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1043,8 +1042,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[14]->UniformBaseColorLocation = _shaderSets[14]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算（クリッピング・反転）
-    _shaderSets[15]->AttributePositionLocation = _shaderSets[15]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[15]->AttributeTexCoordLocation = _shaderSets[15]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[15]->AttributePositionLocation = _shaderSets[15]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[15]->AttributeTexCoordLocation = _shaderSets[15]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[15]->SamplerTexture0Location = _shaderSets[15]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[15]->SamplerTexture1Location = _shaderSets[15]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[15]->UniformMatrixLocation = _shaderSets[15]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1053,15 +1052,15 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[15]->UniformBaseColorLocation = _shaderSets[15]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算（PremultipliedAlpha）
-    _shaderSets[16]->AttributePositionLocation = _shaderSets[16]->ShaderProgram->getAttributeLocation( "a_position");
-    _shaderSets[16]->AttributeTexCoordLocation = _shaderSets[16]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[16]->AttributePositionLocation = _shaderSets[16]->ShaderProgram->getVertexInputDesc( "a_position");
+    _shaderSets[16]->AttributeTexCoordLocation = _shaderSets[16]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[16]->SamplerTexture0Location = _shaderSets[16]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[16]->UniformMatrixLocation = _shaderSets[16]->ShaderProgram->getUniformLocation("u_matrix");
     _shaderSets[16]->UniformBaseColorLocation = _shaderSets[16]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算（クリッピング、PremultipliedAlpha）
-    _shaderSets[17]->AttributePositionLocation = _shaderSets[17]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[17]->AttributeTexCoordLocation = _shaderSets[17]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[17]->AttributePositionLocation = _shaderSets[17]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[17]->AttributeTexCoordLocation = _shaderSets[17]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[17]->SamplerTexture0Location = _shaderSets[17]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[17]->SamplerTexture1Location = _shaderSets[17]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[17]->UniformMatrixLocation = _shaderSets[17]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1070,8 +1069,8 @@ void CubismShader_Cocos2dx::GenerateShaders()
     _shaderSets[17]->UniformBaseColorLocation = _shaderSets[17]->ShaderProgram->getUniformLocation("u_baseColor");
 
     // 乗算（クリッピング・反転、PremultipliedAlpha）
-    _shaderSets[18]->AttributePositionLocation = _shaderSets[18]->ShaderProgram->getAttributeLocation("a_position");
-    _shaderSets[18]->AttributeTexCoordLocation = _shaderSets[18]->ShaderProgram->getAttributeLocation("a_texCoord");
+    _shaderSets[18]->AttributePositionLocation = _shaderSets[18]->ShaderProgram->getVertexInputDesc("a_position");
+    _shaderSets[18]->AttributeTexCoordLocation = _shaderSets[18]->ShaderProgram->getVertexInputDesc("a_texCoord");
     _shaderSets[18]->SamplerTexture0Location = _shaderSets[18]->ShaderProgram->getUniformLocation("u_tex0");
     _shaderSets[18]->SamplerTexture1Location = _shaderSets[18]->ShaderProgram->getUniformLocation("u_tex1");
     _shaderSets[18]->UniformMatrixLocation = _shaderSets[18]->ShaderProgram->getUniformLocation("u_matrix");
@@ -1093,11 +1092,13 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
         GenerateShaders();
     }
 
-    ax::backend::BlendDescriptor* blendDescriptor = drawCommand->GetBlendDescriptor();
-    ax::PipelineDescriptor* pipelineDescriptor = drawCommand->GetPipelineDescriptor();
+    ax::rhi::BlendDesc* blendDescriptor = drawCommand->GetBlendDescriptor();
+    auto cmd = drawCommand->GetCommand();
 
-    ax::backend::ProgramState* programState = pipelineDescriptor->programState;
+    ax::rhi::ProgramState* programState = cmd->unsafePS();
     VertexLayout* layout                    = nullptr;
+
+    auto needInit = !programState;
 
     if (renderer->GetClippingContextBufferForMask() != NULL) // マスク生成時
     {
@@ -1105,19 +1106,25 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
 
         if (!programState)
         {
-            programState = new ax::backend::ProgramState(shaderSet->ShaderProgram);
+            programState = new ax::rhi::ProgramState(shaderSet->ShaderProgram);
         }
 
-        layout = programState->getMutableVertexLayout();
+        auto layoutDesc = axvlm->allocateVertexLayoutDesc();
 
         //テクスチャ設定
-        programState->setTexture(shaderSet->SamplerTexture0Location, 0, texture->getBackendTexture());
+        programState->setTexture(shaderSet->SamplerTexture0Location, 0, texture->getRHITexture());
+
+        layoutDesc.startLayout(2);
 
         // 頂点配列の設定
-        layout->setAttrib("a_position", shaderSet->AttributePositionLocation, ax::backend::VertexFormat::FLOAT2, 0, false);
+        layoutDesc.addAttrib("a_position", shaderSet->AttributePositionLocation, ax::rhi::VertexFormat::FLOAT2, 0,
+                            false);
         // テクスチャ頂点の設定
-        layout->setAttrib("a_texCoord", shaderSet->AttributeTexCoordLocation, ax::backend::VertexFormat::FLOAT2,
+        layoutDesc.addAttrib("a_texCoord", shaderSet->AttributeTexCoordLocation, ax::rhi::VertexFormat::FLOAT2,
                           sizeof(csmFloat32) * 2, false);
+        layoutDesc.endLayout();
+
+        layout = axvlm->acquireVertexLayout(std::move(layoutDesc));
 
         // チャンネル
         const csmInt32 channelNo = renderer->GetClippingContextBufferForMask()->_layoutChannelNo;
@@ -1137,10 +1144,10 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
                                     rect->GetBottom() * 2.0f - 1.0f };
         programState->setUniform(shaderSet->UniformBaseColorLocation, base, sizeof(float) * 4);
 
-        blendDescriptor->sourceRGBBlendFactor = ax::backend::BlendFactor::ZERO;
-        blendDescriptor->destinationRGBBlendFactor = ax::backend::BlendFactor::ONE_MINUS_SRC_COLOR;
-        blendDescriptor->sourceAlphaBlendFactor = ax::backend::BlendFactor::ZERO;
-        blendDescriptor->destinationAlphaBlendFactor = ax::backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+        blendDescriptor->sourceRGBBlendFactor = ax::rhi::BlendFactor::ZERO;
+        blendDescriptor->destinationRGBBlendFactor = ax::rhi::BlendFactor::ONE_MINUS_SRC_COLOR;
+        blendDescriptor->sourceAlphaBlendFactor = ax::rhi::BlendFactor::ZERO;
+        blendDescriptor->destinationAlphaBlendFactor = ax::rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
     }
     else // マスク生成以外の場合
     {
@@ -1153,48 +1160,54 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
         case CubismRenderer::CubismBlendMode_Normal:
         default:
             shaderSet = _shaderSets[ShaderNames_Normal + offset];
-            blendDescriptor->sourceRGBBlendFactor = ax::backend::BlendFactor::ONE;
-            blendDescriptor->destinationRGBBlendFactor = ax::backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
-            blendDescriptor->sourceAlphaBlendFactor = ax::backend::BlendFactor::ONE;
-            blendDescriptor->destinationAlphaBlendFactor = ax::backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+            blendDescriptor->sourceRGBBlendFactor = ax::rhi::BlendFactor::ONE;
+            blendDescriptor->destinationRGBBlendFactor = ax::rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
+            blendDescriptor->sourceAlphaBlendFactor = ax::rhi::BlendFactor::ONE;
+            blendDescriptor->destinationAlphaBlendFactor = ax::rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
             break;
 
         case CubismRenderer::CubismBlendMode_Additive:
             shaderSet = _shaderSets[ShaderNames_Add + offset];
-            blendDescriptor->sourceRGBBlendFactor = ax::backend::BlendFactor::ONE;
-            blendDescriptor->destinationRGBBlendFactor = ax::backend::BlendFactor::ONE;
-            blendDescriptor->sourceAlphaBlendFactor = ax::backend::BlendFactor::ZERO;
-            blendDescriptor->destinationAlphaBlendFactor = ax::backend::BlendFactor::ONE;
+            blendDescriptor->sourceRGBBlendFactor = ax::rhi::BlendFactor::ONE;
+            blendDescriptor->destinationRGBBlendFactor = ax::rhi::BlendFactor::ONE;
+            blendDescriptor->sourceAlphaBlendFactor = ax::rhi::BlendFactor::ZERO;
+            blendDescriptor->destinationAlphaBlendFactor = ax::rhi::BlendFactor::ONE;
             break;
 
         case CubismRenderer::CubismBlendMode_Multiplicative:
             shaderSet = _shaderSets[ShaderNames_Mult + offset];
-            blendDescriptor->sourceRGBBlendFactor = ax::backend::BlendFactor::DST_COLOR;
-            blendDescriptor->destinationRGBBlendFactor = ax::backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
-            blendDescriptor->sourceAlphaBlendFactor = ax::backend::BlendFactor::ZERO;
-            blendDescriptor->destinationAlphaBlendFactor = ax::backend::BlendFactor::ONE;
+            blendDescriptor->sourceRGBBlendFactor = ax::rhi::BlendFactor::DST_COLOR;
+            blendDescriptor->destinationRGBBlendFactor = ax::rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
+            blendDescriptor->sourceAlphaBlendFactor = ax::rhi::BlendFactor::ZERO;
+            blendDescriptor->destinationAlphaBlendFactor = ax::rhi::BlendFactor::ONE;
             break;
         }
 
         if (!programState)
         {
-            programState = new ax::backend::ProgramState(shaderSet->ShaderProgram);
+            programState = new ax::rhi::ProgramState(shaderSet->ShaderProgram);
         }
-        layout = programState->getMutableVertexLayout();
+        auto layoutDesc = axvlm->allocateVertexLayoutDesc();
+
+        layoutDesc.startLayout(2);
 
         // 頂点配列の設定
-        layout->setAttrib("a_position", shaderSet->AttributePositionLocation, ax::backend::VertexFormat::FLOAT2, 0,
+        layoutDesc.addAttrib("a_position", shaderSet->AttributePositionLocation, ax::rhi::VertexFormat::FLOAT2, 0,
                           false);
         // テクスチャ頂点の設定
-        layout->setAttrib("a_texCoord", shaderSet->AttributeTexCoordLocation, ax::backend::VertexFormat::FLOAT2,
+        layoutDesc.addAttrib("a_texCoord", shaderSet->AttributeTexCoordLocation, ax::rhi::VertexFormat::FLOAT2,
                           sizeof(csmFloat32) * 2, false);
+
+        layoutDesc.endLayout();
+
+        layout = axvlm->acquireVertexLayout(std::move(layoutDesc));
 
         if (masked)
         {
             // frameBufferに書かれたテクスチャ
             ax::Texture2D* tex = renderer->_offscreenFrameBuffer.GetColorBuffer();
 
-            programState->setTexture(shaderSet->SamplerTexture1Location, 1, tex->getBackendTexture());
+            programState->setTexture(shaderSet->SamplerTexture1Location, 1, tex->getRHITexture());
 
             // View座標をClippingContextの座標に変換するための行列を設定
             programState->setUniform(shaderSet->UniformClipMatrixLocation,
@@ -1209,7 +1222,7 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
         }
 
         //テクスチャ設定
-        programState->setTexture(shaderSet->SamplerTexture0Location, 0, texture->getBackendTexture());
+        programState->setTexture(shaderSet->SamplerTexture0Location, 0, texture->getRHITexture());
 
         //座標変換
         programState->setUniform(shaderSet->UniformMatrixLocation, matrix4x4.GetArray(), sizeof(float) * 16);
@@ -1218,14 +1231,12 @@ void CubismShader_Cocos2dx::SetupShaderProgram(CubismCommandBuffer_Cocos2dx::Dra
         programState->setUniform(shaderSet->UniformBaseColorLocation, base, sizeof(float) * 4);
     }
 
-    if (layout)
-        layout->setStride(sizeof(csmFloat32) * 4);
-
     blendDescriptor->blendEnabled = true;
-    pipelineDescriptor->programState = programState;
+    if (needInit)
+        cmd->setOwnPSVL(programState, layout, RenderCommand::ADOPT_FLAG_ALL);
 }
 
-ax::backend::Program* CubismShader_Cocos2dx::LoadShaderProgram(const csmChar* vertShaderPath,
+ax::rhi::Program* CubismShader_Cocos2dx::LoadShaderProgram(const csmChar* vertShaderPath,
                                                                const csmChar* fragShaderPath)
 {
     // cocos2dx対応
@@ -1314,7 +1325,7 @@ void CubismRenderer_Cocos2dx::Initialize(CubismModel* model)
 
         _drawableDrawCommandBuffer[i] = CSM_NEW CubismCommandBuffer_Cocos2dx::DrawCommandBuffer();
         _drawableDrawCommandBuffer[i]->GetCommandDraw()->GetCommand()->setDrawType(ax::CustomCommand::DrawType::ELEMENT);
-        _drawableDrawCommandBuffer[i]->GetCommandDraw()->GetCommand()->setPrimitiveType(ax::backend::PrimitiveType::TRIANGLE);
+        _drawableDrawCommandBuffer[i]->GetCommandDraw()->GetCommand()->setPrimitiveType(ax::rhi::PrimitiveType::TRIANGLE);
         _drawableDrawCommandBuffer[i]->CreateVertexBuffer(vertexSize, drawableVertexCount * 2);      // Vertices + UVs
 
         if (drawableVertexIndexCount > 0)

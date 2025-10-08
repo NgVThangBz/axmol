@@ -27,8 +27,8 @@
 #define _ATLAS_TEST_NEW_H_
 
 #include "../BaseTest.h"
-#include "renderer/CustomCommand.h"
-#include "ui/CocosGUI.h"
+#include "axmol/renderer/CustomCommand.h"
+#include "axmol/ui/CocosGUI.h"
 #include "extensions/axmol-ext.h"
 #include "cocostudio/LocalizationManager.h"
 
@@ -187,7 +187,7 @@ protected:
     std::vector<ax::MenuItemFont*> _menuItems;
     ax::MenuItemFont* _lastSentenceItem  = nullptr;
     ax::MenuItemFont* _lastAlignmentItem = nullptr;
-    bool _drag                                = false;
+    bool _drag                           = false;
 };
 
 class LabelFNTMultiLineAlignmentUNICODE : public LabelFNTMultiLineAlignment
@@ -374,9 +374,13 @@ public:
     virtual std::string subtitle() const override;
     ax::Label* _labelNormal;
     ax::Label* _labelSDF;
-    ax::ui::Slider *_sliderOutline;
-    void initToggleLabel(std::string content, ax::Vec2 pos, std::function<void(Object*, ax::ui::CheckBox::EventType)> callback);
-    ax::ui::Slider* initSlider(std::string content,ax::Vec2 pos,std::function<void(Object*, ax::ui::Slider::EventType)> callback);
+    ax::ui::Slider* _sliderOutline;
+    void initToggleLabel(std::string content,
+                         ax::Vec2 pos,
+                         std::function<void(Object*, ax::ui::CheckBox::EventType)> callback);
+    ax::ui::Slider* initSlider(std::string content,
+                               ax::Vec2 pos,
+                               std::function<void(Object*, ax::ui::Slider::EventType)> callback);
     void initToggleCheckboxes();
     void onChangedRadioButtonSelect(ax::ui::RadioButton* radioButton, ax::ui::RadioButton::EventType type);
 };
@@ -745,7 +749,7 @@ protected:
     void setAlignmentTop(ax::Object* sender);
     void setAlignmentMiddle(ax::Object* sender);
     void setAlignmentBottom(ax::Object* sender);
-    
+
     void initWrapOption(const ax::Size& size);
     void initToggleLabelTypeOption(const ax::Size& size);
     void initAlignmentOption(const ax::Size& size);
@@ -1073,7 +1077,7 @@ public:
     virtual std::string subtitle() const override;
 
 private:
-    static void setLetterColors(ax::Label* label, const ax::Color3B& color);
+    static void setLetterColors(ax::Label* label, const ax::Color32& color);
 };
 
 #endif

@@ -25,11 +25,11 @@
 
 #include "Scene3DTest.h"
 
-#include "ui/CocosGUI.h"
-#include "renderer/RenderState.h"
+#include "axmol/ui/CocosGUI.h"
+#include "axmol/renderer/RenderState.h"
 #include <spine/spine-axmol.h>
 
-#include "AudioEngine.h"
+#include "axmol/audio/AudioEngine.h"
 #include "../testResource.h"
 #include "../TerrainTest/TerrainTest.h"
 
@@ -47,7 +47,7 @@ public:
     {
         renderer->setCullMode(CullMode::NONE);
         SkeletonAnimation::draw(renderer, transform, transformFlags);
-        //RenderState::StateBlock::invalidate(ax::RenderState::StateBlock::RS_ALL_ONES);
+        // RenderState::StateBlock::invalidate(ax::RenderState::StateBlock::RS_ALL_ONES);
     }
 
     static SkeletonAnimationCullingFix* createWithFile(std::string_view skeletonDataFile,
@@ -243,7 +243,7 @@ Scene3DTestScene::Scene3DTestScene()
 Scene3DTestScene::~Scene3DTestScene()
 {
     AudioEngine::stopAll();
-    AudioEngine::setListenerPosition(Vec3()); // reset listener position
+    AudioEngine::setListenerPosition(Vec3());  // reset listener position
     AudioEngine::setDistanceScale(1.f);
 }
 
@@ -393,11 +393,9 @@ void Scene3DTestScene::createWorld3D()
                                        "MeshRendererTest/skybox/top.jpg", "MeshRendererTest/skybox/bottom.jpg",
                                        "MeshRendererTest/skybox/front.jpg", "MeshRendererTest/skybox/back.jpg");
     // set texture parameters
-    Texture2D::TexParams tRepeatParams;
-    tRepeatParams.magFilter    = backend::SamplerFilter::LINEAR;
-    tRepeatParams.minFilter    = backend::SamplerFilter::LINEAR;
-    tRepeatParams.sAddressMode = backend::SamplerAddressMode::MIRROR_REPEAT;
-    tRepeatParams.tAddressMode = backend::SamplerAddressMode::MIRROR_REPEAT;
+    Texture2D::TexParams tRepeatParams{};
+    tRepeatParams.sAddressMode = rhi::SamplerAddressMode::MIRROR;
+    tRepeatParams.tAddressMode = rhi::SamplerAddressMode::MIRROR;
     _textureCube->setTexParameters(tRepeatParams);
 
     // add skybox
@@ -498,29 +496,29 @@ void Scene3DTestScene::createUI()
     _ui->addChild(menu);
 
     auto audioCheckbox = ui::CheckBox::create("cocosui/check_box_normal.png", "cocosui/check_box_normal_press.png",
-                           "cocosui/check_box_active.png", "cocosui/check_box_normal_disable.png",
-                           "cocosui/check_box_active_disable.png");
+                                              "cocosui/check_box_active.png", "cocosui/check_box_normal_disable.png",
+                                              "cocosui/check_box_active_disable.png");
     audioCheckbox->setSelected(true);
     audioCheckbox->setName("Audio");
     audioCheckbox->setAnchorPoint(Vec2::ANCHOR_BOTTOM_RIGHT);
     audioCheckbox->setScale(0.8f);
-    audioCheckbox->addEventListener(
-        [this](ax::Object* sender, ax::ui::CheckBox::EventType eventType) {
-            if (eventType == ui::CheckBox::EventType::UNSELECTED)
-            {
-                AudioEngine::pause(_audioId);
-            }
-            else
-            {
-                AudioEngine::resume(_audioId);
-            }
-        });
+    audioCheckbox->addEventListener([this](ax::Object* sender, ax::ui::CheckBox::EventType eventType) {
+        if (eventType == ui::CheckBox::EventType::UNSELECTED)
+        {
+            AudioEngine::pause(_audioId);
+        }
+        else
+        {
+            AudioEngine::resume(_audioId);
+        }
+    });
     auto label = ui::Text::create();
     label->setString("Positional Audio");
     label->setAnchorPoint(Vec2(0, 0));
     label->setPositionX(audioCheckbox->getContentSize().width);
     audioCheckbox->addChild(label);
-    audioCheckbox->setPosition(VisibleRect::right() - Vec2(audioCheckbox->getContentSize().width + label->getContentSize().width, 0));
+    audioCheckbox->setPosition(VisibleRect::right() -
+                               Vec2(audioCheckbox->getContentSize().width + label->getContentSize().width, 0));
     _ui->addChild(audioCheckbox);
 
     // second, add cameras control button to ui
@@ -618,7 +616,8 @@ void Scene3DTestScene::createPlayerDlg()
     item->setScale(1.5);
     item->setAnchorPoint(itemAnchor);
     item->setPosition(itemPos);
-    item->addClickEventListener([this](Object* sender) { this->_detailDlg->setVisible(!this->_detailDlg->isVisible()); });
+    item->addClickEventListener(
+        [this](Object* sender) { this->_detailDlg->setVisible(!this->_detailDlg->isVisible()); });
     _playerDlg->addChild(item);
 
     // second, add 3d actor, which on dialog layer
@@ -695,21 +694,19 @@ void Scene3DTestScene::createDetailDlg()
         Director::getInstance()->getTextureCache()->removeTextureForKey(_snapshotFile);
         _osdScene->removeChildByTag(SNAPSHOT_TAG);
         _snapshotFile = "CaptureScreenTest.png";
-        utils::captureScreen(
-            [this](bool succeed, std::string_view outputFile) {
-                if (!succeed)
-                {
-                    AXLOGW("Capture screen failed.");
-                    return;
-                }
-                auto sp = Sprite::create(outputFile);
-                _osdScene->addChild(sp, 0, SNAPSHOT_TAG);
-                Size s = Director::getInstance()->getWinSize();
-                sp->setPosition(s.width / 2, s.height / 2);
-                sp->setScale(0.25);
-                _snapshotFile = outputFile;
-            },
-            _snapshotFile);
+        utils::captureScreen([this](bool succeed, std::string_view outputFile) {
+            if (!succeed)
+            {
+                AXLOGW("Capture screen failed.");
+                return;
+            }
+            auto sp = Sprite::create(outputFile);
+            _osdScene->addChild(sp, 0, SNAPSHOT_TAG);
+            Size s = Director::getInstance()->getCanvasSize();
+            sp->setPosition(s.width / 2, s.height / 2);
+            sp->setScale(0.25);
+            _snapshotFile = outputFile;
+        }, _snapshotFile);
     });
     capture->setTitleText("Take Snapshot");
     capture->setName("Take Snapshot");
@@ -731,7 +728,7 @@ void Scene3DTestScene::createDetailDlg()
     skeletonNode->setSkin("goblin");
 
     skeletonNode->setScale(0.25);
-    Size windowSize = Director::getInstance()->getWinSize();
+    Size windowSize = Director::getInstance()->getCanvasSize();
     skeletonNode->setPosition(Vec2(dlgSize.width / 2, remove->getContentSize().height / 2 + 2 * margin));
     _detailDlg->addChild(skeletonNode);
 }
@@ -891,7 +888,7 @@ void Scene3DTestScene::onTouchEnd(Touch* touch, ax::Event* event)
     {
         Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
         // convert screen touch location to the world location on near and far plane
-        auto size = Director::getInstance()->getWinSize();
+        auto size = Director::getInstance()->getCanvasSize();
         camera->unprojectGL(size, &nearP, &nearP);
         camera->unprojectGL(size, &farP, &farP);
         Vec3 dir = farP - nearP;

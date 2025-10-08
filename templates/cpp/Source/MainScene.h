@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 class MainScene : public ax::Scene
 {
@@ -71,4 +71,3 @@ private:
     ax::EventListenerMouse* _mouseListener          = nullptr;
     int _sceneID                                    = 0;
 };
-

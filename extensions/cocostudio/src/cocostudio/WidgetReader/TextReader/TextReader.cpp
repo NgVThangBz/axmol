@@ -2,9 +2,9 @@
 
 #include "cocostudio/WidgetReader/TextReader/TextReader.h"
 
-#include "ui/UIText.h"
-#include "2d/Label.h"
-#include "platform/FileUtils.h"
+#include "axmol/ui/UIText.h"
+#include "axmol/2d/Label.h"
+#include "axmol/platform/FileUtils.h"
 
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
@@ -68,10 +68,19 @@ void TextReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* cocoLoad
         // read all color related properties of widget
         AX_COLOR_PROPERTY_BINARY_READER
 
-        else if (key == P_TouchScaleEnable) { label->setTouchScaleChangeEnabled(valueToBool(value)); }
+        else if (key == P_TouchScaleEnable)
+        {
+            label->setTouchScaleChangeEnabled(valueToBool(value));
+        }
 
-        else if (key == P_Text) { label->setString(value); }
-        else if (key == P_FontSize) { label->setFontSize(valueToInt(value)); }
+        else if (key == P_Text)
+        {
+            label->setString(value);
+        }
+        else if (key == P_FontSize)
+        {
+            label->setFontSize(valueToInt(value));
+        }
         else if (key == P_FontName)
         {
             auto& fontFilePath = binaryFilePath.append(value);
@@ -85,8 +94,14 @@ void TextReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* cocoLoad
         {
             label->setTextAreaSize(Size(label->getTextAreaSize().width, valueToFloat(value)));
         }
-        else if (key == P_HAlignment) { label->setTextHorizontalAlignment((TextHAlignment)valueToInt(value)); }
-        else if (key == P_VAlignment) { label->setTextVerticalAlignment((TextVAlignment)valueToInt(value)); }
+        else if (key == P_HAlignment)
+        {
+            label->setTextHorizontalAlignment((TextHAlignment)valueToInt(value));
+        }
+        else if (key == P_VAlignment)
+        {
+            label->setTextVerticalAlignment((TextVAlignment)valueToInt(value));
+        }
 
     }  // end of for loop
     this->endSetBasicProperties(widget);
@@ -157,16 +172,16 @@ Offset<Table> TextReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
     int h_alignment      = 0;
     int v_alignment      = 0;
     bool outlineEnabled  = false;
-    Color4B outlineColor = Color4B::BLACK;
+    Color32 outlineColor = Color32::BLACK;
     int outlineSize      = 1;
     bool shadowEnabled   = false;
-    Color4B shadowColor  = Color4B::BLACK;
+    Color32 shadowColor  = Color32::BLACK;
     Size shadowOffset    = Size(2, -2);
     int shadowBlurRadius = 0;
 
     // since x-studio reader 10.0.593.0
     bool glowEnabled  = false;
-    Color4B glowColor = Color4B::BLACK;
+    Color32 glowColor = Color32::BLACK;
 
     bool boldEnabled = false, underlineEnabled = false, italicsEnabled = false, strikethroughEnabled = false;
 
@@ -303,7 +318,7 @@ Offset<Table> TextReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -328,7 +343,7 @@ Offset<Table> TextReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -357,7 +372,7 @@ Offset<Table> TextReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -386,7 +401,7 @@ Offset<Table> TextReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -469,7 +484,7 @@ void TextReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
         auto f_outlineColor = options->outlineColor();
         if (f_outlineColor)
         {
-            Color4B outlineColor(f_outlineColor->r(), f_outlineColor->g(), f_outlineColor->b(), f_outlineColor->a());
+            Color32 outlineColor(f_outlineColor->r(), f_outlineColor->g(), f_outlineColor->b(), f_outlineColor->a());
             label->enableOutline(outlineColor, options->outlineSize());
         }
     }
@@ -480,7 +495,7 @@ void TextReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
         auto f_shadowColor = options->shadowColor();
         if (f_shadowColor)
         {
-            Color4B shadowColor(f_shadowColor->r(), f_shadowColor->g(), f_shadowColor->b(), f_shadowColor->a());
+            Color32 shadowColor(f_shadowColor->r(), f_shadowColor->g(), f_shadowColor->b(), f_shadowColor->a());
             label->enableShadow(shadowColor, Size(options->shadowOffsetX(), options->shadowOffsetY()),
                                 options->shadowBlurRadius());
         }
@@ -491,7 +506,7 @@ void TextReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
         auto f_glowColor = options->glowColor();
         if (f_glowColor)
         {
-            Color4B glowColor(f_glowColor->r(), f_glowColor->g(), f_glowColor->b(), f_glowColor->a());
+            Color32 glowColor(f_glowColor->r(), f_glowColor->g(), f_glowColor->b(), f_glowColor->a());
             label->enableGlow(glowColor);
         }
     }
@@ -518,7 +533,7 @@ void TextReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
     node->setColor(oldColor);
     auto optionsWidget = (WidgetOptions*)options->widgetOptions();
     auto f_color       = optionsWidget->color();
-    Color4B color(f_color->r(), f_color->g(), f_color->b(), f_color->a());
+    Color32 color(f_color->r(), f_color->g(), f_color->b(), f_color->a());
     ((Text*)node)->setTextColor(color);
 
     label->setUnifySizeEnabled(false);

@@ -29,7 +29,7 @@
 
 #include <cassert>
 
-#include "NinePatchImageParser.h"
+#include "axmol/base/NinePatchImageParser.h"
 
 using namespace ax;
 
@@ -43,7 +43,7 @@ SpriteFrameCacheTests::SpriteFrameCacheTests()
 
 SpriteFrameCachePixelFormatTest::SpriteFrameCachePixelFormatTest()
 {
-    const Size screenSize = Director::getInstance()->getWinSize();
+    const Size screenSize = Director::getInstance()->getCanvasSize();
 
     infoLabel = Label::create();
     infoLabel->setAnchorPoint(Point(0.5f, 1.0f));
@@ -52,31 +52,26 @@ SpriteFrameCachePixelFormatTest::SpriteFrameCachePixelFormatTest()
     addChild(infoLabel);
 
     // load atlas definition with specified PixelFormat and check that it matches to expected format
-    loadSpriteFrames("Images/sprite_frames_test/test_A8.plist", backend::PixelFormat::R8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", backend::PixelFormat::RGBA8);
-    loadSpriteFrames("Images/sprite_frames_test/test_AI88.plist", backend::PixelFormat::RG8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGB565.plist", backend::PixelFormat::RGB565);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGB888.plist", backend::PixelFormat::RGB8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA4444.plist", backend::PixelFormat::RGBA4);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA5551.plist", backend::PixelFormat::RGB5A1);
+    loadSpriteFrames("Images/sprite_frames_test/test_A8.plist", rhi::PixelFormat::R8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", rhi::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_AI88.plist", rhi::PixelFormat::RG8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGB565.plist", rhi::PixelFormat::RGB565);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGB888.plist", rhi::PixelFormat::RGB8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA4444.plist", rhi::PixelFormat::RGBA4);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA5551.plist", rhi::PixelFormat::RGB5A1);
 
     if (Configuration::getInstance()->supportsPVRTC())
     {
-        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC2.plist", backend::PixelFormat::PVRTC2A);
-        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC4.plist", backend::PixelFormat::PVRTC4A);
-        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC2_NOALPHA.plist", backend::PixelFormat::PVRTC2);
+        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC2.plist", rhi::PixelFormat::PVRTC2A);
+        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC4.plist", rhi::PixelFormat::PVRTC4A);
+        loadSpriteFrames("Images/sprite_frames_test/test_PVRTC2_NOALPHA.plist", rhi::PixelFormat::PVRTC2);
     }
 
     // test loading atlases without PixelFormat specified
-    Texture2D::setDefaultAlphaPixelFormat(backend::PixelFormat::RGB5A1);
-    loadSpriteFrames("Images/sprite_frames_test/test_NoFormat.plist", backend::PixelFormat::RGB5A1);
-
-    // restore default alpha pixel format
-    Texture2D::setDefaultAlphaPixelFormat(backend::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_NoFormat.plist", rhi::PixelFormat::RGBA8);
 }
 
-void SpriteFrameCachePixelFormatTest::loadSpriteFrames(std::string_view file,
-                                                       ax::backend::PixelFormat expectedFormat)
+void SpriteFrameCachePixelFormatTest::loadSpriteFrames(std::string_view file, ax::rhi::PixelFormat expectedFormat)
 {
     SpriteFrameCache::getInstance()->addSpriteFramesWithFile(file);
     SpriteFrame* spriteFrame = SpriteFrameCache::getInstance()->getSpriteFrameByName("sprite_frames_test/grossini.png");
@@ -85,8 +80,8 @@ void SpriteFrameCachePixelFormatTest::loadSpriteFrames(std::string_view file,
     const double memorySize  = 1.0 * texture->getBitsPerPixelForFormat() * texture->getContentSizeInPixels().width *
                               texture->getContentSizeInPixels().height / bitsPerKB;
 
-    const std::string textureInfo = fmt::format("{}{}: {:.2} KB\r\n", infoLabel->getString(),
-                                                        texture->getStringForFormat(), memorySize);
+    const std::string textureInfo =
+        fmt::format("{}{}: {:.2} KB\r\n", infoLabel->getString(), texture->getStringForFormat(), memorySize);
     infoLabel->setString(textureInfo);
 
     SpriteFrameCache::getInstance()->removeSpriteFramesFromFile(file);
@@ -95,17 +90,16 @@ void SpriteFrameCachePixelFormatTest::loadSpriteFrames(std::string_view file,
 
 SpriteFrameCacheLoadMultipleTimes::SpriteFrameCacheLoadMultipleTimes()
 {
-    const Size screenSize = Director::getInstance()->getWinSize();
+    const Size screenSize = Director::getInstance()->getCanvasSize();
 
     // load atlas definition with specified PixelFormat and check that it matches to expected format
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", backend::PixelFormat::RGBA8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", backend::PixelFormat::RGBA8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", backend::PixelFormat::RGBA8);
-    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", backend::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", rhi::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", rhi::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", rhi::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGBA8888.plist", rhi::PixelFormat::RGBA8);
 }
 
-void SpriteFrameCacheLoadMultipleTimes::loadSpriteFrames(std::string_view file,
-                                                         ax::backend::PixelFormat expectedFormat)
+void SpriteFrameCacheLoadMultipleTimes::loadSpriteFrames(std::string_view file, ax::rhi::PixelFormat expectedFormat)
 {
     SpriteFrameCache::getInstance()->addSpriteFramesWithFile(file);
     SpriteFrame* spriteFrame = SpriteFrameCache::getInstance()->getSpriteFrameByName("sprite_frames_test/grossini.png");
@@ -117,12 +111,12 @@ void SpriteFrameCacheLoadMultipleTimes::loadSpriteFrames(std::string_view file,
 
 SpriteFrameCacheFullCheck::SpriteFrameCacheFullCheck()
 {
-    const Size screenSize = Director::getInstance()->getWinSize();
+    const Size screenSize = Director::getInstance()->getCanvasSize();
     // load atlas definition with specified PixelFormat and check that it matches to expected format
-    loadSpriteFrames("Images/test_polygon.plist", backend::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/test_polygon.plist", rhi::PixelFormat::RGBA8);
 }
 
-void SpriteFrameCacheFullCheck::loadSpriteFrames(std::string_view file, ax::backend::PixelFormat expectedFormat)
+void SpriteFrameCacheFullCheck::loadSpriteFrames(std::string_view file, ax::rhi::PixelFormat expectedFormat)
 {
     auto cache = SpriteFrameCache::getInstance();
 
@@ -290,39 +284,7 @@ protected:
                                  std::string_view atlasPath,
                                  SpriteFrameCache& cache)
     {
-        std::string pixelFormatName;
-        auto&& metaItr = doc.FindMember("meta");
-        if (metaItr != doc.MemberEnd())
-        {
-            auto&& pixelFormatItr = metaItr->value.FindMember("format");
-            if (pixelFormatItr != metaItr->value.MemberEnd())
-            {
-                pixelFormatName = pixelFormatItr->value.GetString();
-            }
-        }
-
-        Texture2D* texture                                                        = nullptr;
-        static std::unordered_map<std::string, backend::PixelFormat> pixelFormats = {
-            {"RGBA8888", backend::PixelFormat::RGBA8},
-            {"RGBA4444", backend::PixelFormat::RGBA4},
-            {"RGB5A1", backend::PixelFormat::RGB5A1},
-            {"RGBA5551", backend::PixelFormat::RGB5A1},
-            {"RGB565", backend::PixelFormat::RGB565},
-            {"R8", backend::PixelFormat::R8},
-            {"RG8", backend::PixelFormat::RG8},
-            //{"BGRA8888", backend::PixelFormat::BGRA8888}, no Image conversion RGBA -> BGRA
-            {"RGB888", backend::PixelFormat::RGB8}};
-
-        const auto pixelFormatIt = pixelFormats.find(pixelFormatName);
-        if (pixelFormatIt != pixelFormats.end())
-        {
-            const backend::PixelFormat pixelFormat        = (*pixelFormatIt).second;
-            texture = Director::getInstance()->getTextureCache()->addImage(texturePath, pixelFormat);
-        }
-        else
-        {
-            texture = Director::getInstance()->getTextureCache()->addImage(texturePath);
-        }
+        Texture2D* const texture = Director::getInstance()->getTextureCache()->addImage(texturePath);
 
         if (texture)
         {
@@ -466,7 +428,7 @@ SpriteFrameCacheJsonAtlasTest::SpriteFrameCacheJsonAtlasTest()
     auto* cache = SpriteFrameCache::getInstance();
     cache->registerSpriteSheetLoader(std::make_unique<GenericJsonArraySpriteSheetLoader>());
 
-    const Size screenSize = Director::getInstance()->getWinSize();
+    const Size screenSize = Director::getInstance()->getCanvasSize();
 
     infoLabel = Label::create();
     infoLabel->setAnchorPoint(Point(0.5f, 1.0f));
@@ -474,7 +436,7 @@ SpriteFrameCacheJsonAtlasTest::SpriteFrameCacheJsonAtlasTest()
     infoLabel->setPosition(screenSize.width * 0.5f, screenSize.height * 0.7f);
     addChild(infoLabel);
 
-    loadSpriteFrames("Images/sprite_frames_test/test_RGB8888_generic.json"sv, backend::PixelFormat::RGBA8);
+    loadSpriteFrames("Images/sprite_frames_test/test_RGB8888_generic.json"sv, rhi::PixelFormat::RGBA8);
 }
 
 SpriteFrameCacheJsonAtlasTest::~SpriteFrameCacheJsonAtlasTest()
@@ -483,8 +445,7 @@ SpriteFrameCacheJsonAtlasTest::~SpriteFrameCacheJsonAtlasTest()
     cache->deregisterSpriteSheetLoader(GenericJsonArraySpriteSheetLoader::FORMAT);
 }
 
-void SpriteFrameCacheJsonAtlasTest::loadSpriteFrames(std::string_view file,
-                                                     ax::backend::PixelFormat expectedFormat)
+void SpriteFrameCacheJsonAtlasTest::loadSpriteFrames(std::string_view file, ax::rhi::PixelFormat expectedFormat)
 {
     SpriteFrameCache::getInstance()->addSpriteFramesWithFile(file, GenericJsonArraySpriteSheetLoader::FORMAT);
     SpriteFrame* spriteFrame =
@@ -493,8 +454,8 @@ void SpriteFrameCacheJsonAtlasTest::loadSpriteFrames(std::string_view file,
     const ssize_t bitsPerKB = 8 * 1024;
     const double memorySize = 1.0 * texture->getBitsPerPixelForFormat() * texture->getContentSizeInPixels().width *
                               texture->getContentSizeInPixels().height / bitsPerKB;
-    const std::string textureInfo = fmt::format("{}{}: {:.2} KB\r\n", infoLabel->getString(),
-                                                        texture->getStringForFormat(), memorySize);
+    const std::string textureInfo =
+        fmt::format("{}{}: {:.2} KB\r\n", infoLabel->getString(), texture->getStringForFormat(), memorySize);
     infoLabel->setString(textureInfo);
 
     SpriteFrameCache::getInstance()->removeSpriteFramesFromFile(file);

@@ -58,7 +58,7 @@ bool UISliderTest::init()
 
         // Add the alert
         Text* alert = Text::create("Slider", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -105,17 +105,16 @@ void UISliderTest::printWidgetResources(ax::Object* /*sender*/)
     ax::ResourceData textureFile = _slider->getBackFile();
     AXLOGD("textureFile  Name : {}, Type: {}", textureFile.file, textureFile.type);
     ax::ResourceData progressBarTextureFile = _slider->getProgressBarFile();
-    AXLOGD("progressBarTextureFile  Name : {}, Type: {}", progressBarTextureFile.file,
-          progressBarTextureFile.type);
+    AXLOGD("progressBarTextureFile  Name : {}, Type: {}", progressBarTextureFile.file, progressBarTextureFile.type);
     ax::ResourceData slidBallNormalTextureFile = _slider->getBallNormalFile();
     AXLOGD("slidBallNormalTextureFile  Name : {}, Type: {}", slidBallNormalTextureFile.file,
-          slidBallNormalTextureFile.type);
+           slidBallNormalTextureFile.type);
     ax::ResourceData slidBallPressedTextureFile = _slider->getBallPressedFile();
     AXLOGD("slidBallPressedTextureFile  Name : {}, Type: {}", slidBallPressedTextureFile.file,
-          slidBallPressedTextureFile.type);
+           slidBallPressedTextureFile.type);
     ax::ResourceData slidBallDisabledTextureFile = _slider->getBallDisabledFile();
     AXLOGD("slidBallDisabledTextureFile  Name : {}, Type: {}", slidBallDisabledTextureFile.file,
-          slidBallDisabledTextureFile.type);
+           slidBallDisabledTextureFile.type);
 }
 
 // UISliderTest_Scale9
@@ -138,7 +137,7 @@ bool UISliderTest_Scale9::init()
 
         // Add the alert
         Text* alert = Text::create("Slider scale9 render", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -191,7 +190,7 @@ bool UISliderTest_Scale9_State_Change::init()
 
         // Add the alert
         Text* alert = Text::create("Slider scale9 render", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -255,7 +254,7 @@ bool UISliderNormalDefaultTest::init()
 
         // Add the alert
         Text* alert = Text::create("when pressed, the slider ball should scale", "fonts/Marker Felt.ttf", 20);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.75f));
         _uiLayer->addChild(alert);
@@ -300,7 +299,7 @@ bool UISliderDisabledDefaultTest::init()
 
         // Add the alert
         Text* alert = Text::create("slider ball should be gray.", "fonts/Marker Felt.ttf", 20);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.75f));
         _uiLayer->addChild(alert);
@@ -348,7 +347,7 @@ bool UISliderNewEventCallbackTest::init()
 
         // Add the alert
         Text* alert = Text::create("See console output for Slider Down and Up event.", "fonts/Marker Felt.ttf", 20);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.75f));
         _uiLayer->addChild(alert);

@@ -1,0 +1,138 @@
+/****************************************************************************
+ Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
+
+ https://axmol.dev/
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ****************************************************************************/
+
+#pragma once
+
+#include "axmol/base/Macros.h"
+#include "axmol/platform/GL.h"
+#include "axmol/rhi/RHITypes.h"
+#include "axmol/rhi/PixelBufferDesc.h"
+
+namespace ax::rhi::gl
+{
+/**
+ * @addtogroup _opengl
+ * @{
+ */
+/**
+ * Convert backend enum class to corresponding opengl defined value.
+ */
+struct UtilsGL
+{
+    /**
+     * Convert attribute enum classs type to GLenum type. i.e. convert VertexFormat::FLOAT4 to GL_FLOAT.
+     * @param vertexFormat Specifies the attribute data type to convert.
+     * @return Attribute type.
+     */
+    static GLenum toGLAttributeType(VertexFormat vertexFormat);
+
+    /**
+     * Convert attribute component count to GLsizei. i.e. convert VertexFormat::FLOAT4 to 4.
+     * @param vertexFormat Specifies the attribute type.
+     * @return Attribute component counts.
+     */
+    static GLsizei getGLAttributeSize(VertexFormat vertexFormat);
+
+    /**
+     * check whether float format
+     * @param vertexFormat Specifies the attribute type.
+     */
+    static bool isFloatFormat(VertexFormat vfmt);
+
+    /**
+     * Get opengl data type size in bytes. i.e. GL_FLOAT_VEC4 data type size is sizeof(GLfloat) * 4.
+     * @param size  Specifies the data type.
+     * @return Data type size in bytes.
+     */
+    static GLsizei getGLDataTypeSize(GLenum size);
+
+    /**
+     * Get textrue parameters from texture pixle format.
+     * @param in textureFormat Specifies texture pixel format.
+     * @param out internalFormat Specifies the internal format of the texture.
+     * @param out format Specifies the format of the texel data.
+     * @param out type Specifies the data type of the texel data.
+     * @param out isCompressed Specifies if the texel data is compressed.
+     */
+    static void toGLTypes(PixelFormat textureFormat, GLint& internalFormat, GLuint& format, GLenum& type);
+
+    /**
+     * Convert compare function to GLenum. i.e. convert CompareFunc::NEVER to GL_NEVER.
+     * @param compareFunction Specifies the compare function to convert.
+     * @return Compare function.
+     */
+    static GLenum toGLCompareFunc(CompareFunc compareFunc);
+
+    /**
+     * Convert stencil operation to GLenum. i.e. convert StencilOp::KEEP to GL_KEEP.
+     * @param b([a-z_][A-Za-z0-9_]*)Opb Specifies stencil operation.
+     * @return Stencil operation.
+     */
+    static GLenum toGLStencilOp(StencilOp stencilOp);
+
+    /**
+     * Convert blend operation to GLenum. i.e. convert BlendOp::ADD to GL_FUNC_ADD.
+     * @param blendOp Specifies blend function to convert.
+     * @return Blend operation.
+     */
+    static GLenum toGLBlendOp(BlendOp blendOp);
+
+    /**
+     * Convert blend factor to GLenum. i.e. convert BlendFactor::ZERO to GL_ZERO.
+     * @param blendFactor Specifies the blend factor to convert.
+     * @return Blend factor.
+     */
+    static GLenum toGLBlendFactor(BlendFactor blendFactor);
+
+    /**
+     * Convert winding value to GLenum. i.e. convert Winding::CLOCK_WISE to GL_CW.
+     * @param winding Specifies the winding value to convert.
+     * @return Winding mode.
+     */
+    static GLenum toGLFrontFace(Winding winding);
+
+    /**
+     * Convert primitive type to GLenum. i.e. convert PrimitiveType::TRIANGLE to GL_TRIANGLES.
+     * @param primitiveType Specifies the kind of primitives to convert.
+     * @return Primitive type.
+     */
+    static GLenum toGLPrimitiveType(PrimitiveType primitiveType);
+
+    /**
+     * Convert index type to GLenum. i.e. convert IndexFormat::U_INT to GL_UNSIGNED_INT.
+     * @param indexType Specifies the index type to convert.
+     * @return Index type.
+     */
+    static GLenum toGLIndexType(IndexFormat indexType);
+
+    /**
+     * Convert cull mode to GLenum. i.e. convert CullMode::BACK to GL_BACK.
+     * @param mode Specifies the cull mode to convert.
+     * @return Cull mode.
+     */
+    static GLenum toGLCullMode(CullMode mode);
+};
+// end of _opengl group
+/// @}
+}  // namespace ax::rhi::gl

@@ -123,7 +123,7 @@ def main():
     if (g_ndk_root == None or not os.path.isdir(g_ndk_root)):
         g_ndk_root = _check_ndk_root_env()
 
-    if not os.path.isdir(g_ndk_root): 
+    if not os.path.isdir(g_ndk_root):
         print("The ndk-r23c root not specified, please specifiy via --ndk_root '/path/to/ndk'")
         sys.exit(1)
 
@@ -181,6 +181,7 @@ def main():
 
     # extra flags
     extra_flags = '-DAX_ENABLE_MEDIA=1'
+    extra_flags += ' -D_AX_GEN_SCRIPT_BINDINGS=1'
     extra_flags += ' -D__cpp_coroutines=201703'
     extra_flags += ' -D__builtin_neon_vbslq_f16(...)=(float16x8_t{})'
     extra_flags += ' -D__builtin_neon_vbsl_f16(...)=(float16x4_t{})'
@@ -190,11 +191,21 @@ def main():
     extra_flags += ' -D__builtin_neon_vuzp_f16(...)'
     extra_flags += ' -D__builtin_neon_vzipq_f16(...)'
     extra_flags += ' -D__builtin_neon_vzip_f16(...)'
+    extra_flags += ' -D__builtin_neon_vceqzq_f16(...)=(uint16x8_t{})'
+    extra_flags += ' -D__builtin_neon_vcgez_f16(...)=(uint16x4_t{})'
+    extra_flags += ' -D__builtin_neon_vcgtzq_f16(...)=(uint16x8_t{})'
+    extra_flags += ' -D__builtin_neon_vcgtz_f16(...)=(uint16x4_t{})'
+    extra_flags += ' -D__builtin_neon_vclez_f16(...)=(uint16x4_t{})'
+    extra_flags += ' -D__builtin_neon_vcltzq_f16(...)=(uint16x8_t{})'
+    extra_flags += ' -D__builtin_neon_vceqz_f16(...)=(uint16x4_t{})'
+    extra_flags += ' -D__builtin_neon_vcgezq_f16(...)=(uint16x8_t{})'
+    extra_flags += ' -D__builtin_neon_vclezq_f16(...)=(uint16x8_t{})'
+    extra_flags += ' -D__builtin_neon_vcltz_f16(...)=(uint16x4_t{})'
 
     # save config to file
-    
+
     config = configparser.ConfigParser()
-    
+
     config.set('DEFAULT', 'androidndkdir', g_ndk_root)
     config.set('DEFAULT', 'clangllvmdir', llvm_path)
     config.set('DEFAULT', 'axdir', ax_root)
@@ -215,7 +226,7 @@ def main():
         os.putenv('LD_LIBRARY_PATH', '%s/libclang' % cxx_generator_root)
     if platform == 'win32':
         path_env = os.environ['PATH']
-        os.putenv('PATH', r'%s;%s\libclang;%s\tools\win32;' % (path_env, cxx_generator_root, cxx_generator_root))
+        os.putenv('PATH', '%s;%s\\libclang;%s\\tools\\win32;' % (path_env, cxx_generator_root, cxx_generator_root))
 
 
     try:
@@ -225,7 +236,7 @@ def main():
 
         cmd_args = {
                     'ax_base.ini' : ('ax_base', 'axlua_base_auto'), \
-                    'ax_backend.ini' : ('ax_backend', 'axlua_backend_auto'), \
+                    'ax_rhi.ini' : ('ax_rhi', 'axlua_rhi_auto'), \
                     'ax_extension.ini' : ('ax_extension', 'axlua_extension_auto'), \
                     'ax_ui.ini' : ('ax_ui', 'axlua_ui_auto'), \
                     'ax_studio.ini' : ('ax_studio', 'axlua_studio_auto'), \

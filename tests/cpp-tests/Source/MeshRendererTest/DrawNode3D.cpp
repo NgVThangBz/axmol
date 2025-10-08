@@ -24,7 +24,7 @@
  ****************************************************************************/
 
 #include "DrawNode3D.h"
-#include "renderer/backend/Buffer.h"
+#include "axmol/rhi/Buffer.h"
 namespace ax
 {
 
@@ -35,7 +35,7 @@ DrawNode3D::DrawNode3D()
 
 DrawNode3D::~DrawNode3D()
 {
-    AX_SAFE_RELEASE_NULL(_programStateLine);
+    _customCommand.releasePSVL();
     AX_SAFE_DELETE(_depthstencilDescriptor);
 }
 
@@ -65,20 +65,20 @@ void DrawNode3D::ensureCapacity(int count)
     if (!_customCommand.getVertexBuffer() ||
         _customCommand.getVertexBuffer()->getSize() < (EXTENDED_SIZE * sizeof(_bufferLines[0])))
     {
-        _customCommand.createVertexBuffer(sizeof(V3F_C4B), EXTENDED_SIZE + (EXTENDED_SIZE >> 1),
+        _customCommand.createVertexBuffer(sizeof(V3F_C4F), EXTENDED_SIZE + (EXTENDED_SIZE >> 1),
                                           CustomCommand::BufferUsage::DYNAMIC);
     }
 }
 
 bool DrawNode3D::init()
 {
-    _blendFunc        = BlendFunc::ALPHA_PREMULTIPLIED;
-    auto& pd          = _customCommand.getPipelineDescriptor();
-    auto program      = backend::Program::getBuiltinProgram(backend::ProgramType::LINE_COLOR_3D);
-    _programStateLine = new backend::ProgramState(program);
-    pd.programState   = _programStateLine;
+    _blendFunc            = BlendFunc::ALPHA_PREMULTIPLIED;
+    auto program          = axpm->getBuiltinProgram(rhi::ProgramType::LINE_COLOR_3D);
+    auto programStateLine = new rhi::ProgramState(program);
 
-    _locMVPMatrix = _programStateLine->getUniformLocation("u_MVPMatrix");
+    _customCommand.setOwnPSVL(programStateLine, programStateLine->getVertexLayout(), RenderCommand::ADOPT_FLAG_PS);
+
+    _locMVPMatrix = programStateLine->getUniformLocation("u_MVPMatrix");
 
     _customCommand.setBeforeCallback(AX_CALLBACK_0(DrawNode3D::onBeforeDraw, this));
     _customCommand.setAfterCallback(AX_CALLBACK_0(DrawNode3D::onAfterDraw, this));
@@ -90,11 +90,11 @@ bool DrawNode3D::init()
     _customCommand.setDrawType(CustomCommand::DrawType::ARRAY);
     _customCommand.setPrimitiveType(CustomCommand::PrimitiveType::LINE);
 
-    _customCommand.createVertexBuffer(sizeof(V3F_C4B), INITIAL_VERTEX_BUFFER_LENGTH,
+    _customCommand.createVertexBuffer(sizeof(V3F_C4F), INITIAL_VERTEX_BUFFER_LENGTH,
                                       CustomCommand::BufferUsage::DYNAMIC);
     _isDirty = true;
 
-#if AX_ENABLE_CACHE_TEXTURE_DATA
+#if AX_ENABLE_CONTEXT_LOSS_RECOVERY
     // Need to listen the event only when not use batchnode, because it will use VBO
     auto listener = EventListenerCustom::create(EVENT_COME_TO_FOREGROUND, [this](EventCustom* event) {
         /** listen the event that coming to foreground on Android */
@@ -132,9 +132,9 @@ void DrawNode3D::updateCommand(ax::Renderer* renderer, const Mat4& transform, ui
     auto& matrixP = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
     auto mvp      = matrixP * transform;
 
-    _programStateLine->setUniform(_locMVPMatrix, mvp.m, sizeof(mvp.m));
+    _customCommand.unsafePS()->setUniform(_locMVPMatrix, mvp.m, sizeof(mvp.m));
 
-    auto& blend                = _customCommand.getPipelineDescriptor().blendDescriptor;
+    auto& blend                = _customCommand.blendDesc();
     blend.blendEnabled         = true;
     blend.sourceRGBBlendFactor = blend.sourceAlphaBlendFactor = _blendFunc.src;
     blend.destinationRGBBlendFactor = blend.destinationAlphaBlendFactor = _blendFunc.dst;
@@ -142,25 +142,18 @@ void DrawNode3D::updateCommand(ax::Renderer* renderer, const Mat4& transform, ui
     AX_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, _bufferLines.size());
 }
 
-void DrawNode3D::drawLine(const Vec3& from, const Vec3& to, const Color4F& color)
+void DrawNode3D::drawLine(const Vec3& from, const Vec3& to, const Color& color)
 {
     unsigned int vertex_count = 2;
     ensureCapacity(vertex_count);
 
-    Color4B col = Color4B(color);
-    V3F_C4B a   = {Vec3(from.x, from.y, from.z), col};
-    V3F_C4B b   = {
-        Vec3(to.x, to.y, to.z),
-        col,
-    };
-
-    _bufferLines.emplace_back(a);
-    _bufferLines.emplace_back(b);
+    _bufferLines.emplace_back(from, color);
+    _bufferLines.emplace_back(to, color);
 
     _isDirty = true;
 }
 
-void DrawNode3D::drawCube(Vec3* vertices, const Color4F& color)
+void DrawNode3D::drawCube(Vec3* vertices, const Color& color)
 {
     // front face
     drawLine(vertices[0], vertices[1], color);
@@ -210,4 +203,4 @@ void DrawNode3D::onAfterDraw()
     renderer->setDepthTest(_rendererDepthTestEnabled);
 }
 
-}
+}  // namespace ax

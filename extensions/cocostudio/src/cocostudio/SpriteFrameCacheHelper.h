@@ -23,7 +23,7 @@ THE SOFTWARE.
 ****************************************************************************/
 #pragma once
 
-#include "platform/PlatformMacros.h"
+#include "axmol/platform/PlatformMacros.h"
 #include "ArmatureDefine.h"
 #include "CocosStudioExport.h"
 #include <string>
@@ -44,7 +44,6 @@ namespace cocostudio
 class CCS_DLL SpriteFrameCacheHelper
 {
 public:
-
     static SpriteFrameCacheHelper* getInstance();
 
     static void destroyInstance();
@@ -63,7 +62,7 @@ private:
     SpriteFrameCacheHelper();
     ~SpriteFrameCacheHelper();
 
-    hlookup::string_map<std::vector<ax::SpriteFrame*>> _usingSpriteFrames;
+    axstd::string_map<std::vector<ax::SpriteFrame*>> _usingSpriteFrames;
     static SpriteFrameCacheHelper* _spriteFrameCacheHelper;
 };
 

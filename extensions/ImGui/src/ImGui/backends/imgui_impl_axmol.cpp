@@ -1,40 +1,42 @@
 #include "imgui_impl_axmol.h"
 
-#include "base/Director.h"
-#include "base/Data.h"
+#include "axmol/base/Director.h"
+#include "axmol/base/Data.h"
 #if !defined(__ANDROID__)
-#    include "platform/RenderViewImpl.h"
+#    include "axmol/platform/RenderViewImpl.h"
 #endif
-#include "renderer/backend/Program.h"
-#include "renderer/backend/ProgramState.h"
-#include "renderer/backend/ProgramManager.h"
-#include "renderer/Shaders.h"
-#include "renderer/Renderer.h"
-#include "renderer/CallbackCommand.h"
-#include "renderer/backend/DriverBase.h"
-#include "renderer/backend/Buffer.h"
+#include "axmol/rhi/Program.h"
+#include "axmol/rhi/ProgramState.h"
+#include "axmol/renderer/ProgramManager.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/CallbackCommand.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/Buffer.h"
 
 using namespace ax;
-using namespace ax::backend;
+using namespace ax::rhi;
 
 constexpr IndexFormat IMGUI_INDEX_FORMAT = sizeof(ImDrawIdx) == 2 ? IndexFormat::U_SHORT : IndexFormat::U_INT;
 
 struct ProgramInfoData
 {
+    ProgramInfoData() {}
+    ~ProgramInfoData() { AX_SAFE_RELEASE(layout); }
     Program* program = nullptr;
     // Uniforms location
     UniformLocation texture{};
     UniformLocation projection{};
     // Vertex attributes location
-    int position = 0;
-    int uv       = 0;
-    int color    = 0;
-    VertexLayout layout{};
+    const VertexInputDesc* position{nullptr};
+    const VertexInputDesc* uv{nullptr};
+    const VertexInputDesc* color{nullptr};
+    VertexLayout* layout{nullptr};
 };
 
 struct SavedRenderStateData
 {
-    backend::CullMode cull{};
+    rhi::CullMode cull{};
     Viewport vp{};
     ScissorRect scissorRect{};
     bool scissorTest{};
@@ -95,15 +97,11 @@ static void ImGui_ImplAxmol_UpdateTexture(ImTextureData* tex)
         const void* pixels = tex->GetPixels();
 
         auto texture = new Texture2D();
-        texture->initWithData(pixels, tex->Width * tex->Height * 4, backend::PixelFormat::RGBA8, tex->Width,
-                              tex->Height, true);
+        texture->initWithData(pixels, tex->Width * tex->Height * 4, rhi::PixelFormat::RGBA8, tex->Width, tex->Height,
+                              true);
 
-        backend::SamplerDescriptor descriptor(backend::SamplerFilter::LINEAR,              // magFilter
-                                              backend::SamplerFilter::LINEAR,              // minFilter
-                                              backend::SamplerAddressMode::CLAMP_TO_EDGE,  // sAddressMode
-                                              backend::SamplerAddressMode::CLAMP_TO_EDGE   // tAddressMode
-        );
-        texture->getBackendTexture()->updateSamplerDescriptor(descriptor);
+        rhi::SamplerDesc desc{};
+        texture->getRHITexture()->updateSamplerDesc(desc);
 
         // Store identifiers
         tex->SetTexID((ImTextureID)(intptr_t)texture);
@@ -122,7 +120,7 @@ static void ImGui_ImplAxmol_UpdateTexture(ImTextureData* tex)
             auto texture = (Texture2D*)(intptr_t)tex->TexID;
             IM_ASSERT(texture != nullptr);
 
-            texture->updateWithSubData(bd->TempBuffer.getBytes(), r.x, r.y, r.w, r.h);
+            texture->updateSubData(bd->TempBuffer.getBytes(), r.x, r.y, r.w, r.h);
         }
 
         tex->SetStatus(ImTextureStatus_OK);
@@ -134,10 +132,10 @@ static void ImGui_ImplAxmol_UpdateTexture(ImTextureData* tex)
 static void ImGui_ImplAxmol_SetupRenderState(ax::Renderer* renderer, ImDrawData* draw_data, int fb_width, int fb_height)
 {
     ImGui_ImplAxmol_PostCommand([=]() {
-        renderer->setCullMode(backend::CullMode::NONE);
+        renderer->setCullMode(rhi::CullMode::NONE);
         renderer->setDepthTest(false);
         renderer->setScissorTest(true);
-        renderer->setViewPort(0, 0, fb_width, fb_height);
+        renderer->setViewport(0, 0, fb_width, fb_height);
     });
 
     // Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to
@@ -163,7 +161,7 @@ static void ImGui_ImplAxmol_RestoreRenderState(ax::Renderer* renderer)
         auto bd = ImGui_ImplAxmol_GetBackendData();
         renderer->setCullMode(bd->SavedRenderState.cull);
         auto& vp = bd->SavedRenderState.vp;
-        renderer->setViewPort(vp.x, vp.y, vp.w, vp.h);
+        renderer->setViewport(vp.x, vp.y, vp.w, vp.h);
         renderer->setScissorTest(bd->SavedRenderState.scissorTest);
         auto& sc = bd->SavedRenderState.scissorRect;
         renderer->setScissorRect(sc.x, sc.y, sc.width, sc.height);
@@ -198,7 +196,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_Init()
     io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName     = "imgui_impl_axmol";
 
-#if defined(AX_USE_GL) && (!defined(AX_GLES_PROFILE) || AX_GLES_PROFILE >= 300)
+#if AX_RENDER_API == AX_RENDER_API_GL && (!defined(AX_GLES_PROFILE) || AX_GLES_PROFILE >= 300)
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field,
                                                                 // allowing for large meshes.
 #endif
@@ -209,7 +207,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_Init()
 
     ImGuiPlatformIO& platform_io         = ImGui::GetPlatformIO();
     platform_io.Renderer_TextureMaxWidth = platform_io.Renderer_TextureMaxHeight =
-        backend::DriverBase::getInstance()->getMaxTextureSize();
+        rhi::DriverBase::getInstance()->getMaxTextureSize();
 
     io.IniFilename = nullptr;
 
@@ -278,12 +276,12 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
         // Upload vertex/index buffers
         const auto vsize = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
         IM_ASSERT(vsize > 0);
-        auto vbuffer = backend::DriverBase::getInstance()->newBuffer(vsize, BufferType::VERTEX, BufferUsage::STATIC);
+        auto vbuffer = rhi::DriverBase::getInstance()->createBuffer(vsize, BufferType::VERTEX, BufferUsage::STATIC);
         vbuffer->autorelease();
         vbuffer->updateData(cmd_list->VtxBuffer.Data, vsize);
         const auto isize = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
         IM_ASSERT(isize > 0);
-        auto ibuffer = backend::DriverBase::getInstance()->newBuffer(isize, BufferType::INDEX, BufferUsage::STATIC);
+        auto ibuffer = rhi::DriverBase::getInstance()->createBuffer(isize, BufferType::INDEX, BufferUsage::STATIC);
         ibuffer->autorelease();
         ibuffer->updateData(cmd_list->IdxBuffer.Data, isize);
 
@@ -327,20 +325,17 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
                         auto cmd = std::make_shared<CustomCommand>();
                         bd->CustomCommands.push_back(cmd);
                         cmd->init(0.f, BlendFunc::ALPHA_NON_PREMULTIPLIED);
-                        const auto pinfo =
-                            &bd->ProgramInfo;  // tex == bd->FontTexture ? &bd->ProgramFontInfo : &bd->ProgramInfo;
+                        const auto pinfo = &bd->ProgramInfo;
                         // create new ProgramState
                         auto state = new ProgramState(pinfo->program);
                         state->autorelease();
                         bd->ProgramStates.pushBack(state);
-                        auto& desc        = cmd->getPipelineDescriptor();
-                        desc.programState = state;
+                        cmd->setWeakPSVL(state, pinfo->layout);
                         // setup attributes for ImDrawVert
-                        desc.programState->setSharedVertexLayout(&pinfo->layout);
-                        desc.programState->setUniform(pinfo->projection, &bd->Projection, sizeof(Mat4));
-                        desc.programState->setTexture(pinfo->texture, 0, tex->getBackendTexture());
+                        state->setUniform(pinfo->projection, &bd->Projection, sizeof(Mat4));
+                        state->setTexture(pinfo->texture, 0, tex->getRHITexture());
                         // In order to composite our output buffer we need to preserve alpha
-                        desc.blendDescriptor.sourceAlphaBlendFactor = BlendFactor::ONE;
+                        cmd->blendDesc().sourceAlphaBlendFactor = BlendFactor::ONE;
                         // set vertex/index buffer
                         cmd->setIndexBuffer(ibuffer, IMGUI_INDEX_FORMAT);
                         cmd->setVertexBuffer(vbuffer);
@@ -375,39 +370,63 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderPlatform()
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
 
-#if defined(AX_USE_GL) && !defined(__ANDROID__)
+#if AX_RENDER_API == AX_RENDER_API_GL && !defined(__ANDROID__)
         // restore context
         GLFWwindow* prev_current_context = glfwGetCurrentContext();
-        ImGui_ImplAxmol_PostCommand([=]() { ImGui_ImplAxmol_MakeCurrent(prev_current_context); });
+        ImGui_ImplAxmol_PostCommand([=]() { ImGui_ImplAxmol_MakeCurrent(prev_current_context, nullptr); });
 #endif
     }
 }
 
-IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window)
+IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window, ImGuiViewport* viewport)
 {
-#if !defined(__ANDROID__)
+#    if AX_RENDER_API == AX_RENDER_API_GL && defined(GLFW_VERSION_MAJOR)
     glfwMakeContextCurrent(window);
-
-#    if defined(AX_USE_GL)
-    auto p = glfwGetWindowUserPointer(window);
-    if (!p)
+    auto state = static_cast<gl::OpenGLState*>(glfwGetWindowUserPointer(window));
+    if (!state)
     {
-        p = new OpenGLState();
-        glfwSetWindowUserPointer(window, p);
-#        if AX_GLES_PROFILE != 200
+        assert(viewport);  // must be valid for new window when state is null
+        // create gl state for imgui mutli-viewport window
         // this is a new OpenGLContext, create default VAO for it when core profile enabled
         GLuint vao;
         glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-#        endif
+        state = new gl::OpenGLState();
+        glfwSetWindowUserPointer(window, state);
+        state->bindVertexArray(vao);
+        viewport->RendererUserData = reinterpret_cast<void*>(static_cast<uintptr_t>(vao));
     }
 
-    if (backend::__gl != p)
+    // switch state for current gl context
+    if (gl::__state != state)
     {
-        backend::__gl->resetVAO();
-        backend::__gl = (OpenGLState*)p;
+        gl::__state->invalidateVertexArrayState();
+        gl::__state = state;
     }
 #    endif
+}
+
+IMGUI_IMPL_API void ImGui_ImplAxmol_OnDestroyWindow(GLFWwindow* window, ImGuiViewport* viewport)
+{
+#if AX_RENDER_API == AX_RENDER_API_GL && defined(GLFW_VERSION_MAJOR)
+    if (viewport->RendererUserData)
+    {
+        auto prev_context = glfwGetCurrentContext();
+        if (prev_context != window)
+        {
+            // ensure context to viewport avoid delete VAO from wrong context
+            glfwMakeContextCurrent(window);
+            GLuint vao = static_cast<GLuint>(reinterpret_cast<uintptr_t>(viewport->RendererUserData));
+            glDeleteVertexArrays(1, &vao);
+
+            glfwMakeContextCurrent(prev_context);
+        }
+
+        viewport->RendererUserData = nullptr;
+
+    }
+    auto state = static_cast<gl::OpenGLState*>(glfwGetWindowUserPointer(window));
+    if (state)
+        delete state;
 #endif
 }
 
@@ -436,26 +455,31 @@ IMGUI_IMPL_API bool ImGui_ImplAxmol_CreateDeviceObjects()
     auto& info      = bd->ProgramInfo;
     info.texture    = info.program->getUniformLocation(TEXTURE);
     info.projection = info.program->getUniformLocation(MVP_MATRIX);
-    info.position   = info.program->getAttributeLocation(POSITION);
-    info.uv         = info.program->getAttributeLocation(TEXCOORD);
-    info.color      = info.program->getAttributeLocation(COLOR);
+    info.position   = info.program->getVertexInputDesc(POSITION);
+    info.uv         = info.program->getVertexInputDesc(TEXCOORD);
+    info.color      = info.program->getVertexInputDesc(COLOR);
     IM_ASSERT(bool(info.texture));
     IM_ASSERT(bool(info.projection));
-    IM_ASSERT(info.position >= 0);
-    IM_ASSERT(info.uv >= 0);
-    IM_ASSERT(info.color >= 0);
+    IM_ASSERT(!!info.position);
+    IM_ASSERT(!!info.uv);
+    IM_ASSERT(!!info.color);
     auto& layout = info.layout;
-    layout.setAttrib("a_position", info.position, VertexFormat::FLOAT2, 0, false);
-    layout.setAttrib("a_texCoord", info.uv, VertexFormat::FLOAT2, offsetof(ImDrawVert, uv), false);
-    layout.setAttrib("a_color", info.color, VertexFormat::UBYTE4, offsetof(ImDrawVert, col), true);
-    layout.setStride(sizeof(ImDrawVert));
+
+    auto layoutDesc = axvlm->allocateVertexLayoutDesc();
+    layoutDesc.startLayout(3);
+    layoutDesc.addAttrib("a_position", info.position, VertexFormat::FLOAT2, 0, false);
+    layoutDesc.addAttrib("a_texCoord", info.uv, VertexFormat::FLOAT2, offsetof(ImDrawVert, uv), false);
+    layoutDesc.addAttrib("a_color", info.color, VertexFormat::UBYTE4, offsetof(ImDrawVert, col), true);
+    layoutDesc.endLayout();
+
+    info.layout = axvlm->acquireVertexLayout(std::forward<VertexLayoutDesc>(layoutDesc));
 
     return true;
 }
 
 IMGUI_IMPL_API void ImGui_ImplAxmol_DestroyDeviceObjects()
 {
-    auto pm = ProgramManager::getInstance();
+    auto pm = ax::ProgramManager::getInstance();
 
     auto bd = ImGui_ImplAxmol_GetBackendData();
 

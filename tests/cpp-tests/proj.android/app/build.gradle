@@ -29,7 +29,7 @@ android {
         externalNativeBuild {
             cmake {
                 targets 'cpp-tests'
-                arguments = []
+                arguments = ["-DAX_ENABLE_VR=ON"]
                 arguments.addAll(cmakeOptions)
                 cppFlags "-frtti -fexceptions -fsigned-char"
             }
@@ -39,6 +39,8 @@ android {
             // noinspection ChromeOsAbiSupport
             abiFilters = __1K_ARCHS.split(':').collect{it as String}
         }
+
+        multiDexEnabled true
     }
 
     sourceSets.main {
@@ -112,6 +114,9 @@ android.applicationVariants.configureEach { variant ->
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':libaxmol')
+
+    def appcompat_ver = buildProfiles['appcompat']
+    implementation "androidx.appcompat:appcompat:$appcompat_ver"
 }
 
 project.afterEvaluate {

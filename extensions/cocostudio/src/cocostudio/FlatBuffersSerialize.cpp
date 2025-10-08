@@ -26,10 +26,10 @@
 
 #include "FlatBuffersSerialize.h"
 
-#include "base/ObjectFactory.h"
-#include "base/Constants.h"
-#include "ui/CocosGUI.h"
-#include "platform/FileUtils.h"
+#include "axmol/base/ObjectFactory.h"
+#include "axmol/base/Constants.h"
+#include "axmol/ui/CocosGUI.h"
+#include "axmol/platform/FileUtils.h"
 #include "CSLanguageDataBinary_generated.h"
 #include "CSParseBinary_generated.h"
 
@@ -170,8 +170,9 @@ std::string FlatBuffersSerialize::serializeFlatBuffersWithOpaque(void* opaque, s
     // xml parse
     pugi::xml_document& document = *reinterpret_cast<pugi::xml_document*>(opaque);
 
-    pugi::xml_node rootElement = document.document_element();  // Root
-                                                               //    AXLOGD("rootElement name = {}", rootelement.name());
+    pugi::xml_node rootElement =
+        document.document_element();  // Root
+                                      //    AXLOGD("rootElement name = {}", rootelement.name());
 
     pugi::xml_node element = rootElement.first_child();
 
@@ -853,7 +854,7 @@ Offset<flatbuffers::ColorFrame> FlatBuffersSerialize::createColorFrame(pugi::xml
 {
     int frameIndex = 0;
     bool tween     = true;
-    Color3B color;
+    Color32 color;
 
     auto attribute = objectData.first_attribute();
     while (attribute)
@@ -1243,8 +1244,9 @@ FlatBufferBuilder* FlatBuffersSerialize::createFlatBuffersWithXMLFileForSimulato
     if (!content.empty())
         document.load_buffer_inplace(&content.front(), content.length());
 
-    pugi::xml_node rootElement = document.document_element();  // Root
-                                                               //    AXLOGD("rootElement name = {}", rootelement.name());
+    pugi::xml_node rootElement =
+        document.document_element();  // Root
+                                      //    AXLOGD("rootElement name = {}", rootelement.name());
 
     pugi::xml_node element = rootElement.first_child();
 
@@ -1494,7 +1496,7 @@ Offset<ProjectNodeOptions> FlatBuffersSerialize::createProjectNodeOptionsForSimu
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")

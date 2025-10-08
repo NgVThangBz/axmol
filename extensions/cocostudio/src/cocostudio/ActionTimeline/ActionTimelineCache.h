@@ -25,8 +25,8 @@ THE SOFTWARE.
 #pragma once
 
 #include <unordered_map>
-#include "base/Map.h"
-#include "base/Data.h"
+#include "axmol/base/Map.h"
+#include "axmol/base/Data.h"
 
 #include "cocostudio/DictionaryHelper.h"
 #include "TimelineMacro.h"
@@ -125,7 +125,7 @@ protected:
     typedef std::function<Frame*(const rapidjson::Value& json)> FrameCreateFunc;
     typedef std::pair<std::string, FrameCreateFunc> Pair;
 
-    hlookup::string_map<FrameCreateFunc> _funcs;
+    axstd::string_map<FrameCreateFunc> _funcs;
     ax::StringMap<ActionTimeline*> _animationActions;
 };
 

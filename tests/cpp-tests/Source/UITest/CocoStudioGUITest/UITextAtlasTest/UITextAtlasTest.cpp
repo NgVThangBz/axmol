@@ -42,14 +42,14 @@ bool UITextAtlasTest::init()
 
         // Add the alert
         Text* alert = Text::create("TextAtlas", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
 
         // Create the text atlas
         TextAtlas* textAtlas = nullptr;
-        if (Director::getInstance()->getWinSizeInPixels().height > 320.f)
+        if (Director::getInstance()->getCanvasSizeInPixels().height > 320.f)
         {
             textAtlas = TextAtlas::create("1234567890", "cocosui/labelatlas.png", 34, 44, "0");
         }
@@ -89,14 +89,14 @@ bool UITextAtlasETC1ShadowTest::init()
 
         // Add the alert
         Text* alert = Text::create("TextAtlas With ETC1 format", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
 
         // Create the text atlas
         TextAtlas* textAtlas = nullptr;
-        if (Director::getInstance()->getWinSizeInPixels().height > 320.f)
+        if (Director::getInstance()->getCanvasSizeInPixels().height > 320.f)
         {
             textAtlas = TextAtlas::create("1234567890", "cocosui/labelatlas.pkm", 34, 44, "0");
         }
@@ -107,7 +107,7 @@ bool UITextAtlasETC1ShadowTest::init()
         textAtlas->setPosition(Vec2((widgetSize.width) / 2, widgetSize.height / 2.0f));
         _uiLayer->addChild(textAtlas);
         auto labelAtlas = (Label*)textAtlas->getVirtualRenderer();
-        labelAtlas->enableShadow(Color4B::GREEN);
+        labelAtlas->enableShadow(Color32::GREEN);
         _textAtlas = textAtlas;
 
         TTFConfig ttfConfig("fonts/arial.ttf", 15);

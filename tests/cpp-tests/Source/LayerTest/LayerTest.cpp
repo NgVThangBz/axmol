@@ -24,7 +24,7 @@
 
 #include "LayerTest.h"
 #include "../testResource.h"
-#include "../core/ui/UIText.h"
+#include "axmol/ui/UIText.h"
 
 using namespace ax;
 
@@ -80,7 +80,7 @@ void LayerTestCascadingOpacityA::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto layer1 = Layer::create();
 
     auto sister1 = Sprite::create("Images/grossinis_sister1.png");
@@ -117,8 +117,8 @@ void LayerTestCascadingOpacityB::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(192, 0, 0, 255), s.width, s.height / 2);
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(192, 0, 0, 255), s.width, s.height / 2);
     layer1->setCascadeColorEnabled(false);
 
     layer1->setPosition(Vec2(0.0f, s.height / 2));
@@ -157,8 +157,8 @@ void LayerTestCascadingOpacityC::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(192, 0, 0, 255), s.width, s.height / 2);
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(192, 0, 0, 255), s.width, s.height / 2);
     layer1->setCascadeColorEnabled(false);
     layer1->setCascadeOpacityEnabled(false);
 
@@ -197,7 +197,7 @@ void LayerTestCascadingColorA::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto layer1 = Layer::create();
 
     auto sister1 = Sprite::create("Images/grossinis_sister1.png");
@@ -213,13 +213,15 @@ void LayerTestCascadingColorA::onEnter()
     sister2->setPosition(Vec2(s.width * 2 / 3, s.height / 2));
     label->setPosition(Vec2(s.width / 2, s.height / 2));
 
-    layer1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(6, 255, 0, 255), TintTo::create(6, 255, 255, 255), DelayTime::create(1), nullptr)));
+    layer1->runAction(RepeatForever::create(Sequence::create(TintTo::create(6, Color32(255, 0, 255)),
+                                                             TintTo::create(6, Color32(255, 255, 255)),
+                                                             DelayTime::create(1), nullptr)));
 
-    sister1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(2, 255, 255, 0), TintTo::create(2, 255, 255, 255), TintTo::create(2, 0, 255, 255),
-        TintTo::create(2, 255, 255, 255), TintTo::create(2, 255, 0, 255), TintTo::create(2, 255, 255, 255),
-        DelayTime::create(1), nullptr)));
+    sister1->runAction(RepeatForever::create(
+        Sequence::create(TintTo::create(2, Color32(255, 255, 0)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(0, 255, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(255, 0, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         DelayTime::create(1), nullptr)));
 
     // Enable cascading in scene
     setEnableRecursiveCascading(this, true);
@@ -234,8 +236,8 @@ std::string LayerTestCascadingColorA::subtitle() const
 void LayerTestCascadingColorB::onEnter()
 {
     LayerTest::onEnter();
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(255, 255, 255, 255), s.width, s.height / 2);
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(255, 255, 255, 255), s.width, s.height / 2);
 
     layer1->setPosition(Vec2(0.0f, s.height / 2));
 
@@ -252,13 +254,15 @@ void LayerTestCascadingColorB::onEnter()
     sister2->setPosition(Vec2(s.width * 2 / 3, 0.0f));
     label->setPosition(Vec2(s.width / 2, 0.0f));
 
-    layer1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(6, 255, 0, 255), TintTo::create(6, 255, 255, 255), DelayTime::create(1), nullptr)));
+    layer1->runAction(RepeatForever::create(Sequence::create(TintTo::create(6, Color32(255, 0, 255)),
+                                                             TintTo::create(6, Color32(255, 255, 255)),
+                                                             DelayTime::create(1), nullptr)));
 
-    sister1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(2, 255, 255, 0), TintTo::create(2, 255, 255, 255), TintTo::create(2, 0, 255, 255),
-        TintTo::create(2, 255, 255, 255), TintTo::create(2, 255, 0, 255), TintTo::create(2, 255, 255, 255),
-        DelayTime::create(1), nullptr)));
+    sister1->runAction(RepeatForever::create(
+        Sequence::create(TintTo::create(2, Color32(255, 255, 0)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(0, 255, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(255, 0, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         DelayTime::create(1), nullptr)));
 
     // Enable cascading in scene
     setEnableRecursiveCascading(this, true);
@@ -273,8 +277,8 @@ std::string LayerTestCascadingColorB::subtitle() const
 void LayerTestCascadingColorC::onEnter()
 {
     LayerTest::onEnter();
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(255, 255, 255, 255), s.width, s.height / 2);
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(255, 255, 255, 255), s.width, s.height / 2);
     layer1->setCascadeColorEnabled(false);
     layer1->setPosition(Vec2(0.0f, s.height / 2));
 
@@ -291,13 +295,15 @@ void LayerTestCascadingColorC::onEnter()
     sister2->setPosition(Vec2(s.width * 2 / 3, 0.0f));
     label->setPosition(Vec2(s.width / 2, 0.0f));
 
-    layer1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(6, 255, 0, 255), TintTo::create(6, 255, 255, 255), DelayTime::create(1), nullptr)));
+    layer1->runAction(RepeatForever::create(Sequence::create(TintTo::create(6, Color32(255, 0, 255)),
+                                                             TintTo::create(6, Color32(255, 255, 255)),
+                                                             DelayTime::create(1), nullptr)));
 
-    sister1->runAction(RepeatForever::create(Sequence::create(
-        TintTo::create(2, 255, 255, 0), TintTo::create(2, 255, 255, 255), TintTo::create(2, 0, 255, 255),
-        TintTo::create(2, 255, 255, 255), TintTo::create(2, 255, 0, 255), TintTo::create(2, 255, 255, 255),
-        DelayTime::create(1), nullptr)));
+    sister1->runAction(RepeatForever::create(
+        Sequence::create(TintTo::create(2, Color32(255, 255, 0)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(0, 255, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         TintTo::create(2, Color32(255, 0, 255)), TintTo::create(2, Color32(255, 255, 255)),
+                         DelayTime::create(1), nullptr)));
 }
 
 std::string LayerTestCascadingColorC::subtitle() const
@@ -321,8 +327,8 @@ void LayerTest1::onEnter()
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    auto s     = Director::getInstance()->getWinSize();
-    auto layer = LayerColor::create(Color4B(0xFF, 0x00, 0x00, 0x80), 200, 200);
+    auto s     = Director::getInstance()->getCanvasSize();
+    auto layer = LayerColor::create(Color32(0xFF, 0x00, 0x00, 0x80), 200, 200);
 
     layer->setIgnoreAnchorPointForPosition(false);
     layer->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -331,7 +337,7 @@ void LayerTest1::onEnter()
 
 void LayerTest1::updateSize(Vec2& touchLocation)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto newSize = Size(fabs(touchLocation.x - s.width / 2) * 2, fabs(touchLocation.y - s.height / 2) * 2);
 
@@ -371,13 +377,13 @@ void LayerTest2::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(255, 255, 0, 80), 100, 300);
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(255, 255, 0, 80), 100, 300);
     layer1->setPosition(Vec2(s.width / 3, s.height / 2));
     layer1->setIgnoreAnchorPointForPosition(false);
     addChild(layer1, 1);
 
-    auto layer2 = LayerColor::create(Color4B(0, 0, 255, 255), 100, 300);
+    auto layer2 = LayerColor::create(Color32(0, 0, 255, 255), 100, 300);
     layer2->setPosition(Vec2((s.width / 3) * 2, s.height / 2));
     layer2->setIgnoreAnchorPointForPosition(false);
     addChild(layer2, 1);
@@ -406,8 +412,8 @@ std::string LayerTest2::subtitle() const
 
 LayerTestBlend::LayerTestBlend()
 {
-    auto s      = Director::getInstance()->getWinSize();
-    auto layer1 = LayerColor::create(Color4B(255, 255, 255, 80));
+    auto s      = Director::getInstance()->getCanvasSize();
+    auto layer1 = LayerColor::create(Color32(255, 255, 255, 80));
 
     auto sister1 = Sprite::create(s_pathSister1);
     auto sister2 = Sprite::create(s_pathSister2);
@@ -426,18 +432,18 @@ void LayerTestBlend::newBlend(float dt)
 {
     auto layer = (LayerColor*)getChildByTag(kTagLayer);
 
-    backend::BlendFactor src;
-    backend::BlendFactor dst;
+    rhi::BlendFactor src;
+    rhi::BlendFactor dst;
 
-    if (layer->getBlendFunc().dst == backend::BlendFactor::ZERO)
+    if (layer->getBlendFunc().dst == rhi::BlendFactor::ZERO)
     {
-        src = backend::BlendFactor::SRC_ALPHA;
-        dst = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+        src = rhi::BlendFactor::SRC_ALPHA;
+        dst = rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
     }
     else
     {
-        src = backend::BlendFactor::ONE_MINUS_DST_COLOR;
-        dst = backend::BlendFactor::ZERO;
+        src = rhi::BlendFactor::ONE_MINUS_DST_COLOR;
+        dst = rhi::BlendFactor::ZERO;
     }
 
     BlendFunc bf = {src, dst};
@@ -456,7 +462,7 @@ std::string LayerTestBlend::subtitle() const
 //------------------------------------------------------------------
 LayerGradientTest::LayerGradientTest()
 {
-    auto layer1 = LayerGradient::create(Color4B(255, 0, 0, 255), Color4B(0, 255, 0, 255), Vec2(0.9f, 0.9f));
+    auto layer1 = LayerGradient::create(Color32(255, 0, 0, 255), Color32(0, 255, 0, 255), Vec2(0.9f, 0.9f));
     addChild(layer1, 0, kTagLayer);
 
     auto listener            = EventListenerTouchAllAtOnce::create();
@@ -472,7 +478,7 @@ LayerGradientTest::LayerGradientTest()
 
     auto menu = Menu::create(item, nullptr);
     addChild(menu);
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     menu->setPosition(Vec2(s.width / 2, 100.0f));
 }
 
@@ -484,7 +490,7 @@ void LayerGradientTest::toggleItem(Object* sender)
 
 void LayerGradientTest::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto touch = touches[0];
     auto start = touch->getLocation();
@@ -513,7 +519,7 @@ std::string LayerGradientTest::subtitle() const
 //------------------------------------------------------------------
 LayerGradientTest2::LayerGradientTest2()
 {
-    auto layer = LayerGradient::create(Color4B(255, 0, 0, 255), Color4B(255, 255, 0, 255));
+    auto layer = LayerGradient::create(Color32(255, 0, 0, 255), Color32(255, 255, 0, 255));
     addChild(layer);
 }
 
@@ -535,9 +541,9 @@ void LayerIgnoreAnchorPointPos::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
-    auto l = LayerColor::create(Color4B(255, 0, 0, 255), 150, 150);
+    auto l = LayerColor::create(Color32(255, 0, 0, 255), 150, 150);
 
     l->setAnchorPoint(Vec2(0.5f, 0.5f));
     l->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -584,9 +590,9 @@ std::string LayerIgnoreAnchorPointPos::subtitle() const
 void LayerIgnoreAnchorPointRot::onEnter()
 {
     LayerTest::onEnter();
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
-    auto l = LayerColor::create(Color4B(255, 0, 0, 255), 200, 200);
+    auto l = LayerColor::create(Color32(255, 0, 0, 255), 200, 200);
 
     l->setAnchorPoint(Vec2(0.5f, 0.5f));
     l->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -632,9 +638,9 @@ void LayerIgnoreAnchorPointScale::onEnter()
 {
     LayerTest::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
-    auto l = LayerColor::create(Color4B(255, 0, 0, 255), 200, 200);
+    auto l = LayerColor::create(Color32(255, 0, 0, 255), 200, 200);
 
     l->setAnchorPoint(Vec2(0.5f, 1.0f));
     l->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -680,12 +686,12 @@ std::string LayerIgnoreAnchorPointScale::subtitle() const
 
 LayerExtendedBlendOpacityTest::LayerExtendedBlendOpacityTest()
 {
-    auto layer1 = LayerGradient::create(Color4B(255, 0, 0, 255), Color4B(255, 0, 255, 255));
+    auto layer1 = LayerGradient::create(Color32(255, 0, 0, 255), Color32(255, 0, 255, 255));
     layer1->setContentSize(Size(80.0f, 80.0f));
     layer1->setPosition(Vec2(50.0f, 50.0f));
     addChild(layer1);
 
-    auto layer2 = LayerGradient::create(Color4B(0, 0, 0, 127), Color4B(255, 255, 255, 127));
+    auto layer2 = LayerGradient::create(Color32(0, 0, 0, 127), Color32(255, 255, 255, 127));
     layer2->setContentSize(Size(80.0f, 80.0f));
     layer2->setPosition(Vec2(100.0f, 90.0f));
     addChild(layer2);
@@ -693,8 +699,8 @@ LayerExtendedBlendOpacityTest::LayerExtendedBlendOpacityTest()
     auto layer3 = LayerGradient::create();
     layer3->setContentSize(Size(80.0f, 80.0f));
     layer3->setPosition(Vec2(150.0f, 140.0f));
-    layer3->setStartColor(Color3B(255, 0, 0));
-    layer3->setEndColor(Color3B(255, 0, 255));
+    layer3->setStartColor(Color32(255, 0, 0));
+    layer3->setEndColor(Color32(255, 0, 255));
     layer3->setStartOpacity(255);
     layer3->setEndOpacity(255);
     layer3->setBlendFunc(BlendFunc::ALPHA_NON_PREMULTIPLIED);
@@ -719,7 +725,7 @@ void LayerBug3162A::onEnter()
     Size size        = VisibleRect::getVisibleRect().size;
     size.width       = size.width / 2;
     size.height      = size.height / 3;
-    Color4B color[3] = {Color4B(255, 0, 0, 255), Color4B(0, 255, 0, 255), Color4B(0, 0, 255, 255)};
+    Color32 color[3] = {Color32(255, 0, 0, 255), Color32(0, 255, 0, 255), Color32(0, 0, 255, 255)};
 
     for (int i = 0; i < 3; ++i)
     {
@@ -762,7 +768,7 @@ void LayerBug3162B::onEnter()
     Size size        = VisibleRect::getVisibleRect().size;
     size.width       = size.width / 2;
     size.height      = size.height / 3;
-    Color4B color[3] = {Color4B(200, 0, 0, 255), Color4B(150, 0, 0, 255), Color4B(100, 0, 0, 255)};
+    Color32 color[3] = {Color32(200, 0, 0, 255), Color32(150, 0, 0, 255), Color32(100, 0, 0, 255)};
 
     for (int i = 0; i < 3; ++i)
     {
@@ -814,7 +820,7 @@ void LayerColorOccludeBug::onEnter()
 {
     LayerTest::onEnter();
     Director::getInstance()->getRenderer()->setDepthTest(true);
-    _layer = LayerColor::create(Color4B(0, 80, 95, 255));
+    _layer = LayerColor::create(Color32(0, 80, 95, 255));
     addChild(_layer);
 }
 
@@ -838,12 +844,12 @@ void LayerRadialGradientTest::onEnter()
     _currentSeletedItemIndex = 0;
 
     auto director = Director::getInstance();
-    director->setClearColor(Color4F(0, 0, 0, 0));
+    director->setClearColor(Color(0, 0, 0, 0));
     auto origin = director->getVisibleOrigin();
     auto size   = director->getVisibleSize();
     Vec2 center(origin.x + size.width / 2 + 50, origin.y + size.height / 2);
     float radius = (size.height - 50) / 2;
-    _layer       = LayerRadialGradient::create(Color4B(145, 106, 209, 140), Color4B(0, 0, 0, 0), radius, center, 1.0f);
+    _layer       = LayerRadialGradient::create(Color32(145, 106, 209, 140), Color32(0, 0, 0, 0), radius, center, 1.0f);
     addChild(_layer);
 
     auto scaleSlider = LayerRadialGradientTest::createSlider();
@@ -875,10 +881,10 @@ void LayerRadialGradientTest::listviewCallback(ax::Object* sender, ax::ui::ListV
     // clear all text to white
     auto listview = static_cast<ax::ui::ListView*>(sender);
     for (auto&& item : listview->getItems())
-        static_cast<ax::ui::Text*>(item)->setColor(ax::Color3B::WHITE);
+        static_cast<ax::ui::Text*>(item)->setColor(ax::Color32::WHITE);
 
     _currentSeletedItemIndex = (int)listview->getCurSelectedIndex();
-    listview->getItem(_currentSeletedItemIndex)->setColor(ax::Color3B::RED);
+    listview->getItem(_currentSeletedItemIndex)->setColor(ax::Color32::RED);
 
     int percent = 100;
     auto slider = static_cast<ax::ui::Slider*>(getChildByTag(101));
@@ -952,7 +958,7 @@ ax::ui::ListView* LayerRadialGradientTest::createListView()
 
     auto scale = ax::ui::Text::create();
     scale->setString("scale[0-2]");
-    scale->setColor(ax::Color3B::RED);  // default seleted item
+    scale->setColor(ax::Color32::RED);  // default seleted item
     scale->setTouchEnabled(true);
     listview->pushBackCustomItem(scale);
 

@@ -25,8 +25,8 @@
 
 #include "LabelTest.h"
 #include "../testResource.h"
-#include "renderer/Renderer.h"
-#include "2d/FontAtlasCache.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/2d/FontAtlasCache.h"
 
 using namespace ax;
 using namespace ui;
@@ -61,13 +61,13 @@ public:
 
     LabelIssue1336()
     {
-        auto size = Director::getInstance()->getWinSize();
+        auto size = Director::getInstance()->getCanvasSize();
         TTFConfig config("fonts/arial.ttf");
         config.distanceFieldEnabled = true;
         config.faceSize             = 72;
         auto overlapingLabel        = Label::createWithTTF(config, "Te");
         overlapingLabel->setPosition(Vec2(size.width / 2, size.height / 2));
-        overlapingLabel->setColor(ax::Color3B::WHITE);
+        overlapingLabel->setColor(ax::Color32::WHITE);
         overlapingLabel->setScale(10);
         addChild(overlapingLabel, 1);
     }
@@ -179,7 +179,7 @@ LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
 {
     _time = 0;
 
-    auto col = LayerColor::create(Color4B(128, 128, 128, 255));
+    auto col = LayerColor::create(Color32(128, 128, 128, 255));
     addChild(col, -10);
 
     auto label1 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "Test");
@@ -193,7 +193,7 @@ LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
     label1->runAction(repeat);
 
     auto label2 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "Test");
-    label2->setColor(Color3B::RED);
+    label2->setColor(Color32::RED);
     addChild(label2, 0, kTagBitmapAtlas2);
     auto tint = Sequence::create(TintTo::create(1, 255, 0, 0), TintTo::create(1, 0, 255, 0),
                                  TintTo::create(1, 0, 0, 255), nullptr);
@@ -240,11 +240,11 @@ LabelFNTSpriteActions::LabelFNTSpriteActions()
 {
     _time = 0;
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto drawNode = DrawNode::create();
-    drawNode->drawLine(Vec2(0.0f, s.height / 2), Vec2(s.width, s.height / 2), Color4F(1.0f, 1.0f, 1.0f, 1.0f));
-    drawNode->drawLine(Vec2(s.width / 2, 0.0f), Vec2(s.width / 2, s.height), Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+    drawNode->drawLine(Vec2(0.0f, s.height / 2), Vec2(s.width, s.height / 2), Color(1.0f, 1.0f, 1.0f, 1.0f));
+    drawNode->drawLine(Vec2(s.width / 2, 0.0f), Vec2(s.width / 2, s.height), Color(1.0f, 1.0f, 1.0f, 1.0f));
     addChild(drawNode, -1);
 
     // Upper Label
@@ -293,7 +293,7 @@ void LabelFNTSpriteActions::step(float dt)
 {
     _time += dt;
     char tmp[10];
-    auto text = fmt::format_to_z(tmp, "{:04.1f}", _time);
+    auto text   = fmt::format_to_z(tmp, "{:04.1f}", _time);
     auto label1 = (Label*)getChildByTag(kTagBitmapAtlas2);
     label1->setString(text);
 }
@@ -313,7 +313,7 @@ LabelFNTPadding::LabelFNTPadding()
     auto label = Label::createWithBMFont("fonts/bitmapFontTest4.fnt", "abcdefg");
     addChild(label);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     label->setPosition(Vec2(s.width / 2, s.height / 2));
 }
@@ -330,7 +330,7 @@ std::string LabelFNTPadding::subtitle() const
 
 LabelFNTOffset::LabelFNTOffset()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     Label* label = nullptr;
     label        = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "FaFeFiFoFu");
@@ -358,22 +358,22 @@ std::string LabelFNTOffset::subtitle() const
 
 LabelFNTColor::LabelFNTColor()
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     auto label = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "Blue");
-    label->setColor(Color3B::BLUE);
+    label->setColor(Color32::BLUE);
     addChild(label);
-    label->setPosition(winSize.width / 2, winSize.height * 0.7f);
+    label->setPosition(canvasSize.width / 2, canvasSize.height * 0.7f);
 
     label = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "Red");
     addChild(label);
-    label->setPosition(winSize.width / 2, winSize.height * 0.5f);
-    label->setColor(Color3B::RED);
+    label->setPosition(canvasSize.width / 2, canvasSize.height * 0.5f);
+    label->setColor(Color32::RED);
 
     label = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "Green");
     addChild(label);
-    label->setPosition(winSize.width / 2, winSize.height * 0.3f);
-    label->setColor(Color3B::GREEN);
+    label->setPosition(canvasSize.width / 2, canvasSize.height * 0.3f);
+    label->setColor(Color32::GREEN);
     label->setString("Green");
 }
 
@@ -389,17 +389,17 @@ std::string LabelFNTColor::subtitle() const
 
 LabelFNTOpacity::LabelFNTOpacity()
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     auto label = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "Opacity 100");
     label->setOpacity(100);
     addChild(label);
-    label->setPosition(winSize.width / 2, winSize.height * 0.6f);
+    label->setPosition(canvasSize.width / 2, canvasSize.height * 0.6f);
 
     label = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "Opacity 200");
     label->setOpacity(200);
     addChild(label);
-    label->setPosition(winSize.width / 2, winSize.height * 0.4f);
+    label->setPosition(canvasSize.width / 2, canvasSize.height * 0.4f);
 }
 
 std::string LabelFNTOpacity::title() const
@@ -418,11 +418,11 @@ LabelFNTHundredLabels::LabelFNTHundredLabels()
     char tmp[6];
     for (int i = 0; i < 100; i++)
     {
-        auto str = fmt::format_to_z(tmp, "-{}-", i);
+        auto str   = fmt::format_to_z(tmp, "-{}-", i);
         auto label = Label::createWithBMFont("fonts/bitmapFontTest.fnt", str);
         addChild(label);
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
 
         auto p = Vec2(AXRANDOM_0_1() * s.width, AXRANDOM_0_1() * s.height);
         label->setPosition(p);
@@ -483,7 +483,7 @@ std::string LabelFNTMultiLine::subtitle() const
 
 LabelFNTandTTFEmpty::LabelFNTandTTFEmpty()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // LabelBMFont
     auto label1 = Label::createWithBMFont("fonts/bitmapFontTest3.fnt", "", TextHAlignment::CENTER, s.width);
@@ -541,7 +541,7 @@ std::string LabelFNTandTTFEmpty::subtitle() const
 
 LabelFNTRetina::LabelFNTRetina()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // LabelBMFont
     auto label1 = Label::createWithBMFont("fonts/konqa32.fnt", "TESTING RETINA DISPLAY");
@@ -561,9 +561,9 @@ std::string LabelFNTRetina::subtitle() const
 
 LabelFNTGlyphDesigner::LabelFNTGlyphDesigner()
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
-    auto layer = LayerColor::create(Color4B(128, 128, 128, 255));
+    auto layer = LayerColor::create(Color32(128, 128, 128, 255));
     addChild(layer, -10);
 
     auto label1 = Label::createWithBMFont("fonts/futura-48.fnt", "Testing Glyph Designer");
@@ -572,10 +572,10 @@ LabelFNTGlyphDesigner::LabelFNTGlyphDesigner()
     FontAtlasCache::reloadFontAtlasFNT("fonts/futura-48.fnt", ax::Rect::ZERO, false);
     label1->setBMFontFilePath("fonts/futura-48.fnt");
     addChild(label1);
-    label1->setPosition(Vec2(winSize.width / 2, winSize.height * 0.4f));
+    label1->setPosition(Vec2(canvasSize.width / 2, canvasSize.height * 0.4f));
 
     auto label2 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "Hello World");
-    label2->setPosition(Vec2(winSize.width / 2, winSize.height * 0.6f));
+    label2->setPosition(Vec2(canvasSize.width / 2, canvasSize.height * 0.6f));
     addChild(label2);
 }
 
@@ -626,7 +626,7 @@ bool LabelFNTMultiLineAlignment::init()
 
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     // ask director the the window size
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     // create and initialize a Label
     this->_label = Label::createWithBMFont("fonts/markerFelt.fnt", "", TextHAlignment::CENTER, size.width / 1.5);
@@ -704,11 +704,11 @@ void LabelFNTMultiLineAlignment::selectAlignmentItem(ax::MenuItemFont* item)
 {
     if (this->_lastAlignmentItem && this->_lastAlignmentItem != item)
     {
-        this->_lastAlignmentItem->setColor(Color3B::WHITE);
+        this->_lastAlignmentItem->setColor(Color32::WHITE);
     }
 
     this->_lastAlignmentItem = item;
-    item->setColor(Color3B::RED);
+    item->setColor(Color32::RED);
 
     switch (item->getTag())
     {
@@ -731,11 +731,11 @@ void LabelFNTMultiLineAlignment::selectSentenceItem(ax::MenuItemFont* item)
 {
     if (this->_lastSentenceItem && this->_lastSentenceItem != item)
     {
-        this->_lastSentenceItem->setColor(Color3B::WHITE);
+        this->_lastSentenceItem->setColor(Color32::WHITE);
     }
 
     this->_lastSentenceItem = item;
-    item->setColor(Color3B::RED);
+    item->setColor(Color32::RED);
 
     auto str = this->getItemString(item);
     this->_label->setString(str);
@@ -812,9 +812,9 @@ void LabelFNTMultiLineAlignment::onTouchesMoved(const std::vector<Touch*>& touch
     auto touch    = touches[0];
     auto location = touch->getLocationInView();
 
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
-    this->_arrows->setPosition(Vec2(MAX(MIN(location.x, ArrowsMax * winSize.width), ArrowsMin * winSize.width),
+    this->_arrows->setPosition(Vec2(MAX(MIN(location.x, ArrowsMax * canvasSize.width), ArrowsMin * canvasSize.width),
                                     this->_arrows->getPosition().y));
 
     float labelWidth = fabs(this->_arrows->getPosition().x - this->_label->getPosition().x) * 2;
@@ -896,7 +896,7 @@ LabelFNTUNICODELanguages::LabelFNTUNICODELanguages()
     std::string spanish  = strings["spanish"].asString();
     std::string japanese = strings["japanese"].asString();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto label1 = Label::createWithBMFont("fonts/arial-unicode-26.fnt", spanish, TextHAlignment::CENTER, 200);
     addChild(label1);
@@ -927,9 +927,9 @@ std::string LabelFNTUNICODELanguages::subtitle() const
 
 LabelFNTBounds::LabelFNTBounds()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
-    auto layer = LayerColor::create(Color4B(128, 128, 128, 255));
+    auto layer = LayerColor::create(Color32(128, 128, 128, 255));
     addChild(layer, -10);
 
     // LabelBMFont
@@ -940,7 +940,7 @@ LabelFNTBounds::LabelFNTBounds()
 
     auto drawNode  = DrawNode::create();
     auto labelSize = label1->getContentSize();
-    auto origin    = Director::getInstance()->getWinSize();
+    auto origin    = Director::getInstance()->getCanvasSize();
 
     origin.width  = origin.width / 2 - (labelSize.width / 2);
     origin.height = origin.height / 2 - (labelSize.height / 2);
@@ -948,7 +948,7 @@ LabelFNTBounds::LabelFNTBounds()
     Vec2 vertices[4] = {Vec2(origin.width, origin.height), Vec2(labelSize.width + origin.width, origin.height),
                         Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
                         Vec2(origin.width, labelSize.height + origin.height)};
-    drawNode->drawPoly(vertices, 4, true, Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+    drawNode->drawPoly(vertices, 4, true, Color(1.0f, 1.0f, 1.0f, 1.0f));
     addChild(drawNode);
 }
 
@@ -964,7 +964,7 @@ std::string LabelFNTBounds::subtitle() const
 
 LabelFNTMultiFontAtlasNoRotation::LabelFNTMultiFontAtlasNoRotation()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto label1 = Label::createWithBMFont("fonts/helvetica-32.fnt", "This is Helvetica");
     addChild(label1);
@@ -988,7 +988,7 @@ std::string LabelFNTMultiFontAtlasNoRotation::subtitle() const
 
 LabelFNTMultiFontAtlasWithRotation::LabelFNTMultiFontAtlasWithRotation()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto spriteCache = SpriteFrameCache::getInstance();
     spriteCache->addSpriteFramesWithFile("fonts/bmfont-rotated-test.plist");
@@ -1018,7 +1018,7 @@ std::string LabelFNTMultiFontAtlasWithRotation::subtitle() const
 
 LabelTTFLongLineWrapping::LabelTTFLongLineWrapping()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     // Long sentence
     TTFConfig ttfConfig("fonts/arial.ttf", 14);
@@ -1040,25 +1040,25 @@ std::string LabelTTFLongLineWrapping::subtitle() const
 
 LabelTTFColor::LabelTTFColor()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     TTFConfig ttfConfig("fonts/arial.ttf", 18);
     // Green
     auto label1 = Label::createWithTTF(ttfConfig, "Green", TextHAlignment::CENTER, size.width);
     label1->setPosition(size.width / 2, size.height * 0.5f);
-    label1->setTextColor(Color4B::GREEN);
+    label1->setTextColor(Color32::GREEN);
     addChild(label1);
 
     // Red
     auto label2 = Label::createWithTTF(ttfConfig, "Red", TextHAlignment::CENTER, size.width);
     label2->setPosition(size.width / 2, size.height * 0.65f);
-    label2->setTextColor(Color4B::RED);
+    label2->setTextColor(Color32::RED);
     addChild(label2);
 
     // Blue
     auto label3 = Label::createWithTTF(ttfConfig, "Blue", TextHAlignment::CENTER, size.width);
     label3->setPosition(size.width / 2, size.height * 0.35f);
-    label3->setTextColor(Color4B::BLUE);
+    label3->setTextColor(Color32::BLUE);
     addChild(label3);
 }
 
@@ -1074,11 +1074,11 @@ std::string LabelTTFColor::subtitle() const
 
 LabelTTFDynamicAlignment::LabelTTFDynamicAlignment()
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     TTFConfig ttfConfig("fonts/arial.ttf", 23);
-    _label = Label::createWithTTF(ttfConfig, LongSentencesExample, TextHAlignment::CENTER, winSize.width);
-    _label->setPosition(winSize.width / 2, winSize.height / 2);
+    _label = Label::createWithTTF(ttfConfig, LongSentencesExample, TextHAlignment::CENTER, canvasSize.width);
+    _label->setPosition(canvasSize.width / 2, canvasSize.height / 2);
     addChild(_label);
 
     auto menu = Menu::create(
@@ -1087,7 +1087,7 @@ LabelTTFDynamicAlignment::LabelTTFDynamicAlignment()
         MenuItemFont::create("Right", AX_CALLBACK_1(LabelTTFDynamicAlignment::setAlignmentRight, this)), nullptr);
 
     menu->alignItemsHorizontallyWithPadding(20);
-    menu->setPosition(winSize.width / 2, winSize.height * 0.25f);
+    menu->setPosition(canvasSize.width / 2, canvasSize.height * 0.25f);
     addChild(menu);
 }
 
@@ -1132,21 +1132,21 @@ std::string LabelTTFDynamicAlignment::subtitle() const
 //
 LabelTTFCJKWrappingTest::LabelTTFCJKWrappingTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     auto drawNode = DrawNode::create();
     drawNode->setAnchorPoint(Vec2(0, 0));
     this->addChild(drawNode);
     drawNode->drawSegment(Vec2(size.width * 0.1f, size.height * 0.8f), Vec2(size.width * 0.1, 0.0f), 1,
-                          Color4F(1.0f, 0.0f, 0.0f, 1.0f));
+                          Color(1.0f, 0.0f, 0.0f, 1.0f));
     drawNode->drawSegment(Vec2(size.width * 0.85f, size.height * 0.8f), Vec2(size.width * 0.85f, 0.0f), 1,
-                          Color4F(1.0f, 0.0f, 0.0f, 1.0f));
+                          Color(1.0f, 0.0f, 0.0f, 1.0f));
 
     TTFConfig ttfConfig("fonts/HKYuanMini.ttf", 25, GlyphCollection::DYNAMIC);
     auto label1 = Label::createWithTTF(ttfConfig, "你好，Axmol Label.", TextHAlignment::LEFT, size.width * 0.75f);
     if (label1)
     {
-        label1->setTextColor(Color4B(128, 255, 255, 255));
+        label1->setTextColor(Color32(128, 255, 255, 255));
         label1->setPosition(Vec2(size.width * 0.1f, size.height * 0.6f));
         label1->setAnchorPoint(Vec2(0.0f, 0.5f));
         this->addChild(label1);
@@ -1159,7 +1159,7 @@ LabelTTFCJKWrappingTest::LabelTTFCJKWrappingTest()
     auto label2 = Label::createWithTTF(ttfConfig, "早上好，Axmol Label.", TextHAlignment::LEFT, size.width * 0.75f);
     if (label2)
     {
-        label2->setTextColor(Color4B(255, 128, 255, 255));
+        label2->setTextColor(Color32(255, 128, 255, 255));
         label2->setPosition(Vec2(size.width * 0.1f, size.height * 0.4f));
         label2->setAnchorPoint(Vec2(0.0f, 0.5f));
         this->addChild(label2);
@@ -1169,7 +1169,7 @@ LabelTTFCJKWrappingTest::LabelTTFCJKWrappingTest()
                                        size.width * 0.75f);
     if (label3)
     {
-        label3->setTextColor(Color4B(255, 255, 128, 255));
+        label3->setTextColor(Color32(255, 255, 128, 255));
         label3->setPosition(Vec2(size.width * 0.1f, size.height * 0.2f));
         label3->setAnchorPoint(Vec2(0.0f, 0.5f));
         this->addChild(label3);
@@ -1194,21 +1194,21 @@ LabelTTFUnicodeNew::LabelTTFUnicodeNew()
 {
     auto strings        = FileUtils::getInstance()->getValueMapFromFile("strings/LabelFNTUNICODELanguages.xml");
     std::string chinese = strings["chinese1"].asString();
-    auto winSize        = Director::getInstance()->getWinSize();
+    auto canvasSize     = Director::getInstance()->getCanvasSize();
 
     // Spanish
     auto label1 = Label::createWithTTF("Buen día, ¿cómo te llamas?", "fonts/arial.ttf", 23);
-    label1->setPosition(winSize.width / 2, winSize.height * 0.65f);
+    label1->setPosition(canvasSize.width / 2, canvasSize.height * 0.65f);
     addChild(label1);
 
     // German
     auto label2 = Label::createWithTTF("In welcher Straße haben Sie gelebt?", "fonts/arial.ttf", 23);
-    label2->setPosition(winSize.width / 2, winSize.height * 0.5f);
+    label2->setPosition(canvasSize.width / 2, canvasSize.height * 0.5f);
     addChild(label2);
 
     // Chinese
     auto label3 = Label::createWithTTF(chinese, "fonts/HKYuanMini.ttf", 24);
-    label3->setPosition(winSize.width / 2, winSize.height * 0.35f);
+    label3->setPosition(canvasSize.width / 2, canvasSize.height * 0.35f);
     addChild(label3);
 }
 
@@ -1228,11 +1228,11 @@ std::string LabelTTFUnicodeNew::subtitle() const
 LabelTTFEmoji::LabelTTFEmoji()
 {
     std::string emojiString = FileUtils::getInstance()->getStringFromFile("fonts/emoji.txt");
-    auto winSize            = Director::getInstance()->getWinSize();
+    auto canvasSize         = Director::getInstance()->getCanvasSize();
 
     auto label = Label::createWithTTF(emojiString, "fonts/NotoEmoji-Regular.ttf", 23);
-    label->setPosition(winSize.width / 2, winSize.height / 2);
-    label->setDimensions(winSize.width, winSize.height);
+    label->setPosition(canvasSize.width / 2, canvasSize.height / 2);
+    label->setDimensions(canvasSize.width, canvasSize.height);
     label->setVerticalAlignment(ax::TextVAlignment::CENTER);
     label->setHorizontalAlignment(ax::TextHAlignment::CENTER);
     addChild(label);
@@ -1256,7 +1256,7 @@ LabelTTFFontsTestNew::LabelTTFFontsTestNew()
     };
 
     int fontCount = sizeof(ttfpaths) / sizeof(ttfpaths[0]);
-    auto size     = Director::getInstance()->getWinSize();
+    auto size     = Director::getInstance()->getCanvasSize();
     TTFConfig ttfConfig(ttfpaths[0], 20, GlyphCollection::NEHE);
 
     for (int i = 0; i < fontCount; ++i)
@@ -1287,12 +1287,12 @@ std::string LabelTTFFontsTestNew::subtitle() const
 
 LabelTTFDistanceField::LabelTTFDistanceField()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     TTFConfig ttfConfig("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, true);
 
     auto label1 = Label::createWithTTF(ttfConfig, "Distance Field", TextHAlignment::CENTER, size.width);
     label1->setPosition(Vec2(size.width / 2, size.height * 0.6f));
-    label1->setTextColor(Color4B::GREEN);
+    label1->setTextColor(Color32::GREEN);
     addChild(label1);
 
     auto action = Sequence::create(DelayTime::create(1.0f), ScaleTo::create(6.0f, 5.0f, 5.0f),
@@ -1306,11 +1306,11 @@ LabelTTFDistanceField::LabelTTFDistanceField()
     borderDraw->clear();
     Vec2 vertices[4] = {Vec2::ZERO, Vec2(labelContentSize.width, 0.0f),
                         Vec2(labelContentSize.width, labelContentSize.height), Vec2(0.0f, labelContentSize.height)};
-    borderDraw->drawPoly(vertices, 4, true, Color4F::RED);
+    borderDraw->drawPoly(vertices, 4, true, Color::RED);
 
     auto label2 = Label::createWithTTF(ttfConfig, "Distance Field", TextHAlignment::CENTER, size.width);
     label2->setPosition(Vec2(size.width / 2, size.height * 0.3f));
-    label2->setTextColor(Color4B::RED);
+    label2->setTextColor(Color32::RED);
     addChild(label2);
 
     // Draw the label border
@@ -1320,7 +1320,7 @@ LabelTTFDistanceField::LabelTTFDistanceField()
     borderDraw2->clear();
     Vec2 vertices2[4] = {Vec2::ZERO, Vec2(labelContentSize2.width, 0.0f),
                          Vec2(labelContentSize2.width, labelContentSize2.height), Vec2(0.0f, labelContentSize2.height)};
-    borderDraw2->drawPoly(vertices2, 4, true, Color4F::GREEN);
+    borderDraw2->drawPoly(vertices2, 4, true, Color::GREEN);
 }
 
 std::string LabelTTFDistanceField::title() const
@@ -1334,7 +1334,7 @@ std::string LabelTTFDistanceField::subtitle() const
 }
 LabelTitleButtonTTFDistanceField::LabelTitleButtonTTFDistanceField()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     FontFreeType::setShareDistanceFieldEnabled(false);
     auto button = ax::ui::Button::create();
@@ -1355,7 +1355,7 @@ LabelTitleButtonTTFDistanceField::LabelTitleButtonTTFDistanceField()
     FontFreeType::setShareDistanceFieldEnabled(false);
     button = ax::ui::Button::create();
     button->setTitleText("Should be the same size");
-    button->setTitleColor(Color3B::RED);
+    button->setTitleColor(Color32::RED);
     button->setTitleFontName("fonts/Marker Felt.ttf");
     button->setTitleFontSize(20);
     this->addChild(button);
@@ -1364,7 +1364,7 @@ LabelTitleButtonTTFDistanceField::LabelTitleButtonTTFDistanceField()
     FontFreeType::setShareDistanceFieldEnabled(true);
     button = ax::ui::Button::create();
     button->setTitleText("Should be the same size");
-    button->setTitleColor(Color3B::RED);
+    button->setTitleColor(Color32::RED);
     button->setTitleFontName("fonts/Marker Felt.ttf");
     button->setTitleFontSize(20);
     this->addChild(button);
@@ -1382,7 +1382,7 @@ std::string LabelTitleButtonTTFDistanceField::subtitle() const
 }
 LabelTTFSDF::LabelTTFSDF()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     FontFreeType::setShareDistanceFieldEnabled(false);
     Label* title = Label::createWithTTF("Normal", "fonts/Marker Felt.ttf", 20);
@@ -1420,8 +1420,8 @@ LabelTTFSDF::LabelTTFSDF()
                     [=, this](Object* obj, ax::ui::CheckBox::EventType type) {
         if (type == ax::ui::CheckBox::EventType::SELECTED)
         {
-            _labelSDF->enableShadow(Color4B::YELLOW, Vec2(-1, -1));
-            _labelNormal->enableShadow(Color4B::YELLOW, Vec2(-1, -1));
+            _labelSDF->enableShadow(Color32::YELLOW, Vec2(-1, -1));
+            _labelNormal->enableShadow(Color32::YELLOW, Vec2(-1, -1));
         }
         else
         {
@@ -1467,8 +1467,8 @@ LabelTTFSDF::LabelTTFSDF()
         float size     = 1 + slider->getPercent() / 10;
         if (!slider->isEnabled())
             return;
-        _labelSDF->enableOutline(Color4B::GREEN, size);
-        _labelNormal->enableOutline(Color4B::GREEN, size);
+        _labelSDF->enableOutline(Color32::GREEN, size);
+        _labelNormal->enableOutline(Color32::GREEN, size);
     });
     initToggleCheckboxes();
     _sliderOutline->setEnabled(false);
@@ -1492,7 +1492,7 @@ ui::Slider* LabelTTFSDF::initSlider(std::string content,
     addChild(slider2, 999);
 
     auto label = Label::createWithSystemFont(content + ": ", "Arial", 10);
-    label->setColor(Color3B::WHITE);
+    label->setColor(Color32::WHITE);
     label->setPosition(pos - Vec2(slider2->getContentSize().width * 0.3, 0));
     label->setAnchorPoint(Vec2(1, 0.5));
     this->addChild(label);
@@ -1502,7 +1502,7 @@ ui::Slider* LabelTTFSDF::initSlider(std::string content,
 void LabelTTFSDF::initToggleCheckboxes()
 {
     float startPosY = 0;
-    Size winSize    = Director::getInstance()->getVisibleSize();
+    Size canvasSize = Director::getInstance()->getVisibleSize();
 
     // Create a radio button group
     auto radioButtonGroup = RadioButtonGroup::create();
@@ -1510,7 +1510,7 @@ void LabelTTFSDF::initToggleCheckboxes()
 
     // Create the radio buttons
     static const int NUMBER_OF_BUTTONS  = 3;
-    startPosY                           = winSize.height * 0.25;
+    startPosY                           = canvasSize.height * 0.25;
     std::vector<std::string> labelTypes = {"Normal", "Glow", "OutLine"};
 
     for (int i = 0; i < NUMBER_OF_BUTTONS; ++i)
@@ -1518,7 +1518,7 @@ void LabelTTFSDF::initToggleCheckboxes()
 
         RadioButton* radioButton = RadioButton::create("cocosui/radio_button_off.png", "cocosui/radio_button_on.png");
         float posY               = startPosY + (radioButton->getContentSize().height + 5) * i;
-        radioButton->setPosition(Vec2(winSize.width * 0.8, posY));
+        radioButton->setPosition(Vec2(canvasSize.width * 0.8, posY));
         radioButton->addEventListener(AX_CALLBACK_2(LabelTTFSDF::onChangedRadioButtonSelect, this));
         radioButton->setTag(i);
         radioButtonGroup->addRadioButton(radioButton);
@@ -1551,12 +1551,12 @@ void LabelTTFSDF::onChangedRadioButtonSelect(RadioButton* radioButton, RadioButt
     case 0:
         break;
     case 1:
-        _labelNormal->enableGlow(Color4B::RED);
-        _labelSDF->enableGlow(Color4B::RED);
+        _labelNormal->enableGlow(Color32::RED);
+        _labelSDF->enableGlow(Color32::RED);
         break;
     case 2:
-        _labelSDF->enableOutline(Color4B::GREEN, 1);
-        _labelNormal->enableOutline(Color4B::GREEN, 1);
+        _labelSDF->enableOutline(Color32::GREEN, 1);
+        _labelNormal->enableOutline(Color32::GREEN, 1);
         _sliderOutline->setEnabled(true);
         _sliderOutline->setOpacity(255);
         break;
@@ -1569,7 +1569,7 @@ void LabelTTFSDF::initToggleLabel(std::string content,
                                   std::function<void(Object*, ax::ui::CheckBox::EventType)> callback)
 {
     auto label = Label::createWithSystemFont(content + ":", "Arial", 10);
-    label->setColor(Color3B::WHITE);
+    label->setColor(Color32::WHITE);
     label->setPosition(pos);
     label->setAnchorPoint(Vec2(1, 0.5));
     this->addChild(label);
@@ -1596,12 +1596,11 @@ std::string LabelTTFSDF::subtitle() const
     return "Testing rendering Label on DistanceField";
 }
 
-
 LabelOutlineAndGlowTest::LabelOutlineAndGlowTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    auto bg = LayerColor::create(Color4B(200, 191, 231, 255));
+    auto bg = LayerColor::create(Color32(200, 191, 231, 255));
     this->addChild(bg);
 
     TTFConfig ttfConfig("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, true);
@@ -1609,16 +1608,16 @@ LabelOutlineAndGlowTest::LabelOutlineAndGlowTest()
     // Glow SDF (GPU)
     auto label1 = Label::createWithTTF(ttfConfig, "Glow1", TextHAlignment::CENTER, size.width);
     label1->setPosition(Vec2(size.width / 2, size.height * 0.7));
-    label1->setTextColor(Color4B::GREEN);
-    label1->enableGlow(Color4B::YELLOW);
+    label1->setTextColor(Color32::GREEN);
+    label1->enableGlow(Color32::YELLOW);
     addChild(label1);
 
     // Glow normal(CPU)
     ttfConfig.distanceFieldEnabled = false;
     auto label2                    = Label::createWithTTF(ttfConfig, "Glow2", TextHAlignment::CENTER, size.width);
     label2->setPosition(Vec2(size.width / 2, size.height * 0.6));
-    label2->setTextColor(Color4B::GREEN);
-    label2->enableGlow(Color4B::YELLOW);
+    label2->setTextColor(Color32::GREEN);
+    label2->enableGlow(Color32::YELLOW);
     addChild(label2);
 
     // Outline SDF(GPU)
@@ -1626,8 +1625,8 @@ LabelOutlineAndGlowTest::LabelOutlineAndGlowTest()
     ttfConfig.outlineSize          = 2;
     auto label3                    = Label::createWithTTF(ttfConfig, "Outline1", TextHAlignment::CENTER, size.width);
     label3->setPosition(Vec2(size.width / 2, size.height * 0.48));
-    label3->setTextColor(Color4B::RED);
-    label3->enableOutline(Color4B::BLUE);
+    label3->setTextColor(Color32::RED);
+    label3->enableOutline(Color32::BLUE);
     addChild(label3);
 
     // Outline normal(CPU by freetype2)
@@ -1635,8 +1634,8 @@ LabelOutlineAndGlowTest::LabelOutlineAndGlowTest()
     ttfConfig.outlineSize          = 2;
     auto label4                    = Label::createWithTTF(ttfConfig, "Outline2", TextHAlignment::CENTER, size.width);
     label4->setPosition(Vec2(size.width / 2, size.height * 0.36));
-    label4->setTextColor(Color4B::RED);
-    label4->enableOutline(Color4B::BLUE, 2);
+    label4->setTextColor(Color32::RED);
+    label4->enableOutline(Color32::BLUE, 2);
     addChild(label4);
 }
 
@@ -1656,9 +1655,9 @@ void LabelShadowTest::onEnter()
 {
     AtlasDemoNew::onEnter();
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    auto bg = LayerColor::create(Color4B(200, 191, 231, 255));
+    auto bg = LayerColor::create(Color32(200, 191, 231, 255));
     this->addChild(bg);
 
     auto slider = ui::Slider::create();
@@ -1692,28 +1691,28 @@ void LabelShadowTest::onEnter()
 
     shadowLabelTTF = Label::createWithTTF(ttfConfig, "TTF:Shadow");
     shadowLabelTTF->setPosition(Vec2(size.width / 2, horizontalSliderY + step * (0.5f + 3)));
-    shadowLabelTTF->setTextColor(Color4B::RED);
-    shadowLabelTTF->enableShadow(Color4B::BLACK);
+    shadowLabelTTF->setTextColor(Color32::RED);
+    shadowLabelTTF->enableShadow(Color32::BLACK);
     addChild(shadowLabelTTF);
 
     shadowLabelOutline = Label::createWithTTF(ttfConfig, "TTF:Shadow");
     shadowLabelOutline->setPosition(Vec2(size.width / 2, horizontalSliderY + step * (0.5f + 2)));
-    shadowLabelOutline->setTextColor(Color4B::RED);
-    shadowLabelOutline->enableOutline(Color4B::YELLOW, 1);
-    shadowLabelOutline->enableShadow(Color4B::GREEN);
+    shadowLabelOutline->setTextColor(Color32::RED);
+    shadowLabelOutline->enableOutline(Color32::YELLOW, 1);
+    shadowLabelOutline->enableShadow(Color32::GREEN);
     addChild(shadowLabelOutline);
 
     shadowLabelGrow = Label::createWithTTF(ttfConfig, "TTF:Shadow");
     shadowLabelGrow->setPosition(Vec2(size.width / 2, horizontalSliderY + step * (0.5f + 1)));
-    shadowLabelGrow->setTextColor(Color4B::RED);
-    shadowLabelGrow->enableGlow(Color4B::YELLOW);
-    shadowLabelGrow->enableShadow(Color4B::BLUE);
+    shadowLabelGrow->setTextColor(Color32::RED);
+    shadowLabelGrow->enableGlow(Color32::YELLOW);
+    shadowLabelGrow->enableShadow(Color32::BLUE);
     addChild(shadowLabelGrow);
 
     shadowLabelBMFont = Label::createWithBMFont("fonts/bitmapFontTest.fnt", "BMFont:Shadow");
     shadowLabelBMFont->setPosition(Vec2(size.width / 2, horizontalSliderY + step * 0.5f));
-    shadowLabelBMFont->setColor(Color3B::RED);
-    shadowLabelBMFont->enableShadow(Color4B::GREEN);
+    shadowLabelBMFont->setColor(Color32::RED);
+    shadowLabelBMFont->enableShadow(Color32::GREEN);
     addChild(shadowLabelBMFont);
 }
 
@@ -1725,10 +1724,10 @@ void LabelShadowTest::sliderEvent(Object* pSender, ui::Slider::EventType type)
         Slider* slider2 = (Slider*)this->getChildByTag(2);
 
         auto offset = Size(slider->getPercent() - 50, 50 - slider2->getPercent());
-        shadowLabelTTF->enableShadow(Color4B::BLACK, offset);
-        shadowLabelBMFont->enableShadow(Color4B::GREEN, offset);
-        shadowLabelOutline->enableShadow(Color4B::GREEN, offset);
-        shadowLabelGrow->enableShadow(Color4B::BLUE, offset);
+        shadowLabelTTF->enableShadow(Color32::BLACK, offset);
+        shadowLabelBMFont->enableShadow(Color32::GREEN, offset);
+        shadowLabelOutline->enableShadow(Color32::GREEN, offset);
+        shadowLabelGrow->enableShadow(Color32::BLUE, offset);
     }
 }
 
@@ -1771,7 +1770,7 @@ void LabelCharMapTest::step(float dt)
     label1->setString(text);
 
     auto label2 = (Label*)getChildByTag(kTagSprite2);
-    text = fmt::format_to_z(tmp, "{}", (int)_time);
+    text        = fmt::format_to_z(tmp, "{}", (int)_time);
     label2->setString(text);
 }
 
@@ -1802,7 +1801,7 @@ LabelCharMapColorTest::LabelCharMapColorTest()
     addChild(label2, 0, kTagSprite2);
     label2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
     label2->setPosition(Vec2(10, 200));
-    label2->setColor(Color3B::RED);
+    label2->setColor(Color32::RED);
 
     auto fade    = FadeOut::create(1.0f);
     auto fade_in = fade->reverse();
@@ -1825,12 +1824,12 @@ void LabelCharMapColorTest::step(float dt)
 {
     _time += dt;
     char tmp[12];
-    auto info = fmt::format_to_z(tmp, "{:2.2f} Test", _time);
+    auto info   = fmt::format_to_z(tmp, "{:2.2f} Test", _time);
     auto label1 = (Label*)getChildByTag(kTagSprite1);
     label1->setString(info);
 
     auto label2 = (Label*)getChildByTag(kTagSprite2);
-    info = fmt::format_to_z(tmp, "{}", _time);
+    info        = fmt::format_to_z(tmp, "{}", _time);
     label2->setString(info);
 }
 
@@ -1846,7 +1845,7 @@ std::string LabelCharMapColorTest::subtitle() const
 
 LabelCrashTest::LabelCrashTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     TTFConfig ttfConfig("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, true);
 
@@ -1867,13 +1866,13 @@ std::string LabelCrashTest::subtitle() const
 
 LabelTTFOldNew::LabelTTFOldNew()
 {
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     float delta = s.height / 4;
 
     auto label1 = Label::createWithSystemFont("Axmol Label Test", "arial", 24);
     addChild(label1, 0, kTagBitmapAtlas1);
     label1->setPosition(Vec2(s.width / 2, delta * 2));
-    label1->setColor(Color3B::RED);
+    label1->setColor(Color32::RED);
 
     TTFConfig ttfConfig("fonts/arial.ttf", 24);
     auto label2 = Label::createWithTTF(ttfConfig, "Axmol Label Test");
@@ -1882,7 +1881,7 @@ LabelTTFOldNew::LabelTTFOldNew()
 
     auto drawNode  = DrawNode::create();
     auto labelSize = label1->getContentSize();
-    auto origin    = Director::getInstance()->getWinSize();
+    auto origin    = Director::getInstance()->getCanvasSize();
 
     origin.width  = origin.width / 2 - (labelSize.width / 2);
     origin.height = origin.height / 2 - (labelSize.height / 2);
@@ -1890,10 +1889,10 @@ LabelTTFOldNew::LabelTTFOldNew()
     Vec2 vertices[4] = {Vec2(origin.width, origin.height), Vec2(labelSize.width + origin.width, origin.height),
                         Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
                         Vec2(origin.width, labelSize.height + origin.height)};
-    drawNode->drawPoly(vertices, 4, true, Color4F(1.0f, 0.0f, 0.0f, 1.0f));
+    drawNode->drawPoly(vertices, 4, true, Color(1.0f, 0.0f, 0.0f, 1.0f));
 
     labelSize = label2->getContentSize();
-    origin    = Director::getInstance()->getWinSize();
+    origin    = Director::getInstance()->getCanvasSize();
 
     origin.width  = origin.width / 2 - (labelSize.width / 2);
     origin.height = origin.height / 2 - (labelSize.height / 2);
@@ -1901,7 +1900,7 @@ LabelTTFOldNew::LabelTTFOldNew()
     Vec2 vertices2[4] = {Vec2(origin.width, origin.height), Vec2(labelSize.width + origin.width, origin.height),
                          Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
                          Vec2(origin.width, labelSize.height + origin.height)};
-    drawNode->drawPoly(vertices2, 4, true, Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+    drawNode->drawPoly(vertices2, 4, true, Color(1.0f, 1.0f, 1.0f, 1.0f));
 
     addChild(drawNode);
 }
@@ -1918,7 +1917,7 @@ std::string LabelTTFOldNew::subtitle() const
 
 LabelFontNameTest::LabelFontNameTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     auto label1 = Label::create();
     label1->setString("Default Font");
@@ -1943,10 +1942,10 @@ std::string LabelFontNameTest::subtitle() const
 LabelAlignmentTest::LabelAlignmentTest()
 {
     auto blockSize = Size(200, 160);
-    auto s         = Director::getInstance()->getWinSize();
+    auto s         = Director::getInstance()->getCanvasSize();
 
     auto pos        = Vec2((s.width - blockSize.width) / 2, (s.height - blockSize.height) / 2);
-    auto colorLayer = LayerColor::create(Color4B(100, 100, 100, 255), blockSize.width, blockSize.height);
+    auto colorLayer = LayerColor::create(Color32(100, 100, 100, 255), blockSize.width, blockSize.height);
     colorLayer->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
     colorLayer->setPosition(pos);
 
@@ -2019,7 +2018,7 @@ std::string LabelAlignmentTest::subtitle() const
 
 LabelIssue4428Test::LabelIssue4428Test()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     auto label = Label::createWithBMFont("fonts/bitmapFontTest3.fnt", "123\n456");
     label->setPosition(Vec2(size.width / 2.0f, size.height / 2.0f));
@@ -2067,16 +2066,16 @@ std::string LabelIssue4999Test::subtitle() const
 
 LabelLineHeightTest::LabelLineHeightTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    auto bg = LayerColor::create(Color4B(200, 191, 231, 255));
+    auto bg = LayerColor::create(Color32(200, 191, 231, 255));
     this->addChild(bg);
 
     TTFConfig ttfConfig("fonts/arial.ttf", 25, GlyphCollection::DYNAMIC, nullptr, false);
 
     label = Label::createWithTTF(ttfConfig, "Test\nLine\nHeight");
     label->setPosition(Vec2(size.width / 2, size.height * 0.5f));
-    label->setTextColor(Color4B::RED);
+    label->setTextColor(Color32::RED);
     addChild(label);
 
     auto slider = ui::Slider::create();
@@ -2111,16 +2110,16 @@ std::string LabelLineHeightTest::subtitle() const
 
 LabelAdditionalKerningTest::LabelAdditionalKerningTest()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    auto bg = LayerColor::create(Color4B(200, 191, 231, 255));
+    auto bg = LayerColor::create(Color32(200, 191, 231, 255));
     this->addChild(bg);
 
     TTFConfig ttfConfig("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, false);
 
     label = Label::createWithTTF(ttfConfig, "Test additional kerning");
     label->setPosition(size.width / 2, size.height * 0.5f);
-    label->setTextColor(Color4B::RED);
+    label->setTextColor(Color32::RED);
     addChild(label);
 
     auto slider = ui::Slider::create();
@@ -2174,7 +2173,7 @@ std::string LabelIssue8492Test::subtitle() const
 LabelMultilineWithOutline::LabelMultilineWithOutline()
 {
     auto label = Label::createWithTTF("Multi-line text\nwith\noutline feature", "fonts/arial.ttf", 24);
-    label->enableOutline(Color4B::ORANGE, 1);
+    label->enableOutline(Color32::ORANGE, 1);
     label->setPosition(VisibleRect::center());
     addChild(label);
 }
@@ -2191,7 +2190,7 @@ std::string LabelMultilineWithOutline::subtitle() const
 
 LabelIssue9255Test::LabelIssue9255Test()
 {
-    Size s      = Director::getInstance()->getWinSize();
+    Size s      = Director::getInstance()->getCanvasSize();
     auto parent = Node::create();
     parent->setPosition(s.width / 2, s.height / 2);
     parent->setVisible(false);
@@ -2258,26 +2257,26 @@ std::string LabelIssue10089Test::subtitle() const
 
 LabelSystemFontColor::LabelSystemFontColor()
 {
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    auto label1 = Label::createWithSystemFont("Color4B::Red", "fonts/arial.ttf", 20);
+    auto label1 = Label::createWithSystemFont("Color32::Red", "fonts/arial.ttf", 20);
     label1->setPosition(Vec2(size.width / 2, size.height * 0.3f));
-    label1->setTextColor(Color4B::RED);
+    label1->setTextColor(Color32::RED);
     addChild(label1);
 
-    auto label2 = Label::createWithSystemFont("Color4B::Green", "fonts/arial.ttf", 20);
+    auto label2 = Label::createWithSystemFont("Color32::Green", "fonts/arial.ttf", 20);
     label2->setPosition(Vec2(size.width / 2, size.height * 0.4f));
-    label2->setTextColor(Color4B::GREEN);
+    label2->setTextColor(Color32::GREEN);
     addChild(label2);
 
-    auto label3 = Label::createWithSystemFont("Color4B::Blue", "fonts/arial.ttf", 20);
+    auto label3 = Label::createWithSystemFont("Color32::Blue", "fonts/arial.ttf", 20);
     label3->setPosition(Vec2(size.width / 2, size.height * 0.5f));
-    label3->setTextColor(Color4B::BLUE);
+    label3->setTextColor(Color32::BLUE);
     addChild(label3);
 
-    auto label4 = Label::createWithSystemFont("Color4B(0, 0, 255, 100)", "fonts/arial.ttf", 20);
+    auto label4 = Label::createWithSystemFont("Color32(0, 0, 255, 100)", "fonts/arial.ttf", 20);
     label4->setPosition(Vec2(size.width / 2, size.height * 0.6f));
-    label4->setTextColor(Color4B(0, 0, 255, 100));
+    label4->setTextColor(Color32(0, 0, 255, 100));
     addChild(label4);
 }
 
@@ -2344,7 +2343,7 @@ LabelIssue11699Test::LabelIssue11699Test()
     auto center = VisibleRect::center();
 
     auto label = Label::createWithTTF("中国", "fonts/HKYuanMini.ttf", 150);
-    label->enableOutline(Color4B::RED, 2);
+    label->enableOutline(Color32::RED, 2);
     label->setPosition(center.x, center.y);
     addChild(label);
 }
@@ -2369,17 +2368,17 @@ LabelIssue12409Test::LabelIssue12409Test()
     label->setPosition(center.x, center.y);
     addChild(label);
 
-    auto labelSize = label->getContentSize();
-    auto winSize   = Director::getInstance()->getWinSize();
+    auto labelSize  = label->getContentSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
     Vec2 labelOrigin;
-    labelOrigin.x    = winSize.width / 2 - (labelSize.width / 2);
-    labelOrigin.y    = winSize.height / 2 - (labelSize.height / 2);
+    labelOrigin.x    = canvasSize.width / 2 - (labelSize.width / 2);
+    labelOrigin.y    = canvasSize.height / 2 - (labelSize.height / 2);
     Vec2 vertices[4] = {Vec2(labelOrigin.x, labelOrigin.y), Vec2(labelOrigin.x + labelSize.width, labelOrigin.y),
                         Vec2(labelOrigin.x + labelSize.width, labelOrigin.y + labelSize.height),
                         Vec2(labelOrigin.x, labelOrigin.y + labelSize.height)};
 
     auto drawNode = DrawNode::create();
-    drawNode->drawPoly(vertices, 4, true, Color4F::WHITE);
+    drawNode->drawPoly(vertices, 4, true, Color::WHITE);
     addChild(drawNode);
 }
 
@@ -2443,9 +2442,9 @@ LabelIssue11585Test::LabelIssue11585Test()
     label->setPosition(center.x, center.y);
     addChild(label);
 
-    label->getLetter(0)->setColor(Color3B::RED);
-    label->getLetter(1)->setColor(Color3B::GREEN);
-    label->getLetter(2)->setColor(Color3B::BLUE);
+    label->getLetter(0)->setColor(Color32::RED);
+    label->getLetter(1)->setColor(Color32::GREEN);
+    label->getLetter(2)->setColor(Color32::BLUE);
     auto action = RepeatForever::create(Sequence::create(FadeOut::create(2), FadeIn::create(2), nullptr));
     label->runAction(action);
 }
@@ -2465,13 +2464,13 @@ LabelIssue10688Test::LabelIssue10688Test()
     auto center = VisibleRect::center();
 
     auto label = Label::createWithTTF("Glow MenuItemLabel", "fonts/arial.ttf", 30);
-    label->setTextColor(Color4B::RED);
-    label->enableGlow(Color4B::YELLOW);
+    label->setTextColor(Color32::RED);
+    label->enableGlow(Color32::YELLOW);
     auto menuItem1 = MenuItemLabel::create(label, [](Object*) {});
     menuItem1->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
     menuItem1->setPosition(center.x - label->getContentSize().width / 2, center.y);
 
-    auto menu = Menu::create(menuItem1, NULL);
+    auto menu = Menu::create(menuItem1, nullptr);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu);
 }
@@ -2584,7 +2583,7 @@ void LabelLayoutBaseTest::initFontSizeChange(const ax::Size& size)
 void LabelLayoutBaseTest::initWrapOption(const ax::Size& size)
 {
     auto label = Label::createWithSystemFont("Enable Wrap:", "Arial", 10);
-    label->setColor(Color3B::WHITE);
+    label->setColor(Color32::WHITE);
     label->setPosition(Vec2(size.width * 0.8f - 100, size.height * 0.8f));
     this->addChild(label);
 
@@ -2613,7 +2612,7 @@ void LabelLayoutBaseTest::initWrapOption(const ax::Size& size)
 void LabelLayoutBaseTest::initToggleLabelTypeOption(const ax::Size& size)
 {
     auto label = Label::createWithSystemFont("Toggle Label Type:", "Arial", 10);
-    label->setColor(Color3B::WHITE);
+    label->setColor(Color32::WHITE);
     label->setPosition(Vec2(size.width * 0.8f + 15, size.height * 0.8f));
     this->addChild(label);
 
@@ -2673,31 +2672,30 @@ void LabelLayoutBaseTest::initUnderlineStrikethroughOption(const ax::Size& size)
     // add text alignment settings
     MenuItemFont::setFontSize(12);
     auto menu = Menu::create(MenuItemFont::create("Toggle Underline",
-        [this](Object*) {
-            if (_underline)
-            {
-                _label->disableEffect(LabelEffect::UNDERLINE);
-            }
-            else
-            {
-                _label->enableUnderline();
-            }
-            _underline = !_underline;
+                                                  [this](Object*) {
+        if (_underline)
+        {
+            _label->disableEffect(LabelEffect::UNDERLINE);
         }
-    ),
-    MenuItemFont::create("Toggle Strikethrough",
-        [this](Object*) {
-            if (_strikethrough)
-            {
-                _label->disableEffect(LabelEffect::STRIKETHROUGH);
-            }
-            else
-            {
-                _label->enableStrikethrough();
-            }
-            _strikethrough = !_strikethrough;
+        else
+        {
+            _label->enableUnderline();
         }
-    ), nullptr);
+        _underline = !_underline;
+    }),
+                             MenuItemFont::create("Toggle Strikethrough",
+                                                  [this](Object*) {
+        if (_strikethrough)
+        {
+            _label->disableEffect(LabelEffect::STRIKETHROUGH);
+        }
+        else
+        {
+            _label->enableStrikethrough();
+        }
+        _strikethrough = !_strikethrough;
+    }),
+                             nullptr);
     menu->alignItemsVerticallyWithPadding(4);
     menu->setPosition(Vec2(size.width - 60, 60));
     this->addChild(menu);
@@ -2738,12 +2736,12 @@ void LabelLayoutBaseTest::initSliders(const ax::Size& size)
     slider2Label->setName("percentageLabel");
     slider2->addChild(slider2Label);
 
-    auto winSize = Director::getInstance()->getVisibleSize();
+    auto canvasSize = Director::getInstance()->getVisibleSize();
 
-    slider->addEventListener([this, slider, winSize, slider1Label](Object* /*sender*/, Slider::EventType event) {
+    slider->addEventListener([this, slider, canvasSize, slider1Label](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider->getPercent();
         auto labelSize    = _label->getContentSize();
-        auto drawNodeSize = Size(percent / 100.0 * winSize.width, labelSize.height);
+        auto drawNodeSize = Size(percent / 100.0 * canvasSize.width, labelSize.height);
         if (drawNodeSize.width <= 0)
         {
             drawNodeSize.width = 0.1f;
@@ -2759,10 +2757,10 @@ void LabelLayoutBaseTest::initSliders(const ax::Size& size)
         }, 0.0f, "update_font_size");
     });
 
-    slider2->addEventListener([this, slider2, winSize, slider2Label](Object* /*sender*/, Slider::EventType event) {
+    slider2->addEventListener([this, slider2, canvasSize, slider2Label](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider2->getPercent();
         auto labelSize    = _label->getContentSize();
-        auto drawNodeSize = Size(labelSize.width, percent / 100.0 * winSize.height);
+        auto drawNodeSize = Size(labelSize.width, percent / 100.0 * canvasSize.height);
         if (drawNodeSize.height <= 0)
         {
             drawNodeSize.height = 0.1f;
@@ -2782,7 +2780,7 @@ void LabelLayoutBaseTest::initSliders(const ax::Size& size)
 void LabelLayoutBaseTest::initTestLabel(const ax::Size& size)
 {
     auto center = VisibleRect::center();
-    _label = Label::createWithTTF("五六七八This is a very long sentence一二三四.", "fonts/HKYuanMini.ttf", 20);
+    _label      = Label::createWithTTF("五六七八This is a very long sentence一二三四.", "fonts/HKYuanMini.ttf", 20);
     _label->setDimensions(size.width / 2, size.height / 2);
     _label->setPosition(center);
     _label->setName("Label");
@@ -2872,7 +2870,7 @@ void LabelLayoutBaseTest::onExit()
 
 void LabelLayoutBaseTest::updateDrawNodeSize(const ax::Size& drawNodeSize)
 {
-    auto origin    = Director::getInstance()->getWinSize();
+    auto origin    = Director::getInstance()->getCanvasSize();
     auto labelSize = _label->getContentSize();
 
     origin.width  = origin.width / 2 - (labelSize.width / 2);
@@ -2882,10 +2880,10 @@ void LabelLayoutBaseTest::updateDrawNodeSize(const ax::Size& drawNodeSize)
                         Vec2(drawNodeSize.width + origin.width, drawNodeSize.height + origin.height),
                         Vec2(origin.width, drawNodeSize.height + origin.height)};
     _drawNode->clear();
-    _drawNode->drawLine(vertices[0], vertices[1], Color4F(1.0f, 1.0f, 1.0f, 1.0f));
-    _drawNode->drawLine(vertices[0], vertices[3], Color4F(1.0f, 1.0f, 1.0f, 1.0f));
-    _drawNode->drawLine(vertices[2], vertices[3], Color4F(1.0f, 1.0f, 1.0f, 1.0f));
-    _drawNode->drawLine(vertices[1], vertices[2], Color4F(1.0f, 1.0f, 1.0f, 1.0f));
+    _drawNode->drawLine(vertices[0], vertices[1], Color(1.0f, 1.0f, 1.0f, 1.0f));
+    _drawNode->drawLine(vertices[0], vertices[3], Color(1.0f, 1.0f, 1.0f, 1.0f));
+    _drawNode->drawLine(vertices[2], vertices[3], Color(1.0f, 1.0f, 1.0f, 1.0f));
+    _drawNode->drawLine(vertices[1], vertices[2], Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 LabelWrapByWordTest::LabelWrapByWordTest()
@@ -2932,8 +2930,8 @@ LabelWrapNoBreakSpaceTest::LabelWrapNoBreakSpaceTest()
 {
     _label->setLineBreakWithoutSpace(false);
     const char* no_break_space_utf8 = "\xC2\xA0";  // 0xA0 - no-break space
-    auto str                        = fmt::format(
-        "The price is ${}1.25. \n\nthe space between \"$\" and \"1.25\" is a no break space.", no_break_space_utf8);
+    auto str = fmt::format("The price is ${}1.25. \n\nthe space between \"$\" and \"1.25\" is a no break space.",
+                           no_break_space_utf8);
     _label->setString(str);
     _label->setVerticalAlignment(TextVAlignment::TOP);
     _label->setOverflow(Label::Overflow::CLAMP);
@@ -3004,10 +3002,10 @@ LabelResizeTest::LabelResizeTest()
     auto slider2 = (ui::Slider*)this->getChildByTag(2);
     slider2->setVisible(false);
 
-    auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
+    auto canvasSize = Director::getInstance()->getVisibleSize();
+    slider1->addEventListener([this, slider1, canvasSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
-        auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
+        auto drawNodeSize = Size(percent / 100.0 * canvasSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
         {
             drawNodeSize.height = 0.1f;
@@ -3020,14 +3018,14 @@ LabelResizeTest::LabelResizeTest()
     stepper->setValue(12);
 
     auto label = Label::createWithSystemFont("Char Line break:", "Arial", 10);
-    label->setColor(Color3B::WHITE);
-    label->setPosition(Vec2(winSize.width * 0.1f, winSize.height * 0.8f));
+    label->setColor(Color32::WHITE);
+    label->setPosition(Vec2(canvasSize.width * 0.1f, canvasSize.height * 0.8f));
     this->addChild(label);
 
     CheckBox* checkBox = CheckBox::create("cocosui/check_box_normal.png", "cocosui/check_box_normal_press.png",
                                           "cocosui/check_box_active.png", "cocosui/check_box_normal_disable.png",
                                           "cocosui/check_box_active_disable.png");
-    checkBox->setPosition(Vec2(winSize.width * 0.2f, winSize.height * 0.8f));
+    checkBox->setPosition(Vec2(canvasSize.width * 0.2f, canvasSize.height * 0.8f));
     checkBox->setScale(0.5);
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
@@ -3070,10 +3068,10 @@ LabelToggleTypeTest::LabelToggleTypeTest()
     auto slider2 = (ui::Slider*)this->getChildByTag(2);
     slider2->setVisible(false);
 
-    auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
+    auto canvasSize = Director::getInstance()->getVisibleSize();
+    slider1->addEventListener([this, slider1, canvasSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
-        auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
+        auto drawNodeSize = Size(percent / 100.0 * canvasSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
         {
             drawNodeSize.height = 0.1f;
@@ -3086,14 +3084,14 @@ LabelToggleTypeTest::LabelToggleTypeTest()
     stepper->setValue(12);
 
     auto label = Label::createWithSystemFont("Char Line break:", "Arial", 10);
-    label->setColor(Color3B::WHITE);
-    label->setPosition(Vec2(winSize.width * 0.1f, winSize.height * 0.8f));
+    label->setColor(Color32::WHITE);
+    label->setPosition(Vec2(canvasSize.width * 0.1f, canvasSize.height * 0.8f));
     this->addChild(label);
 
     CheckBox* checkBox = CheckBox::create("cocosui/check_box_normal.png", "cocosui/check_box_normal_press.png",
                                           "cocosui/check_box_active.png", "cocosui/check_box_normal_disable.png",
                                           "cocosui/check_box_active_disable.png");
-    checkBox->setPosition(Vec2(winSize.width * 0.2f, winSize.height * 0.8f));
+    checkBox->setPosition(Vec2(canvasSize.width * 0.2f, canvasSize.height * 0.8f));
     checkBox->setScale(0.5);
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
@@ -3118,7 +3116,7 @@ void LabelToggleTypeTest::initToggleCheckboxes()
 {
     const float BUTTON_WIDTH = 100;
     float startPosX          = 0;
-    Size winSize             = Director::getInstance()->getVisibleSize();
+    Size canvasSize          = Director::getInstance()->getVisibleSize();
 
     // Create a radio button group
     auto radioButtonGroup = RadioButtonGroup::create();
@@ -3126,7 +3124,7 @@ void LabelToggleTypeTest::initToggleCheckboxes()
 
     // Create the radio buttons
     static const int NUMBER_OF_BUTTONS  = 4;
-    startPosX                           = winSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
+    startPosX                           = canvasSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
     std::vector<std::string> labelTypes = {"Normal", "Clamp", "Shrink", "RESIZE"};
 
     for (int i = 0; i < NUMBER_OF_BUTTONS; ++i)
@@ -3134,7 +3132,7 @@ void LabelToggleTypeTest::initToggleCheckboxes()
 
         RadioButton* radioButton = RadioButton::create("cocosui/radio_button_off.png", "cocosui/radio_button_on.png");
         float posX               = startPosX + BUTTON_WIDTH * i;
-        radioButton->setPosition(Vec2(posX, winSize.height / 2.0f + 70));
+        radioButton->setPosition(Vec2(posX, canvasSize.height / 2.0f + 70));
         radioButton->setScale(1.2f);
         radioButton->addEventListener(AX_CALLBACK_2(LabelToggleTypeTest::onChangedRadioButtonSelect, this));
         radioButton->setTag(i);
@@ -3202,7 +3200,7 @@ LabelSystemFontTest::LabelSystemFontTest()
     _label->setOverflow(Label::Overflow::NONE);
     _label->setSystemFontName("Hiragino Sans GB");
     _label->setSystemFontSize(20);
-    _label->enableOutline(Color4B::RED, 1.0);
+    _label->enableOutline(Color32::RED, 1.0);
     _label->setString("This is a very\n 我爱你中国\n long sentence");
     _labelType = 2;
 
@@ -3216,10 +3214,10 @@ LabelSystemFontTest::LabelSystemFontTest()
 
     auto slider1 = (ui::Slider*)this->getChildByTag(1);
 
-    auto winSize = Director::getInstance()->getVisibleSize();
-    slider1->addEventListener([this, slider1, winSize](Object* /*sender*/, Slider::EventType event) {
+    auto canvasSize = Director::getInstance()->getVisibleSize();
+    slider1->addEventListener([this, slider1, canvasSize](Object* /*sender*/, Slider::EventType event) {
         float percent     = slider1->getPercent();
-        auto drawNodeSize = Size(percent / 100.0 * winSize.width, _label->getContentSize().height);
+        auto drawNodeSize = Size(percent / 100.0 * canvasSize.width, _label->getContentSize().height);
         if (drawNodeSize.height <= 0)
         {
             drawNodeSize.height = 0.1f;
@@ -3235,14 +3233,14 @@ LabelSystemFontTest::LabelSystemFontTest()
     });
 
     auto label = Label::createWithSystemFont("char Line break:", "Arial", 10);
-    label->setColor(Color3B::WHITE);
-    label->setPosition(Vec2(winSize.width * 0.1f, winSize.height * 0.8f));
+    label->setColor(Color32::WHITE);
+    label->setPosition(Vec2(canvasSize.width * 0.1f, canvasSize.height * 0.8f));
     this->addChild(label);
 
     CheckBox* checkBox = CheckBox::create("cocosui/check_box_normal.png", "cocosui/check_box_normal_press.png",
                                           "cocosui/check_box_active.png", "cocosui/check_box_normal_disable.png",
                                           "cocosui/check_box_active_disable.png");
-    checkBox->setPosition(Vec2(winSize.width * 0.2f, winSize.height * 0.8f));
+    checkBox->setPosition(Vec2(canvasSize.width * 0.2f, canvasSize.height * 0.8f));
     checkBox->setScale(0.5);
     checkBox->setSelected(false);
     checkBox->setName("LineBreak");
@@ -3270,7 +3268,7 @@ void LabelSystemFontTest::initToggleCheckboxes()
 {
     const float BUTTON_WIDTH = 100;
     float startPosX          = 0;
-    Size winSize             = Director::getInstance()->getVisibleSize();
+    Size canvasSize          = Director::getInstance()->getVisibleSize();
 
     // Create a radio button group
     auto radioButtonGroup = RadioButtonGroup::create();
@@ -3278,7 +3276,7 @@ void LabelSystemFontTest::initToggleCheckboxes()
 
     // Create the radio buttons
     static const int NUMBER_OF_BUTTONS  = 4;
-    startPosX                           = winSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
+    startPosX                           = canvasSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
     std::vector<std::string> labelTypes = {"Normal", "Clamp", "Shrink", "RESIZE"};
 
     for (int i = 0; i < NUMBER_OF_BUTTONS; ++i)
@@ -3286,7 +3284,7 @@ void LabelSystemFontTest::initToggleCheckboxes()
 
         RadioButton* radioButton = RadioButton::create("cocosui/radio_button_off.png", "cocosui/radio_button_on.png");
         float posX               = startPosX + BUTTON_WIDTH * i;
-        radioButton->setPosition(Vec2(posX, winSize.height / 2.0f + 70));
+        radioButton->setPosition(Vec2(posX, canvasSize.height / 2.0f + 70));
         radioButton->setScale(1.2f);
         radioButton->addEventListener(AX_CALLBACK_2(LabelSystemFontTest::onChangedRadioButtonSelect, this));
         radioButton->setTag(i);
@@ -3425,7 +3423,7 @@ std::string LabelRichText::subtitle() const
 
 LabelItalics::LabelItalics()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // LabelBMFont
     auto label1 =
@@ -3459,8 +3457,8 @@ LabelItalics::LabelItalics()
     menuItem->setFontSizeObj(12);
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
-    auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+    auto canvasSize = Director::getInstance()->getCanvasSize();
+    menu->setPosition(canvasSize.width * 0.9, canvasSize.height * 0.25f);
 }
 
 std::string LabelItalics::title() const
@@ -3477,7 +3475,7 @@ std::string LabelItalics::subtitle() const
 
 LabelBold::LabelBold()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // LabelBMFont
     auto label1 =
@@ -3511,8 +3509,8 @@ LabelBold::LabelBold()
     menuItem->setFontSizeObj(12);
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
-    auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+    auto canvasSize = Director::getInstance()->getCanvasSize();
+    menu->setPosition(canvasSize.width * 0.9, canvasSize.height * 0.25f);
 }
 
 std::string LabelBold::title() const
@@ -3529,7 +3527,7 @@ std::string LabelBold::subtitle() const
 
 LabelUnderline::LabelUnderline()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // LabelBMFont
     auto label1 =
@@ -3563,8 +3561,8 @@ LabelUnderline::LabelUnderline()
     menuItem->setFontSizeObj(12);
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
-    auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+    auto canvasSize = Director::getInstance()->getCanvasSize();
+    menu->setPosition(canvasSize.width * 0.9, canvasSize.height * 0.25f);
 }
 
 std::string LabelUnderline::title() const
@@ -3581,7 +3579,7 @@ std::string LabelUnderline::subtitle() const
 
 LabelUnderlineMultiline::LabelUnderlineMultiline()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // bmfont
     _label1a = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "hello underline\nand multiline",
@@ -3605,8 +3603,8 @@ LabelUnderlineMultiline::LabelUnderlineMultiline()
     menuItem->setFontSizeObj(12);
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
-    auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+    auto canvasSize = Director::getInstance()->getCanvasSize();
+    menu->setPosition(canvasSize.width * 0.9, canvasSize.height * 0.25f);
 }
 
 std::string LabelUnderlineMultiline::title() const
@@ -3621,25 +3619,25 @@ std::string LabelUnderlineMultiline::subtitle() const
 
 LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     TTFConfig ttfConf("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC, nullptr, true);
 
     // Glow SDF (GPU)
     auto label1 = Label::createWithTTF(ttfConf, "Glow1", TextHAlignment::CENTER, s.width);
     label1->setPosition(Vec2(s.width / 2, s.height * 0.7));
-    label1->setTextColor(Color4B::GREEN);
-    label1->enableGlow(Color4B::YELLOW);
+    label1->setTextColor(Color32::GREEN);
+    label1->enableGlow(Color32::YELLOW);
     label1->enableUnderline();
     label1->enableStrikethrough();
     addChild(label1);
 
     // Glow normal(CPU)
     ttfConf.distanceFieldEnabled = false;
-    auto label2                    = Label::createWithTTF(ttfConf, "Glow2", TextHAlignment::CENTER, s.width);
+    auto label2                  = Label::createWithTTF(ttfConf, "Glow2", TextHAlignment::CENTER, s.width);
     label2->setPosition(Vec2(s.width / 2, s.height * 0.6));
-    label2->setTextColor(Color4B::GREEN);
-    label2->enableGlow(Color4B::YELLOW);
+    label2->setTextColor(Color32::GREEN);
+    label2->enableGlow(Color32::YELLOW);
     label2->enableUnderline();
     label2->enableStrikethrough();
     addChild(label2);
@@ -3647,10 +3645,10 @@ LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
     // Outline SDF(GPU)
     ttfConf.distanceFieldEnabled = true;
     ttfConf.outlineSize          = 2;
-    auto label3                    = Label::createWithTTF(ttfConf, "Outline1", TextHAlignment::CENTER, s.width);
+    auto label3                  = Label::createWithTTF(ttfConf, "Outline1", TextHAlignment::CENTER, s.width);
     label3->setPosition(Vec2(s.width / 2, s.height * 0.48));
-    label3->setTextColor(Color4B::RED);
-    label3->enableOutline(Color4B::BLUE);
+    label3->setTextColor(Color32::RED);
+    label3->enableOutline(Color32::BLUE);
     label3->enableUnderline();
     label3->enableStrikethrough();
     addChild(label3);
@@ -3658,10 +3656,10 @@ LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
     // Outline normal(CPU by freetype2)
     ttfConf.distanceFieldEnabled = false;
     ttfConf.outlineSize          = 2;
-    auto label4                    = Label::createWithTTF(ttfConf, "Outline2", TextHAlignment::CENTER, s.width);
+    auto label4                  = Label::createWithTTF(ttfConf, "Outline2", TextHAlignment::CENTER, s.width);
     label4->setPosition(Vec2(s.width / 2, s.height * 0.36));
-    label4->setTextColor(Color4B::RED);
-    label4->enableOutline(Color4B::BLUE, 2);
+    label4->setTextColor(Color32::RED);
+    label4->enableOutline(Color32::BLUE, 2);
     label4->enableUnderline();
     label4->enableStrikethrough();
     addChild(label4);
@@ -3676,34 +3674,38 @@ LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
     const int count = 7;
     Label* labels[count];
 
-    labels[0] = Label::createWithSystemFont("SystemFont TextVAlignment::TOP\nusing setTextColor(255, 0, 255, 100)", font, 14, Vec2::ZERO, TextHAlignment::LEFT, TextVAlignment::TOP);
-    labels[0]->setTextColor(Color4B(255, 0, 255, 100));
-    labels[0]->enableGlow(Color4B::BLUE);
+    labels[0] = Label::createWithSystemFont("SystemFont TextVAlignment::TOP\nusing setTextColor(255, 0, 255, 100)",
+                                            font, 14, Vec2::ZERO, TextHAlignment::LEFT, TextVAlignment::TOP);
+    labels[0]->setTextColor(Color32(255, 0, 255, 100));
+    labels[0]->enableGlow(Color32::BLUE);
 
-    labels[1] = Label::createWithSystemFont("SystemFont TextVAlignment::CENTER\nusing setColor(*RED*)", font, 14, Vec2::ZERO, TextHAlignment::RIGHT, TextVAlignment::CENTER);
-    labels[1]->setColor(Color3B::RED);
- 
+    labels[1] = Label::createWithSystemFont("SystemFont TextVAlignment::CENTER\nusing setColor(*RED*)", font, 14,
+                                            Vec2::ZERO, TextHAlignment::RIGHT, TextVAlignment::CENTER);
+    labels[1]->setColor(Color32::RED);
+
     labels[2] = Label::createWithSystemFont("SystemFont TextVAlignment::BOTTOM\nusingsetTextColor(*YELLOW)", font, 14,
-                                           Vec2::ZERO, TextHAlignment::CENTER, TextVAlignment::BOTTOM);
-    labels[2]->setTextColor(Color4B::YELLOW);
+                                            Vec2::ZERO, TextHAlignment::CENTER, TextVAlignment::BOTTOM);
+    labels[2]->setTextColor(Color32::YELLOW);
 
-    labels[3] = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "BMFont\nwith default color", TextHAlignment::CENTER, s.width);
+    labels[3] = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "BMFont\nwith default color",
+                                        TextHAlignment::CENTER, s.width);
 
     labels[4] = Label::createWithBMFont("fonts/bitmapFontTest5.fnt", "BMFont\nusing setTextColor(0, 255, 0, 100)",
-                                       TextHAlignment::CENTER, s.width);
-    labels[4]->setTextColor(Color4B(0, 255, 0, 100));
+                                        TextHAlignment::CENTER, s.width);
+    labels[4]->setTextColor(Color32(0, 255, 0, 100));
 
-    labels[5] = Label::createWithTTF(ttfConfig,  "TTF setColor(*BLUE*)\nwith multiline 1\nand a much more longer multiline 2",
-                                    TextHAlignment::LEFT, s.width);
-    labels[5]->setColor(Color3B::BLUE);
+    labels[5] =
+        Label::createWithTTF(ttfConfig, "TTF setColor(*BLUE*)\nwith multiline 1\nand a much more longer multiline 2",
+                             TextHAlignment::LEFT, s.width);
+    labels[5]->setColor(Color32::BLUE);
 
-    labels[6] = Label::createWithTTF("TTF setTextColor(*RED*)\nwith multiline 1\nand a much more longer multiline 2",
-                                    font, 14);
-    labels[6]->setTextColor(Color4B::RED);
+    labels[6] =
+        Label::createWithTTF("TTF setTextColor(*RED*)\nwith multiline 1\nand a much more longer multiline 2", font, 14);
+    labels[6]->setTextColor(Color32::RED);
 
     for (int i = 0; i < count; i++)
     {
-        labels[i]->setPosition(Vec2(labels[i]->getBoundingBox().getMaxX() +10, s.height * 0.13f * (i + 1)));
+        labels[i]->setPosition(Vec2(labels[i]->getBoundingBox().getMaxX() + 10, s.height * 0.13f * (i + 1)));
         labels[i]->enableUnderline();
         labels[i]->enableStrikethrough();
         addChild(labels[i]);
@@ -3715,7 +3717,7 @@ LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
     {
         float fs     = (i + 1) * 3;
         labelSize[i] = Label::createWithTTF("UNDERLINE", "fonts/arial.ttf", fs);
-        labelSize[i]->setPosition(s.width / 1.3, s.height -50 - y);
+        labelSize[i]->setPosition(s.width / 1.3, s.height - 50 - y);
         y += (i + 2) * 3;
         labelSize[i]->enableUnderline();
         addChild(labelSize[i]);
@@ -3753,7 +3755,7 @@ LabelUnderlineStrikethroughMultiline::LabelUnderlineStrikethroughMultiline()
     });
     menuItemS->setFontSizeObj(12);
 
-    auto menu = Menu::create(menuItemU, menuItemS, NULL);
+    auto menu = Menu::create(menuItemU, menuItemS, nullptr);
     addChild(menu);
 
     menu->setPosition(s.width * 0.8, s.height * 0.20f);
@@ -3768,14 +3770,14 @@ std::string LabelUnderlineStrikethroughMultiline::title() const
 std::string LabelUnderlineStrikethroughMultiline::subtitle() const
 {
     return "";
-    //Underline + Strikethrough + Color on TTF and BMfont with multiline ";
+    // Underline + Strikethrough + Color on TTF and BMfont with multiline ";
 }
 
 ///
 
 LabelStrikethrough::LabelStrikethrough()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // bmfont
     _label1a = Label::createWithBMFont("fonts/bitmapFontTest4.fnt", "hello strikethrough\nand multiline",
@@ -3799,8 +3801,8 @@ LabelStrikethrough::LabelStrikethrough()
     menuItem->setFontSizeObj(12);
     auto menu = Menu::createWithItem(menuItem);
     addChild(menu);
-    auto winSize = Director::getInstance()->getWinSize();
-    menu->setPosition(winSize.width * 0.86, winSize.height * 0.25f);
+    auto canvasSize = Director::getInstance()->getCanvasSize();
+    menu->setPosition(canvasSize.width * 0.86, canvasSize.height * 0.25f);
 }
 
 std::string LabelStrikethrough::title() const
@@ -3823,7 +3825,7 @@ LabelLocalizationTest::LabelLocalizationTest()
 
     const float BUTTON_WIDTH = 100;
     float startPosX          = 0;
-    Size winSize             = Director::getInstance()->getVisibleSize();
+    Size canvasSize          = Director::getInstance()->getVisibleSize();
 
     // Create a radio button group
     auto radioButtonGroup = RadioButtonGroup::create();
@@ -3831,14 +3833,14 @@ LabelLocalizationTest::LabelLocalizationTest()
 
     // Create the radio buttons
     const int NUMBER_OF_BUTTONS         = 3;
-    startPosX                           = winSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
+    startPosX                           = canvasSize.width / 2.0f - (NUMBER_OF_BUTTONS - 1) * 0.5 * BUTTON_WIDTH - 30;
     std::vector<std::string> labelTypes = {"English", "Chinese", "Japanese"};
 
     for (int i = 0; i < NUMBER_OF_BUTTONS; ++i)
     {
         RadioButton* radioButton = RadioButton::create("cocosui/radio_button_off.png", "cocosui/radio_button_on.png");
         float posX               = startPosX + BUTTON_WIDTH * i;
-        radioButton->setPosition(Vec2(posX, winSize.height / 2.0f + 70));
+        radioButton->setPosition(Vec2(posX, canvasSize.height / 2.0f + 70));
         radioButton->setScale(1.2f);
         radioButton->addEventListener(AX_CALLBACK_2(LabelLocalizationTest::onChangedRadioButtonSelect, this));
         radioButton->setTag(i);
@@ -3852,21 +3854,21 @@ LabelLocalizationTest::LabelLocalizationTest()
 
     _label1 = Label::createWithSystemFont(_localizationJson->getLocalizationString("Text Label"), "Arial", 24);
     addChild(_label1, 0);
-    _label1->setPosition(Vec2(winSize.width / 2, winSize.height * 1 / 3));
+    _label1->setPosition(Vec2(canvasSize.width / 2, canvasSize.height * 1 / 3));
 
     Label* label = Label::createWithSystemFont("From json data :", "Arial", 24);
     label->setAnchorPoint(Vec2(0.0f, 0.5f));
     addChild(label, 0);
-    label->setPosition(Vec2(20.0f, winSize.height * 1 / 3 + 24));
+    label->setPosition(Vec2(20.0f, canvasSize.height * 1 / 3 + 24));
 
     _label2 = Label::createWithSystemFont(_localizationBin->getLocalizationString("Text Label"), "Arial", 24);
     addChild(_label2, 0);
-    _label2->setPosition(Vec2(winSize.width / 2, winSize.height * 1 / 2));
+    _label2->setPosition(Vec2(canvasSize.width / 2, canvasSize.height * 1 / 2));
 
     label = Label::createWithSystemFont("From binary data :", "Arial", 24);
     label->setAnchorPoint(Vec2(0.0f, 0.5f));
     addChild(label, 0);
-    label->setPosition(Vec2(20.0f, winSize.height * 1 / 2 + 24));
+    label->setPosition(Vec2(20.0f, canvasSize.height * 1 / 2 + 24));
 }
 
 std::string LabelLocalizationTest::title() const
@@ -3930,28 +3932,28 @@ LabelIssue15214::LabelIssue15214()
     // 1
     Label* label = Label::createWithTTF("TTF with setColor()", "fonts/arial.ttf", 24.0f);
     label->enableUnderline();
-    label->setColor(ax::Color3B::BLUE);
+    label->setColor(ax::Color32::BLUE);
     label->setPosition(size.width / 2, size.height / 5 * 4);
     this->addChild(label);
 
     // 2
     Label* label2 = Label::createWithSystemFont("System with setColor()", "Verdana", 24.0f);
     label2->enableUnderline();
-    label2->setColor(ax::Color3B::BLUE);
+    label2->setColor(ax::Color32::BLUE);
     label2->setPosition(size.width / 2, size.height / 5 * 3);
     this->addChild(label2);
 
     // 3
     Label* label3 = Label::createWithTTF("TTF with setTextColor()", "fonts/arial.ttf", 24.0f);
     label3->enableUnderline();
-    label3->setTextColor(Color4B::BLUE);
+    label3->setTextColor(Color32::BLUE);
     label3->setPosition(size.width / 2, size.height / 5 * 2);
     this->addChild(label3);
 
     // 4
     Label* label4 = Label::createWithSystemFont("System with setTextColor()", "Verdana", 24.0f);
     label4->enableUnderline();
-    label4->setTextColor(Color4B::BLUE);
+    label4->setTextColor(Color32::BLUE);
     label4->setPosition(size.width / 2, size.height / 5 * 1);
     this->addChild(label4);
 }
@@ -4009,7 +4011,7 @@ LabelIssue16471::LabelIssue16471()
     // if set false then  testLabel:setTextColor is useful
     node->setCascadeColorEnabled(true);
     Label* label = Label::createWithTTF("Should be Yellow", "fonts/arial.ttf", 12);
-    label->setTextColor(Color4B::YELLOW);
+    label->setTextColor(Color32::YELLOW);
     node->addChild(label);
 }
 
@@ -4035,16 +4037,16 @@ LabelIssue16717::LabelIssue16717()
     {
         auto label = Label::createWithTTF("Hello World", "fonts/arial.ttf", 70);
         label->setPosition(VisibleRect::center() + Vec2(0.0f, 40.0f));
-        label->enableOutline(Color4B(0, 255, 0, 100), 10);  // Set 100 alpha for outline
-        label->setTextColor(Color4B(0, 0, 255, 100));       // Also set 100 alpha for text
+        label->enableOutline(Color32(0, 255, 0, 100), 10);  // Set 100 alpha for outline
+        label->setTextColor(Color32(0, 0, 255, 100));       // Also set 100 alpha for text
         addChild(label);
     }
 
     {
         auto label = Label::createWithTTF("Hello World", "fonts/arial.ttf", 70);
         label->setPosition(VisibleRect::center() + Vec2(0.0f, -40.0f));
-        label->enableOutline(Color4B(0, 255, 0, 100), 10);  // Set 100 alpha for outline
-        label->setTextColor(Color4B(0, 255, 0, 100));       // Also set 100 alpha for text
+        label->enableOutline(Color32(0, 255, 0, 100), 10);  // Set 100 alpha for outline
+        label->setTextColor(Color32(0, 255, 0, 100));       // Also set 100 alpha for text
         addChild(label);
     }
 }
@@ -4065,7 +4067,7 @@ std::string LabelIssue16717::subtitle() const
 LabelIssueLineGap::LabelIssueLineGap()
 {
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     auto label1 = Label::createWithTTF("test \ntest", "fonts/FingerpopGap.ttf", 30);
     label1->setPosition(Vec2(size.width / 3, size.height / 2));
@@ -4121,19 +4123,17 @@ std::string LabelIssue17902::subtitle() const
 //
 LabelIssue20523::LabelIssue20523()
 {
-    auto size           = Director::getInstance()->getWinSize();
+    auto size           = Director::getInstance()->getCanvasSize();
     auto _crashingLabel = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 120);
     _crashingLabel->setPosition(Vec2(size.width / 2, size.height / 2));
-    _crashingLabel->setColor(ax::Color3B(200, 200, 200));
+    _crashingLabel->setColor(ax::Color32(200, 200, 200));
     addChild(_crashingLabel, 1);
     //_crashingLabel->setWidth(size.width);
 
-    this->schedule(
-        [this, _crashingLabel](float) {
+    this->schedule([this, _crashingLabel](float) {
         ++_i;
         _crashingLabel->setString(std::to_string(_i));
-        },
-        1, AX_REPEAT_FOREVER, 0, "repeat");
+    }, 1, AX_REPEAT_FOREVER, 0, "repeat");
 }
 
 std::string LabelIssue20523::title() const
@@ -4158,7 +4158,7 @@ LabelLetterColorsTest::LabelLetterColorsTest()
     addChild(label);
 
     label->setString("1\n2\n3");
-    setLetterColors(label, Color3B::RED);
+    setLetterColors(label, Color32::RED);
 
     label->setString("abcd\ne");  // Must not crash at here.
 }
@@ -4173,7 +4173,7 @@ std::string LabelLetterColorsTest::subtitle() const
     return "Should not crash!";
 }
 
-void LabelLetterColorsTest::setLetterColors(ax::Label* label, const ax::Color3B& color)
+void LabelLetterColorsTest::setLetterColors(ax::Label* label, const ax::Color32& color)
 {
     int n = label->getStringLength();
     for (int i = 0; i < n; ++i)

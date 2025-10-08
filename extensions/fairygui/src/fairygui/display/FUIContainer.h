@@ -1,7 +1,7 @@
 #ifndef __FUICONTAINER_H__
 #define __FUICONTAINER_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUIMacros.h"
 
 NS_FGUI_BEGIN
@@ -39,11 +39,11 @@ public:
 
     ax::Node* _stencil;
     ax::StencilStateManager* _stencilStateManager;
-#if !defined(AX_VERSION) 
+#if !defined(AX_VERSION)
     ax::GroupCommand _groupCommand;
 #endif
 #if COCOS2D_VERSION >= 0x00040000
-    ax::backend::ProgramState* _originStencilProgram;
+    ax::rhi::ProgramState* _originStencilProgram;
     //ax::CallbackCommand _beforeVisitCmd;
     //ax::CallbackCommand _afterDrawStencilCmd;
     //ax::CallbackCommand _afterVisitCmd;
@@ -91,12 +91,12 @@ private:
 
     RectClippingSupport* _rectClippingSupport;
     StencilClippingSupport* _stencilClippingSupport;
-    
+
 #if COCOS2D_VERSION >= 0x00040000
-    void setProgramStateRecursively(Node* node, ax::backend::ProgramState* programState);
+    void setProgramStateRecursively(Node* node, ax::rhi::ProgramState* programState);
     void restoreAllProgramStates();
-    
-    std::unordered_map<Node*, ax::backend::ProgramState*> _originalStencilProgramState;
+
+    std::unordered_map<Node*, ax::rhi::ProgramState*> _originalStencilProgramState;
 #endif
 };
 

@@ -137,7 +137,7 @@ ax.UNIFORM_RANDOM01 = 0x6
 ax.UNIFORM_SAMPLER  = 0x7
 ax.UNIFORM_SIN_TIME = 0x4
 ax.UNIFORM_TIME = 0x3
-ax.UNIFORM_MAX  = 0x8
+ax.UNIFORM_COUNT  = 0x8
 ax.VERTEX_ATTRIB_FLAG_COLOR = 0x2
 ax.VERTEX_ATTRIB_FLAG_NONE  = 0x0
 ax.VERTEX_ATTRIB_FLAG_POS_COLOR_TEX = 0x7
@@ -660,10 +660,10 @@ ax.LightFlag =
     LIGHT15 = math.pow(2,15),
 }
 
-ax.RED = ax.c3b(255,0,0)
-ax.GREEN = ax.c3b(0,255,0)
-ax.BLUE = ax.c3b(0,0,255)
-ax.BLACK = ax.c3b(0,0,0)
-ax.WHITE = ax.c3b(255,255,255)
-ax.YELLOW = ax.c3b(255,255,0)
+ax.RED = ax.color32(255,0,0)
+ax.GREEN = ax.color32(0,255,0)
+ax.BLUE = ax.color32(0,0,255)
+ax.BLACK = ax.color32(0,0,0)
+ax.WHITE = ax.color32(255,255,255)
+ax.YELLOW = ax.color32(255,255,0)
 

@@ -25,7 +25,7 @@
 #pragma once
 
 #include "../BaseTest.h"
-#include "renderer/CustomCommand.h"
+#include "axmol/renderer/CustomCommand.h"
 #include <list>
 
 namespace ax
@@ -153,7 +153,6 @@ private:
     ax::Node* _holesStencil;
 };
 
-
 class ScrollViewDemo : public BaseClippingNodeTest
 {
 public:
@@ -171,7 +170,7 @@ private:
     ax::Vec2 _lastPoint;
 };
 
-//#if _AX_DEBUG > 1
+// #if _AX_DEBUG > 1
 
 class RawStencilBufferTest : public BaseClippingNodeTest
 {
@@ -194,12 +193,12 @@ protected:
     void initCommands();
 
     std::vector<ax::CustomCommand> _renderCmds;
-//    ax::CallbackCommand _enableStencilCallback;
-//    ax::CallbackCommand _disableStencilCallback;
+    //    ax::CallbackCommand _enableStencilCallback;
+    //    ax::CallbackCommand _disableStencilCallback;
     ax::Vector<ax::Sprite*> _sprites;
     ax::Vector<ax::Sprite*> _spritesStencil;
-    ax::backend::UniformLocation _locColor;
-    ax::backend::UniformLocation _locMVPMatrix;
+    ax::rhi::UniformLocation _locColor;
+    ax::rhi::UniformLocation _locMVPMatrix;
 };
 
 class RawStencilBufferTest2 : public RawStencilBufferTest
@@ -238,7 +237,7 @@ public:
     virtual void setupStencilForDrawingOnPlane(int plane) override;
 
 private:
-    ax::backend::UniformLocation _alphaMVPMatrix;
+    ax::rhi::UniformLocation _alphaMVPMatrix;
 };
 
 class RawStencilBufferTest5 : public RawStencilBufferTestAlphaTest
@@ -264,7 +263,7 @@ public:
     virtual std::string subtitle() const override;
 };
 
-//#endif //_AX_DEBUG > 1
+// #endif //_AX_DEBUG > 1
 
 class ClippingToRenderTextureTest : public BaseClippingNodeTest
 {
@@ -294,6 +293,7 @@ class ClippingNodePerformanceTest : public BaseClippingNodeTest
 {
 private:
     int _totalCount = 0;
+
 public:
     CREATE_FUNC(ClippingNodePerformanceTest);
 

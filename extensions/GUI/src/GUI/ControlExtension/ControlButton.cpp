@@ -28,9 +28,9 @@
  */
 
 #include "ControlButton.h"
-#include "2d/Label.h"
-#include "2d/Action.h"
-#include "2d/ActionInterval.h"
+#include "axmol/2d/Label.h"
+#include "axmol/2d/Action.h"
+#include "axmol/2d/ActionInterval.h"
 
 using namespace std;
 
@@ -45,7 +45,7 @@ ControlButton::ControlButton()
     : _isPushed(false)
     , _parentInited(false)
     , _doesAdjustBackgroundImage(false)
-    , _currentTitleColor(Color3B::WHITE)
+    , _currentTitleColor(Color32::WHITE)
     , _titleLabel(nullptr)
     , _backgroundSprite(nullptr)
     , _zoomOnTouchDown(false)
@@ -98,7 +98,7 @@ bool ControlButton::initWithLabelAndBackgroundSprite(Node* node,
         setBackgroundSprite(backgroundSprite);
 
         // Set the default color and opacity
-        setColor(Color3B::WHITE);
+        setColor(Color32::WHITE);
         setOpacity(255.0f);
         setOpacityModifyRGB(true);
 
@@ -131,9 +131,7 @@ ControlButton* ControlButton::create(Node* label, ax::ui::Scale9Sprite* backgrou
     return pRet;
 }
 
-ControlButton* ControlButton::create(Node* label,
-                                     ax::ui::Scale9Sprite* backgroundSprite,
-                                     bool adjustBackGroundSize)
+ControlButton* ControlButton::create(Node* label, ax::ui::Scale9Sprite* backgroundSprite, bool adjustBackGroundSize)
 {
     ControlButton* pRet = new ControlButton();
     pRet->initWithLabelAndBackgroundSprite(label, backgroundSprite, adjustBackGroundSize);
@@ -307,9 +305,9 @@ void ControlButton::setTitleForState(std::string_view title, State state)
     }
 }
 
-Color3B ControlButton::getTitleColorForState(State state) const
+Color32 ControlButton::getTitleColorForState(State state) const
 {
-    Color3B returnColor = Color3B::WHITE;
+    Color32 returnColor = Color32::WHITE;
 
     auto iter = _titleColorDispatchTable.find((int)state);
     if (iter != _titleColorDispatchTable.end())
@@ -328,7 +326,7 @@ Color3B ControlButton::getTitleColorForState(State state) const
     return returnColor;
 }
 
-void ControlButton::setTitleColorForState(const Color3B& color, State state)
+void ControlButton::setTitleColorForState(const Color32& color, State state)
 {
     _titleColorDispatchTable.erase((int)state);
     _titleColorDispatchTable[(int)state] = color;
@@ -695,7 +693,7 @@ void ControlButton::updateDisplayedOpacity(uint8_t parentOpacity)
     }
 }
 
-void ControlButton::setColor(const Color3B& color)
+void ControlButton::setColor(const Color32& color)
 {
     Control::setColor(color);
 
@@ -710,7 +708,7 @@ void ControlButton::setColor(const Color3B& color)
     }
 }
 
-void ControlButton::updateDisplayedColor(const Color3B& parentColor)
+void ControlButton::updateDisplayedColor(const Color32& parentColor)
 {
     Control::updateDisplayedColor(parentColor);
 

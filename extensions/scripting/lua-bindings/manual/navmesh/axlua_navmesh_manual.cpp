@@ -23,21 +23,21 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "platform/PlatformConfig.h"
-#include "base/Config.h"
+#include "axmol/platform/PlatformConfig.h"
+#include "axmol/base/Config.h"
 #if defined(AX_ENABLE_NAVMESH)
 #    include "axlua_navmesh_manual.h"
 #    include "lua-bindings/auto/axlua_navmesh_auto.hpp"
 #    include "lua-bindings/manual/tolua_fix.h"
 #    include "lua-bindings/manual/LuaBasicConversions.h"
 #    include "lua-bindings/manual/LuaEngine.h"
-#    include "navmesh/NavMesh.h"
+#    include "axmol/navmesh/NavMesh.h"
 
 int axlua_navmesh_NavMeshAgent_move(lua_State* tolua_S)
 {
-    int argc                    = 0;
-    ax::NavMeshAgent* cobj = nullptr;
-    bool ok                     = true;
+    int argc              = 0;
+    ax::NavMeshAgent* obj = nullptr;
+    bool ok               = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -48,12 +48,12 @@ int axlua_navmesh_NavMeshAgent_move(lua_State* tolua_S)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::NavMeshAgent*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::NavMeshAgent*)tolua_tousertype(tolua_S, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_navmesh_NavMeshAgent_move'", nullptr);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_navmesh_NavMeshAgent_move'", nullptr);
         return 0;
     }
 #    endif
@@ -69,7 +69,7 @@ int axlua_navmesh_NavMeshAgent_move(lua_State* tolua_S)
             tolua_error(tolua_S, "invalid arguments in function 'axlua_navmesh_NavMeshAgent_move'", nullptr);
             return 0;
         }
-        cobj->move(arg0);
+        obj->move(arg0);
         lua_settop(tolua_S, 1);
         return 1;
     }
@@ -93,14 +93,14 @@ int axlua_navmesh_NavMeshAgent_move(lua_State* tolua_S)
             tolua_error(tolua_S, "invalid arguments in function 'axlua_navmesh_NavMeshAgent_move'", nullptr);
             return 0;
         }
-        cobj->move(arg0, [=](ax::NavMeshAgent* agent, float totalTimeAfterMove) {
+        obj->move(arg0, [=](ax::NavMeshAgent* agent, float totalTimeAfterMove) {
             auto stack = LuaEngine::getInstance()->getLuaStack();
             auto Ls    = stack->getLuaState();
             object_to_luaval<ax::NavMeshAgent>(Ls, "ax.NavMeshAgent", (ax::NavMeshAgent*)agent);
             tolua_pushnumber(Ls, (lua_Number)totalTimeAfterMove);
             stack->executeFunctionByHandler(handler, 2);
         });
-        ScriptHandlerMgr::getInstance()->addCustomHandler((void*)cobj, handler);
+        ScriptHandlerMgr::getInstance()->addCustomHandler((void*)obj, handler);
         lua_settop(tolua_S, 1);
         return 1;
     }

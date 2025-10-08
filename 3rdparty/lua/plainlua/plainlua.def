@@ -1,3 +1,6 @@
 ; Export additional symbols for build luac.exe
 EXPORTS
     luaG_getfuncline
+    luaH_getstr
+    luaH_set
+    luaH_new

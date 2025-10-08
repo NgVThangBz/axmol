@@ -1,7 +1,7 @@
 #include "AppDelegate.h"
 #include "MenuScene.h"
 
-#include "audio/AudioEngine.h"
+#include "axmol/audio/AudioEngine.h"
 
 using namespace ax;
 
@@ -19,14 +19,14 @@ AppDelegate::~AppDelegate()
     AudioEngine::end();
 }
 
-// if you want a different context, modify the value of gfxContextAttrs
+// if you want a different context, modify the value of contextAttrs
 // it will affect all platforms
-void AppDelegate::initGfxContextAttrs()
+void AppDelegate::initContextAttrs()
 {
-    // set graphics context attributes: red,green,blue,alpha,depth,stencil
-    GfxContextAttrs gfxContextAttrs = { 8, 8, 8, 8, 24, 8 };
+    // set context attributes: red,green,blue,alpha,depth,stencil
+    ContextAttrs contextAttrs = { 8, 8, 8, 8, 24, 8 };
 
-    RenderView::setGfxContextAttrs(gfxContextAttrs);
+    setContextAttrs(contextAttrs);
 }
 
 // if you want to use the package manager to install more packages,
@@ -57,7 +57,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     // Set the design resolution
     renderView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::SHOW_ALL);
-    /*auto frameSize = renderView->getFrameSize();
+    /*auto frameSize = renderView->getWindowSize();
     // if the frame's height is larger than the height of medium size.
     if (frameSize.height > mediumResolutionSize.height)
     {
@@ -74,7 +74,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
         director->setContentScaleFactor(MIN(smallResolutionSize.height / designResolutionSize.height, smallResolutionSize.width / designResolutionSize.width));
     }*/
 
-    director->setClearColor(Color4F(Color4B(0x36, 0x3B, 0x44, 0xFF)));
+    director->setClearColor(Color32{0x36, 0x3B, 0x44, 0xFF});
 
     register_all_packages();
 

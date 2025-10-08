@@ -28,8 +28,8 @@
 
 #include <iostream>
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUScriptCompiler.h"
 
 namespace ax
@@ -665,7 +665,7 @@ public:
      */
     bool getVector4(PUAbstractNodeList::const_iterator i,
                     PUAbstractNodeList::const_iterator end,
-                    Vec4* result,
+                    Color* result,
                     int maxEntries = 4);
 
     /** Parse Quaternion
@@ -745,4 +745,4 @@ public:
 
     virtual bool isParticleSystemTranslator() const { return false; }
 };
-}
+}  // namespace ax

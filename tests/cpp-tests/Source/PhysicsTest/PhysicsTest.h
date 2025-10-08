@@ -41,34 +41,37 @@ public:
 
     virtual bool init() override;
     virtual void onEnter() override;
+
     virtual std::string title() const override;
 
     void toggleDebugCallback(ax::Object* sender);
 
     ax::Sprite* addGrossiniAtPosition(ax::Vec2 p, float scale = 1.0);
-    ax::Sprite* makeBall(ax::Vec2 point,
-                              float radius,
-                              ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
+    ax::Sprite* makeBall(ax::Vec2 point, float radius, ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
     ax::Sprite* makeBox(ax::Vec2 point,
-                             ax::Size size,
-                             int color                         = 0,
-                             ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
+                        ax::Size size,
+                        int color                    = 0,
+                        ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
     ax::Sprite* makeTriangle(ax::Vec2 point,
-                                  ax::Size size,
-                                  int color                         = 0,
-                                  ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
+                             ax::Size size,
+                             int color                    = 0,
+                             ax::PhysicsMaterial material = ax::PHYSICSBODY_MATERIAL_DEFAULT);
 
     bool onTouchBegan(ax::Touch* touch, ax::Event* event);
     void onTouchMoved(ax::Touch* touch, ax::Event* event);
     void onTouchEnded(ax::Touch* touch, ax::Event* event);
 
+    bool onMouseDown(ax::Event* event);
+
     void toggleDebug();
 
 protected:
+    ax::EventListenerMouse* _mouseListener{nullptr};
     ax::Texture2D* _spriteTexture;
     ax::SpriteBatchNode* _ball;
     std::unordered_map<int, ax::Node*> _mouses;
     bool _debugDraw;
+    ax::DrawNode* _debugDrawNode{nullptr};
 };
 
 class PhysicsDemoLogoSmash : public PhysicsDemo
@@ -183,7 +186,7 @@ public:
     virtual std::string subtitle() const override;
 
     bool slice(ax::PhysicsWorld& world, const ax::PhysicsRayCastInfo& info, void* data);
-    void clipPoly(ax::PhysicsShapePolygon* shape, ax::Vec2 normal, float distance);
+    void clipPoly(ax::PhysicsColliderPolygon* shape, ax::Vec2 normal, float distance);
 
     void onTouchEnded(ax::Touch* touch, ax::Event* event);
 

@@ -1,13 +1,13 @@
 #pragma once
 
 #if defined(AX_ENABLE_EXT_SPINE)
-#include <cocos2d.h>
-#include "spine/spine.h"
-#include "spine/spine-cocos2dx.h"
-#include "CocosStudioExport.h"
-#include <functional>
+#    include "axmol/cocos2d.h"
+#    include "spine/spine.h"
+#    include "spine/spine-cocos2dx.h"
+#    include "CocosStudioExport.h"
+#    include <functional>
 
-#if !defined(AX_SPINE_VERSION) || AX_SPINE_VERSION >= 0x030700
+#    if !defined(AX_SPINE_VERSION) || AX_SPINE_VERSION >= 0x030700
 class CCS_DLL SpineSkeletonDataCache
 {
 public:
@@ -38,10 +38,10 @@ public:
     void removeAllUnusedData(void);
 
 public:
-    hlookup::string_map<SkeletonData*> _cacheTable;
+    axstd::string_map<SkeletonData*> _cacheTable;
 };
 
-#else
+#    else
 class SpineSkeletonDataCache
 {
 public:
@@ -72,10 +72,9 @@ public:
     void removeAllUnusedData(void);
 
 public:
-    hlookup::string_map<SkeletonData*> _cacheTable;
+    axstd::string_map<SkeletonData*> _cacheTable;
 };
 
-#endif
+#    endif
 
-#endif // defined(AX_ENABLE_EXT_SPINE)
-
+#endif  // defined(AX_ENABLE_EXT_SPINE)

@@ -19,7 +19,7 @@
 
 ## ImGui
 - [![Upstream](https://img.shields.io/github/v/release/ocornut/imgui?label=Upstream)](https://github.com/ocornut/imgui)
-- Version: 1.92.1-docking
+- Version: 1.92.3-docking
 - License: MIT
   
 ## Inspector
@@ -65,7 +65,7 @@
 
 ## physics-nodes
 - Upstream: https://github.com/axmolengine/axmol
-- Version: axmol-1.0
+- Version: axmol-3.0
 - License: MIT
 
 ## scripting/lua

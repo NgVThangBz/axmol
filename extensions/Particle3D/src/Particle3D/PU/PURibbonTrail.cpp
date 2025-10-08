@@ -26,13 +26,18 @@
 
 #include "Particle3D/PU/PURibbonTrail.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
-#include "base/Director.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/Renderer.h"
-#include "renderer/TextureCache.h"
-#include "renderer/backend/ProgramState.h"
-#include "2d/Camera.h"
-#include "3d/MeshRenderer.h"
+#include "axmol/base/Director.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/TextureCache.h"
+#include "axmol/rhi/ProgramState.h"
+#include "axmol/2d/Camera.h"
+#include "axmol/3d/MeshRenderer.h"
+
+#if defined(_WIN32)
+#    pragma push_macro("TRANSPARENT")
+#    undef TRANSPARENT
+#endif
 
 namespace ax
 {
@@ -137,8 +142,8 @@ void PURibbonTrail::setNumberOfChains(size_t numChains)
 
     PUBillboardChain::setNumberOfChains(numChains);
 
-    _initialColor.resize(numChains, Vec4::ONE);
-    _deltaColor.resize(numChains, Vec4::ZERO);
+    _initialColor.resize(numChains, Color::WHITE);
+    _deltaColor.resize(numChains, Color::TRANSPARENT);
     _initialWidth.resize(numChains, 10);
     _deltaWidth.resize(numChains, 0);
 
@@ -175,7 +180,7 @@ void PURibbonTrail::clearChain(size_t chainIndex)
     }
 }
 //-----------------------------------------------------------------------
-void PURibbonTrail::setInitialColour(size_t chainIndex, const Vec4& col)
+void PURibbonTrail::setInitialColour(size_t chainIndex, const Color& col)
 {
     setInitialColour(chainIndex, col.x, col.y, col.z, col.w);
 }
@@ -189,7 +194,7 @@ void PURibbonTrail::setInitialColour(size_t chainIndex, float r, float g, float 
     _initialColor[chainIndex].w = a;
 }
 //-----------------------------------------------------------------------
-const Vec4& PURibbonTrail::getInitialColour(size_t chainIndex) const
+const Color& PURibbonTrail::getInitialColour(size_t chainIndex) const
 {
     AXASSERT(chainIndex < _chainCount, "chainIndex out of bounds");
     return _initialColor[chainIndex];
@@ -207,7 +212,7 @@ float PURibbonTrail::getInitialWidth(size_t chainIndex) const
     return _initialWidth[chainIndex];
 }
 //-----------------------------------------------------------------------
-void PURibbonTrail::setColourChange(size_t chainIndex, const Vec4& valuePerSecond)
+void PURibbonTrail::setColourChange(size_t chainIndex, const Color& valuePerSecond)
 {
     setColourChange(chainIndex, valuePerSecond.x, valuePerSecond.y, valuePerSecond.z, valuePerSecond.w);
 }
@@ -223,7 +228,7 @@ void PURibbonTrail::setColourChange(size_t chainIndex, float r, float g, float b
     manageController();
 }
 //-----------------------------------------------------------------------
-const Vec4& PURibbonTrail::getColourChange(size_t chainIndex) const
+const Color& PURibbonTrail::getColourChange(size_t chainIndex) const
 {
     AXASSERT(chainIndex < _chainCount, "chainIndex out of bounds");
     return _deltaColor[chainIndex];
@@ -247,7 +252,7 @@ void PURibbonTrail::manageController()
     _needTimeUpdate = false;
     for (size_t i = 0; i < _chainCount; ++i)
     {
-        if (_deltaWidth[i] != 0 || _deltaColor[i] != Vec4::ZERO)
+        if (_deltaWidth[i] != 0 || !_deltaColor[i].equals(Color::TRANSPARENT))
         {
             _needTimeUpdate = true;
             break;
@@ -420,4 +425,8 @@ void PURibbonTrail::update(float deltaTime)
     }
 }
 
-}
+}  // namespace ax
+
+#if defined(_WIN32)
+#    pragma pop_macro("TRANSPARENT")
+#endif

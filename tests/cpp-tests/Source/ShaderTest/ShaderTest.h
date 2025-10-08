@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ui/CocosGUI.h"
+#include "axmol/ui/CocosGUI.h"
 
 #include "extensions/axmol-ext.h"
 #include "../BaseTest.h"
@@ -153,11 +153,11 @@ protected:
     bool initWithVertex(std::string_view vert, std::string_view frag);
     void loadShaderVertex(std::string_view vert, std::string_view frag);
 
-    virtual bool setProgramState(ax::backend::ProgramState* programState, bool ownPS = false) override
+    virtual bool setProgramState(ax::rhi::ProgramState* programState, bool ownPS = false) override
     {
         if (Node::setProgramState(programState, ownPS))
         {
-            _customCommand.getPipelineDescriptor().programState = programState;
+            _customCommand.setWeakPSVL(_programState, _vertexLayout);
             updateUniforms();
             return true;
         }
@@ -173,13 +173,13 @@ protected:
     std::string _fragFileName;
     ax::CustomCommand _customCommand;
 
-    ax::backend::UniformLocation _locResolution;
-    ax::backend::UniformLocation _locCenter;
-    ax::backend::UniformLocation _locMVP;
-    ax::backend::UniformLocation _locTime;
-    ax::backend::UniformLocation _locSinTime;
-    ax::backend::UniformLocation _locCosTime;
-    ax::backend::UniformLocation _locScreenSize;
+    ax::rhi::UniformLocation _locResolution;
+    ax::rhi::UniformLocation _locCenter;
+    ax::rhi::UniformLocation _locMVP;
+    ax::rhi::UniformLocation _locTime;
+    ax::rhi::UniformLocation _locSinTime;
+    ax::rhi::UniformLocation _locCosTime;
+    ax::rhi::UniformLocation _locScreenSize;
 };
 
 class ShaderLensFlare : public ShaderTestDemo

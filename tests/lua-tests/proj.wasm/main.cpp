@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -23,7 +23,7 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +37,7 @@ namespace
 std::unique_ptr<AppDelegate> appDelegate;
 }
 
-void axmol_wasm_app_exit() 
+void axmol_wasm_app_exit()
 {
     appDelegate = nullptr;
 }

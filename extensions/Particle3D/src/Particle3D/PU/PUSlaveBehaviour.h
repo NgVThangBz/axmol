@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
 #include "Particle3D/PU/PUBehaviour.h"
 #include <vector>
@@ -48,14 +48,13 @@ public:
 
     /** See ParticleBehaviour.
      */
-    virtual void updateBehaviour(PUParticle3D* particle, float deltaTime) override;
+    void updateBehaviour(PUParticle3D* particle, float deltaTime) override;
 
-    virtual PUSlaveBehaviour* clone() override;
-    virtual void copyAttributesTo(PUBehaviour* behaviour) override;
+    PUSlaveBehaviour* clone() override;
+    void copyAttributesTo(PUBehaviour* behaviour) override;
 
     PUSlaveBehaviour();
     virtual ~PUSlaveBehaviour();
 };
 
-}
-
+}  // namespace ax

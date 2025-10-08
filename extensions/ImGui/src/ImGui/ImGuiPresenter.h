@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <stdint.h>
 #include <tuple>
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "extensions/ExtensionMacros.h"
 
 #include "imgui.h"
@@ -180,7 +180,7 @@ private:
 
     int64_t _beginFrames = 0;
 
-    hlookup::string_map<float> _fontsInfoMap;
+    axstd::string_map<float> _fontsInfoMap;
 
     bool _purgeNextLoop = false;
 };

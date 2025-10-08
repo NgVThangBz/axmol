@@ -46,7 +46,7 @@ typedef void (ax::Object::*SEL_MovementEventCallFunc)(Armature*, MovementEventTy
 typedef void (ax::Object::*SEL_FrameEventCallFunc)(Bone*, std::string_view, int, int);
 
 #define movementEvent_selector(_SELECTOR) (cocostudio::SEL_MovementEventCallFunc)(&_SELECTOR)
-#define frameEvent_selector(_SELECTOR) (cocostudio::SEL_FrameEventCallFunc)(&_SELECTOR)
+#define frameEvent_selector(_SELECTOR)    (cocostudio::SEL_FrameEventCallFunc)(&_SELECTOR)
 
 struct FrameEvent
 {
@@ -141,22 +141,22 @@ public:
     /**
      * Pause the Process
      */
-    virtual void pause() override;
+    void pause() override;
     /**
      * Resume the Process
      */
-    virtual void resume() override;
+    void resume() override;
     /**
      * Stop the Process
      */
-    virtual void stop() override;
+    void stop() override;
 
     /**
      * Get movement count
      */
     ssize_t getMovementCount() const;
 
-    virtual void update(float dt) override;
+    void update(float dt) override;
 
     /**
      * Get current movementID

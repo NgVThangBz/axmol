@@ -1,7 +1,7 @@
 #ifndef __FUISPRITE_H__
 #define __FUISPRITE_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUIMacros.h"
 
 NS_FGUI_BEGIN
@@ -55,7 +55,7 @@ private:
     bool _scaleByTile;
     int _vertexDataCount;
     ax::TrianglesCommand::Triangles _fillTriangles;
-    ax::V3F_C4B_T2F *_vertexData;
+    ax::V3F_T2F_C4B *_vertexData;
     unsigned short *_vertexIndex;
     
     static ax::Texture2D* _empty;

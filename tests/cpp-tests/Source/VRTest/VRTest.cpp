@@ -25,6 +25,7 @@
  ****************************************************************************/
 
 #include "VRTest.h"
+#include "axmol/vr/VRGenericRenderer.h"
 
 using namespace ax;
 
@@ -49,15 +50,18 @@ VRTest1::VRTest1()
 
     auto button = MenuItemFont::create("Enable / Disable VR", [](Object* ref) {
         auto renderView = Director::getInstance()->getRenderView();
-        auto vrimpl = renderView->getVR();
+        auto& vrimpl    = renderView->getVR();
         if (vrimpl)
         {
             renderView->setVR(nullptr);
         }
         else
         {
-            auto genericvr = new VRGenericRenderer;
-            renderView->setVR(genericvr);
+            auto vrRenderer = std::make_unique<VRGenericRenderer>();
+            // On Android/iOS emulator devices, uncomment to visualize the left/right eye VR rendering output.
+            // Useful for debugging stereo rendering without a physical headset.
+            // vrRenderer->setDebugIgnoreHeadTracker(true);
+            renderView->setVR(std::move(vrRenderer));
         }
     });
     button->setFontSizeObj(16);

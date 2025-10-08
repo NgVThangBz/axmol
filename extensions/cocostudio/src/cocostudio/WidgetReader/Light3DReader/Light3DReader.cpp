@@ -23,7 +23,7 @@
  ****************************************************************************/
 
 #include "cocostudio/WidgetReader/Light3DReader/Light3DReader.h"
-#include "2d/Light.h"
+#include "axmol/2d/Light.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/CSParse3DBinary_generated.h"
@@ -78,7 +78,7 @@ Offset<Table> Light3DReader::createOptionsWithFlatBuffers(pugi::xml_node objectD
     auto attribute = objectData.first_attribute();
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "Type")
@@ -169,17 +169,17 @@ Node* Light3DReader::createNodeWithFlatBuffers(const flatbuffers::Table* light3D
     switch (type)
     {
     case ax::LightType::DIRECTIONAL:
-        light = DirectionLight::create(Vec3::UNIT_Z, Color3B::WHITE);
+        light = DirectionLight::create(Vec3::UNIT_Z, Color32::WHITE);
         break;
     case ax::LightType::POINT:
-        light = PointLight::create(Vec3::ZERO, Color3B::WHITE, range);
+        light = PointLight::create(Vec3::ZERO, Color32::WHITE, range);
         break;
     case ax::LightType::SPOT:
         light =
-            SpotLight::create(Vec3::UNIT_Z, Vec3::ZERO, Color3B::WHITE, 0, AX_DEGREES_TO_RADIANS(outerAngle), range);
+            SpotLight::create(Vec3::UNIT_Z, Vec3::ZERO, Color32::WHITE, 0, AX_DEGREES_TO_RADIANS(outerAngle), range);
         break;
     case ax::LightType::AMBIENT:
-        light = AmbientLight::create(Color3B::WHITE);
+        light = AmbientLight::create(Color32::WHITE);
         break;
     default:
         break;

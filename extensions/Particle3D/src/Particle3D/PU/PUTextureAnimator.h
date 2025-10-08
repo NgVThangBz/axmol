@@ -27,7 +27,7 @@
 #pragma once
 
 #include "Particle3D/PU/PUAffector.h"
-#include "base/Types.h"
+#include "axmol/base/Types.h"
 
 namespace ax
 {
@@ -51,9 +51,9 @@ public:
 
     static PUTextureAnimator* create();
 
-    virtual void preUpdateAffector(float deltaTime) override;
-    virtual void initParticleForEmission(PUParticle3D* particle) override;
-    virtual void updatePUAffector(PUParticle3D* particle, float deltaTime) override;
+    void preUpdateAffector(float deltaTime) override;
+    void initParticleForEmission(PUParticle3D* particle) override;
+    void updatePUAffector(PUParticle3D* particle, float deltaTime) override;
 
     /** Returns the AnimationTimeStep. The AnimationTimeStep defines the time between each animation frame. */
     float getAnimationTimeStep() const;
@@ -85,7 +85,7 @@ public:
     /** Todo */
     void setStartRandom(bool startRandom);
 
-    virtual void copyAttributesTo(PUAffector* affector) override;
+    void copyAttributesTo(PUAffector* affector) override;
 
     PUTextureAnimator();
     virtual ~PUTextureAnimator();
@@ -105,5 +105,4 @@ protected:
     unsigned short _textureCoordsStart;
     unsigned short _textureCoordsEnd;
 };
-}
-
+}  // namespace ax

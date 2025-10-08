@@ -24,8 +24,8 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "math/Math.h"
-#include "2d/ActionInterval.h"
+#include "axmol/math/Math.h"
+#include "axmol/2d/ActionInterval.h"
 #include "CocosStudioExport.h"
 
 namespace cocostudio
@@ -423,14 +423,14 @@ public:
      *
      * @param ccolor the tint action color
      */
-    void setColor(ax::Color3B ccolor);
+    void setColor(const ax::Color32& ccolor);
 
     /**
      * Gets the tint action color.
      *
      * @return the tint action color.
      */
-    ax::Color3B getColor();
+    const ax::Color32& getColor() const;
 
     /**
      * Gets the ActionInterval of ActionFrame.
@@ -442,8 +442,7 @@ public:
     virtual ax::ActionInterval* getAction(float duration);
 
 protected:
-    ax::Color3B _color;
+    ax::Color32 _color;
 };
 
 }  // namespace cocostudio
-

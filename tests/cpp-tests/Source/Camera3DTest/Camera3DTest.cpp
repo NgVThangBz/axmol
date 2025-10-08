@@ -26,10 +26,10 @@ THE SOFTWARE.
 
 #include "Camera3DTest.h"
 #include "testResource.h"
-#include "ui/UISlider.h"
-#include "platform/FileUtils.h"
-#include "renderer/backend/DriverBase.h"
-#include "base/format.h"
+#include "axmol/ui/UISlider.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/tlx/format.hpp"
 
 using namespace ax;
 
@@ -68,7 +68,7 @@ Camera3DTests::Camera3DTests()
 CameraRotationTest::CameraRotationTest()
 {
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     _camControlNode = Node::create();
     _camControlNode->setPositionNormalized(Vec2(0.5f, 0.5f));
@@ -91,14 +91,14 @@ CameraRotationTest::CameraRotationTest()
     // Yellow is at the back
     bill1 = BillBoard::create("Images/Icon.png");
     bill1->setPosition3D(Vec3(50.0f, 10.0f, -10.0f));
-    bill1->setColor(Color3B::YELLOW);
+    bill1->setColor(Color32::YELLOW);
     bill1->setScale(0.6f);
     mesh->addChild(bill1);
 
     l1 = Label::create();
     l1->setPosition(Vec2(0.0f, -10.0f));
     l1->setString("Billboard1");
-    l1->setColor(Color3B::WHITE);
+    l1->setColor(Color32::WHITE);
     l1->setScale(3);
     bill1->addChild(l1);
 
@@ -114,7 +114,7 @@ CameraRotationTest::CameraRotationTest()
     l2 = Label::create();
     l2->setString("Billboard2");
     l2->setPosition(Vec2(0.0f, -10.0f));
-    l2->setColor(Color3B::WHITE);
+    l2->setColor(Color32::WHITE);
     l2->setScale(3);
     bill2->addChild(l2);
 
@@ -230,10 +230,10 @@ void Camera3DTestDemo::SwitchViewCallback(Object* sender, CameraType cameraType)
         _camera->setPosition3D(Vec3(0, 130, 130) + _mesh->getPosition3D());
         _camera->lookAt(_mesh->getPosition3D());
 
-        _RotateRightlabel->setColor(Color3B::WHITE);
-        _RotateLeftlabel->setColor(Color3B::WHITE);
-        _ZoomInlabel->setColor(Color3B::WHITE);
-        _ZoomOutlabel->setColor(Color3B::WHITE);
+        _RotateRightlabel->setColor(Color32::WHITE);
+        _RotateLeftlabel->setColor(Color32::WHITE);
+        _ZoomInlabel->setColor(Color32::WHITE);
+        _ZoomOutlabel->setColor(Color32::WHITE);
     }
     else if (_cameraType == CameraType::FirstPerson)
     {
@@ -243,27 +243,27 @@ void Camera3DTestDemo::SwitchViewCallback(Object* sender, CameraType cameraType)
         _camera->setPosition3D(Vec3(0, 35, 0) + _mesh->getPosition3D());
         _camera->lookAt(_mesh->getPosition3D() + newFaceDir * 50);
 
-        _RotateRightlabel->setColor(Color3B::WHITE);
-        _RotateLeftlabel->setColor(Color3B::WHITE);
-        _ZoomInlabel->setColor(Color3B::GRAY);
-        _ZoomOutlabel->setColor(Color3B::GRAY);
+        _RotateRightlabel->setColor(Color32::WHITE);
+        _RotateLeftlabel->setColor(Color32::WHITE);
+        _ZoomInlabel->setColor(Color32::GRAY);
+        _ZoomOutlabel->setColor(Color32::GRAY);
     }
     else if (_cameraType == CameraType::ThirdPerson)
     {
         _camera->setPosition3D(Vec3(0, 130, 130) + _mesh->getPosition3D());
         _camera->lookAt(_mesh->getPosition3D());
 
-        _RotateRightlabel->setColor(Color3B::GRAY);
-        _RotateLeftlabel->setColor(Color3B::GRAY);
-        _ZoomInlabel->setColor(Color3B::WHITE);
-        _ZoomOutlabel->setColor(Color3B::WHITE);
+        _RotateRightlabel->setColor(Color32::GRAY);
+        _RotateLeftlabel->setColor(Color32::GRAY);
+        _ZoomInlabel->setColor(Color32::WHITE);
+        _ZoomOutlabel->setColor(Color32::WHITE);
     }
 }
 void Camera3DTestDemo::onEnter()
 {
     CameraBaseTest::onEnter();
     _mesh                    = nullptr;
-    auto s                   = Director::getInstance()->getWinSize();
+    auto s                   = Director::getInstance()->getCanvasSize();
     auto listener            = EventListenerTouchAllAtOnce::create();
     listener->onTouchesBegan = AX_CALLBACK_2(Camera3DTestDemo::onTouchesBegan, this);
     listener->onTouchesMoved = AX_CALLBACK_2(Camera3DTestDemo::onTouchesMoved, this);
@@ -361,16 +361,16 @@ void Camera3DTestDemo::onEnter()
     // draw x
     for (int j = -20; j <= 20; j++)
     {
-        line->drawLine(Vec3(-100.0f, 0.0f, 5.0f * j), Vec3(100.0f, 0.0f, 5.0f * j), Color4F(1, 0, 0, 1));
+        line->drawLine(Vec3(-100.0f, 0.0f, 5.0f * j), Vec3(100.0f, 0.0f, 5.0f * j), Color(1, 0, 0, 1));
     }
     // draw z
     for (int j = -20; j <= 20; j++)
     {
-        line->drawLine(Vec3(5.0f * j, 0.0f, -100.0f), Vec3(5.0f * j, 0.0f, 100.0f), Color4F(0, 0, 1, 1));
+        line->drawLine(Vec3(5.0f * j, 0.0f, -100.0f), Vec3(5.0f * j, 0.0f, 100.0f), Color(0, 0, 1, 1));
     }
     // draw y
-    line->drawLine(Vec3(0.0f, -50.0f, 0.0f), Vec3(0, 0, 0), Color4F(0, 0.5, 0, 1));
-    line->drawLine(Vec3(0, 0, 0), Vec3(0, 50.0f, 0), Color4F(0, 1, 0, 1));
+    line->drawLine(Vec3(0.0f, -50.0f, 0.0f), Vec3(0, 0, 0), Color(0, 0.5, 0, 1));
+    line->drawLine(Vec3(0, 0, 0), Vec3(0, 50.0f, 0), Color(0, 1, 0, 1));
     _layer3D->addChild(line);
 
     _layer3D->setCameraMask(2);
@@ -503,7 +503,7 @@ void Camera3DTestDemo::onTouchesEnded(const std::vector<Touch*>& touches, ax::Ev
             {
                 Vec3 nearP(location.x, location.y, -1.0f), farP(location.x, location.y, 1.0f);
 
-                auto size = Director::getInstance()->getWinSize();
+                auto size = Director::getInstance()->getCanvasSize();
                 nearP     = _camera->unproject(nearP);
                 farP      = _camera->unproject(farP);
                 Vec3 dir(farP - nearP);
@@ -725,7 +725,7 @@ void CameraCullingDemo::onEnter()
 
     schedule(AX_SCHEDULE_SELECTOR(CameraCullingDemo::update), 0.0f);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     /*auto listener = EventListenerTouchAllAtOnce::create();
     listener->onTouchesBegan = AX_CALLBACK_2(Camera3DTestDemo::onTouchesBegan, this);
     listener->onTouchesMoved = AX_CALLBACK_2(Camera3DTestDemo::onTouchesMoved, this);
@@ -740,8 +740,8 @@ void CameraCullingDemo::onEnter()
     MenuItemFont::setFontSize(20);
 
     auto menuItem1 = MenuItemFont::create("Switch Camera", AX_CALLBACK_1(CameraCullingDemo::switchViewCallback, this));
-    menuItem1->setColor(Color3B(0, 200, 20));
-    auto menu = Menu::create(menuItem1, NULL);
+    menuItem1->setColor(Color32(0, 200, 20));
+    auto menu = Menu::create(menuItem1, nullptr);
     menu->setPosition(Vec2::ZERO);
     menuItem1->setPosition(VisibleRect::left().x + 80, VisibleRect::top().y - 70);
     addChild(menu, 1);
@@ -749,9 +749,9 @@ void CameraCullingDemo::onEnter()
     // + -
     MenuItemFont::setFontSize(40);
     auto decrease = MenuItemFont::create(" - ", AX_CALLBACK_1(CameraCullingDemo::delMeshCallback, this));
-    decrease->setColor(Color3B(0, 200, 20));
+    decrease->setColor(Color32(0, 200, 20));
     auto increase = MenuItemFont::create(" + ", AX_CALLBACK_1(CameraCullingDemo::addMeshCallback, this));
-    increase->setColor(Color3B(0, 200, 20));
+    increase->setColor(Color32(0, 200, 20));
 
     menu = Menu::create(decrease, increase, nullptr);
     menu->alignItemsHorizontally();
@@ -760,7 +760,7 @@ void CameraCullingDemo::onEnter()
 
     TTFConfig ttfCount("fonts/Marker Felt.ttf", 30);
     _labelMeshCount = Label::createWithTTF(ttfCount, "0 sprits");
-    _labelMeshCount->setColor(Color3B(0, 200, 20));
+    _labelMeshCount->setColor(Color32(0, 200, 20));
     _labelMeshCount->setPosition(Vec2(s.width / 2, VisibleRect::top().y - 70));
     addChild(_labelMeshCount);
 
@@ -810,7 +810,7 @@ void CameraCullingDemo::update(float dt)
         if (_cameraFirst->isVisibleInFrustum(&aabb))
         {
             aabb.getCorners(corners);
-            _drawAABB->drawCube(corners, Color4F(0, 1, 0, 1));
+            _drawAABB->drawCube(corners, Color(0, 1, 0, 1));
         }
     }
 }
@@ -832,7 +832,7 @@ void CameraCullingDemo::reachEndCallBack()
 
 void CameraCullingDemo::switchViewCallback(Object* sender)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     if (_cameraFirst == nullptr)
     {
@@ -933,9 +933,9 @@ void CameraCullingDemo::delMeshCallback(Object* sender)
 void CameraCullingDemo::drawCameraFrustum()
 {
     _drawFrustum->clear();
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    Color4F color(1.f, 1.f, 0.f, 1);
+    Color color(1.f, 1.f, 0.f, 1);
 
     // top-left
     Vec3 tl_0, tl_1;
@@ -1009,7 +1009,7 @@ void CameraArcBallDemo::onEnter()
     CameraBaseTest::onEnter();
     _rotationQuat.set(0.0f, 0.0f, 0.0f, 1.0f);
     schedule(AX_SCHEDULE_SELECTOR(CameraArcBallDemo::update), 0.0f);
-    auto s                   = Director::getInstance()->getWinSize();
+    auto s                   = Director::getInstance()->getCanvasSize();
     auto listener            = EventListenerTouchAllAtOnce::create();
     listener->onTouchesMoved = AX_CALLBACK_2(CameraArcBallDemo::onTouchsMoved, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
@@ -1020,11 +1020,11 @@ void CameraArcBallDemo::onEnter()
 
     auto menuItem1 =
         MenuItemFont::create("Switch Operation", AX_CALLBACK_1(CameraArcBallDemo::switchOperateCallback, this));
-    menuItem1->setColor(Color3B(0, 200, 20));
+    menuItem1->setColor(Color32(0, 200, 20));
     auto menuItem2 =
         MenuItemFont::create("Switch Target", AX_CALLBACK_1(CameraArcBallDemo::switchTargetCallback, this));
-    menuItem2->setColor(Color3B(0, 200, 20));
-    auto menu = Menu::create(menuItem1, menuItem2, NULL);
+    menuItem2->setColor(Color32(0, 200, 20));
+    auto menu = Menu::create(menuItem1, menuItem2, nullptr);
     menu->setPosition(Vec2::ZERO);
     menuItem1->setPosition(VisibleRect::left().x + 80, VisibleRect::top().y - 70);
     menuItem2->setPosition(VisibleRect::left().x + 80, VisibleRect::top().y - 100);
@@ -1061,15 +1061,15 @@ void CameraArcBallDemo::onEnter()
     // draw x
     for (int j = -20; j <= 20; j++)
     {
-        _drawGrid->drawLine(Vec3(-100.0f, 0, 5.0f * j), Vec3(100.0f, 0, 5.0f * j), Color4F(1, 0, 0, 1));
+        _drawGrid->drawLine(Vec3(-100.0f, 0, 5.0f * j), Vec3(100.0f, 0, 5.0f * j), Color(1, 0, 0, 1));
     }
     // draw z
     for (int j = -20; j <= 20; j++)
     {
-        _drawGrid->drawLine(Vec3(5.0f * j, 0, -100.0f), Vec3(5.0f * j, 0, 100.0f), Color4F(0, 0, 1, 1));
+        _drawGrid->drawLine(Vec3(5.0f * j, 0, -100.0f), Vec3(5.0f * j, 0, 100.0f), Color(0, 0, 1, 1));
     }
     // draw y
-    _drawGrid->drawLine(Vec3(0, 0, 0), Vec3(0, 50.0f, 0), Color4F(0, 1, 0, 1));
+    _drawGrid->drawLine(Vec3(0, 0, 0), Vec3(0, 50.0f, 0), Color(0, 1, 0, 1));
     _layer3D->addChild(_drawGrid);
 
     _layer3D->setCameraMask(2);
@@ -1222,9 +1222,9 @@ void FogTestDemo::onEnter()
 {
     CameraBaseTest::onEnter();
     schedule(AX_SCHEDULE_SELECTOR(FogTestDemo::update), 0.0f);
-    Director::getInstance()->setClearColor(Color4F(0.5, 0.5, 0.5, 1));
+    Director::getInstance()->setClearColor(Color(0.5, 0.5, 0.5, 1));
 
-    auto s                   = Director::getInstance()->getWinSize();
+    auto s                   = Director::getInstance()->getCanvasSize();
     auto listener            = EventListenerTouchAllAtOnce::create();
     listener->onTouchesMoved = AX_CALLBACK_2(FogTestDemo::onTouchesMoved, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
@@ -1254,9 +1254,9 @@ void FogTestDemo::onEnter()
     AX_SAFE_RELEASE_NULL(_programState1);
     AX_SAFE_RELEASE_NULL(_programState2);
 
-    auto program      = ProgramManager::getInstance()->loadProgram("custom/fog_vs", "custom/fog_fs");
-    _programState1    = new backend::ProgramState(program);
-    _programState2    = new backend::ProgramState(program);
+    auto program   = ProgramManager::getInstance()->loadProgram("custom/fog_vs", "custom/fog_fs");
+    _programState1 = new rhi::ProgramState(program);
+    _programState2 = new rhi::ProgramState(program);
 
     _mesh1 = MeshRenderer::create("MeshRendererTest/teapot.c3b");
     _mesh2 = MeshRenderer::create("MeshRendererTest/teapot.c3b");
@@ -1264,9 +1264,9 @@ void FogTestDemo::onEnter()
     _mesh1->setProgramState(_programState1);
     _mesh2->setProgramState(_programState2);
 
-    auto fogColor   = Vec4(0.5, 0.5, 0.5, 1.0);
-    float fogStart  = 10;
-    float fogEnd    = 60;
+    auto fogColor     = Vec4(0.5, 0.5, 0.5, 1.0);
+    float fogStart    = 10;
+    float fogEnd      = 60;
     float fogEquation = 0;
 
     SET_UNIFORM("u_fogColor", &fogColor, sizeof(fogColor));
@@ -1297,20 +1297,20 @@ void FogTestDemo::onEnter()
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     _backToForegroundListener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) {
-        Director::getInstance()->setClearColor(Color4F(0.5, 0.5, 0.5, 1));
+        Director::getInstance()->setClearColor(Color(0.5, 0.5, 0.5, 1));
         AX_SAFE_RELEASE_NULL(_programState1);
         AX_SAFE_RELEASE_NULL(_programState2);
 
-        auto program      = ProgramManager::getInstance()->loadProgram("custom/fog_vs", "custom/fog_fs");
-        _programState1    = new backend::ProgramState(program);
-        _programState2    = new backend::ProgramState(program);
+        auto program   = ProgramManager::getInstance()->loadProgram("custom/fog_vs", "custom/fog_fs");
+        _programState1 = new rhi::ProgramState(program);
+        _programState2 = new rhi::ProgramState(program);
 
         _mesh1->setProgramState(_programState1);
         _mesh2->setProgramState(_programState2);
 
-        auto fogColor   = Vec4(0.5, 0.5, 0.5, 1.0);
-        float fogStart  = 10;
-        float fogEnd    = 60;
+        auto fogColor     = Vec4(0.5, 0.5, 0.5, 1.0);
+        float fogStart    = 10;
+        float fogEnd      = 60;
         float fogEquation = 0;
 
         SET_UNIFORM("u_fogColor", &fogColor, sizeof(fogColor));
@@ -1326,9 +1326,9 @@ void FogTestDemo::switchTypeCallback(Object* sender, int type)
 {
     if (type == 0)
     {
-        auto fogColor   = Vec4(0.5, 0.5, 0.5, 1.0);
-        float fogStart  = 10;
-        float fogEnd    = 60;
+        auto fogColor     = Vec4(0.5, 0.5, 0.5, 1.0);
+        float fogStart    = 10;
+        float fogEnd      = 60;
         float fogEquation = 0;
 
         SET_UNIFORM("u_fogColor", &fogColor, sizeof(fogColor));
@@ -1338,9 +1338,9 @@ void FogTestDemo::switchTypeCallback(Object* sender, int type)
     }
     else if (type == 1)
     {
-        auto fogColor    = Vec4(0.5, 0.5, 0.5, 1.0);
-        float fogDensity = 0.03f;
-        float fogEquation  = 1;
+        auto fogColor     = Vec4(0.5, 0.5, 0.5, 1.0);
+        float fogDensity  = 0.03f;
+        float fogEquation = 1;
 
         SET_UNIFORM("u_fogColor", &fogColor, sizeof(fogColor));
         SET_UNIFORM("u_fogDensity", &fogDensity, sizeof(fogDensity));
@@ -1348,9 +1348,9 @@ void FogTestDemo::switchTypeCallback(Object* sender, int type)
     }
     else if (type == 2)
     {
-        auto fogColor    = Vec4(0.5, 0.5, 0.5, 1.0);
-        float fogDensity = 0.03f;
-        float fogEquation  = 2;
+        auto fogColor     = Vec4(0.5, 0.5, 0.5, 1.0);
+        float fogDensity  = 0.03f;
+        float fogEquation = 2;
 
         SET_UNIFORM("u_fogColor", &fogColor, sizeof(fogColor));
         SET_UNIFORM("u_fogDensity", &fogDensity, sizeof(fogDensity));
@@ -1361,7 +1361,7 @@ void FogTestDemo::switchTypeCallback(Object* sender, int type)
 void FogTestDemo::onExit()
 {
     CameraBaseTest::onExit();
-    Director::getInstance()->setClearColor(Color4F(0, 0, 0, 1));
+    Director::getInstance()->setClearColor(Color(0, 0, 0, 1));
     if (_camera)
     {
         _camera = nullptr;
@@ -1416,8 +1416,8 @@ void FogTestDemo::onTouchesMoved(const std::vector<Touch*>& touches, ax::Event* 
 //
 // void CameraFrameBufferTest::onEnter()
 //{
-//     auto sizeInpixels = Director::getInstance()->getWinSizeInPixels();
-//     auto size = Director::getInstance()->getWinSize();
+//     auto sizeInpixels = Director::getInstance()->getCanvasSizeInPixels();
+//     auto size = Director::getInstance()->getCanvasSize();
 //     auto fboSize = Size(sizeInpixels.width * 1, sizeInpixels.height * 1.5);
 //     auto fbo = experimental::FrameBuffer::create(1, fboSize.width, fboSize.height);
 //
@@ -1461,7 +1461,7 @@ void FogTestDemo::onTouchesMoved(const std::vector<Touch*>& touches, ax::Event* 
 //     camera->setCameraFlag(CameraFlag::USER1);
 //     camera->setDepth(-1);
 //     camera->setFrameBufferObject(fbo);
-//     fbo->setClearColor(Color4F(1,1,1,1));
+//     fbo->setClearColor(Color(1,1,1,1));
 //     addChild(camera);
 // }
 
@@ -1483,7 +1483,7 @@ void BackgroundColorBrushTest::onEnter()
 {
     CameraBaseTest::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     {
         // 1st Camera
@@ -1512,7 +1512,7 @@ void BackgroundColorBrushTest::onEnter()
 
         // 2nd Camera
         auto camera     = Camera::createPerspective(60, (float)s.width / s.height, 1, 1000);
-        auto colorBrush = CameraBackgroundBrush::createColorBrush(Color4F(.1f, .1f, 1.f, .5f), 1.f);
+        auto colorBrush = CameraBackgroundBrush::createColorBrush(Color(.1f, .1f, 1.f, .5f), 1.f);
         camera->setBackgroundBrush(colorBrush);
         camera->setPosition3D(Vec3(0.0f, 0.0f, 200.0f));
         camera->lookAt(Vec3::ZERO);
@@ -1528,7 +1528,7 @@ void BackgroundColorBrushTest::onEnter()
         slider->setPosition(Vec2(s.width / 2, s.height / 4));
         slider->setPercent(50);
         slider->addEventListener([slider, colorBrush](Object*, ui::Slider::EventType) {
-            colorBrush->setColor(Color4F(.1f, .1f, 1.f, (float)slider->getPercent() / 100.f));
+            colorBrush->setColor(Color(.1f, .1f, 1.f, (float)slider->getPercent() / 100.f));
         });
         addChild(slider);
 

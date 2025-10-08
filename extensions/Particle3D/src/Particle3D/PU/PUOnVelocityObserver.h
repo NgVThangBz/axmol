@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUObserver.h"
 #include <vector>
 #include <string>
@@ -47,7 +47,7 @@ public:
 
     /**
      */
-    virtual bool observe(PUParticle3D* particle, float timeElapsed) override;
+    bool observe(PUParticle3D* particle, float timeElapsed) override;
 
     /**
      */
@@ -59,15 +59,14 @@ public:
     PUComparisionOperator getCompare() const { return _compare; };
     void setCompare(PUComparisionOperator op) { _compare = op; };
 
-    virtual void copyAttributesTo(PUObserver* observer) override;
+    void copyAttributesTo(PUObserver* observer) override;
 
     PUOnVelocityObserver();
-    virtual ~PUOnVelocityObserver(){};
+    virtual ~PUOnVelocityObserver() {};
 
 protected:
     float _threshold;
     PUComparisionOperator _compare;
 };
 
-}
-
+}  // namespace ax

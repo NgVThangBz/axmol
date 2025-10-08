@@ -1,4 +1,4 @@
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 
 local function initWithLayer(layer)
 	grossini = ax.Sprite:create(s_pPathGrossini)
@@ -68,10 +68,10 @@ local function ActionManual()
 
 	grossini:setRotation(120)
 	grossini:setPosition(ax.p(size.width / 2, size.height / 2))
-	grossini:setColor(ax.c3b(255, 0, 0))
+	grossini:setColor(ax.color32(255, 0, 0, 255))
 
 	kathia:setPosition(ax.p(size.width - 100, size.height / 2))
-	kathia:setColor(ax.c3b(0, 0, 255))
+	kathia:setColor(ax.color32(0, 0, 255, 255))
 
 	Helper.subtitleLabel:setString("Manual Transformation")
 	return layer
@@ -176,9 +176,9 @@ local function ActionRotationalSkewVSStandardSkew()
     grossini:removeFromParent(true);
     kathia:removeFromParent(true);
 
-    local s = ax.Director:getInstance():getWinSize();
+    local s = ax.Director:getInstance():getCanvasSize();
     local boxSize = ax.size(100.0, 100.0);
-    local box = ax.LayerColor:create(ax.c4b(255,255,0,255));
+    local box = ax.LayerColor:create(ax.color32(255,255,0,255));
     box:setAnchorPoint(ax.p(0.5,0.5));
     box:setContentSize( boxSize );
     box:setIgnoreAnchorPointForPosition(false);
@@ -194,7 +194,7 @@ local function ActionRotationalSkewVSStandardSkew()
 
     box:runAction(seq);
 
-    box = ax.LayerColor:create(ax.c4b(255,255,0,255));
+    box = ax.LayerColor:create(ax.color32(255,255,0,255));
     box:setAnchorPoint(ax.p(0.5,0.5));
     box:setContentSize(boxSize);
     box:setIgnoreAnchorPointForPosition(false);
@@ -226,19 +226,19 @@ local function ActionSkewRotate()
 
     local boxSize = ax.size(100.0, 100.0)
 
-    local box = ax.LayerColor:create(ax.c4b(255, 255, 0, 255))
+    local box = ax.LayerColor:create(ax.color32(255, 255, 0, 255))
     box:setAnchorPoint(ax.p(0, 0))
     box:setPosition(190, 110)
     box:setContentSize(boxSize)
 
 	local markrside = 10.0
-    local uL = ax.LayerColor:create(ax.c4b(255, 0, 0, 255))
+    local uL = ax.LayerColor:create(ax.color32(255, 0, 0, 255))
     box:addChild(uL)
     uL:setContentSize(ax.size(markrside, markrside))
     uL:setPosition(0, boxSize.height - markrside)
     uL:setAnchorPoint(ax.p(0, 0))
 
-    local uR = ax.LayerColor:create(ax.c4b(0, 0, 255, 255))
+    local uR = ax.LayerColor:create(ax.color32(0, 0, 255, 255))
     box:addChild(uR)
     uR:setContentSize(ax.size(markrside, markrside))
     uR:setPosition(boxSize.width - markrside, boxSize.height - markrside)
@@ -314,12 +314,12 @@ local function ActionCardinalSpline()
 
     local drawNode1 = ax.DrawNode:create()
     drawNode1:setPosition(50, 50)
-    drawNode1:drawCardinalSpline(array, 0, 100, ax.c4f(0,0,1,1))
+    drawNode1:drawCardinalSpline(array, 0, 100, ax.color(0,0,1,1))
     layer:addChild(drawNode1)
 
     local drawNode2 = ax.DrawNode:create()
     drawNode2:setPosition(size.width/2, 50)
-    drawNode2:drawCardinalSpline(array, 1, 100, ax.c4f(0,0,1,1))
+    drawNode2:drawCardinalSpline(array, 1, 100, ax.color(0,0,1,1))
     layer:addChild(drawNode2)
 
 	Helper.titleLabel:setString("CardinalSplineBy / CardinalSplineAt")
@@ -366,12 +366,12 @@ local function ActionCatmullRom()
     kathia:runAction(seq2)
     local drawNode1 = ax.DrawNode:create()
     drawNode1:setPosition(50, 50)
-    drawNode1:drawCatmullRom(array, 50, ax.c4f(0,0,1,1))
+    drawNode1:drawCatmullRom(array, 50, ax.color(0,0,1,1))
     layer:addChild(drawNode1)
 
     local drawNode2 = ax.DrawNode:create()
     --drawNode2:setPosition(size.width/2, 50)
-    drawNode2:drawCatmullRom(array2, 50, ax.c4f(0,0,1,1))
+    drawNode2:drawCatmullRom(array2, 50, ax.color(0,0,1,1))
     layer:addChild(drawNode2)
 
     Helper.titleLabel:setString("CatmullRomBy / CatmullRomTo")
@@ -947,11 +947,11 @@ local function ActionFollow()
     layer:runAction(ax.Follow:create(grossini, ax.rect(0, 0, size.width * 2 - 100, size.height)))
 
     local drawNode = ax.DrawNode:create()
-    local winSize = ax.Director:getInstance():getWinSize()
-    local x = winSize.width * 2 - 100
-    local y = winSize.height
+    local canvasSize = ax.Director:getInstance():getCanvasSize()
+    local x = canvasSize.width * 2 - 100
+    local y = canvasSize.height
     local vertices = { ax.p(5, 5), ax.p(x - 5, 5), ax.p(x - 5,y - 5), ax.p(5,y - 5) }
-    drawNode:drawPoly(vertices, 4, true, ax.c4f(0,0,1,1))
+    drawNode:drawPoly(vertices, 4, true, ax.color(0,0,1,1))
     layer:addChild(drawNode)
 
 	Helper.subtitleLabel:setString("Follow action")

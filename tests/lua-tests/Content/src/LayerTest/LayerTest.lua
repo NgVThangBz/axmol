@@ -42,7 +42,7 @@ end
 -- LayerTestCascadingOpacityA
 local function LayerTestCascadingOpacityA()
     local ret = createLayerDemoLayer("Layer: cascading opacity")
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local  layer1 = ax.Layer:create()
 
     local sister1 = ax.Sprite:create("Images/grossinis_sister1.png")
@@ -81,8 +81,8 @@ end
 local function LayerTestCascadingOpacityB()
     local ret = createLayerDemoLayer("LayerColor: cascading opacity")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local layer1 = ax.LayerColor:create(ax.c4b(192, 0, 0, 255), s.width, s.height/2)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local layer1 = ax.LayerColor:create(ax.color32(192, 0, 0, 255), s.width, s.height/2)
     layer1:setCascadeColorEnabled(false)
 
     layer1:setPosition( ax.p(0, s.height/2))
@@ -114,8 +114,8 @@ end
 local function LayerTestCascadingOpacityC()
     local ret = createLayerDemoLayer("LayerColor: non-cascading opacity")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer1 = ax.LayerColor:create(ax.c4b(192, 0, 0, 255), s.width, s.height/2)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer1 = ax.LayerColor:create(ax.color32(192, 0, 0, 255), s.width, s.height/2)
     layer1:setCascadeColorEnabled(false)
     layer1:setCascadeOpacityEnabled(false)
 
@@ -149,7 +149,7 @@ end
 local function LayerTestCascadingColorA()
     local ret = createLayerDemoLayer("Layer: cascading color")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local  layer1 = ax.Layer:create()
 
     local sister1 = ax.Sprite:create("Images/grossinis_sister1.png")
@@ -194,8 +194,8 @@ end
 local function LayerTestCascadingColorB()
     local ret = createLayerDemoLayer("LayerColor: cascading color")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer1 = ax.LayerColor:create(ax.c4b(255, 255, 255, 255), s.width, s.height/2)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer1 = ax.LayerColor:create(ax.color32(255, 255, 255, 255), s.width, s.height/2)
 
     layer1:setPosition( ax.p(0, s.height/2))
 
@@ -240,8 +240,8 @@ end
 local function LayerTestCascadingColorC()
     local ret = createLayerDemoLayer("LayerColor: non-cascading color")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer1 = ax.LayerColor:create(ax.c4b(255, 255, 255, 255), s.width, s.height/2)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer1 = ax.LayerColor:create(ax.color32(255, 255, 255, 255), s.width, s.height/2)
     layer1:setCascadeColorEnabled(false)
     layer1:setPosition( ax.p(0, s.height/2))
 
@@ -287,15 +287,15 @@ end
 local function LayerTest1()
     local ret = createLayerDemoLayer("ColorLayer resize (tap & move)")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer = ax.LayerColor:create( ax.c4b(0xFF, 0x00, 0x00, 0x80), 200, 200)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer = ax.LayerColor:create( ax.color32(0xFF, 0x00, 0x00, 0x80), 200, 200)
 
     layer:setIgnoreAnchorPointForPosition(false)
     layer:setPosition( ax.p(s.width/2, s.height/2) )
     ret:addChild(layer, 1, kTagLayer)
 
     local function updateSize(x, y)
-        local s = ax.Director:getInstance():getWinSize()
+        local s = ax.Director:getInstance():getCanvasSize()
 
         local newSize = ax.size( math.abs(x - s.width/2)*2, math.abs(y - s.height/2)*2)
 
@@ -332,13 +332,13 @@ end
 local function LayerTest2()
     local ret = createLayerDemoLayer("ColorLayer: fade and tint")
 
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer1 = ax.LayerColor:create( ax.c4b(255, 255, 0, 80), 100, 300)
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer1 = ax.LayerColor:create( ax.color32(255, 255, 0, 80), 100, 300)
     layer1:setPosition(ax.p(s.width/3, s.height/2))
     layer1:setIgnoreAnchorPointForPosition(false)
     ret:addChild(layer1, 1)
 
-    local  layer2 = ax.LayerColor:create( ax.c4b(0, 0, 255, 255), 100, 300)
+    local  layer2 = ax.LayerColor:create( ax.color32(0, 0, 255, 255), 100, 300)
     layer2:setPosition(ax.p((s.width/3)*2, s.height/2))
     layer2:setIgnoreAnchorPointForPosition(false)
     ret:addChild(layer2, 1)
@@ -364,8 +364,8 @@ end
 
 local function LayerTestBlend()
     local ret = createLayerDemoLayer("ColorLayer: blend")
-    local s = ax.Director:getInstance():getWinSize()
-    local  layer1 = ax.LayerColor:create( ax.c4b(255, 255, 255, 80) )
+    local s = ax.Director:getInstance():getCanvasSize()
+    local  layer1 = ax.LayerColor:create( ax.color32(255, 255, 255, 80) )
 
     local  sister1 = ax.Sprite:create(s_pPathSister1)
     local  sister2 = ax.Sprite:create(s_pPathSister2)
@@ -418,7 +418,7 @@ end
 --------------------------------------------------------------------
 local function LayerGradient()
     local ret = createLayerDemoLayer("LayerGradient", "Touch the screen and move your finger")
-    local  layer1 = ax.LayerGradient:create(ax.c4b(255,0,0,255), ax.c4b(0,255,0,255), ax.p(0.9, 0.9))
+    local  layer1 = ax.LayerGradient:create(ax.color32(255,0,0,255), ax.color32(0,255,0,255), ax.p(0.9, 0.9))
     ret:addChild(layer1, 0, kTagLayer)
 
     local label1 = ax.Label:createWithTTF("Compressed Interpolation: Enabled", s_markerFeltFontPath, 26)
@@ -440,11 +440,11 @@ local function LayerGradient()
 
     local menu = ax.Menu:create(item)
     ret:addChild(menu)
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     menu:setPosition(ax.p(s.width / 2, 100))
 
     local function onTouchesMoved(touches, event)
-        local s = ax.Director:getInstance():getWinSize()
+        local s = ax.Director:getInstance():getCanvasSize()
         local start = touches[1]:getLocation()
         local movingPos = ax.p(s.width/2,s.height/2)
         local diff = ax.p(movingPos.x - start.x, movingPos.y - start.y)
@@ -471,9 +471,9 @@ local kLayerIgnoreAnchorPoint = 1000
 local function LayerIgnoreAnchorPointPos()
     local ret = createLayerDemoLayer("IgnoreAnchorPoint - Position", "Ignoring Anchor Point for position")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
-    local l = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 150, 150)
+    local l = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 150, 150)
 
     l:setAnchorPoint(ax.p(0.5, 0.5))
     l:setPosition(ax.p( s.width/2, s.height/2))
@@ -510,9 +510,9 @@ end
 local function LayerIgnoreAnchorPointRot()
     local ret = createLayerDemoLayer("IgnoreAnchorPoint - Rotation", "Ignoring Anchor Point for rotations")
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
-    local l = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 200, 200)
+    local l = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 200, 200)
 
     l:setAnchorPoint(ax.p(0.5, 0.5))
     l:setPosition(ax.p( s.width/2, s.height/2))
@@ -547,9 +547,9 @@ end
 -- LayerIgnoreAnchorPointScale
 local function LayerIgnoreAnchorPointScale()
     local ret = createLayerDemoLayer("IgnoreAnchorPoint - Scale", "Ignoring Anchor Point for scale")
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
-    local l = ax.LayerColor:create(ax.c4b(255, 0, 0, 255), 200, 200)
+    local l = ax.LayerColor:create(ax.color32(255, 0, 0, 255), 200, 200)
 
     l:setAnchorPoint(ax.p(0.5, 1.0))
     l:setPosition(ax.p( s.width/2, s.height/2))
@@ -588,12 +588,12 @@ end
 
 local function LayerExtendedBlendOpacityTest()
     local ret = createLayerDemoLayer("Extended Blend & Opacity", "You should see 3 layers")
-    local  layer1 = ax.LayerGradient:create(ax.c4b(255, 0, 0, 255), ax.c4b(255, 0, 255, 255))
+    local  layer1 = ax.LayerGradient:create(ax.color32(255, 0, 0, 255), ax.color32(255, 0, 255, 255))
     layer1:setContentSize(ax.size(80, 80))
     layer1:setPosition(ax.p(50,50))
     ret:addChild(layer1)
 
-    local  layer2 = ax.LayerGradient:create(ax.c4b(0, 0, 0, 127), ax.c4b(255, 255, 255, 127))
+    local  layer2 = ax.LayerGradient:create(ax.color32(0, 0, 0, 127), ax.color32(255, 255, 255, 127))
     layer2:setContentSize(ax.size(80, 80))
     layer2:setPosition(ax.p(100,90))
     ret:addChild(layer2)
@@ -601,8 +601,8 @@ local function LayerExtendedBlendOpacityTest()
     local  layer3 = ax.LayerGradient:create()
     layer3:setContentSize(ax.size(80, 80))
     layer3:setPosition(ax.p(150,140))
-    layer3:setStartColor(ax.c3b(255, 0, 0))
-    layer3:setEndColor(ax.c3b(255, 0, 255))
+    layer3:setStartColor(ax.color32(255, 0, 0))
+    layer3:setEndColor(ax.color32(255, 0, 255))
     layer3:setStartOpacity(255)
     layer3:setEndOpacity(255)
     layer3:setBlendFunc(ax.blendFunc(ccb.BlendFactor.SRC_ALPHA, ccb.BlendFactor.ONE_MINUS_SRC_ALPHA))

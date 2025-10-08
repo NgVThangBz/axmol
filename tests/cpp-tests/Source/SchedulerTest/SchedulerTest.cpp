@@ -24,7 +24,7 @@
 
 #include "SchedulerTest.h"
 #include "../testResource.h"
-#include "ui/UIText.h"
+#include "axmol/ui/UIText.h"
 #include "controller.h"
 
 using namespace ax;
@@ -238,7 +238,7 @@ void SchedulerPauseResumeAllUser::onEnter()
 {
     SchedulerTestLayer::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sprite = Sprite::create("Images/grossinis_sister1.png");
     sprite->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -356,7 +356,7 @@ void SchedulerUnscheduleAllHard::onEnter()
 {
     SchedulerTestLayer::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sprite = Sprite::create("Images/grossinis_sister1.png");
     sprite->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -429,7 +429,7 @@ void SchedulerUnscheduleAllUserLevel::onEnter()
 {
     SchedulerTestLayer::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sprite = Sprite::create("Images/grossinis_sister1.png");
     sprite->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -790,7 +790,7 @@ void SchedulerTimeScale::onEnter()
 {
     SchedulerTestLayer::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // rotate and jump
     auto jump1 = JumpBy::create(4, Vec2(-s.width + 80, 0.0f), 100, 4);
@@ -888,7 +888,7 @@ void TwoSchedulers::onEnter()
 {
     SchedulerTestLayer::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // rotate and jump
     auto jump1 = JumpBy::create(4, Vec2(0, 0), 100, 4);
@@ -1063,7 +1063,7 @@ void SchedulerIssueWithReschedule::onEnter()
     Size widgetSize = getContentSize();
 
     auto status_text = Text::create("Checking..", "fonts/Marker Felt.ttf", 18);
-    status_text->setColor(Color3B(255, 255, 255));
+    status_text->setColor(Color32(255, 255, 255));
     status_text->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f));
     addChild(status_text);
 
@@ -1071,35 +1071,29 @@ void SchedulerIssueWithReschedule::onEnter()
     auto verified = std::make_shared<bool>();
     *verified     = false;
 
-    _scheduler->schedule(
-        [this, verified](float dt) {
-           AXLOGD("SchedulerIssueWithReschedule - first timer");
+    _scheduler->schedule([this, verified](float dt) {
+        AXLOGD("SchedulerIssueWithReschedule - first timer");
 
-            _scheduler->schedule(
-                [verified](float dt) {
-                   AXLOGD("SchedulerIssueWithReschedule - second timer. OK");
-                    *verified = true;
-                },
-                this, 0.1f, 0, 0, false, "test_timer");
-        },
-        this, 0.1f, 0, 0, false, "test_timer");
+        _scheduler->schedule([verified](float dt) {
+            AXLOGD("SchedulerIssueWithReschedule - second timer. OK");
+            *verified = true;
+        }, this, 0.1f, 0, 0, false, "test_timer");
+    }, this, 0.1f, 0, 0, false, "test_timer");
 
-    _scheduler->schedule(
-        [verified, status_text](float dt) {
-            if (*verified)
-            {
-                AXLOGD("SchedulerIssueWithReschedule - test OK");
-                status_text->setString("OK");
-                status_text->setColor(Color3B(0, 255, 0));
-            }
-            else
-            {
-                AXLOGD("SchedulerIssueWithReschedule - test failed!");
-                status_text->setString("Failed");
-                status_text->setColor(Color3B(255, 0, 0));
-            }
-        },
-        this, 0.5f, 0, 0, false, "test_verify_timer");
+    _scheduler->schedule([verified, status_text](float dt) {
+        if (*verified)
+        {
+            AXLOGD("SchedulerIssueWithReschedule - test OK");
+            status_text->setString("OK");
+            status_text->setColor(Color32(0, 255, 0));
+        }
+        else
+        {
+            AXLOGD("SchedulerIssueWithReschedule - test failed!");
+            status_text->setString("Failed");
+            status_text->setColor(Color32(255, 0, 0));
+        }
+    }, this, 0.5f, 0, 0, false, "test_verify_timer");
 }
 
 std::string SchedulerIssueWithReschedule::title() const

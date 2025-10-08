@@ -24,8 +24,8 @@
 
 #include "FontTest.h"
 #include "../testResource.h"
-#include "2d/FontAtlasCache.h"
-#include "2d/FontFreeType.h"
+#include "axmol/2d/FontAtlasCache.h"
+#include "axmol/2d/FontFreeType.h"
 
 using namespace ax;
 
@@ -84,7 +84,7 @@ FontTests::FontTests()
 
 void FontTest::showFont(std::string_view fontFile)
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto blockSize = Size(s.width / 3, 200);
     float fontSize = 26;
@@ -105,9 +105,9 @@ void FontTest::showFont(std::string_view fontFile)
     auto right  = Label::createWithSystemFont("alignment right", fontFile, fontSize, blockSize, TextHAlignment::RIGHT,
                                               verticalAlignment[vAlignIdx]);
 
-    auto leftColor   = LayerColor::create(Color4B(100, 100, 100, 255), blockSize.width, blockSize.height);
-    auto centerColor = LayerColor::create(Color4B(200, 100, 100, 255), blockSize.width, blockSize.height);
-    auto rightColor  = LayerColor::create(Color4B(100, 100, 200, 255), blockSize.width, blockSize.height);
+    auto leftColor   = LayerColor::create(Color32(100, 100, 100, 255), blockSize.width, blockSize.height);
+    auto centerColor = LayerColor::create(Color32(200, 100, 100, 255), blockSize.width, blockSize.height);
+    auto rightColor  = LayerColor::create(Color32(100, 100, 200, 255), blockSize.width, blockSize.height);
 
     leftColor->setIgnoreAnchorPointForPosition(false);
     centerColor->setIgnoreAnchorPointForPosition(false);
@@ -159,9 +159,7 @@ FontNoReplacementTest* FontNoReplacementTest::create()
     return ret;
 }
 
-FontNoReplacementTest::FontNoReplacementTest()
-{
-}
+FontNoReplacementTest::FontNoReplacementTest() {}
 
 FontNoReplacementTest::~FontNoReplacementTest()
 {
@@ -181,7 +179,7 @@ void FontNoReplacementTest::onEnter()
     TestCase::onEnter();
 
     std::string suffix;
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto blockSize = Size(s.width / 3, 200);
     float fontSize = 26;
@@ -202,9 +200,9 @@ void FontNoReplacementTest::onEnter()
     auto right  = Label::createWithTTF("fonts/Schwarzwald.ttf" + suffix, "fonts/Schwarzwald.ttf", fontSize, blockSize,
                                        TextHAlignment::RIGHT, verticalAlignment[0]);
 
-    auto leftColor   = LayerColor::create(Color4B(100, 100, 100, 255), blockSize.width, blockSize.height);
-    auto centerColor = LayerColor::create(Color4B(200, 100, 100, 255), blockSize.width, blockSize.height);
-    auto rightColor  = LayerColor::create(Color4B(100, 100, 200, 255), blockSize.width, blockSize.height);
+    auto leftColor   = LayerColor::create(Color32(100, 100, 100, 255), blockSize.width, blockSize.height);
+    auto centerColor = LayerColor::create(Color32(200, 100, 100, 255), blockSize.width, blockSize.height);
+    auto rightColor  = LayerColor::create(Color32(100, 100, 200, 255), blockSize.width, blockSize.height);
 
     leftColor->setIgnoreAnchorPointForPosition(false);
     centerColor->setIgnoreAnchorPointForPosition(false);

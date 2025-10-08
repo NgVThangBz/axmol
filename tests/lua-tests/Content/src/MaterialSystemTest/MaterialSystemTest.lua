@@ -114,7 +114,7 @@ function Material_MultipleSprite3D:onEnter()
 
     local totalNames = #names
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
 
     for i = 1 , totalNames do
         local sprite = ax.Sprite3D:create(names[i])
@@ -196,10 +196,10 @@ function Material_setTechnique:onEnter()
     sprite:setMaterial(mat)
 
     --lights
-    local light1 = ax.AmbientLight:create(ax.c3b(255, 0, 0))
+    local light1 = ax.AmbientLight:create(ax.color32(255, 0, 0))
     self:addChild(light1)
 
-    local light2 = ax.DirectionLight:create(ax.vec3(-1,1,0), ax.c3b(0, 255, 0))
+    local light2 = ax.DirectionLight:create(ax.vec3(-1,1,0), ax.color32(0, 255, 0))
     self:addChild(light2)
     local techniqueState = 0
     local scheduler = ax.Director:getInstance():getScheduler()

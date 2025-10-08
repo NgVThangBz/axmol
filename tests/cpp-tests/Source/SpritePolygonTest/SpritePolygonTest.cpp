@@ -24,7 +24,7 @@
 
 #include "SpritePolygonTest.h"
 #include "../testResource.h"
-#include "ui/CocosGUI.h"
+#include "axmol/ui/CocosGUI.h"
 #include <chrono>
 #include <sstream>
 
@@ -44,7 +44,7 @@ SpritePolygonTest::SpritePolygonTest()
     ADD_TEST_CASE(SpritePolygonTestAutoPolyIsland);
     ADD_TEST_CASE(SpritePolygonTestFrameAnim);
     ADD_TEST_CASE(Issue14017Test);
-    ADD_TEST_CASE(SpritePolygonTestPerformance);   
+    ADD_TEST_CASE(SpritePolygonTestPerformance);
 }
 
 SpritePolygonTestCase::SpritePolygonTestCase()
@@ -61,12 +61,12 @@ SpritePolygonTestCase::~SpritePolygonTestCase()
 void SpritePolygonTestCase::onEnter()
 {
     TestCase::onEnter();
-    Director::getInstance()->setClearColor(Color4F(102.0f / 255.0f, 184.0f / 255.0f, 204.0f / 255.0f, 1.0f));
+    Director::getInstance()->setClearColor(Color(102.0f / 255.0f, 184.0f / 255.0f, 204.0f / 255.0f, 1.0f));
 }
 
 void SpritePolygonTestCase::onExit()
 {
-    Director::getInstance()->setClearColor(Color4F::BLACK);
+    Director::getInstance()->setClearColor(Color::BLACK);
     TestCase::onExit();
 }
 
@@ -103,7 +103,7 @@ bool SpritePolygonTestCase::init()
             auto menu = Menu::create(menuItem, nullptr);
             menu->setPosition(Vec2::ZERO);
             menuItem->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
-            menuItem->setPosition(VisibleRect::leftBottom() + Vec2(0.0f, VisibleRect::leftTop().y/4));
+            menuItem->setPosition(VisibleRect::leftBottom() + Vec2(0.0f, VisibleRect::leftTop().y / 4));
             this->addChild(menu, 9999);
         }
         return true;
@@ -129,17 +129,17 @@ void SpritePolygonTestCase::updateDrawNode()
             for (ssize_t i = 0; i < count; i++)
             {
                 // draw 3 lines
-                Vec3 from = verts[indices[i * 3]].vertices;
-                Vec3 to   = verts[indices[i * 3 + 1]].vertices;
-                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::BLUE);
+                Vec3 from = verts[indices[i * 3]].position;
+                Vec3 to   = verts[indices[i * 3 + 1]].position;
+                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color::BLUE);
 
-                from = verts[indices[i * 3 + 1]].vertices;
-                to   = verts[indices[i * 3 + 2]].vertices;
-                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::GREEN);
+                from = verts[indices[i * 3 + 1]].position;
+                to   = verts[indices[i * 3 + 2]].position;
+                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color::GREEN);
 
-                from = verts[indices[i * 3 + 2]].vertices;
-                to   = verts[indices[i * 3]].vertices;
-                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color4F::RED);
+                from = verts[indices[i * 3 + 2]].position;
+                to   = verts[indices[i * 3]].position;
+                drawnode->drawLine(Vec2(from.x, from.y), Vec2(to.x, to.y), Color::RED);
             }
         }
     }
@@ -149,7 +149,7 @@ bool SpritePolygonTestDemo::init()
 {
     if (SpritePolygonTestCase::init())
     {
-        _polygonSprite = nullptr;
+        _polygonSprite     = nullptr;
         _polygonSprite_fix = nullptr;
         initSprites();
         initTouches();
@@ -183,7 +183,7 @@ SpritePolygonTest1::SpritePolygonTest1()
 
 void SpritePolygonTest1::initSprites()
 {
-    auto s        = Director::getInstance()->getWinSize();
+    auto s        = Director::getInstance()->getCanvasSize();
     auto offset   = Vec2(0.15 * s.width, 0);
     auto filename = s_pathGrossini;
 
@@ -237,14 +237,14 @@ SpritePolygonTest2::SpritePolygonTest2()
 
 void SpritePolygonTest2::initSprites()
 {
-    auto s        = Director::getInstance()->getWinSize();
+    auto s        = Director::getInstance()->getCanvasSize();
     auto offset   = Vec2(0.15 * s.width, 0);
     auto filename = s_pathGrossini;
 
-    // Fix for issue #231  Rect have to be adapt to the 2.0/"ContentScaleFactor()" 
+    // Fix for issue #231  Rect have to be adapt to the 2.0/"ContentScaleFactor()"
     auto a    = 2.0 / Director::getInstance()->getContentScaleFactor();
     Rect head = Rect(30 * a, 25 * a, 25 * a, 25 * a);
- 
+
     // Sprite
     auto pinfo     = AutoPolygon::generatePolygon(filename, head);
     _polygonSprite = Sprite::create(pinfo);
@@ -300,7 +300,7 @@ bool SpritePolygonTestSlider::init()
 
 void SpritePolygonTestSlider::initSliders()
 {
-    auto vsize                  = Director::getInstance()->getVisibleSize();
+    auto vsize             = Director::getInstance()->getVisibleSize();
     ax::ui::Slider* slider = ax::ui::Slider::create();
     slider->loadBarTexture("cocosui/sliderTrack.png");
     slider->loadSlidBallTextures("cocosui/sliderThumb.png", "cocosui/sliderThumb.png", "");
@@ -333,8 +333,8 @@ void SpritePolygonTestSlider::changeEpsilon(ax::Object* pSender, ax::ui::Slider:
     if (type == ax::ui::Slider::EventType::ON_PERCENTAGE_CHANGED)
     {
         ax::ui::Slider* slider = dynamic_cast<ax::ui::Slider*>(pSender);
-        float epsilon               = powf(slider->getPercent() / 100.0, 2) * 19.0f + 1.0f;
-        for (auto&&child : _children)
+        float epsilon          = powf(slider->getPercent() / 100.0, 2) * 19.0f + 1.0f;
+        for (auto&& child : _children)
         {
             if (child->getName().size())
             {
@@ -381,8 +381,8 @@ Sprite* SpritePolygonTestSlider::makeSprite(std::string_view filename, const Vec
     // Label
     auto ttfConfig = TTFConfig("fonts/arial.ttf", 8);
     auto spArea    = Label::createWithTTF(
-           ttfConfig, (std::string)filename + "\nVerts: " + Value((int)pinfo.getVertCount()).asString() +
-                          "\nPixels: " + Value((int)(pinfo.getArea() / originalSize * 100)).asString() + "%");
+        ttfConfig, (std::string)filename + "\nVerts: " + Value((int)pinfo.getVertCount()).asString() +
+                       "\nPixels: " + Value((int)(pinfo.getArea() / originalSize * 100)).asString() + "%");
     ret->addChild(spArea);
     spArea->setAnchorPoint(Vec2(0.0f, 1.0f));
     spArea->setName(filename);
@@ -474,7 +474,7 @@ void SpritePolygonTest5::loadDefaultSprites()
         drawNode->clear();
         sprites[i]->addChild(drawNode);
     }
-    sprites[0]->setColor(Color3B::RED);
+    sprites[0]->setColor(Color32::RED);
     sprites[1]->setOpacity(100);
     sprites[2]->setTexture(Director::getInstance()->getTextureCache()->addImage("Images/grossinis_sister1.png"));
     sprites[3]->setTextureRect(Rect(0.0f, 0.0f, 100.0f, 30.0f));
@@ -689,7 +689,7 @@ SpritePolygonTestNoCrash::SpritePolygonTestNoCrash()
 
 void SpritePolygonTestNoCrash::initSprites()
 {
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto pinfo  = AutoPolygon::generatePolygon("Images/sprite_polygon_crash.png", Rect::ZERO, 0.5);
     auto sprite = Sprite::create(pinfo);
     addChild(sprite);
@@ -716,7 +716,7 @@ SpritePolygonTestTPIsland::SpritePolygonTestTPIsland()
 
 void SpritePolygonTestTPIsland::initSprites()
 {
-    auto s     = Director::getInstance()->getWinSize();
+    auto s     = Director::getInstance()->getCanvasSize();
     auto cache = SpriteFrameCache::getInstance();
     cache->addSpriteFramesWithFile("Images/test_polygon.plist");
 
@@ -745,7 +745,7 @@ SpritePolygonTestAutoPolyIsland::SpritePolygonTestAutoPolyIsland()
 
 void SpritePolygonTestAutoPolyIsland::initSprites()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto pinfo  = AutoPolygon::generatePolygon("Images/island_polygon.png", Rect::ZERO, 1);
     auto sprite = Sprite::create(pinfo);
@@ -773,7 +773,7 @@ SpritePolygonTestFrameAnim::SpritePolygonTestFrameAnim()
 
 void SpritePolygonTestFrameAnim::initSprites()
 {
-    auto screen = Director::getInstance()->getWinSize();
+    auto screen = Director::getInstance()->getCanvasSize();
 
     auto rotate   = RotateBy::create(10, 360);
     auto action   = RepeatForever::create(rotate);
@@ -786,7 +786,7 @@ void SpritePolygonTestFrameAnim::initSprites()
     for (int i = 0; i < 10; i++)
     {
         auto name = fmt::format_to_z(buf, "grossini_dance_{:02d}.png", i + 1);
-        sprite = Sprite::createWithSpriteFrameName(name);
+        sprite    = Sprite::createWithSpriteFrameName(name);
 
         sprite->setPosition(Vec2(screen.width / 6 * (i % 5 + 1), screen.height * 2 / 3 - screen.height * (i / 5) / 3));
 
@@ -828,9 +828,9 @@ Issue14017Test::Issue14017Test()
 
 void Issue14017Test::initSprites()
 {
-    auto s        = Director::getInstance()->getWinSize();
-    auto offset   = Vec2(0.3 * s.width, 0);
-    auto filename = "Images/bug14017.png";
+    auto s            = Director::getInstance()->getCanvasSize();
+    auto offset       = Vec2(0.3 * s.width, 0);
+    auto filename     = "Images/bug14017.png";
     auto filename_fix = "Images/bug14017_fix.png";
 
     // Sprite
@@ -840,7 +840,7 @@ void Issue14017Test::initSprites()
     addChild(_polygonSprite);
     _polygonSprite->setPosition(Vec2(s) / 2);
 
-    auto pinfo_fix = AutoPolygon::generatePolygon(filename_fix);
+    auto pinfo_fix     = AutoPolygon::generatePolygon(filename_fix);
     _polygonSprite_fix = Sprite::create(pinfo_fix);
     _polygonSprite_fix->setTag(102);
     addChild(_polygonSprite_fix);
@@ -884,7 +884,7 @@ void Issue14017Test::initSprites()
     _polygonSprite->addChild(sppArea);
     sppArea->setAnchorPoint(Vec2(0, 1));
 
-    temp           = "SpritePolygon:\nPixels drawn: ";
+    temp            = "SpritePolygon:\nPixels drawn: ";
     auto vertCount1 = "\nverts:" + Value((int)pinfo_fix.getVertCount()).asString();
     auto spppArea   = Label::createWithTTF(ttfConfig, temp + Value((int)pinfo_fix.getArea()).asString() + vertCount1);
     _polygonSprite_fix->addChild(spppArea);
@@ -895,14 +895,14 @@ void Issue14017Test::initSprites()
 
 SpritePolygonTestPerformance::SpritePolygonTestPerformance()
 {
-    Size s         = Director::getInstance()->getWinSize();
+    Size s         = Director::getInstance()->getCanvasSize();
     _spritesAnchor = Node::create();
     _spritesAnchor->setPosition(0, 0);
     addChild(_spritesAnchor);
 
     _totalSprites = Label::createWithTTF(TTFConfig("fonts/arial.ttf"), "sprites");
-    _totalSprites->setColor(Color3B::YELLOW);
-    _totalSprites->enableOutline(Color4B::RED, 2);
+    _totalSprites->setColor(Color32::YELLOW);
+    _totalSprites->enableOutline(Color32::RED, 2);
     _totalSprites->setPosition(s.width / 2, s.height / 2);
 
     addChild(_totalSprites);
@@ -913,7 +913,7 @@ SpritePolygonTestPerformance::SpritePolygonTestPerformance()
 void SpritePolygonTestPerformance::createSprite()
 {
     static PolygonInfo pinfo;
-    Size s         = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
 
     if (pinfo.getFilename() == "")
     {

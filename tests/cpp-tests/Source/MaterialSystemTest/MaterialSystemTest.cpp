@@ -30,8 +30,8 @@
 #include <spine/spine-cocos2dx.h>
 
 #include "../testResource.h"
-#include "axmol.h"
-#include "ui/CocosGUI.h"
+#include "axmol/axmol.h"
+#include "axmol/ui/CocosGUI.h"
 
 using namespace ax;
 
@@ -85,7 +85,7 @@ void Material_MultipleMeshRenderer::onEnter()
 
     const int totalNames = sizeof(names) / sizeof(names[0]);
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     for (int i = 0; i < totalNames; i++)
     {
@@ -137,10 +137,10 @@ void Material_2DEffects::onEnter()
 
     timeUniforms.clear();
 
-#define FETCH_CCTIME_LOCATION(mesh)                                   \
+#define FETCH_CCTIME_LOCATION(mesh)                                     \
     do                                                                  \
     {                                                                   \
-        auto programState = mesh->getProgramState();                  \
+        auto programState = mesh->getProgramState();                    \
         auto location     = programState->getUniformLocation("u_Time"); \
         timeUniforms.emplace_back(programState, location);              \
     } while (0)
@@ -178,17 +178,17 @@ void Material_2DEffects::updateCCTimeUniforms(float)
 /*
  * Custom material auto-binding resolver for terrain.
  */
-class EffectAutoBindingResolver : public backend::ProgramState::AutoBindingResolver
+class EffectAutoBindingResolver : public rhi::ProgramState::AutoBindingResolver
 {
-    virtual bool resolveAutoBinding(backend::ProgramState* programState,
+    virtual bool resolveAutoBinding(rhi::ProgramState* programState,
                                     /* Node* node,*/ std::string_view uniform,
                                     std::string_view autoBinding) override;
 
-    void callbackRadius(backend::ProgramState* programState, backend::UniformLocation uniform);
-    void callbackColor(backend::ProgramState* programState, backend::UniformLocation uniform);
+    void callbackRadius(rhi::ProgramState* programState, rhi::UniformLocation uniform);
+    void callbackColor(rhi::ProgramState* programState, rhi::UniformLocation uniform);
 };
 
-bool EffectAutoBindingResolver::resolveAutoBinding(backend::ProgramState* programState,
+bool EffectAutoBindingResolver::resolveAutoBinding(rhi::ProgramState* programState,
                                                    /*Node* node,*/ std::string_view uniform,
                                                    std::string_view autoBinding)
 {
@@ -207,13 +207,13 @@ bool EffectAutoBindingResolver::resolveAutoBinding(backend::ProgramState* progra
     return false;
 }
 
-void EffectAutoBindingResolver::callbackRadius(backend::ProgramState* programState, backend::UniformLocation uniform)
+void EffectAutoBindingResolver::callbackRadius(rhi::ProgramState* programState, rhi::UniformLocation uniform)
 {
     float f = AXRANDOM_0_1() * 10;
     programState->setUniform(uniform, &f, sizeof(f));
 }
 
-void EffectAutoBindingResolver::callbackColor(backend::ProgramState* programState, backend::UniformLocation uniform)
+void EffectAutoBindingResolver::callbackColor(rhi::ProgramState* programState, rhi::UniformLocation uniform)
 {
     float r = AXRANDOM_0_1();
     float g = AXRANDOM_0_1();
@@ -302,10 +302,10 @@ void Material_setTechnique::onEnter()
     mesh->setMaterial(mat);
 
     // lights
-    auto light1 = AmbientLight::create(Color3B::RED);
+    auto light1 = AmbientLight::create(Color32::RED);
     addChild(light1);
 
-    auto light2 = DirectionLight::create(Vec3(-1, 1, 0), Color3B::GREEN);
+    auto light2 = DirectionLight::create(Vec3(-1, 1, 0), Color32::GREEN);
     addChild(light2);
 
     this->schedule(AX_CALLBACK_1(Material_setTechnique::changeMaterial, this), 1, "cookie");
@@ -402,7 +402,7 @@ void Material_parsePerformance::onEnter()
 
     _maxParsingCoumt = 5e3;
 
-    auto screenSize = Director::getInstance()->getWinSize();
+    auto screenSize = Director::getInstance()->getCanvasSize();
 
     ui::Slider* slider = ui::Slider::create();
     slider->loadBarTexture("cocosui/sliderTrack.png");
@@ -423,12 +423,10 @@ void Material_parsePerformance::onEnter()
             {
                 label->setString("Testing start!");
             }
-            this->scheduleOnce(
-                [this, p, slider](float) {
-                    this->parsingTesting(p * _maxParsingCoumt);
-                    slider->setTouchEnabled(true);
-                },
-                1.0, "schedule test parsing");
+            this->scheduleOnce([this, p, slider](float) {
+                this->parsingTesting(p * _maxParsingCoumt);
+                slider->setTouchEnabled(true);
+            }, 1.0, "schedule test parsing");
         }
     });
 
@@ -463,8 +461,8 @@ void Material_parsePerformance::parsingTesting(unsigned int count)
     Label* label        = dynamic_cast<Label*>(this->getChildByTag(SHOW_LEBAL_TAG));
     if (label)
     {
-        std::string str = fmt::format("Testing completed! Took: {:.3} seconds for parsing material {} times.",
-                                              elapsed_secs, count);
+        std::string str =
+            fmt::format("Testing completed! Took: {:.3} seconds for parsing material {} times.", elapsed_secs, count);
         label->setString(str);
 
         AXLOGD("Took: {:.3} seconds for parsing material {} times.", elapsed_secs, count);
@@ -493,8 +491,8 @@ static void printProperties(Properties* properties, int indent)
 
     // Print all properties in this namespace.
     const char* name  = properties->getNextProperty();
-    const char* value = NULL;
-    while (name != NULL)
+    const char* value = nullptr;
+    while (name != nullptr)
     {
         value = properties->getString(name);
         AXLOGD("{}{} = {}", chindent, name, value);
@@ -502,7 +500,7 @@ static void printProperties(Properties* properties, int indent)
     }
 
     Properties* space = properties->getNextNamespace();
-    while (space != NULL)
+    while (space != nullptr)
     {
         printProperties(space, indent + 1);
         space = properties->getNextNamespace();

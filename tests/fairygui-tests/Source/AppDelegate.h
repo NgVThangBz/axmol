@@ -1,7 +1,7 @@
 #ifndef  _APP_DELEGATE_H_
 #define  _APP_DELEGATE_H_
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 /**
 @brief    The axmol Application.
@@ -12,28 +12,28 @@ class  AppDelegate : private ax::Application
 {
 public:
     AppDelegate();
-    virtual ~AppDelegate();
+    ~AppDelegate() override;
 
-    virtual void initGfxContextAttrs();
+    void initContextAttrs();
 
     /**
     @brief    Implement Director and Scene init code here.
     @return true    Initialize success, app continue.
     @return false   Initialize failed, app terminate.
     */
-    virtual bool applicationDidFinishLaunching();
+    bool applicationDidFinishLaunching() override;
 
     /**
     @brief  Called when the application moves to the background
     @param  the pointer of the application
     */
-    virtual void applicationDidEnterBackground();
+    void applicationDidEnterBackground() override;
 
     /**
     @brief  Called when the application reenters the foreground
     @param  the pointer of the application
     */
-    virtual void applicationWillEnterForeground();
+    void applicationWillEnterForeground() override;
 };
 
 #endif // _APP_DELEGATE_H_

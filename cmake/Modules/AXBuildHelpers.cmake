@@ -1,14 +1,9 @@
 include(CMakeParseArguments)
-
 find_program(PWSH_PROG NAMES pwsh powershell NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
 
 if(NOT PWSH_PROG)
   message("powershell not found.")
   message(FATAL_ERROR "Please install it https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell, and run CMake again.")
-endif()
-
-if(NOT DEFINED WASM)
-  set(WASM FALSE CACHE BOOL "")
 endif()
 
 # copy resource `FILES` and `FOLDERS` to TARGET_FILE_DIR/Resources
@@ -191,7 +186,7 @@ function(get_target_depends_ext_dlls ax_target all_depend_dlls_out)
   set(${all_depend_dlls_out} ${all_depend_ext_dlls} PARENT_SCOPE)
 endfunction()
 
-# sync the `ax_target` depended(prebuilt) dlls into TARGET_FILE_DIR
+# sync windows the `ax_target` depended(prebuilt) dlls into TARGET_FILE_DIR
 function(ax_sync_target_dlls ax_target)
   set(options LUA)
   cmake_parse_arguments(opt "${options}" "" "" ${ARGN})
@@ -208,52 +203,24 @@ function(ax_sync_target_dlls ax_target)
     list(REMOVE_DUPLICATES all_depend_dlls)
   endif()
 
-  foreach(cc_dll_file ${all_depend_dlls})
-    get_filename_component(cc_dll_name ${cc_dll_file} NAME)
-    add_custom_command(TARGET ${ax_target} POST_BUILD
-
-      # COMMAND ${CMAKE_COMMAND} -E echo "copy dll into target file dir: ${cc_dll_name} ..."
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${cc_dll_file} "$<TARGET_FILE_DIR:${ax_target}>/${cc_dll_name}"
-    )
-  endforeach()
-
-  # copy 3rdparty dlls to target bin dir
-  if(NOT CMAKE_GENERATOR MATCHES "Ninja")
-    set(BUILD_CONFIG_DIR "\$\(Configuration\)/")
-  endif()
-
-  add_custom_command(TARGET ${ax_target} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${ax_target}> $<TARGET_FILE_DIR:${ax_target}>
-    COMMAND_EXPAND_LISTS
-  )
-
-  # Copy windows angle binaries
-  if(WIN32 AND AX_GLES_PROFILE)
-    add_custom_command(TARGET ${ax_target} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  # windows angle binaries
+  if(AX_GLES_PROFILE)
+    list(APPEND all_depend_dlls
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
-      ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/d3dcompiler_47.dll
-      $<TARGET_FILE_DIR:${ax_target}>
     )
+  endif()
+
+  if(AX_GLES_PROFILE OR AX_RENDER_API STREQUAL "d3d")
+    find_windows_sdk_bin(_winsdk_bin_dir ${ARCH_ALIAS})
+    list(APPEND all_depend_dlls "${_winsdk_bin_dir}/d3dcompiler_47.dll")
   endif()
 
   # Copy webview2 for ninja
   if(AX_ENABLE_MSEDGE_WEBVIEW2)
     if(CMAKE_GENERATOR MATCHES "Ninja")
-      add_custom_command(TARGET ${ax_target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/${ARCH_ALIAS}/WebView2Loader.dll"
-        $<TARGET_FILE_DIR:${ax_target}>)
+      list(APPEND all_depend_dlls "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/${ARCH_ALIAS}/WebView2Loader.dll")
     endif()
-  endif()
-
-  # copy libvlc plugins dir for windows
-  if(AX_ENABLE_VLC_MEDIA)
-    add_custom_command(TARGET ${ax_target} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${_AX_ROOT}/cache/vlc/lib/vlc/plugins
-      $<TARGET_FILE_DIR:${ax_target}>/plugins
-    )
   endif()
 
   # if lua
@@ -263,11 +230,27 @@ function(ax_sync_target_dlls ax_target)
     endif()
 
     if(MSVC)
-      add_custom_command(TARGET ${ax_target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_BINARY_DIR}/bin/${BUILD_CONFIG_DIR}plainlua.dll"
-        $<TARGET_FILE_DIR:${ax_target}>)
+      list(APPEND all_depend_dlls "${CMAKE_BINARY_DIR}/bin/${BUILD_CONFIG_DIR}plainlua.dll")
     endif()
+  endif()
+
+  if(all_depend_dlls)
+    add_custom_command(TARGET ${ax_target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${all_depend_dlls} $<TARGET_FILE_DIR:${ax_target}>)
+  endif()
+
+  # copy target runtime dlls if exist
+  add_custom_command(TARGET ${ax_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:${ax_target}> $<TARGET_FILE_DIR:${ax_target}>
+    COMMAND_EXPAND_LISTS
+  )
+
+  # copy libvlc plugins dir for windows
+  if(AX_ENABLE_VLC_MEDIA)
+    add_custom_command(TARGET ${ax_target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${_AX_ROOT}/cache/vlc/lib/vlc/plugins
+      $<TARGET_FILE_DIR:${ax_target}>/plugins
+    )
   endif()
 endfunction()
 
@@ -409,25 +392,62 @@ function(get_target_all_library_targets output_list target)
   set(${output_list} ${lib_targets} PARENT_SCOPE)
 endfunction()
 
-# Gets a list of all compiled shaders that a given target depends on.
+# Gets a list of all compiled shaders (include builtin shaders) that a given target depends on.
 #
 # A list of all compiled shaders that the executable or library target builds is kept in
 # `AX_COMPILED_SHADERS` property on the target. This function uses this property to gather
 # the list of all shaders from this target and all libraries that this target depends on.
 function(get_target_compiled_shaders output_list target)
-  get_target_all_library_targets(libs ${target})
-  list(APPEND libs ${target})
-  set(shaders)
+  set_property(GLOBAL PROPERTY _visited_targets "")
+  set_property(GLOBAL PROPERTY _all_shaders "")
 
-  foreach(lib ${libs})
-    get_target_property(target_shaders ${lib} AX_COMPILED_SHADERS)
+  function(_collect_shaders_recursive tgt)
+    get_property(_visited GLOBAL PROPERTY _visited_targets)
+    list(FIND _visited "${tgt}" _found)
 
-    if(target_shaders)
-      list(APPEND shaders ${target_shaders})
+    if(NOT _found EQUAL -1)
+      return()
     endif()
-  endforeach()
 
-  set(${output_list} ${shaders} PARENT_SCOPE)
+    list(APPEND _visited "${tgt}")
+    set_property(GLOBAL PROPERTY _visited_targets "${_visited}")
+
+    get_target_property(_shaders "${tgt}" AX_COMPILED_SHADERS)
+
+    if(_shaders)
+      get_property(_all GLOBAL PROPERTY _all_shaders)
+      list(APPEND _all ${_shaders})
+      set_property(GLOBAL PROPERTY _all_shaders "${_all}")
+    endif()
+
+    get_property(_depends TARGET "${tgt}" PROPERTY SHADER_DEPENDS)
+
+    foreach(dep IN LISTS _depends)
+      get_target_property(_dep_shaders "${dep}" AX_COMPILED_SHADERS)
+
+      if(_dep_shaders)
+        get_property(_all GLOBAL PROPERTY _all_shaders)
+        list(APPEND _all ${_dep_shaders})
+        set_property(GLOBAL PROPERTY _all_shaders "${_all}")
+      endif()
+    endforeach()
+
+    get_target_property(_linked_libs "${tgt}" LINK_LIBRARIES)
+
+    if(_linked_libs)
+      foreach(lib IN LISTS _linked_libs)
+        if(TARGET "${lib}")
+          _collect_shaders_recursive("${lib}")
+        endif()
+      endforeach()
+    endif()
+  endfunction()
+
+  _collect_shaders_recursive("${target}")
+
+  get_property(_all GLOBAL PROPERTY _all_shaders)
+  list(REMOVE_DUPLICATES _all)
+  set(${output_list} "${_all}" PARENT_SCOPE)
 endfunction()
 
 function(ax_add_delay_load_options target)
@@ -446,7 +466,7 @@ endfunction()
 function(ax_setup_app_config app_name)
   set(options CONSOLE)
   set(oneValueArgs RUNTIME_OUTPUT_DIR)
-  cmake_parse_arguments(opt "${options}" "${oneValueArgs}" ""
+  cmake_parse_arguments(opt "${options}" "${oneValueArgs}" "${multiValueArgs}"
     "" ${ARGN})
 
   if(WINRT)
@@ -542,8 +562,8 @@ function(ax_setup_app_config app_name)
     list(LENGTH app_shaders app_shaders_count)
     message(STATUS "${app_shaders_count} shader sources found in ${app_shaders_dir}")
 
-    # compile app shader to ${CMAKE_BINARY_DIR}/runtime/axslc/custom/
-    ax_target_compile_shaders(${app_name} FILES ${app_shaders} CUSTOM)
+    # add non-builtin shader build target, will output to: ${CMAKE_BINARY_DIR}/runtime/axslc/custom/
+    ax_add_shader_target_for(${app_name} FILES ${app_shaders})
     source_group("Source Files/Source/shaders" FILES ${app_shaders})
   endif()
 
@@ -560,17 +580,14 @@ function(ax_setup_app_config app_name)
       if(CMAKE_GENERATOR MATCHES "Xcode")
         set_target_properties(${app_name} PROPERTIES XCODE_EMBED_RESOURCES ${AXSLCC_OUT_DIR})
       else()
-        get_target_compiled_shaders(shaders ${app_name})
-        ax_mark_resources(FILES ${shaders} BASEDIR ${AXSLCC_OUT_DIR} RESOURCEBASE "Resources/axslc")
-        target_sources(${app_name} PRIVATE ${shaders})
+        get_target_compiled_shaders(all_compiled_shaders ${app_name})
+        ax_mark_resources(FILES ${all_compiled_shaders} BASEDIR ${AXSLCC_OUT_DIR} RESOURCEBASE "Resources/axslc")
+        target_sources(${app_name} PRIVATE ${all_compiled_shaders})
       endif()
     elseif(WINRT OR WASM)
-      set(app_all_shaders)
-      list(APPEND app_all_shaders ${ax_builtin_shaders})
-      list(APPEND app_all_shaders ${app_shaders})
-
       if(WINRT)
-        ax_target_embed_compiled_shaders(${app_name} ${rt_output} FILES ${app_all_shaders})
+        get_target_compiled_shaders(all_compiled_shaders ${app_name})
+        ax_target_embed_compiled_shaders(${app_name} ${rt_output} FILES ${all_compiled_shaders})
       else()
         # --preload-file
         # refer to: https://emscripten.org/docs/porting/files/packaging_files.html
@@ -580,7 +597,7 @@ function(ax_setup_app_config app_name)
   endif()
 endfunction()
 
-set(AX_WASM_SHELL_FILE "${_AX_ROOT}/core/platform/wasm/shell_minimal.html" CACHE STRING "The path of wasm shell file")
+set(AX_WASM_SHELL_FILE "${_AX_ROOT}/axmol/platform/wasm/shell_minimal.html" CACHE STRING "The path of wasm shell file")
 
 option(AX_WASM_ENABLE_DEVTOOLS "Enable wasm devtools" ON)
 
@@ -615,7 +632,7 @@ macro(ax_setup_app_props app_name)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     target_link_options(${app_name} PRIVATE
       "-sEXPORTED_FUNCTIONS=[${AX_WASM_EXPORTS}]"
-      "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap,HEAPU8]"
+      "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap,HEAPU8,requestFullscreen]"
     )
     set(EMSCRIPTEN_LINK_FLAGS "-lidbfs.js -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s STACK_SIZE=4mb --shell-file ${AX_WASM_SHELL_FILE} --use-preload-cache")
 
@@ -660,14 +677,22 @@ macro(ax_setup_winrt_sources)
       set(ssl_dll_suffix "-${ARCH_ALIAS}")
     endif()
 
+    find_windows_sdk_bin(_winsdk_bin_dir ${ARCH_ALIAS})
     set(prebuilt_dlls
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/zlib/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/zlib1.dll
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/openssl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libssl-3${ssl_dll_suffix}.dll
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/openssl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libcrypto-3${ssl_dll_suffix}.dll
       ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/curl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libcurl.dll
-      ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll
-      ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
-      ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/d3dcompiler_47.dll)
+      "${_winsdk_bin_dir}/d3dcompiler_47.dll"
+    )
+
+    # GLES on ANGLE
+    if(AX_RENDER_API STREQUAL "gl")
+      list(APPEND prebuilt_dlls
+        ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll
+        ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
+      )
+    endif()
   endif()
 
   ax_mark_multi_resources(prebuilt_dlls RES_TO "." FILES ${prebuilt_dlls})
@@ -678,15 +703,20 @@ macro(ax_setup_winrt_sources)
     proj.winrt/App.h
     proj.winrt/App.cpp
     proj.winrt/Package.appxmanifest
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.xaml
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.idl
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.h
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.cpp
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLES.h
-    ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLES.cpp
-    ${_AX_ROOT}/core/platform/winrt/xaml/AxmolRenderer.h
-    ${_AX_ROOT}/core/platform/winrt/xaml/AxmolRenderer.cpp
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.xaml
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.idl
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.h
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.cpp
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/AxmolRenderer.h
+    ${_AX_ROOT}/axmol/platform/winrt/xaml/AxmolRenderer.cpp
   )
+
+  if(AX_RENDER_API STREQUAL "gl")
+    list(APPEND PLATFORM_SOURCES
+      ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.h
+      ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.cpp
+    )
+  endif()
 
   file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proj.winrt/App.xaml" APP_XAML_FULL_PATH)
   set_property(
@@ -694,14 +724,14 @@ macro(ax_setup_winrt_sources)
     PROPERTY VS_SETTINGS
     "DependentUpon=${APP_XAML_FULL_PATH}"
   )
-  file(TO_NATIVE_PATH "${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.xaml" MAINPAGE_XAML_FULL_PATH)
+  file(TO_NATIVE_PATH "${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.xaml" MAINPAGE_XAML_FULL_PATH)
   set_property(
-    SOURCE ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.h ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.cpp ${_AX_ROOT}/core/platform/winrt/xaml/OpenGLESPage.idl
+    SOURCE ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.h ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.cpp ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.idl
     PROPERTY VS_SETTINGS
     "DependentUpon=${MAINPAGE_XAML_FULL_PATH}"
   )
 
-  list(APPEND GAME_INC_DIRS ${_AX_ROOT}/core/platform/winrt/xaml)
+  list(APPEND GAME_INC_DIRS ${_AX_ROOT}/axmol/platform/winrt/xaml)
 
   list(APPEND GAME_HEADER
     ${PLATFORM_HEADERS}

@@ -1,4 +1,4 @@
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 local scheduler = ax.Director:getInstance():getScheduler()
 
 local kTagTileMap = 1
@@ -90,7 +90,7 @@ local function TileMapEditTest()
         -- over all your tiles in every frame. It's very expensive
         --    for(int x=0 x < tilemap.tgaInfo:width x++)
         --        for(int y=0 y < tilemap.tgaInfo:height y++)
-        --            Color3B c =[tilemap getTileAt:local Make(x,y))
+        --            Color32 c =[tilemap getTileAt:local Make(x,y))
         --            if( c.r != 0 )
         --                --------cclog("%d,%d = %d", x,y,c.r)
         --            end
@@ -141,7 +141,7 @@ local function TMXOrthoTest()
     --
     -- it should not flicker. No artifacts should appear
     --
-    --local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    --local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     --addChild(color, -1)
 
     local  map = ax.FastTMXTiledMap:create("TileMaps/orthogonal-test2.tmx")
@@ -416,7 +416,7 @@ end
 --------------------------------------------------------------------
 local function TMXHexTest()
     local ret = createTileDemoLayer("TMX Hex tes")
-    local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     ret:addChild(color, -1)
 
     local  map = ax.TMXTiledMap:create("TileMaps/hexa-test.tmx")
@@ -434,7 +434,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest()
     local ret = createTileDemoLayer("TMX Isometric test 0")
-    local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     ret:addChild(color, -1)
 
     local  map = ax.FastTMXTiledMap:create("TileMaps/iso-test.tmx")
@@ -454,7 +454,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest1()
     local ret = createTileDemoLayer("TMX Isometric test + anchorPoint")
-    local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = ax.FastTMXTiledMap:create("TileMaps/iso-test1.tmx")
@@ -474,7 +474,7 @@ end
 --------------------------------------------------------------------
 local function TMXIsoTest2()
     local ret = createTileDemoLayer("TMX Isometric test 2")
-    local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = ax.FastTMXTiledMap:create("TileMaps/iso-test2.tmx")
@@ -497,7 +497,7 @@ end
 --------------------------------------------------------------------
 local function TMXUncompressedTest()
     local ret = createTileDemoLayer("TMX Uncompressed test")
-    local  color = ax.LayerColor:create( ax.c4b(64,64,64,255) )
+    local  color = ax.LayerColor:create( ax.color32(64,64,64,255) )
     ret:addChild(color, -1)
 
     local map = ax.FastTMXTiledMap:create("TileMaps/iso-test2-uncompressed.tmx")
@@ -571,7 +571,7 @@ local function TMXOrthoObjectsTest()
         key = "height"
         local height = dict["height"]--dynamic_cast<NSNumber*>(dict:objectForKey("height")):getNumber()
 
-        local color = ax.c4f(1,1,1,1)
+        local color = ax.color(1,1,1,1)
         drawNode:drawLine( ax.p(x, y), ax.p((x+width), y), color)
         drawNode:drawLine( ax.p((x+width), y), ax.p((x+width), (y+height)), color)
         drawNode:drawLine( ax.p((x+width), (y+height)), ax.p(x, (y+height)), color)
@@ -629,7 +629,7 @@ local function TMXIsoObjectsTest()
         key = "height"
         local height = dict["height"]--dynamic_cast<NSNumber*>(dict:objectForKey("height")):getNumber()
 
-        local color = ax.c4f(1,1,1,1)
+        local color = ax.color(1,1,1,1)
         drawNode:drawLine( ax.p(x, y), ax.p((x+width), y), color)
         drawNode:drawLine( ax.p((x+width), y), ax.p((x+width), (y+height)), color)
         drawNode:drawLine( ax.p((x+width), (y+height)), ax.p(x, (y+height)), color)

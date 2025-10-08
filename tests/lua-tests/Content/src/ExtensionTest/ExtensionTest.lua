@@ -96,9 +96,9 @@ local function runEditBoxTest()
 		EditName:setFontName("fonts/Paint Boy.ttf")
 	end
     EditName:setFontSize(25)
-    EditName:setFontColor(ax.c3b(255,0,0))
+    EditName:setFontColor(ax.color32(255,0,0))
     EditName:setPlaceHolder("Name:")
-    EditName:setPlaceholderFontColor(ax.c3b(255,255,255))
+    EditName:setPlaceholderFontColor(ax.color32(255,255,255))
     EditName:setMaxLength(8)
     EditName:setReturnType(ax.KEYBOARD_RETURNTYPE_DONE )
 	--Handler
@@ -115,7 +115,7 @@ local function runEditBoxTest()
 	end
 
 
-    EditPassword:setFontColor(ax.c3b(0,255,0))
+    EditPassword:setFontColor(ax.color32(0,255,0))
     EditPassword:setPlaceHolder("Password:")
     EditPassword:setMaxLength(6)
     EditPassword:setInputFlag(ax.EDITBOX_INPUT_FLAG_PASSWORD)
@@ -148,7 +148,7 @@ local CreateExtensionsTestTable =
 
 local function ExtensionsMainLayer()
 
-	local s = ax.Director:getInstance():getWinSize()
+	local s = ax.Director:getInstance():getCanvasSize()
 
 	local function CreateExtensionsTestScene(nPerformanceNo)
 	  	local pNewscene = CreateExtensionsTestTable[nPerformanceNo]()
@@ -171,13 +171,13 @@ local function ExtensionsMainLayer()
     ax.MenuItemFont:setFontSize(24)
     local targetPlatform = ax.Application:getInstance():getTargetPlatform()
     local bSupportWebSocket = false
-    if (ax.PLATFORM_IPHONE == targetPlatform) or (ax.PLATFORM_IPAD == targetPlatform) or (ax.PLATFORM_ANDROID == targetPlatform) or (ax.PLATFORM_WINDOWS == targetPlatform) or (ax.PLATFORM_MAC == targetPlatform) then
+    if (ax.PLATFORM_OS_IPHONE == targetPlatform) or (ax.PLATFORM_OS_IPAD == targetPlatform) or (ax.PLATFORM_OS_ANDROID == targetPlatform) or (ax.PLATFORM_OS_WINDOWS == targetPlatform) or (ax.PLATFORM_OS_MAC == targetPlatform) then
         bSupportWebSocket = true
     end
     local bSupportEdit = false
-    if (ax.PLATFORM_IPHONE == targetPlatform) or (ax.PLATFORM_IPAD == targetPlatform) or
-        (ax.PLATFORM_ANDROID == targetPlatform) or (ax.PLATFORM_WINDOWS == targetPlatform) or
-        (ax.PLATFORM_MAC == targetPlatform) then
+    if (ax.PLATFORM_OS_IPHONE == targetPlatform) or (ax.PLATFORM_OS_IPAD == targetPlatform) or
+        (ax.PLATFORM_OS_ANDROID == targetPlatform) or (ax.PLATFORM_OS_WINDOWS == targetPlatform) or
+        (ax.PLATFORM_OS_MAC == targetPlatform) or (ax.PLATFORM_OS_TIZEN  == targetPlatform) then
         bSupportEdit = true
     end
     for i = 1, ExtensionTestEnum.TEST_MAX_COUNT do

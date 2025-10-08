@@ -25,7 +25,7 @@
 #ifndef __TABLEVIEWTESTSCENE_H__
 #define __TABLEVIEWTESTSCENE_H__
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "extensions/axmol-ext.h"
 #include "BaseTest.h"
 
@@ -40,13 +40,11 @@ public:
 
     virtual bool init() override;
 
-    virtual void scrollViewDidScroll(ax::extension::ScrollView* view) override{};
+    virtual void scrollViewDidScroll(ax::extension::ScrollView* view) override {};
     virtual void scrollViewDidZoom(ax::extension::ScrollView* view) override {}
-    virtual void tableCellTouched(ax::extension::TableView* table,
-                                  ax::extension::TableViewCell* cell) override;
+    virtual void tableCellTouched(ax::extension::TableView* table, ax::extension::TableViewCell* cell) override;
     virtual ax::Size tableCellSizeForIndex(ax::extension::TableView* table, ssize_t idx) override;
-    virtual ax::extension::TableViewCell* tableCellAtIndex(ax::extension::TableView* table,
-                                                                ssize_t idx) override;
+    virtual ax::extension::TableViewCell* tableCellAtIndex(ax::extension::TableView* table, ssize_t idx) override;
     virtual ssize_t numberOfCellsInTableView(ax::extension::TableView* table) override;
 };
 

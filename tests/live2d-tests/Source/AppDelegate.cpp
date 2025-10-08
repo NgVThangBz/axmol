@@ -47,14 +47,14 @@ AppDelegate::~AppDelegate()
 #endif
 }
 
-// if you want a different context, modify the value of gfxContextAttrs
+// if you want a different context, modify the value of contextAttrs
 // it will affect all platforms
-void AppDelegate::initGfxContextAttrs()
+void AppDelegate::initContextAttrs()
 {
-    // set graphics context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
-    GfxContextAttrs gfxContextAttrs = {8, 8, 8, 8, 24, 8, 0};
+    // set context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
+    ContextAttrs contextAttrs = {8, 8, 8, 8, 24, 8, 0};
 
-    RenderView::setGfxContextAttrs(gfxContextAttrs);
+    setContextAttrs(contextAttrs);
 }
 
 // if you want to use the package manager to install more packages,
@@ -87,7 +87,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     // Set the design resolution
     renderView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, ResolutionPolicy::SHOW_ALL);
-//    auto frameSize = renderView->getFrameSize();
+//    auto frameSize = renderView->getWindowSize();
 //    // if the frame's height is larger than the height of medium size.
 //    if (frameSize.height > mediumResolutionSize.height)
 //    {

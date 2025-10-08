@@ -25,7 +25,7 @@ local function OpenGLTestMainLayer()
     local curCase  = 0
     local accum    = 0
     local labelBMFont = nil
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
     local curLayer = nil
     local schedulEntry = nil
     local  function OrderCallbackMenu()
@@ -48,7 +48,7 @@ local function OpenGLTestMainLayer()
         end
 
         local ordercallbackmenu = ax.Menu:create()
-        local size = ax.Director:getInstance():getWinSize()
+        local size = ax.Director:getInstance():getCanvasSize()
         local item1 = ax.MenuItemImage:create(s_pPathB1, s_pPathB2)
         item1:registerScriptTapHandler(backCallback)
         ordercallbackmenu:addChild(item1,kItemTagBasic)
@@ -146,7 +146,7 @@ local function OpenGLTestMainLayer()
         layer:addChild(lableTitle, 15)
         lableTitle:setAnchorPoint(ax.p(0.5, 0.5))
         lableTitle:setPosition(ax.p(size.width/2, size.height-32))
-        lableTitle:setColor(ax.c3b(255,255,40))
+        lableTitle:setColor(ax.color32(255,255,40))
         --SubTitle
         local subLabelTitle = ax.Label:createWithTTF(GetSubTitle(), s_thonburiPath, 16)
         layer:addChild(subLabelTitle, 15)
@@ -204,10 +204,10 @@ local function OpenGLTestMainLayer()
 
         local resolution = ax.p(256, 256)
         local director = ax.Director:getInstance()
-        local frameSize = director:getRenderView():getFrameSize()
+        local canvasSize = director:getRenderView():getWindowSize()
         local visibleSize = director:getVisibleSize()
-        local retinaFactor = director:getRenderView():getRetinaFactor()
-        local center = ax.p( size.width / 2 * frameSize.width / visibleSize.width * retinaFactor, size.height / 2 * frameSize.height / visibleSize.height * retinaFactor)
+        local retinaFactor = director:getRenderView():getRenderScale()
+        local center = ax.p( size.width / 2 * canvasSize.width / visibleSize.width * retinaFactor, size.height / 2 * canvasSize.height / visibleSize.height * retinaFactor)
 
         local function initBuffers()
             local w = 256
@@ -447,10 +447,10 @@ local function OpenGLTestMainLayer()
         local x = size.width
         local y = size.height
 
-        local blue = ax.LayerColor:create(ax.c4b(0, 0, 255, 255))
-        local red = ax.LayerColor:create(ax.c4b(255, 0, 0, 255))
-        local green = ax.LayerColor:create(ax.c4b(0, 255, 0, 255))
-        local white = ax.LayerColor:create(ax.c4b(255, 255, 255, 255))
+        local blue = ax.LayerColor:create(ax.color32(0, 0, 255, 255))
+        local red = ax.LayerColor:create(ax.color32(255, 0, 0, 255))
+        local green = ax.LayerColor:create(ax.color32(0, 255, 0, 255))
+        local white = ax.LayerColor:create(ax.color32(255, 255, 255, 255))
 
         blue:setScale(0.5)
         blue:setPosition(-x / 4, -y / 4)
@@ -528,7 +528,7 @@ local function OpenGLTestMainLayer()
         local clearLayer = ax.Layer:create()
         InitTitle(clearLayer)
 
-        local blue = ax.LayerColor:create(ax.c4b(0, 0, 255, 255))
+        local blue = ax.LayerColor:create(ax.color32(0, 0, 255, 255))
         clearLayer:addChild( blue, 1 )
 
         local glNode = gl.glNodeCreate()

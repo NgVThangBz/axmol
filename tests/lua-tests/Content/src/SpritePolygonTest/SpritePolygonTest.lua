@@ -18,11 +18,11 @@ function SpritePolygonTestDemo:registerNodeEvent()
 end
 
 function SpritePolygonTestDemo:onEnter()
-    ax.Director:getInstance():setClearColor(ax.c4f(102.0/255, 184.0/255, 204.0/255, 255.0))
+    ax.Director:getInstance():setClearColor(ax.color(102.0/255, 184.0/255, 204.0/255, 1.0))
 end
 
 function SpritePolygonTestDemo:onExit()
-    ax.Director:getInstance():setClearColor(ax.c4f(0.0, 0.0, 0.0, 1.0))
+    ax.Director:getInstance():setClearColor(ax.color(0.0, 0.0, 0.0, 1.0))
 end
 
 ----------------------------------------
@@ -36,7 +36,7 @@ end
 
 function SpritePolygonTest1:ctor()
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local offset = ax.p(0.15 * s.width, 0)
     local filename = s_pPathGrossini
     local info =  ax.AutoPolygon:generatePolygon(filename)
@@ -86,7 +86,7 @@ end
 local SpritePolygonTest2 = class("SpritePolygonTest2", SpritePolygonTestDemo)
 
 function SpritePolygonTest2:make2Sprites()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local offset = ax.p(0.15 * s.width, 0)
     local filename = s_pPathGrossini
     local head = ax.rect(30, 25, 25, 25)
@@ -244,11 +244,11 @@ function SpritePolygonTest3:subtitle()
 end
 
 function SpritePolygonTest3:onEnter()
-    ax.Director:getInstance():setClearColor(ax.c4f(102.0/255, 184.0/255, 204.0/255, 255.0))
+    ax.Director:getInstance():setClearColor(ax.color(102.0/255, 184.0/255, 204.0/255, 1.0))
 end
 
 function SpritePolygonTest3:onExit()
-    ax.Director:getInstance():setClearColor(ax.c4f(0.0, 0.0, 0.0, 1.0))
+    ax.Director:getInstance():setClearColor(ax.color(0.0, 0.0, 0.0, 1.0))
 end
 
 
@@ -358,11 +358,11 @@ function SpritePolygonTest4:makeSprites(list, count, y)
 end
 
 function SpritePolygonTest4:onEnter()
-    ax.Director:getInstance():setClearColor(ax.c4f(102.0/255, 184.0/255, 204.0/255, 255.0))
+    ax.Director:getInstance():setClearColor(ax.color(102.0/255, 184.0/255, 204.0/255, 1.0))
 end
 
 function SpritePolygonTest4:onExit()
-    ax.Director:getInstance():setClearColor(ax.c4f(0.0, 0.0, 0.0, 1.0))
+    ax.Director:getInstance():setClearColor(ax.color(0.0, 0.0, 0.0, 1.0))
 end
 
 
@@ -400,11 +400,11 @@ function SpritePolygonPerformance:updateLabel()
 end
 
 function SpritePolygonPerformance:onEnter()
-    ax.Director:getInstance():setClearColor(ax.c4f(102.0/255, 184.0/255, 204.0/255, 255.0))
+    ax.Director:getInstance():setClearColor(ax.color(102.0/255, 184.0/255, 204.0/255, 1.0))
 end
 
 function SpritePolygonPerformance:onExit()
-    ax.Director:getInstance():setClearColor(ax.c4f(0.0, 0.0, 0.0, 1.0))
+    ax.Director:getInstance():setClearColor(ax.color(0.0, 0.0, 0.0, 1.0))
     self:unscheduleUpdate()
 end
 

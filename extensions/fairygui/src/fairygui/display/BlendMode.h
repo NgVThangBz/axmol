@@ -1,5 +1,7 @@
 #pragma once
-#include "cocos2d.h"
+
+#include "axmol/2d/Node.h"
+#include "axmol/base/Types.h"
 #include "FairyGUIMacros.h"
 
 NS_FGUI_BEGIN
@@ -25,8 +27,8 @@ class BlendModeUtils
 public:
     static void apply(ax::Node* node, BlendMode blendMode);
     static void overrideBlendMode(BlendMode blendMode,
-                                  ax::backend::BlendFactor srcFactor,
-                                  ax::backend::BlendFactor dstFactor);
+                                  ax::rhi::BlendFactor srcFactor,
+                                  ax::rhi::BlendFactor dstFactor);
 
 protected:
     static void apply(ax::Node* node, const ax::BlendFunc& blendFunc);

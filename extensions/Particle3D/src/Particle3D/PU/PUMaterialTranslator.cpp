@@ -26,7 +26,6 @@
 
 #include "PUMaterialTranslator.h"
 #include "Particle3D/PU/PUMaterialManager.h"
-#include "renderer/backend/Types.h"
 
 namespace ax
 {
@@ -198,7 +197,7 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
             {
                 if (passValidateProperty(compiler, prop, matToken[TOKEN_MAT_AMIBIENT], VAL_VECTOR4))
                 {
-                    Vec4 val;
+                    Color val;
                     if (getVector4(prop->values.begin(), prop->values.end(), &val))
                     {
                         material->ambientColor = val;
@@ -209,7 +208,7 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
             {
                 if (passValidateProperty(compiler, prop, matToken[TOKEN_MAT_AMIBIENT], VAL_VECTOR4))
                 {
-                    Vec4 val;
+                    Color val;
                     if (getVector4(prop->values.begin(), prop->values.end(), &val))
                     {
                         material->diffuseColor = val;
@@ -221,7 +220,7 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
                 PUAbstractNodeList::const_iterator it  = prop->values.begin();
                 PUAbstractNodeList::const_iterator end = prop->values.end();
                 unsigned int n                         = 0;
-                Vec4 color;
+                Color color;
                 float shininess = 0.0f;
                 while (it != end)
                 {
@@ -258,7 +257,7 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
             {
                 if (passValidateProperty(compiler, prop, matToken[TOKEN_MAT_AMIBIENT], VAL_VECTOR4))
                 {
-                    Vec4 val;
+                    Color val;
                     if (getVector4(prop->values.begin(), prop->values.end(), &val))
                     {
                         material->emissiveColor = val;
@@ -275,8 +274,8 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
                     {
                         if (val == matToken[TOKEN_MAT_BLEND_ADD])
                         {
-                            material->blendFunc.src = backend::BlendFactor::ONE;
-                            material->blendFunc.dst = backend::BlendFactor::ONE;
+                            material->blendFunc.src = rhi::BlendFactor::ONE;
+                            material->blendFunc.dst = rhi::BlendFactor::ONE;
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_ALPHA])
                         {
@@ -284,26 +283,26 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_COLOR])
                         {
-                            material->blendFunc.src = backend::BlendFactor::SRC_COLOR;
-                            material->blendFunc.dst = backend::BlendFactor::ONE_MINUS_SRC_COLOR;
+                            material->blendFunc.src = rhi::BlendFactor::SRC_COLOR;
+                            material->blendFunc.dst = rhi::BlendFactor::ONE_MINUS_SRC_COLOR;
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_MODULATE])
                         {
-                            material->blendFunc.src = backend::BlendFactor::DST_COLOR;
-                            material->blendFunc.dst = backend::BlendFactor::ZERO;
+                            material->blendFunc.src = rhi::BlendFactor::DST_COLOR;
+                            material->blendFunc.dst = rhi::BlendFactor::ZERO;
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_REPLACE])
                         {
-                            material->blendFunc.src = backend::BlendFactor::ONE;
-                            material->blendFunc.dst = backend::BlendFactor::ZERO;
+                            material->blendFunc.src = rhi::BlendFactor::ONE;
+                            material->blendFunc.dst = rhi::BlendFactor::ZERO;
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_SRC_COLOR])
                         {
-                            material->blendFunc.src = backend::BlendFactor::SRC_COLOR;
+                            material->blendFunc.src = rhi::BlendFactor::SRC_COLOR;
                         }
                         else if (val == matToken[TOKEN_MAT_BLEND_DEST_COLOR])
                         {
-                            material->blendFunc.src = backend::BlendFactor::DST_COLOR;
+                            material->blendFunc.src = rhi::BlendFactor::DST_COLOR;
                         }
                     }
 
@@ -313,19 +312,19 @@ void PUMaterialPassTranslator::translate(PUScriptCompiler* compiler, PUAbstractN
                         {
                             if (val == matToken[TOKEN_MAT_BLEND_ONE])
                             {
-                                material->blendFunc.dst = backend::BlendFactor::ONE;
+                                material->blendFunc.dst = rhi::BlendFactor::ONE;
                             }
                             else if (val == matToken[TOKEN_MAT_BLEND_ZERO])
                             {
-                                material->blendFunc.dst = backend::BlendFactor::ZERO;
+                                material->blendFunc.dst = rhi::BlendFactor::ZERO;
                             }
                             else if (val == matToken[TOKEN_MAT_BLEND_SRC_COLOR])
                             {
-                                material->blendFunc.dst = backend::BlendFactor::SRC_COLOR;
+                                material->blendFunc.dst = rhi::BlendFactor::SRC_COLOR;
                             }
                             else if (val == matToken[TOKEN_MAT_BLEND_DEST_COLOR])
                             {
-                                material->blendFunc.dst = backend::BlendFactor::DST_COLOR;
+                                material->blendFunc.dst = rhi::BlendFactor::DST_COLOR;
                             }
                         }
                     }
@@ -414,15 +413,15 @@ void PUMaterialTextureUnitTranslator::translate(PUScriptCompiler* compiler, PUAb
                     {
                         if (val == matToken[TOKEN_MAT_TEXTURE_CLAMP])
                         {
-                            material->wrapMode = backend::SamplerAddressMode::CLAMP_TO_EDGE;
+                            material->wrapMode = rhi::SamplerAddressMode::CLAMP_TO_EDGE;
                         }
                         else if (val == matToken[TOKEN_MAT_TEXTURE_REPEAT])
                         {
-                            material->wrapMode = backend::SamplerAddressMode::REPEAT;
+                            material->wrapMode = rhi::SamplerAddressMode::REPEAT;
                         }
                         else if (val == matToken[TOKEN_MAT_TEXTURE_MIRROR])
                         {
-                            material->wrapMode = backend::SamplerAddressMode::MIRROR_REPEAT;  // GL_MIRROR_CLAMP_EXT;
+                            material->wrapMode = rhi::SamplerAddressMode::MIRROR;
                         }
                     }
                 }
@@ -431,4 +430,4 @@ void PUMaterialTextureUnitTranslator::translate(PUScriptCompiler* compiler, PUAb
     }
 }
 
-}
+}  // namespace ax

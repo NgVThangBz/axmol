@@ -27,9 +27,9 @@
 #if defined(AX_ENABLE_EXT_SPINE)
 #    include "cocostudio/SpineSkeletonDataCache.h"
 
-#    include "2d/Sprite.h"
-#    include "2d/SpriteFrameCache.h"
-#    include "platform/FileUtils.h"
+#    include "axmol/2d/Sprite.h"
+#    include "axmol/2d/SpriteFrameCache.h"
+#    include "axmol/platform/FileUtils.h"
 
 #    include "cocostudio/CSParseBinary_generated.h"
 #    include "cocostudio/FlatBuffersSerialize.h"
@@ -219,8 +219,7 @@ void SpineSkeletonReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuff
     implNode->setScaleX(nodeOptions->scale()->x());
     implNode->setScaleY(nodeOptions->scale()->y());
 
-    implNode->setColor(Color3B(red, green, blue));
-    implNode->setOpacity(alpha);
+    implNode->setColor(Color32(red, green, blue, alpha));
 
     /*bool flipX = nodeOptions->flipX() != 0;
     bool flipY = nodeOptions->flipY() != 0;

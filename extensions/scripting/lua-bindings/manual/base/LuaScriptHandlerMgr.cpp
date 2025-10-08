@@ -1,6 +1,7 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -94,8 +95,7 @@ LuaCallFunc* LuaCallFunc::clone() const
 
     ret->autorelease();
 
-    int newscriptHandler =
-        ax::ScriptEngineManager::getInstance()->getScriptEngine()->reallocateScriptHandler(handler);
+    int newscriptHandler = ax::ScriptEngineManager::getInstance()->getScriptEngine()->reallocateScriptHandler(handler);
 
     ScriptHandlerMgr::getInstance()->addObjectHandler((void*)ret, newscriptHandler,
                                                       ScriptHandlerMgr::HandlerType::CALLFUNC);
@@ -228,7 +228,7 @@ ScriptHandlerMgr::HandlerType ScriptHandlerMgr::addCustomHandler(void* object, i
     return handlerType;
 }
 
-}
+}  // namespace ax
 
 static void tolua_reg_script_handler_mgr_type(lua_State* tolua_S)
 {
@@ -237,8 +237,8 @@ static void tolua_reg_script_handler_mgr_type(lua_State* tolua_S)
 }
 
 /* method: getInstance of class  ScriptHandlerMgr */
-#ifndef TOLUA_DISABLE_tolua_Cocos2d_ScriptHandlerMgr_getInstance00
-static int tolua_Cocos2d_ScriptHandlerMgr_getInstance00(lua_State* tolua_S)
+#ifndef TOLUA_DISABLE_axlua_ScriptHandlerMgr_getInstance00
+static int axlua_ScriptHandlerMgr_getInstance00(lua_State* tolua_S)
 {
 #    ifndef TOLUA_RELEASE
     tolua_Error tolua_err;
@@ -257,10 +257,10 @@ tolua_lerror:
     return 0;
 #    endif
 }
-#endif  //#ifndef TOLUA_DISABLE
+#endif  // #ifndef TOLUA_DISABLE
 
 /* method: registerScriptHandler of class  ScriptHandlerMgr */
-static int tolua_Cocos2d_ScriptHandlerMgr_registerScriptHandler00(lua_State* tolua_S)
+static int axlua_ScriptHandlerMgr_registerScriptHandler00(lua_State* tolua_S)
 {
 #ifndef TOLUA_RELEASE
     tolua_Error tolua_err;
@@ -272,15 +272,13 @@ static int tolua_Cocos2d_ScriptHandlerMgr_registerScriptHandler00(lua_State* tol
     else
 #endif
     {
-        ax::ScriptHandlerMgr* scriptHanlderMgr =
-            static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
+        ax::ScriptHandlerMgr* scriptHanlderMgr = static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
 #ifndef TOLUA_RELEASE
         if (nullptr == scriptHanlderMgr)
         {
-            tolua_error(
-                tolua_S,
-                "invalid 'scriptHanlderMgr' in function 'tolua_Cocos2d_ScriptHandlerMgr_registerScriptHandler00'\n",
-                NULL);
+            tolua_error(tolua_S,
+                        "invalid 'scriptHanlderMgr' in function 'axlua_ScriptHandlerMgr_registerScriptHandler00'\n",
+                        NULL);
             return 0;
         }
 #endif
@@ -297,7 +295,7 @@ tolua_lerror:
 }
 
 /* method: unregisterScriptHandler of class  ScriptHandlerMgr */
-static int tolua_Cocos2d_ScriptHandlerMgr_unregisterScriptHandler00(lua_State* tolua_S)
+static int axlua_ScriptHandlerMgr_unregisterScriptHandler00(lua_State* tolua_S)
 {
 #ifndef TOLUA_RELEASE
     tolua_Error tolua_err;
@@ -308,15 +306,13 @@ static int tolua_Cocos2d_ScriptHandlerMgr_unregisterScriptHandler00(lua_State* t
     else
 #endif
     {
-        ax::ScriptHandlerMgr* scriptHanlderMgr =
-            static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
+        ax::ScriptHandlerMgr* scriptHanlderMgr = static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
 #ifndef TOLUA_RELEASE
         if (nullptr == scriptHanlderMgr)
         {
-            tolua_error(
-                tolua_S,
-                "invalid 'scriptHanlderMgr' in function 'tolua_Cocos2d_ScriptHandlerMgr_unregisterScriptHandler00'\n",
-                NULL);
+            tolua_error(tolua_S,
+                        "invalid 'scriptHanlderMgr' in function 'axlua_ScriptHandlerMgr_unregisterScriptHandler00'\n",
+                        NULL);
             return 0;
         }
 #endif
@@ -332,7 +328,7 @@ tolua_lerror:
 }
 
 /* method: removeObjectAllHandlers of class  ScriptHandlerMgr */
-static int tolua_Cocos2d_ScriptHandlerMgr_removeObjectAllHandlers00(lua_State* tolua_S)
+static int axlua_ScriptHandlerMgr_removeObjectAllHandlers00(lua_State* tolua_S)
 {
 #ifndef TOLUA_RELEASE
     tolua_Error tolua_err;
@@ -342,15 +338,13 @@ static int tolua_Cocos2d_ScriptHandlerMgr_removeObjectAllHandlers00(lua_State* t
     else
 #endif
     {
-        ax::ScriptHandlerMgr* scriptHanlderMgr =
-            static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
+        ax::ScriptHandlerMgr* scriptHanlderMgr = static_cast<ax::ScriptHandlerMgr*>(tolua_tousertype(tolua_S, 1, 0));
 #ifndef TOLUA_RELEASE
         if (nullptr == scriptHanlderMgr)
         {
-            tolua_error(
-                tolua_S,
-                "invalid 'scriptHanlderMgr' in function 'tolua_Cocos2d_ScriptHandlerMgr_removeObjectAllHandlers00'\n",
-                NULL);
+            tolua_error(tolua_S,
+                        "invalid 'scriptHanlderMgr' in function 'axlua_ScriptHandlerMgr_removeObjectAllHandlers00'\n",
+                        NULL);
             return 0;
         }
 #endif
@@ -372,10 +366,10 @@ TOLUA_API int tolua_script_handler_mgr_open(lua_State* tolua_S)
     tolua_beginmodule(tolua_S, NULL);
     tolua_cclass(tolua_S, "ScriptHandlerMgr", "ScriptHandlerMgr", "", NULL);
     tolua_beginmodule(tolua_S, "ScriptHandlerMgr");
-    tolua_function(tolua_S, "getInstance", tolua_Cocos2d_ScriptHandlerMgr_getInstance00);
-    tolua_function(tolua_S, "registerScriptHandler", tolua_Cocos2d_ScriptHandlerMgr_registerScriptHandler00);
-    tolua_function(tolua_S, "unregisterScriptHandler", tolua_Cocos2d_ScriptHandlerMgr_unregisterScriptHandler00);
-    tolua_function(tolua_S, "removeObjectAllHandlers", tolua_Cocos2d_ScriptHandlerMgr_removeObjectAllHandlers00);
+    tolua_function(tolua_S, "getInstance", axlua_ScriptHandlerMgr_getInstance00);
+    tolua_function(tolua_S, "registerScriptHandler", axlua_ScriptHandlerMgr_registerScriptHandler00);
+    tolua_function(tolua_S, "unregisterScriptHandler", axlua_ScriptHandlerMgr_unregisterScriptHandler00);
+    tolua_function(tolua_S, "removeObjectAllHandlers", axlua_ScriptHandlerMgr_removeObjectAllHandlers00);
     tolua_endmodule(tolua_S);
     tolua_endmodule(tolua_S);
     return 1;

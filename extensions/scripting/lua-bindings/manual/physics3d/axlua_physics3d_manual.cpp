@@ -23,20 +23,17 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "platform/PlatformConfig.h"
-#include "base/Config.h"
+#include "axmol/platform/PlatformConfig.h"
+#include "axmol/base/Config.h"
 #if defined(AX_ENABLE_3D_PHYSICS)
 #    include "lua-bindings/manual/physics3d/axlua_physics3d_manual.h"
 #    include "lua-bindings/auto/axlua_physics3d_auto.hpp"
 #    include "lua-bindings/manual/tolua_fix.h"
 #    include "lua-bindings/manual/LuaBasicConversions.h"
 #    include "lua-bindings/manual/LuaEngine.h"
-#    include "physics3d/Physics3D.h"
+#    include "axmol/physics3d/Physics3D.h"
 
-bool luaval_to_Physics3DRigidBodyDes(lua_State* L,
-                                     int lo,
-                                     ax::Physics3DRigidBodyDes* outValue,
-                                     const char* funcName)
+bool luaval_to_Physics3DRigidBodyDes(lua_State* L, int lo, ax::Physics3DRigidBodyDes* outValue, const char* funcName)
 {
     if (nullptr == L || nullptr == outValue)
         return false;
@@ -254,7 +251,8 @@ int axlua_physics3d_PhysicsMeshRenderer_create(lua_State* L)
         object_to_luaval<ax::PhysicsMeshRenderer>(L, "ax.PhysicsMeshRenderer", (ax::PhysicsMeshRenderer*)ret);
         return 1;
     }
-    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.PhysicsMeshRenderer:create", argc, 2);
+    luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d\n ", "ax.PhysicsMeshRenderer:create", argc,
+               2);
     return 0;
 #    if _AX_DEBUG >= 1
 tolua_lerror:
@@ -349,8 +347,7 @@ int axlua_physics3d_Physics3DComponent_create(lua_State* L)
                 break;
             }
             ax::Physics3DComponent* ret = ax::Physics3DComponent::create(arg0);
-            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent",
-                                                          (ax::Physics3DComponent*)ret);
+            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent", (ax::Physics3DComponent*)ret);
             return 1;
         }
     } while (0);
@@ -372,8 +369,7 @@ int axlua_physics3d_Physics3DComponent_create(lua_State* L)
                 break;
             }
             ax::Physics3DComponent* ret = ax::Physics3DComponent::create(arg0, arg1);
-            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent",
-                                                          (ax::Physics3DComponent*)ret);
+            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent", (ax::Physics3DComponent*)ret);
             return 1;
         }
     } while (0);
@@ -401,8 +397,7 @@ int axlua_physics3d_Physics3DComponent_create(lua_State* L)
                 break;
             }
             ax::Physics3DComponent* ret = ax::Physics3DComponent::create(arg0, arg1, arg2);
-            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent",
-                                                          (ax::Physics3DComponent*)ret);
+            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent", (ax::Physics3DComponent*)ret);
             return 1;
         }
     } while (0);
@@ -412,8 +407,7 @@ int axlua_physics3d_Physics3DComponent_create(lua_State* L)
         if (argc == 0)
         {
             ax::Physics3DComponent* ret = ax::Physics3DComponent::create();
-            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent",
-                                                          (ax::Physics3DComponent*)ret);
+            object_to_luaval<ax::Physics3DComponent>(L, "ax.Physics3DComponent", (ax::Physics3DComponent*)ret);
             return 1;
         }
     } while (0);
@@ -440,9 +434,9 @@ void extendPhysics3DComponent(lua_State* L)
 
 int axlua_physics3d_Physics3DWorld_rayCast(lua_State* L)
 {
-    int argc                      = 0;
-    ax::Physics3DWorld* cobj = nullptr;
-    bool ok                       = true;
+    int argc                = 0;
+    ax::Physics3DWorld* obj = nullptr;
+    bool ok                 = true;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -453,12 +447,12 @@ int axlua_physics3d_Physics3DWorld_rayCast(lua_State* L)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::Physics3DWorld*)tolua_tousertype(L, 1, 0);
+    obj = (ax::Physics3DWorld*)tolua_tousertype(L, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_physics3d_Physics3DWorld_rayCast'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_physics3d_Physics3DWorld_rayCast'", nullptr);
         return 0;
     }
 #    endif
@@ -481,7 +475,7 @@ int axlua_physics3d_Physics3DWorld_rayCast(lua_State* L)
             tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DWorld_rayCast'", nullptr);
             return 0;
         }
-        bool ret = cobj->rayCast(arg0, arg1, &arg2);
+        bool ret = obj->rayCast(arg0, arg1, &arg2);
         tolua_pushboolean(L, (bool)ret);
         Physics3DWorld_HitResult_to_luaval(L, arg2);
         return 2;
@@ -529,7 +523,7 @@ int axlua_physics3d_Physics3DShape_createMesh(lua_State* L)
         std::vector<Vec3> arg0;
         int arg1;
         ok &= luaval_to_std_vector_vec3(L, 2, &arg0, "ax.Physics3DShape:createMesh");
-        ok &= luaval_to_int32(L, 3, (int*)&arg1, "ax.Physics3DShape:createMesh");
+        ok &= luaval_to_int(L, 3, (int*)&arg1, "ax.Physics3DShape:createMesh");
         if (!ok)
         {
             tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DShape_createMesh'", nullptr);
@@ -574,8 +568,8 @@ int axlua_physics3d_Physics3DShape_createHeightfield(lua_State* L)
         double arg5;
         bool arg6;
         bool arg7;
-        ok &= luaval_to_int32(L, 2, (int*)&arg0, "ax.Physics3DShape:createHeightfield");
-        ok &= luaval_to_int32(L, 3, (int*)&arg1, "ax.Physics3DShape:createHeightfield");
+        ok &= luaval_to_int(L, 2, (int*)&arg0, "ax.Physics3DShape:createHeightfield");
+        ok &= luaval_to_int(L, 3, (int*)&arg1, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_std_vector_float(L, 4, &arg2, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_number(L, 5, &arg3, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_number(L, 6, &arg4, "ax.Physics3DShape:createHeightfield");
@@ -584,12 +578,11 @@ int axlua_physics3d_Physics3DShape_createHeightfield(lua_State* L)
         ok &= luaval_to_boolean(L, 9, &arg7, "ax.Physics3DShape:createHeightfield");
         if (!ok)
         {
-            tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DShape_createHeightfield'",
-                        nullptr);
+            tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DShape_createHeightfield'", nullptr);
             return 0;
         }
-        ax::Physics3DShape* ret = ax::Physics3DShape::createHeightfield(arg0, arg1, &arg2[0], (float)arg3,
-                                                                                  (float)arg4, (float)arg5, arg6, arg7);
+        ax::Physics3DShape* ret = ax::Physics3DShape::createHeightfield(arg0, arg1, &arg2[0], (float)arg3, (float)arg4,
+                                                                        (float)arg5, arg6, arg7);
         object_to_luaval<ax::Physics3DShape>(L, "ax.Physics3DShape", (ax::Physics3DShape*)ret);
         return 1;
     }
@@ -604,8 +597,8 @@ int axlua_physics3d_Physics3DShape_createHeightfield(lua_State* L)
         bool arg6;
         bool arg7;
         bool arg8;
-        ok &= luaval_to_int32(L, 2, (int*)&arg0, "ax.Physics3DShape:createHeightfield");
-        ok &= luaval_to_int32(L, 3, (int*)&arg1, "ax.Physics3DShape:createHeightfield");
+        ok &= luaval_to_int(L, 2, (int*)&arg0, "ax.Physics3DShape:createHeightfield");
+        ok &= luaval_to_int(L, 3, (int*)&arg1, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_std_vector_float(L, 4, &arg2, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_number(L, 5, &arg3, "ax.Physics3DShape:createHeightfield");
         ok &= luaval_to_number(L, 6, &arg4, "ax.Physics3DShape:createHeightfield");
@@ -615,12 +608,11 @@ int axlua_physics3d_Physics3DShape_createHeightfield(lua_State* L)
         ok &= luaval_to_boolean(L, 10, &arg8, "ax.Physics3DShape:createHeightfield");
         if (!ok)
         {
-            tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DShape_createHeightfield'",
-                        nullptr);
+            tolua_error(L, "invalid arguments in function 'axlua_physics3d_Physics3DShape_createHeightfield'", nullptr);
             return 0;
         }
-        ax::Physics3DShape* ret = ax::Physics3DShape::createHeightfield(
-            arg0, arg1, &arg2[0], (float)arg3, (float)arg4, (float)arg5, arg6, arg7, arg8);
+        ax::Physics3DShape* ret = ax::Physics3DShape::createHeightfield(arg0, arg1, &arg2[0], (float)arg3, (float)arg4,
+                                                                        (float)arg5, arg6, arg7, arg8);
         object_to_luaval<ax::Physics3DShape>(L, "ax.Physics3DShape", (ax::Physics3DShape*)ret);
         return 1;
     }
@@ -662,7 +654,7 @@ int axlua_physics3d_Physics3DShape_createCompoundShape(lua_State* L)
 
         if (ok)
         {
-            size_t len                     = lua_objlen(L, 2);
+            size_t len                = lua_objlen(L, 2);
             ax::Physics3DShape* shape = nullptr;
             ax::Mat4 mat;
             for (size_t i = 0; i < len; i++)
@@ -739,8 +731,8 @@ void CollisionPoint_to_luaval(lua_State* L, const ax::Physics3DCollisionInfo::Co
 
 int axlua_physics3d_Physics3DObject_setCollisionCallback(lua_State* L)
 {
-    int argc                       = 0;
-    ax::Physics3DObject* cobj = nullptr;
+    int argc                 = 0;
+    ax::Physics3DObject* obj = nullptr;
 
 #    if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -751,13 +743,12 @@ int axlua_physics3d_Physics3DObject_setCollisionCallback(lua_State* L)
         goto tolua_lerror;
 #    endif
 
-    cobj = (ax::Physics3DObject*)tolua_tousertype(L, 1, 0);
+    obj = (ax::Physics3DObject*)tolua_tousertype(L, 1, 0);
 
 #    if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_physics3d_Physics3DObject_setCollisionCallback'",
-                    nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_physics3d_Physics3DObject_setCollisionCallback'", nullptr);
         return 0;
     }
 #    endif
@@ -772,7 +763,7 @@ int axlua_physics3d_Physics3DObject_setCollisionCallback(lua_State* L)
         }
 #    endif
         LUA_FUNCTION handler = toluafix_ref_function(L, 2, 0);
-        cobj->setCollisionCallback([=](const ax::Physics3DCollisionInfo& ci) {
+        obj->setCollisionCallback([=](const ax::Physics3DCollisionInfo& ci) {
             auto stack = LuaEngine::getInstance()->getLuaStack();
             auto Ls    = stack->getLuaState();
             lua_newtable(Ls);
@@ -817,7 +808,7 @@ int axlua_physics3d_Physics3DObject_setCollisionCallback(lua_State* L)
             stack->executeFunctionByHandler(handler, 1);
         });
 
-        ScriptHandlerMgr::getInstance()->addCustomHandler((void*)cobj, handler);
+        ScriptHandlerMgr::getInstance()->addCustomHandler((void*)obj, handler);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n",

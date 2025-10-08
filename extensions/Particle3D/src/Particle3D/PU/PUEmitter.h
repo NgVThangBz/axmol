@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/Particle3DEmitter.h"
 #include "Particle3D/PU/PUDynamicAttribute.h"
 #include "Particle3D/PU/PUParticleSystem3D.h"
@@ -86,11 +86,11 @@ public:
     virtual void prepare();
     virtual void unPrepare();
     virtual void preUpdateEmitter(float deltaTime);
-    virtual void updateEmitter(Particle3D* particle, float deltaTime) override;
+    void updateEmitter(Particle3D* particle, float deltaTime) override;
     virtual void postUpdateEmitter(float deltaTime);
     virtual unsigned short calculateRequestedParticles(float timeElapsed);
 
-    virtual void emit(int count) override;
+    void emit(int count) override;
 
     void setLocalPosition(const Vec3& pos) { _position = pos; };
     const Vec3 getLocalPosition() const { return _position; };
@@ -261,27 +261,27 @@ public:
 
     /** Get the colour of a particle that will be emitted.
      */
-    const Vec4& getParticleColor() const;
+    const Color& getParticleColor() const;
 
     /** Set the colour of an emitted particle.
      */
-    void setParticleColor(const Vec4& particleColour);
+    void setParticleColor(const Color& particleColour);
 
     /** Get the colour range start of an emitted particle.
      */
-    const Vec4& getParticleColorRangeStart() const;
+    const Color& getParticleColorRangeStart() const;
 
     /** Set the colour range start of an emitted particle. This is the lower value used to generate a random colour.
      */
-    void setParticleColorRangeStart(const Vec4& particleColourRangeStart);
+    void setParticleColorRangeStart(const Color& particleColourRangeStart);
 
     /** Get the colour range end of an emitted particle.
      */
-    const Vec4& getParticleColorRangeEnd() const;
+    const Color& getParticleColorRangeEnd() const;
 
     /** Set the colour range end of an emitted particle. This is the upper value used to generate a random colour.
      */
-    void setParticleColorRangeEnd(const Vec4& particleColourRangeEnd);
+    void setParticleColorRangeEnd(const Color& particleColourRangeEnd);
 
     /** Get the texture coords of an emitted particle.
      */
@@ -533,15 +533,15 @@ protected:
 
     /** Colour that is assigned to an emitted particle.
      */
-    Vec4 _particleColor;
+    Color _particleColor;
 
     /** Used to randomize the colour of an emitted particle.
      */
-    Vec4 _particleColorRangeStart;
+    Color _particleColorRangeStart;
 
     /** Used to randomize the colour of an emitted particle.
      */
-    Vec4 _particleColorRangeEnd;
+    Color _particleColorRangeEnd;
 
     /** Used to determine whether the colour range has been set.
      */
@@ -576,5 +576,4 @@ protected:
     bool _isMarkedForEmission;
 };
 
-}
-
+}  // namespace ax

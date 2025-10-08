@@ -37,8 +37,7 @@ THE SOFTWARE.
 
 #include "xxhash.h"
 
-// TODO: mac metal
-#if defined(AX_USE_GL) && defined(AX_PLATFORM_PC)
+#if defined(AX_PLATFORM_PC) && AX_RENDER_API == AX_RENDER_API_GL
 #    define AX_IMGUI_ENABLE_MULTI_VIEWPORT 1
 #else
 #    define AX_IMGUI_ENABLE_MULTI_VIEWPORT 0
@@ -804,8 +803,7 @@ void ImGuiPresenter::setNodeColor(Node* node, const ImVec4& col)
 {
     if (node)
     {
-        node->setColor({uint8_t(col.x * 255), uint8_t(col.y * 255), uint8_t(col.z * 255)});
-        node->setOpacity(uint8_t(col.w * 255));
+        node->setColor({uint8_t(col.x * 255), uint8_t(col.y * 255), uint8_t(col.z * 255), uint8_t(col.w * 255)});
     }
 }
 

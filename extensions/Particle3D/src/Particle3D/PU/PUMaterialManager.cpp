@@ -27,14 +27,13 @@
 #include "PUMaterialManager.h"
 #include "Particle3D/PU/PUScriptCompiler.h"
 #include "Particle3D/PU/PUTranslateManager.h"
-#include "platform/FileUtils.h"
-#include "platform/PlatformMacros.h"
-#include "renderer/backend/Types.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/platform/PlatformMacros.h"
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 #    include <io.h>
 #elif (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-#    include "platform/android/FileUtils-android.h"
+#    include "axmol/platform/android/FileUtils-android.h"
 #    include <android/asset_manager.h>
 #elif (AX_TARGET_PLATFORM == AX_PLATFORM_IOS || AX_TARGET_PLATFORM == AX_PLATFORM_MAC)
 #    include <ftw.h>
@@ -43,7 +42,7 @@
 #    include <sys/stat.h>
 #    include <dirent.h>
 #else
-#    include "base/filesystem.h"
+#    include "axmol/tlx/filesystem.hpp"
 #endif
 
 #include "yasio/string_view.hpp"
@@ -60,10 +59,10 @@ PUMaterial::PUMaterial()
     , shininess(0.0f)
     , depthTest(true)
     , depthWrite(true)
-    , wrapMode(backend::SamplerAddressMode::CLAMP_TO_EDGE)
+    , wrapMode(rhi::SamplerAddressMode::CLAMP_TO_EDGE)
 {
-    blendFunc.src = backend::BlendFactor::ONE;
-    blendFunc.dst = backend::BlendFactor::ZERO;
+    blendFunc.src = rhi::BlendFactor::ONE;
+    blendFunc.dst = rhi::BlendFactor::ZERO;
 }
 
 PUMaterialCache::PUMaterialCache() {}
@@ -113,7 +112,7 @@ void PUMaterialCache::addMaterial(PUMaterial* material)
         if (iter->name == material->name)
         {
             AXLOGD("warning: Material has existed (FilePath: {},  MaterialName: {})", material->fileName,
-                  material->name.c_str());
+                   material->name.c_str());
             return;
         }
     }
@@ -228,4 +227,4 @@ bool PUMaterialCache::loadMaterialsFromSearchPaths(std::string_view fileFolder)
     return state;
 }
 
-}
+}  // namespace ax

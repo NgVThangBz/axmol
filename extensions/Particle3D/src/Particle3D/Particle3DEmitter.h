@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "base/Object.h"
+#include "axmol/base/Object.h"
 #include <vector>
 #include "extensions/ExtensionExport.h"
 
@@ -61,5 +61,4 @@ protected:
     bool _isEnabled;
 };
 
-}
-
+}  // namespace ax

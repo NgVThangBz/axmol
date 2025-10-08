@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/Particle3DRender.h"
 #include "Particle3D/PU/PUListener.h"
 #include "Particle3D/PU/PURender.h"
@@ -43,7 +43,7 @@ class PURibbonTrailVisualData : public Object
 public:
     // Constructor
     PURibbonTrailVisualData(Node* sceneNode, PURibbonTrail* ribbonTrail)
-        : node(sceneNode), addedToTrail(false), trail(ribbonTrail), index(0){};
+        : node(sceneNode), addedToTrail(false), trail(ribbonTrail), index(0) {};
 
     Node* node;
     bool addedToTrail;
@@ -85,14 +85,14 @@ public:
 
     static PURibbonTrailRender* create(std::string_view texFile = "");
 
-    virtual void notifyRescaled(const Vec3& scale) override;
-    virtual void prepare() override;
-    virtual void unPrepare() override;
-    virtual void updateRender(PUParticle3D* particle, float deltaTime, bool firstParticle) override;
+    void notifyRescaled(const Vec3& scale) override;
+    void prepare() override;
+    void unPrepare() override;
+    void updateRender(PUParticle3D* particle, float deltaTime, bool firstParticle) override;
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
-    virtual void particleEmitted(PUParticleSystem3D* particleSystem, PUParticle3D* particle) override;
-    virtual void particleExpired(PUParticleSystem3D* particleSystem, PUParticle3D* particle) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void particleEmitted(PUParticleSystem3D* particleSystem, PUParticle3D* particle) override;
+    void particleExpired(PUParticleSystem3D* particleSystem, PUParticle3D* particle) override;
 
     /** Getters and Setters
      */
@@ -111,17 +111,17 @@ public:
     bool isRandomInitialColor() const;
     void setRandomInitialColor(bool randomInitialColour);
 
-    const Vec4& getInitialColor() const;
-    void setInitialColor(const Vec4& initialColour);
+    const Color& getInitialColor() const;
+    void setInitialColor(const Color& initialColour);
 
-    const Vec4& getColorChange() const;
-    void setColorChange(const Vec4& colourChange);
+    const Color& getColorChange() const;
+    void setColorChange(const Color& colourChange);
 
     /** Deletes all ChildSceneNodes en Entities.
      */
     void destroyAll();
 
-    virtual PURibbonTrailRender* clone() override;
+    PURibbonTrailRender* clone() override;
     void copyAttributesTo(PURibbonTrailRender* render);
 
     PURibbonTrailRender();
@@ -142,10 +142,10 @@ protected:
     bool _randomInitialColor;
     bool _setLength;
     bool _setWidth;
-    Vec4 _initialColor;
-    Vec4 _colorChange;
+    Color _initialColor;
+    Color _colorChange;
     Node* _childNode;
     std::string _texFile;
 };
 
-}
+}  // namespace ax

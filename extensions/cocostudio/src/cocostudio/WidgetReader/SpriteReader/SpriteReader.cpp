@@ -26,10 +26,10 @@
 
 #include "cocostudio/WidgetReader/SpriteReader/SpriteReader.h"
 
-#include "base/Utils.h"
-#include "2d/Sprite.h"
-#include "2d/SpriteFrameCache.h"
-#include "platform/FileUtils.h"
+#include "axmol/base/Utils.h"
+#include "axmol/2d/Sprite.h"
+#include "axmol/2d/SpriteFrameCache.h"
+#include "axmol/platform/FileUtils.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/FlatBuffersSerialize.h"
@@ -37,8 +37,8 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "renderer/backend/ProgramManager.h"
-#include "renderer/backend/ProgramState.h"
+#include "axmol/renderer/ProgramManager.h"
+#include "axmol/rhi/ProgramState.h"
 
 using namespace ax;
 using namespace flatbuffers;
@@ -114,7 +114,7 @@ Offset<Table> SpriteReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -145,7 +145,7 @@ Offset<Table> SpriteReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
             attribute = child.first_attribute();
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Src")
@@ -165,7 +165,7 @@ Offset<Table> SpriteReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
             attribute = child.first_attribute();
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "X")
@@ -189,7 +189,7 @@ Offset<Table> SpriteReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
             attribute = child.first_attribute();
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "X")
@@ -288,8 +288,8 @@ void SpriteReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
     if (f_blendFunc)
     {
         ax::BlendFunc blendFunc = ax::BlendFunc::ALPHA_PREMULTIPLIED;
-        blendFunc.src                = utils::toBackendBlendFactor(f_blendFunc->src());
-        blendFunc.dst                = utils::toBackendBlendFactor(f_blendFunc->dst());
+        blendFunc.src           = utils::toBackendBlendFactor(f_blendFunc->src());
+        blendFunc.dst           = utils::toBackendBlendFactor(f_blendFunc->dst());
         sprite->setBlendFunc(blendFunc);
     }
 
@@ -300,13 +300,9 @@ void SpriteReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
     uint8_t green = (uint8_t)nodeOptions->color()->g();
     uint8_t blue  = (uint8_t)nodeOptions->color()->b();
 
-    if (alpha != 255)
+    if (red != 255 || green != 255 || blue != 255 || alpha != 255)
     {
-        sprite->setOpacity(alpha);
-    }
-    if (red != 255 || green != 255 || blue != 255)
-    {
-        sprite->setColor(Color3B(red, green, blue));
+        sprite->setColor(Color32(red, green, blue, alpha));
     }
 
     bool flipX = nodeOptions->flipX() != 0;
@@ -324,7 +320,7 @@ void SpriteReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
         if (hsv != nullptr && filter != nullptr)
         {
             auto prog = ProgramManager::getInstance()->getBuiltinProgram(ProgramType::HSV);
-            auto ps   = new backend::ProgramState(prog);
+            auto ps   = new rhi::ProgramState(prog);
             sprite->setProgramState(ps, true);
             Vec3 axhsv{hsv->x(), hsv->y(), hsv->z()};
             ps->setUniform(ps->getUniformLocation("u_hsv"), &axhsv, sizeof(axhsv));

@@ -31,8 +31,8 @@ THE SOFTWARE.
 #include <thread>
 #include <atomic>
 
-#include "platform/PlatformMacros.h"
-#include "2d/ActionCoroutine.h"
+#include "axmol/platform/PlatformMacros.h"
+#include "axmol/2d/ActionCoroutine.h"
 
 class TestList;
 class TestSuite;
@@ -82,6 +82,7 @@ private:
     TestSuite* _testSuite;
 
     ax::Node* _autoTestRunner{nullptr};
+    std::string _autoTestCaptureDirectory;
 
     ax::Director* _director;
     ax::EventListenerTouchOneByOne* _touchListener;

@@ -25,7 +25,7 @@
  ****************************************************************************/
 
 #include "PUSimpleSpline.h"
-#include "base/Macros.h"
+#include "axmol/base/Macros.h"
 
 namespace ax
 {
@@ -236,4 +236,4 @@ void PUSimpleSpline::setAutoCalculate(bool autoCalc)
 {
     _autoCalc = autoCalc;
 }
-}
+}  // namespace ax

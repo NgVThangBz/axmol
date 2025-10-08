@@ -2,7 +2,7 @@
 #define __BYTEBUFFER_H_
 
 #include "FairyGUIMacros.h"
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 
 NS_FGUI_BEGIN
 
@@ -39,7 +39,7 @@ public:
     bool readS(std::string& result);
     const std::string* readSP();
     void writeS(const std::string& value);
-    ax::Color4B readColor();
+    ax::Color32 readColor();
     ByteBuffer* readBuffer();
     bool seek(int indexTablePos, int blockIndex);
 

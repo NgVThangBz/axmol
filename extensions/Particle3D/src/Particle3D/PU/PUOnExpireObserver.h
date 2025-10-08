@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUObserver.h"
 #include <vector>
 #include <string>
@@ -45,11 +45,10 @@ public:
 
     /**
      */
-    virtual bool observe(PUParticle3D* particle, float timeElapsed) override;
+    bool observe(PUParticle3D* particle, float timeElapsed) override;
 
     PUOnExpireObserver() : PUObserver() {}
-    virtual ~PUOnExpireObserver(){};
+    virtual ~PUOnExpireObserver() {};
 };
 
-}
-
+}  // namespace ax

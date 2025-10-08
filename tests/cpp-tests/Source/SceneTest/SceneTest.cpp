@@ -59,7 +59,7 @@ SceneTestLayer1::SceneTestLayer1()
 
     addChild(menu);
 
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto sprite = Sprite::create(s_pathGrossini);
     addChild(sprite);
     sprite->setPosition(Vec2(s.width - 40, s.height / 2));
@@ -135,7 +135,7 @@ SceneTestLayer2::SceneTestLayer2()
 
     addChild(menu);
 
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto sprite = Sprite::create(s_pathGrossini);
     addChild(sprite);
     sprite->setPosition(Vec2(s.width - 40, s.height / 2));
@@ -180,9 +180,9 @@ SceneTestLayer3::SceneTestLayer3() {}
 
 bool SceneTestLayer3::init()
 {
-    if (LayerColor::initWithColor(Color4B(0, 0, 255, 255)))
+    if (LayerColor::initWithColor(Color32(0, 0, 255, 255)))
     {
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
 
         auto item0 =
             MenuItemFont::create("Touch to pushScene (self)", AX_CALLBACK_1(SceneTestLayer3::item0Clicked, this));
@@ -216,10 +216,10 @@ void SceneTestLayer3::testDealloc(float dt)
 
 void SceneTestLayer3::item0Clicked(Object* sender)
 {
-    auto s        = Director::getInstance()->getWinSize();
+    auto s        = Director::getInstance()->getCanvasSize();
     auto newScene = Scene::createWithSize(s);
     newScene->addChild(SceneTestLayer3::create());
-    Director::getInstance()->pushScene(TransitionFade::create(0.5, newScene, Color3B(0, 255, 255)));
+    Director::getInstance()->pushScene(TransitionFade::create(0.5, newScene, Color32(0, 255, 255)));
 }
 
 void SceneTestLayer3::item1Clicked(Object* sender)

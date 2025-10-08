@@ -179,7 +179,7 @@ end
 
 function Camera3DTestDemo:onEnter()
     self._sprite3D = nil
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local listener = ax.EventListenerTouchAllAtOnce:create()
 
     listener:registerScriptHandler(function(touches, event)
@@ -428,17 +428,17 @@ function Camera3DTestDemo:onEnter()
     local line = ax.DrawNode3D:create()
     --draw x
     for i = -20 ,20 do
-        line:drawLine(ax.vec3(-100, 0, 5 * i), ax.vec3(100, 0, 5 * i), ax.c4f(1, 0, 0, 0))
+        line:drawLine(ax.vec3(-100, 0, 5 * i), ax.vec3(100, 0, 5 * i), ax.color(1, 0, 0, 0))
     end
 
     --draw z
     for i = -20, 20 do
-        line:drawLine(ax.vec3(5 * i, 0, -100), ax.vec3(5 * i, 0, 100), ax.c4f(0, 0, 1, 1))
+        line:drawLine(ax.vec3(5 * i, 0, -100), ax.vec3(5 * i, 0, 100), ax.color(0, 0, 1, 1))
     end
 
     --draw y
-    line:drawLine(ax.vec3(0, -50, 0), ax.vec3(0,0,0), ax.c4f(0, 0.5, 0, 1))
-    line:drawLine(ax.vec3(0, 0, 0), ax.vec3(0,50,0), ax.c4f(0, 1, 0, 1))
+    line:drawLine(ax.vec3(0, -50, 0), ax.vec3(0,0,0), ax.color(0, 0.5, 0, 1))
+    line:drawLine(ax.vec3(0, 0, 0), ax.vec3(0,50,0), ax.color(0, 1, 0, 1))
     self._layer3D:addChild(line)
 
     self._layer3D:setCameraMask(2)
@@ -491,7 +491,7 @@ function CameraRotationTest:init()
 end
 
 function CameraRotationTest:onEnter()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     camControlNode = ax.Node:create()
     camControlNode:setNormalizedPosition(ax.p(0.5, 0.5))
@@ -514,14 +514,14 @@ function CameraRotationTest:onEnter()
     --Yellow is at the back
     bill1 = ax.BillBoard:create("Images/Icon.png")
     bill1:setPosition3D(ax.vec3(s.width/2 + 50, s.height/2 + 10, -10))
-    bill1:setColor(ax.c3b(255, 255,   0))
+    bill1:setColor(ax.color32(255, 255,   0))
     bill1:setScale(0.6)
     self:addChild(bill1)
 
     l1 = ax.Label:create()
     l1:setPosition(ax.p(0,-10))
     l1:setString("Billboard1")
-    l1:setColor(ax.c3b(255, 255, 255))
+    l1:setColor(ax.color32(255, 255, 255))
     l1:setScale(3)
     bill1:addChild(l1)
 
@@ -537,7 +537,7 @@ function CameraRotationTest:onEnter()
     l2 = ax.Label:create()
     l2:setString("Billboard2")
     l2:setPosition(ax.p(0,-10))
-    l2:setColor(ax.c3b(255, 255, 255))
+    l2:setColor(ax.color32(255, 255, 255))
     l2:setScale(3)
     bill2:addChild(l2)
 
@@ -716,13 +716,13 @@ end
 
 function FogTestDemo:createLayer3D()
     -- body
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local layer3D = ax.Layer:create()
     self:addChild(layer3D,0)
     self._layer3D = layer3D
 
-    local program = axb.ProgramManager:getInstance():loadProgram('custom/fog_vs', 'custom/fog_fs')
+    local program = axrhi.ProgramManager:getInstance():loadProgram('custom/fog_vs', 'custom/fog_fs')
     self._shader1 = ccb.ProgramState:new(program)
     self._shader2 = self._shader1:clone()
 
@@ -767,19 +767,19 @@ function FogTestDemo:createLayer3D()
 end
 
 function FogTestDemo:onEnter()
-    ax.Director:getInstance():setClearColor(ax.c4f(0.5,0.5,0.5,1))
+    ax.Director:getInstance():setClearColor(ax.color(0.5,0.5,0.5,1))
     self:setEventListener()
     self:createMenu()
     self:createLayer3D()
 end
 
 function FogTestDemo:onExit()
-    ax.Director:getInstance():setClearColor(ax.c4f(0,0,0,1))
+    ax.Director:getInstance():setClearColor(ax.color(0,0,0,1))
     if nil ~= self._camera then
         self._camera = nil
     end
     local targetPlatform = ax.Application:getInstance():getTargetPlatform()
-    if targetPlatform == ax.PLATFORM_ANDROID  or targetPlatform == ax.PLATFORM_WINRT  or targetPlatform == ax.PLATFORM_WP8  then
+    if targetPlatform == ax.PLATFORM_OS_ANDROID  or targetPlatform == ax.PLATFORM_OS_WINRT  or targetPlatform == ax.PLATFORM_OS_WP8  then
         ax.Director:getInstance():getEventDispatcher():removeEventListener(self._backToForegroundListener)
     end
 end
@@ -930,13 +930,13 @@ function CameraArcBallDemo:setEventListener()
 end
 
 function CameraArcBallDemo:createLayer3D()
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     ax.MenuItemFont:setFontName("fonts/arial.ttf")
     ax.MenuItemFont:setFontSize(20)
 
     local menuItem1 = ax.MenuItemFont:create("Switch Operation")
-    menuItem1:setColor(ax.c3b(0,200,20))
+    menuItem1:setColor(ax.color32(0,200,20))
     menuItem1:registerScriptTapHandler(function (tag, sender )
         if self._operate == OperateCamType.MoveCamera then
             self._operate = OperateCamType.RotateCamera
@@ -945,7 +945,7 @@ function CameraArcBallDemo:createLayer3D()
         end
     end)
     local menuItem2 = ax.MenuItemFont:create("Switch Target")
-    menuItem2:setColor(ax.c3b(0,200,20))
+    menuItem2:setColor(ax.color32(0,200,20))
     menuItem2:registerScriptTapHandler(function (tag, sender )
         if self._target == 0 then
             self._target = 1
@@ -990,16 +990,16 @@ function CameraArcBallDemo:createLayer3D()
     self._drawGrid = ax.DrawNode3D:create()
     --draw x
     for j = -20, 20 do
-        self._drawGrid:drawLine(ax.vec3(-100, 0, 5*j), ax.vec3(100, 0, 5*j),ax.c4f(1, 0, 0, 1))
+        self._drawGrid:drawLine(ax.vec3(-100, 0, 5*j), ax.vec3(100, 0, 5*j),ax.color(1, 0, 0, 1))
     end
 
     --draw z
     for j = -20, 20 do
-        self._drawGrid:drawLine(ax.vec3(5*j, 0, -100), ax.vec3(5*j, 0, 100),ax.c4f(0,0,1,1))
+        self._drawGrid:drawLine(ax.vec3(5*j, 0, -100), ax.vec3(5*j, 0, 100),ax.color(0,0,1,1))
     end
 
     --draw y
-    self._drawGrid:drawLine(ax.vec3(0, 0, 0), ax.vec3(0,50,0), ax.c4f(0,1,0,1))
+    self._drawGrid:drawLine(ax.vec3(0, 0, 0), ax.vec3(0,50,0), ax.color(0,1,0,1))
 
     self._layer3D:addChild(self._drawGrid)
 

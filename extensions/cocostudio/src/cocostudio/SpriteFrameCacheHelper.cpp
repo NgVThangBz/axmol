@@ -23,9 +23,9 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "SpriteFrameCacheHelper.h"
-#include "platform/FileUtils.h"
-#include "2d/SpriteFrame.h"
-#include "2d/SpriteFrameCache.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/2d/SpriteFrame.h"
+#include "axmol/2d/SpriteFrameCache.h"
 
 using namespace ax;
 
@@ -64,7 +64,7 @@ void SpriteFrameCacheHelper::retainSpriteFrames(std::string_view plistPath)
     std::vector<SpriteFrame*> vec;
     for (auto iter = framesDict.begin(); iter != framesDict.end(); ++iter)
     {
-        auto& spriteFrameName    = iter->first;
+        auto& spriteFrameName = iter->first;
 
         SpriteFrame* spriteFrame = spriteFramesCache->findFrame(spriteFrameName);
         AXASSERT(spriteFrame, "spriteframe is null!");

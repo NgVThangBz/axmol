@@ -2,9 +2,9 @@
 
 #include "CheckBoxReader.h"
 
-#include "ui/UICheckBox.h"
-#include "platform/FileUtils.h"
-#include "2d/SpriteFrameCache.h"
+#include "axmol/ui/UICheckBox.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/2d/SpriteFrameCache.h"
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/FlatBuffersSerialize.h"
@@ -238,7 +238,7 @@ Offset<Table> CheckBoxReader::createOptionsWithFlatBuffers(pugi::xml_node object
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -273,7 +273,7 @@ Offset<Table> CheckBoxReader::createOptionsWithFlatBuffers(pugi::xml_node object
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -308,7 +308,7 @@ Offset<Table> CheckBoxReader::createOptionsWithFlatBuffers(pugi::xml_node object
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -343,7 +343,7 @@ Offset<Table> CheckBoxReader::createOptionsWithFlatBuffers(pugi::xml_node object
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -378,7 +378,7 @@ Offset<Table> CheckBoxReader::createOptionsWithFlatBuffers(pugi::xml_node object
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")

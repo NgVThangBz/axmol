@@ -41,7 +41,7 @@ void TextureAtlasEncryptionDemo::onEnter()
 {
     TestCase::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // Load the non-encrypted atlas
     SpriteFrameCache::getInstance()->addSpriteFramesWithFile("Images/nonencryptedAtlas.plist",

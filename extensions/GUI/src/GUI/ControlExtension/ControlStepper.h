@@ -30,7 +30,7 @@
 #pragma once
 
 #include "Control.h"
-#include "2d/Label.h"
+#include "axmol/2d/Label.h"
 #include "extensions/ExtensionExport.h"
 
 NS_AX_EXT_BEGIN
@@ -76,9 +76,9 @@ public:
     virtual bool isContinuous() const;
 
     // Overrides
-    virtual bool onTouchBegan(Touch* pTouch, Event* pEvent) override;
-    virtual void onTouchMoved(Touch* pTouch, Event* pEvent) override;
-    virtual void onTouchEnded(Touch* pTouch, Event* pEvent) override;
+    bool onTouchBegan(Touch* pTouch, Event* pEvent) override;
+    void onTouchMoved(Touch* pTouch, Event* pEvent) override;
+    void onTouchEnded(Touch* pTouch, Event* pEvent) override;
     void update(float dt) override;
 
     /** Update the layout of the stepper with the given touch location. */

@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUObserver.h"
 #include <vector>
 #include <string>
@@ -43,17 +43,16 @@ public:
     static PUOnQuotaObserver* create();
 
     /** @copydoc ParticleObserver::_notifyStart */
-    virtual bool observe(PUParticle3D* particle, float timeElapsed) override;
+    bool observe(PUParticle3D* particle, float timeElapsed) override;
 
     /** @copydoc ParticleObserver::_notifyStart */
-    virtual void postUpdateObserver(float deltaTime) override;
+    void postUpdateObserver(float deltaTime) override;
 
     PUOnQuotaObserver() : PUObserver(), _result(false) {}
-    virtual ~PUOnQuotaObserver(){};
+    virtual ~PUOnQuotaObserver() {};
 
 protected:
     bool _result;
 };
 
-}
-
+}  // namespace ax

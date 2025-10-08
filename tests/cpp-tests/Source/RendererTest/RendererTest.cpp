@@ -27,13 +27,13 @@
 #include "RendererTest.h"
 #include <chrono>
 #include <sstream>
-#include "renderer/backend/DriverBase.h"
+#include "axmol/rhi/DriverBase.h"
 
 namespace
 {
-static uint64_t s_blur_program_id = 0;
+static uint64_t s_blur_program_id  = 0;
 static uint64_t s_sepia_program_id = 0;
-}
+}  // namespace
 
 using namespace ax;
 
@@ -66,18 +66,16 @@ public:
     void reset() { _durations.clear(); }
 
 private:
-    hlookup::string_map<int64_t> _durations;
+    axstd::string_map<int64_t> _durations;
 };
 
 NewRendererTests::NewRendererTests()
 {
-     auto programManager = ProgramManager::getInstance();
-     s_blur_program_id   = programManager->registerCustomProgram(positionTextureColor_vert,
-                                                  "custom/example_Blur_fs"sv,
-                                                VertexLayoutType::Sprite);
-     s_sepia_program_id = programManager->registerCustomProgram(positionTextureColor_vert,
-                                                "custom/example_Sepia_fs"sv,
-                                          VertexLayoutType::Sprite);
+    auto programManager = ProgramManager::getInstance();
+    s_blur_program_id   = programManager->registerCustomProgram(positionTextureColor_vert, "custom/example_Blur_fs"sv,
+                                                                VertexLayoutKind::Sprite);
+    s_sepia_program_id  = programManager->registerCustomProgram(positionTextureColor_vert, "custom/example_Sepia_fs"sv,
+                                                                VertexLayoutKind::Sprite);
 
     ADD_TEST_CASE(NewSpriteTest);
     ADD_TEST_CASE(GroupCommandTest);
@@ -118,10 +116,10 @@ NewSpriteTest::~NewSpriteTest() {}
 
 void NewSpriteTest::createSpriteTest()
 {
-    Size winSize = Director::getInstance()->getWinSize();
+    Size canvasSize = Director::getInstance()->getCanvasSize();
 
     Sprite* parent = Sprite::create("Images/grossini.png");
-    parent->setPosition(winSize.width / 4, winSize.height / 2);
+    parent->setPosition(canvasSize.width / 4, canvasSize.height / 2);
     Sprite* child1 = Sprite::create("Images/grossinis_sister1.png");
     child1->setPosition(0.0f, -20.0f);
     Sprite* child2 = Sprite::create("Images/grossinis_sister2.png");
@@ -149,10 +147,10 @@ void NewSpriteTest::createSpriteTest()
 
 void NewSpriteTest::createNewSpriteTest()
 {
-    Size winSize = Director::getInstance()->getWinSize();
+    Size canvasSize = Director::getInstance()->getCanvasSize();
 
     Sprite* parent = Sprite::create("Images/grossini.png");
-    parent->setPosition(winSize.width * 2 / 3, winSize.height / 2);
+    parent->setPosition(canvasSize.width * 2 / 3, canvasSize.height / 2);
     Sprite* child1 = Sprite::create("Images/grossinis_sister1.png");
     child1->setPosition(0.0f, -20.0f);
     Sprite* child2 = Sprite::create("Images/grossinis_sister2.png");
@@ -209,7 +207,7 @@ SpriteInGroupCommand* SpriteInGroupCommand::create(std::string_view filename)
 void SpriteInGroupCommand::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
     AXASSERT(renderer, "Render is null");
-    auto * spriteWrapperCommand = renderer->getNextGroupCommand();
+    auto* spriteWrapperCommand = renderer->getNextGroupCommand();
     spriteWrapperCommand->init(_globalZOrder);
     renderer->addCommand(spriteWrapperCommand);
     renderer->pushGroup(spriteWrapperCommand->getRenderQueueID());
@@ -219,9 +217,9 @@ void SpriteInGroupCommand::draw(Renderer* renderer, const Mat4& transform, uint3
 
 GroupCommandTest::GroupCommandTest()
 {
-    auto sprite  = SpriteInGroupCommand::create("Images/grossini.png");
-    Size winSize = Director::getInstance()->getWinSize();
-    sprite->setPosition(winSize.width / 2, winSize.height / 2);
+    auto sprite     = SpriteInGroupCommand::create("Images/grossini.png");
+    Size canvasSize = Director::getInstance()->getCanvasSize();
+    sprite->setPosition(canvasSize.width / 2, canvasSize.height / 2);
     addChild(sprite);
 }
 
@@ -239,7 +237,7 @@ std::string GroupCommandTest::subtitle() const
 
 NewClippingNodeTest::NewClippingNodeTest()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto clipper = ClippingNode::create();
     clipper->setTag(kTagClipperNode);
@@ -258,7 +256,7 @@ NewClippingNodeTest::NewClippingNodeTest()
     //    rectangle[2] = Vec2(clipper->getContentSize().width, clipper->getContentSize().height);
     //    rectangle[3] = Vec2(0, clipper->getContentSize().height);
     //
-    //    Color4F white(1, 1, 1, 1);
+    //    Color white(1, 1, 1, 1);
     //    stencil->drawPolygon(rectangle, 4, white, 1, white);
     //    clipper->setStencil(stencil);
 
@@ -299,7 +297,7 @@ void NewClippingNodeTest::onTouchesBegan(const std::vector<Touch*>& touches, Eve
 {
     Touch* touch = touches[0];
     auto clipper = this->getChildByTag(kTagClipperNode);
-    Vec2 point   = clipper->convertToNodeSpace(Director::getInstance()->convertToGL(touch->getLocationInView()));
+    Vec2 point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(touch->getLocationInView()));
     auto rect    = Rect(0, 0, clipper->getContentSize().width, clipper->getContentSize().height);
     _scrolling   = rect.containsPoint(point);
     _lastPoint   = point;
@@ -311,7 +309,7 @@ void NewClippingNodeTest::onTouchesMoved(const std::vector<Touch*>& touches, Eve
         return;
     Touch* touch = touches[0];
     auto clipper = this->getChildByTag(kTagClipperNode);
-    auto point   = clipper->convertToNodeSpace(Director::getInstance()->convertToGL(touch->getLocationInView()));
+    auto point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(touch->getLocationInView()));
     Vec2 diff    = point - _lastPoint;
     auto content = clipper->getChildByTag(kTagContentNode);
     content->setPosition(content->getPosition() + diff);
@@ -330,7 +328,7 @@ void NewClippingNodeTest::onTouchesEnded(const std::vector<Touch*>& touches, Eve
  */
 NewDrawNodeTest::NewDrawNodeTest()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto parent = Node::create();
     parent->setPosition(s.width / 2, s.height / 2);
@@ -343,7 +341,7 @@ NewDrawNodeTest::NewDrawNodeTest()
     rectangle[2] = Vec2(50, 50);
     rectangle[3] = Vec2(-50, 50);
 
-    Color4F white(1, 1, 1, 1);
+    Color white(1, 1, 1, 1);
     rectNode->drawPolygon(rectangle, 4, white, 1, white);
     parent->addChild(rectNode);
 }
@@ -362,7 +360,7 @@ std::string NewDrawNodeTest::subtitle() const
 
 NewCullingTest::NewCullingTest()
 {
-    Size size   = Director::getInstance()->getWinSize();
+    Size size   = Director::getInstance()->getCanvasSize();
     auto sprite = Sprite::create("Images/btn-about-normal-vertical.png");
     sprite->setRotation(5);
     sprite->setPosition(Vec2(size.width / 2, size.height / 3));
@@ -419,12 +417,12 @@ std::string NewCullingTest::subtitle() const
 SpriteCreation::SpriteCreation()
 {
 
-    Size s       = Director::getInstance()->getWinSize();
+    Size s       = Director::getInstance()->getCanvasSize();
     Node* parent = Node::create();
     parent->setPosition(s.width / 2, s.height / 2);
     addChild(parent);
 
-#define KEY_CREATION "11"
+#define KEY_CREATION     "11"
 #define KEY_DESTROYATION "22"
 
     labelCreate  = Label::createWithTTF(TTFConfig("fonts/arial.ttf"), "Sprite Creation: ..");
@@ -433,9 +431,9 @@ SpriteCreation::SpriteCreation()
     MenuItemFont::setFontName("fonts/arial.ttf");
     MenuItemFont::setFontSize(65);
     auto decrease = MenuItemFont::create(" - ", AX_CALLBACK_1(SpriteCreation::delSpritesCallback, this));
-    decrease->setColor(Color3B(0, 200, 20));
+    decrease->setColor(Color32(0, 200, 20));
     auto increase = MenuItemFont::create(" + ", AX_CALLBACK_1(SpriteCreation::addSpritesCallback, this));
-    increase->setColor(Color3B(0, 200, 20));
+    increase->setColor(Color32(0, 200, 20));
 
     auto menu = Menu::create(decrease, increase, nullptr);
     menu->alignItemsHorizontally();
@@ -444,7 +442,7 @@ SpriteCreation::SpriteCreation()
 
     TTFConfig ttfCount("fonts/Marker Felt.ttf", 30);
     _labelSpriteNum = Label::createWithTTF(ttfCount, "Label");
-    _labelSpriteNum->setColor(Color3B(0, 200, 20));
+    _labelSpriteNum->setColor(Color32(0, 200, 20));
     _labelSpriteNum->setPosition(Vec2(s.width / 2, s.height - 130));
     addChild(_labelSpriteNum);
 
@@ -578,7 +576,7 @@ std::string SpriteCreation::subtitle() const
 
 VBOFullTest::VBOFullTest()
 {
-    Size s       = Director::getInstance()->getWinSize();
+    Size s       = Director::getInstance()->getCanvasSize();
     Node* parent = Node::create();
     parent->setPosition(0, 0);
     addChild(parent);
@@ -587,8 +585,8 @@ VBOFullTest::VBOFullTest()
     {
         Sprite* sprite = Sprite::create("Images/grossini_dance_01.png");
         sprite->setScale(0.1f, 0.1f);
-        float x = ((float)std::rand()) / RAND_MAX;
-        float y = ((float)std::rand()) / RAND_MAX;
+        float x = AXRANDOM_0_1();
+        float y = AXRANDOM_0_1();
         sprite->setPosition(Vec2(x * s.width, y * s.height));
         parent->addChild(sprite);
     }
@@ -608,7 +606,7 @@ std::string VBOFullTest::subtitle() const
 
 CaptureScreenTest::CaptureScreenTest()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
     Vec2 left(s.width / 4, s.height / 2);
     Vec2 right(s.width / 4 * 3, s.height / 2);
 
@@ -665,7 +663,7 @@ void CaptureScreenTest::afterCaptured(bool succeed, std::string_view outputFile)
     {
         auto sp = Sprite::create(outputFile);
         addChild(sp, 0, childTag);
-        Size s = Director::getInstance()->getWinSize();
+        Size s = Director::getInstance()->getCanvasSize();
         sp->setPosition(s.width / 2, s.height / 2);
         sp->setScale(0.25);
         _filename = outputFile;
@@ -681,7 +679,7 @@ void CaptureScreenTest::afterCaptured(bool succeed, std::string_view outputFile)
 
 CaptureNodeTest::CaptureNodeTest()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
     Vec2 left(s.width / 4, s.height / 2);
     Vec2 right(s.width / 4 * 3, s.height / 2);
 
@@ -734,7 +732,7 @@ void CaptureNodeTest::onCaptured(Object*)
         // create a sprite with the captured image directly
         auto sp = Sprite::createWithTexture(Director::getInstance()->getTextureCache()->addImage(image, _filename));
         addChild(sp, 0, childTag);
-        Size s = Director::getInstance()->getWinSize();
+        Size s = Director::getInstance()->getCanvasSize();
         sp->setPosition(s.width / 2, s.height / 2);
 
         // store to disk
@@ -747,7 +745,7 @@ void CaptureNodeTest::onCaptured(Object*)
 
 BugAutoCulling::BugAutoCulling()
 {
-    Size s       = Director::getInstance()->getWinSize();
+    Size s       = Director::getInstance()->getCanvasSize();
     auto fastmap = ax::FastTMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
     this->addChild(fastmap);
     for (int i = 0; i < 30; i++)
@@ -759,13 +757,11 @@ BugAutoCulling::BugAutoCulling()
         label->setPosition(s.width / 2 + s.width / 10 * i, s.height / 2);
         this->addChild(label);
     }
-    this->scheduleOnce(
-        [=](float) {
-            auto camera = Director::getInstance()->getRunningScene()->getCameras().front();
-            auto move   = MoveBy::create(2.0f, Vec2(2 * s.width, 0.0f));
-            camera->runAction(Sequence::create(move, move->reverse(), nullptr));
-        },
-        1.0f, "lambda-autoculling-bug");
+    this->scheduleOnce([=](float) {
+        auto camera = Director::getInstance()->getRunningScene()->getCameras().front();
+        auto move   = MoveBy::create(2.0f, Vec2(2 * s.width, 0.0f));
+        camera->runAction(Sequence::create(move, move->reverse(), nullptr));
+    }, 1.0f, "lambda-autoculling-bug");
 }
 
 std::string BugAutoCulling::title() const
@@ -784,7 +780,7 @@ std::string BugAutoCulling::subtitle() const
 
 RendererBatchQuadTri::RendererBatchQuadTri()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
 
     for (int i = 0; i < 250; i++)
     {
@@ -792,14 +788,14 @@ RendererBatchQuadTri::RendererBatchQuadTri()
         int y = AXRANDOM_0_1() * s.height;
 
         auto label = LabelAtlas::create("This is a label", "fonts/tuffy_bold_italic-charmap.plist");
-        label->setColor(Color3B::RED);
+        label->setColor(Color32::RED);
         label->setPosition(Vec2(x, y));
         addChild(label);
 
         auto sprite = Sprite::create("fonts/tuffy_bold_italic-charmap.png");
         sprite->setTextureRect(Rect(0.0f, 0.0f, 100.0f, 100.0f));
         sprite->setPosition(Vec2(x, y));
-        sprite->setColor(Color3B::BLUE);
+        sprite->setColor(Color32::BLUE);
         addChild(sprite);
     }
 }
@@ -821,9 +817,9 @@ std::string RendererBatchQuadTri::subtitle() const
 
 RendererUniformBatch::RendererUniformBatch()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
 
-    auto blurState  = createBlurProgramState();
+    auto blurState = createBlurProgramState();
     blurState->updateBatchId();
     auto sepiaState = createSepiaProgramState();
     sepiaState->updateBatchId();
@@ -852,14 +848,13 @@ RendererUniformBatch::RendererUniformBatch()
     }
 }
 
-ax::backend::ProgramState* RendererUniformBatch::createBlurProgramState()
+ax::rhi::ProgramState* RendererUniformBatch::createBlurProgramState()
 {
-    auto programState =
-        new backend::ProgramState(ProgramManager::getInstance()->loadProgram(s_blur_program_id));
+    auto programState = new rhi::ProgramState(ProgramManager::getInstance()->loadProgram(s_blur_program_id));
     programState->autorelease();
 
-    backend::UniformLocation loc = programState->getUniformLocation("resolution");
-    auto resolution              = Vec2(85, 121);
+    rhi::UniformLocation loc = programState->getUniformLocation("resolution");
+    auto resolution          = Vec2(85, 121);
     programState->setUniform(loc, &resolution, sizeof(resolution));
 
     loc              = programState->getUniformLocation("blurRadius");
@@ -873,9 +868,9 @@ ax::backend::ProgramState* RendererUniformBatch::createBlurProgramState()
     return programState;
 }
 
-ax::backend::ProgramState* RendererUniformBatch::createSepiaProgramState()
+ax::rhi::ProgramState* RendererUniformBatch::createSepiaProgramState()
 {
-    auto programState = new backend::ProgramState(ProgramManager::getInstance()->loadProgram(s_sepia_program_id));
+    auto programState = new rhi::ProgramState(ProgramManager::getInstance()->loadProgram(s_sepia_program_id));
     programState->autorelease();
     return programState;
 }
@@ -896,7 +891,7 @@ std::string RendererUniformBatch::subtitle() const
 
 RendererUniformBatch2::RendererUniformBatch2()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
 
     auto blurState = createBlurProgramState();
     blurState->updateBatchId();
@@ -924,13 +919,12 @@ RendererUniformBatch2::RendererUniformBatch2()
     }
 }
 
-backend::ProgramState* RendererUniformBatch2::createBlurProgramState()
+rhi::ProgramState* RendererUniformBatch2::createBlurProgramState()
 {
-    auto programState =
-        new backend::ProgramState(ProgramManager::getInstance()->loadProgram(s_blur_program_id));
+    auto programState = new rhi::ProgramState(ProgramManager::getInstance()->loadProgram(s_blur_program_id));
 
-    backend::UniformLocation loc = programState->getUniformLocation("resolution");
-    auto resolution              = Vec2(85, 121);
+    rhi::UniformLocation loc = programState->getUniformLocation("resolution");
+    auto resolution          = Vec2(85, 121);
     programState->setUniform(loc, &resolution, sizeof(resolution));
 
     loc              = programState->getUniformLocation("blurRadius");
@@ -944,10 +938,9 @@ backend::ProgramState* RendererUniformBatch2::createBlurProgramState()
     return programState;
 }
 
-backend::ProgramState* RendererUniformBatch2::createSepiaProgramState()
+rhi::ProgramState* RendererUniformBatch2::createSepiaProgramState()
 {
-    auto programState =
-        new backend::ProgramState(ProgramManager::getInstance()->loadProgram(s_sepia_program_id));
+    auto programState = new rhi::ProgramState(ProgramManager::getInstance()->loadProgram(s_sepia_program_id));
     programState->autorelease();
     return programState;
 }
@@ -964,14 +957,14 @@ std::string RendererUniformBatch2::subtitle() const
 
 NonBatchSprites::NonBatchSprites()
 {
-    Size s         = Director::getInstance()->getWinSize();
+    Size s         = Director::getInstance()->getCanvasSize();
     _spritesAnchor = Node::create();
     _spritesAnchor->setPosition(0, 0);
     addChild(_spritesAnchor);
 
     _totalSprites = Label::createWithTTF(TTFConfig("fonts/arial.ttf"), "sprites");
-    _totalSprites->setColor(Color3B::YELLOW);
-    _totalSprites->enableOutline(Color4B::RED, 2);
+    _totalSprites->setColor(Color32::YELLOW);
+    _totalSprites->enableOutline(Color32::RED, 2);
     _totalSprites->setPosition(s.width / 2, s.height / 2);
 
     addChild(_totalSprites);
@@ -982,7 +975,7 @@ NonBatchSprites::NonBatchSprites()
 void NonBatchSprites::createSprite()
 {
 
-    Size s         = Director::getInstance()->getWinSize();
+    Size s         = Director::getInstance()->getCanvasSize();
     Sprite* sprite = nullptr;
     if (_spriteIndex % 2 == 0)
     {
@@ -997,8 +990,8 @@ void NonBatchSprites::createSprite()
         return;
     auto r = rand_0_1() * 0.6 + 0.2;
     sprite->setScale(r, r);
-    float x = ((float)std::rand()) / RAND_MAX;
-    float y = ((float)std::rand()) / RAND_MAX;
+    float x = AXRANDOM_0_1();
+    float y = AXRANDOM_0_1();
     sprite->runAction(RepeatForever::create(RotateBy::create(1, 45)));
 
     sprite->setPosition(Vec2(x * s.width, y * s.height));

@@ -24,11 +24,11 @@
 
 #include "LuaJavaBridge.h"
 #if defined(__ANDROID__)
-#    include "platform/android/jni/JniHelper.h"
+#    include "axmol/platform/android/jni/JniHelper.h"
 #    include <android/log.h>
-#    include "base/UTF8.h"
+#    include "axmol/base/text_utils.h"
 
-#    define LOG_TAG "luajc"
+#    define LOG_TAG   "luajc"
 #    define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 
 extern "C" {
@@ -67,7 +67,7 @@ bool LuaJavaBridge::CallInfo::execute()
     {
         m_retjs              = (jstring)m_env->CallStaticObjectMethod(m_classID, m_methodID);
         bool bValidStr       = true;
-        std::string strValue = ax::StringUtils::getStringUTFCharsJNI(m_env, m_retjs, &bValidStr);
+        std::string strValue = ax::text_utils::getStringUTFCharsJNI(m_env, m_retjs, &bValidStr);
         m_ret.stringValue    = (false == bValidStr) ? nullptr : new string(strValue);
         break;
     }
@@ -113,7 +113,7 @@ bool LuaJavaBridge::CallInfo::executeWithArgs(jvalue* args)
     {
         m_retjs              = (jstring)m_env->CallStaticObjectMethodA(m_classID, m_methodID, args);
         bool bValidStr       = true;
-        std::string strValue = ax::StringUtils::getStringUTFCharsJNI(m_env, m_retjs, &bValidStr);
+        std::string strValue = ax::text_utils::getStringUTFCharsJNI(m_env, m_retjs, &bValidStr);
         m_ret.stringValue    = (false == bValidStr) ? nullptr : new string(strValue);
         break;
     }
@@ -273,8 +273,8 @@ bool LuaJavaBridge::CallInfo::getMethodInfo()
         return false;
     }
     jstring _jstrClassName = m_env->NewStringUTF(m_className.c_str());
-    m_classID              = (jclass)m_env->CallObjectMethod(ax::JniHelper::classloader,
-                                                             ax::JniHelper::loadclassMethod_methodID, _jstrClassName);
+    m_classID = (jclass)m_env->CallObjectMethod(ax::JniHelper::classloader, ax::JniHelper::loadclassMethod_methodID,
+                                                _jstrClassName);
 
     if (NULL == m_classID)
     {

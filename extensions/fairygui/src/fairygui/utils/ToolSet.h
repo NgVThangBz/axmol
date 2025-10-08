@@ -1,7 +1,7 @@
 #ifndef __TOOLSET_H__
 #define __TOOLSET_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUI.h"
 
 NS_FGUI_BEGIN
@@ -9,9 +9,9 @@ NS_FGUI_BEGIN
 class ToolSet
 {
 public:
-    static ax::Color4B hexToColor(const char* str);
-    static ax::Color3B intToColor(unsigned int rgb);
-    static unsigned int colorToInt(const ax::Color3B& color);
+    static ax::Color32 hexToColor(const char* str);
+    static ax::Color32 intToColor(unsigned int rgb);
+    static unsigned int colorToInt(const ax::Color32& color);
 
     static ax::Rect intersection(const ax::Rect& rect1, const ax::Rect& rect2);
     static int findInStringArray(const std::vector<std::string>& arr, const std::string& str);

@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "base/Director.h"
-#include "base/Utils.h"
-#include "renderer/Renderer.h"
-#include "renderer/Shaders.h"
-#include "renderer/backend/ProgramState.h"
+#include "axmol/base/Director.h"
+#include "axmol/base/Utils.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/rhi/ProgramState.h"
 
 #include "BoneNode.h"
 #include "SkeletonNode.h"
@@ -69,11 +69,9 @@ bool BoneNode::init()
     updateVertices();
     updateColor();
 
-    auto& pipelineDescriptor = _customCommand.getPipelineDescriptor();
-    auto* program =
-        ax::backend::Program::getBuiltinProgram(ax::backend::ProgramType::POSITION_COLOR);  // TODO: noMVP?
-    setProgramState(new ax::backend::ProgramState(program), true);
-    pipelineDescriptor.programState = _programState;
+    auto* program = axpm->getBuiltinProgram(ax::rhi::ProgramType::POSITION_COLOR);  // TODO: noMVP?
+    setProgramState(new ax::rhi::ProgramState(program), true);
+    _customCommand.setWeakPSVL(_programState, _vertexLayout);
 
     _mvpLocation = _programState->getUniformLocation("u_MVPMatrix"sv);
 
@@ -182,8 +180,7 @@ void BoneNode::addToBoneList(BoneNode* bone)
                     _rootSkeleton->_subBonesOrderDirty = true;
                 }
                 else
-                    AXLOGD("already has a bone named {} in skeleton {}", bonename,
-                          _rootSkeleton->getName());
+                    AXLOGD("already has a bone named {} in skeleton {}", bonename, _rootSkeleton->getName());
             }
         }
         else
@@ -334,7 +331,7 @@ void BoneNode::setDebugDrawEnabled(bool isDebugDraw)
     _isRackShow = isDebugDraw;
 }
 
-void BoneNode::setDebugDrawColor(const ax::Color4F& color)
+void BoneNode::setDebugDrawColor(const ax::Color& color)
 {
     _rackColor = color;
     updateColor();
@@ -458,7 +455,7 @@ void BoneNode::updateColor()
     _transformUpdated = _transformDirty = _inverseDirty = _contentSizeDirty = true;
 }
 
-void BoneNode::updateDisplayedColor(const ax::Color3B& /*parentColor*/)
+void BoneNode::updateDisplayedColor(const ax::Color32& /*parentColor*/)
 {
     if (_cascadeColorEnabled)
     {
@@ -475,7 +472,7 @@ void BoneNode::updateDisplayedOpacity(uint8_t /*parentOpacity*/)
     {
         for (const auto& child : _boneSkins)
         {
-            child->updateDisplayedOpacity(_displayedOpacity);
+            child->updateDisplayedOpacity(_displayedColor.a);
         }
     }
 }
@@ -492,7 +489,7 @@ void BoneNode::disableCascadeColor()
 {
     for (const auto& child : _boneSkins)
     {
-        child->updateDisplayedColor(ax::Color3B::WHITE);
+        child->updateDisplayedColor(ax::Color32::WHITE);
     }
 }
 

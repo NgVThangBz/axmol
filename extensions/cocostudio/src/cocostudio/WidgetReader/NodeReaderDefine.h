@@ -25,22 +25,24 @@
 #pragma once
 
 #include <string>
-#include "base/ObjectFactory.h"
+#include "axmol/base/ObjectFactory.h"
 
 //
 //// Reader macro
 //
 
-#define DECLARE_CLASS_NODE_READER_INFO           \
-public:                                          \
+#define DECLARE_CLASS_NODE_READER_INFO      \
+public:                                     \
     static ax::ObjectFactory::TInfo __Type; \
     static ax::Object* createInstance(void);
 
-#define IMPLEMENT_CLASS_NODE_READER_INFO(className)                                    \
-    ax::Object* className::createInstance(void) { return className::getInstance(); } \
+#define IMPLEMENT_CLASS_NODE_READER_INFO(className) \
+    ax::Object* className::createInstance(void)     \
+    {                                               \
+        return className::getInstance();            \
+    }                                               \
     ax::ObjectFactory::TInfo className::__Type(#className, &className::createInstance);
 
 #define CREATE_CLASS_NODE_READER_INFO(className) ax::ObjectFactory::TInfo(#className, &className::createInstance)
 
-#define FLATSTR_TO_BOOL(str) (str.compare("True") == 0) ? true : false
-
+#define FLATSTR_TO_BOOL(str)                     (str.compare("True") == 0) ? true : false

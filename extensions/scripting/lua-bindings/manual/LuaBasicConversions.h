@@ -2,7 +2,7 @@
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
- 
+
  https://axmol.dev/
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,18 +33,18 @@
 #include "lua-bindings/manual/tolua_fix.h"
 
 #include "lua-bindings/manual/Lua-BindingsExport.h"
-#include "2d/Label.h"
-#include "2d/Sprite.h"
-#include "3d/Bundle3D.h"
-#include "base/Value.h"
-#include "base/Types.h"
-#include "physics/PhysicsContact.h"
-#include "physics/PhysicsJoint.h"
-#include "physics/PhysicsShape.h"
-#include "physics/PhysicsWorld.h"
-#include "renderer/backend/Types.h"
-#include "renderer/backend/VertexLayout.h"
-#include "ui/GUIDefine.h"
+#include "axmol/2d/Label.h"
+#include "axmol/2d/Sprite.h"
+#include "axmol/3d/Bundle3D.h"
+#include "axmol/base/Value.h"
+#include "axmol/base/Types.h"
+#if defined(AX_ENABLE_PHYSICS)
+#    include "axmol/physics/PhysicsContact.h"
+#    include "axmol/physics/PhysicsJoint.h"
+#    include "axmol/physics/PhysicsWorld.h"
+#endif
+#include "axmol/rhi/VertexLayout.h"
+#include "axmol/ui/GUIDefine.h"
 
 #include "yasio/string_view.hpp"
 #include <thread>
@@ -62,7 +62,7 @@ void luaval_to_native_err(lua_State* L, const char* msg, tolua_Error* err, const
     if (!(condition))                                                                            \
     {                                                                                            \
         AXLOGE("lua: ERROR: File {}: Line: {}, Function: {}", __FILE__, __LINE__, __FUNCTION__); \
-        AXLOGE(__VA_ARGS__);                                                                   \
+        AXLOGE(__VA_ARGS__);                                                                     \
     }
 
 /**
@@ -95,20 +95,6 @@ extern bool luaval_is_usertype(lua_State* L, int lo, const char* type, int def);
  **/
 
 /**
- * Get a unsigned short value from the given acceptable index of stack.
- * If the value at the given acceptable index of stack is a number or a string convertible to a number it returns true,
- * otherwise returns false.
- *
- * @param L the current lua_State.
- * @param lo the given acceptable index of stack.
- * @param outValue the pointer to store the unsigned short value converted from the Lua value.
- * @param funcName the name of calling function, it is used for error output in the debug model.
- * @return Return true if the value at the given acceptable index of stack is a number or a string convertible to a
- * number, otherwise return false.
- */
-extern bool luaval_to_ushort(lua_State* L, int lo, unsigned short* outValue, const char* funcName = "");
-
-/**
  * Get a float value from the given acceptable index of stack.
  * If the value at the given acceptable index of stack is a number or a string convertible to a number it returns true,
  * otherwise returns false.
@@ -134,35 +120,16 @@ extern bool luaval_to_float(lua_State* L, int lo, float* outValue, const char* f
  * @return Return true if the value at the given acceptable index of stack is a number or a string convertible to a
  * number, otherwise return false.
  */
-extern bool luaval_to_int32(lua_State* L, int lo, int* outValue, const char* funcName = "");
+extern bool luaval_to_integer(lua_State* L, int lo, lua_Integer* outVal, const char* funcName = "");
 
-/**
- * Get a unsigned int value from the given acceptable index of stack.
- * If the value at the given acceptable index of stack is a number or a string convertible to a number it returns true,
- * otherwise returns false.
- *
- * @param L the current lua_State.
- * @param lo the given acceptable index of stack.
- * @param outValue the pointer to store the unsigned int value converted from the Lua value.
- * @param funcName the name of calling function, it is used for error output in the debug model.
- * @return Return true if the value at the given acceptable index of stack is a number or a string convertible to a
- * number, otherwise return false.
- */
-extern bool luaval_to_uint32(lua_State* L, int lo, unsigned int* outValue, const char* funcName = "");
-
-/**
- * Get a uint16_t value from the given acceptable index of stack.
- * If the value at the given acceptable index of stack is a number or a string convertible to a number it returns true,
- * otherwise returns false.
- *
- * @param L the current lua_State.
- * @param lo the given acceptable index of stack.
- * @param outValue the pointer to store the uint16_t value converted from the Lua value.
- * @param funcName the name of calling function, it is used for error output in the debug model.
- * @return Return true if the value at the given acceptable index of stack is a number or a string convertible to a
- * number, otherwise return false.
- */
-extern bool luaval_to_uint16(lua_State* L, int lo, uint16_t* outValue, const char* funcName = "");
+template <typename _Ty>
+inline bool luaval_to_int(lua_State* L, int lo, _Ty* outVal, const char* funcName = "")
+{
+    lua_Integer tmp{0};
+    bool ret = luaval_to_integer(L, lo, &tmp, funcName);
+    *outVal  = static_cast<_Ty>(tmp);
+    return ret;
+}
 
 /**
  * Get a boolean value from the given acceptable index of stack.
@@ -219,11 +186,8 @@ extern bool luaval_to_long_long(lua_State* L, int lo, long long* outValue, const
  * @return Return true if the value at the given acceptable index of stack is a string or a number convertible to a
  * string, otherwise return false.
  */
-extern AX_LUA_DLL bool luaval_to_std_string(lua_State* L, int lo, std::string* outValue, const char* funcName = "");
-extern AX_LUA_DLL bool luaval_to_std_string_view(lua_State* L,
-                                                 int lo,
-                                                 cxx17::string_view* outValue,
-                                                 const char* funcName = "");
+extern bool luaval_to_std_string(lua_State* L, int lo, std::string* outValue, const char* funcName = "");
+extern bool luaval_to_std_string_view(lua_State* L, int lo, cxx17::string_view* outValue, const char* funcName = "");
 
 /**
  * Get a ssize_t value from the given acceptable index of stack.
@@ -268,46 +232,32 @@ extern bool luaval_to_size(lua_State* L, int lo, Size* outValue, const char* fun
 extern bool luaval_to_rect(lua_State* L, int lo, Rect* outValue, const char* funcName = "");
 
 /**
- * Get a Color3B object value from the given acceptable index of stack.
- * If the value at the given acceptable index of stack is a table it returns true, otherwise returns false.
- * If the table has the `r`,`g` and `b` keys and the corresponding values are not nil, this function would assign the
- * values to the corresponding members of outValue. Otherwise, the value of members of outValue would be 0.
- *
- * @param L the current lua_State.
- * @param lo the given acceptable index of stack.
- * @param outValue the pointer to a Color3B object which stores the values from the Lua table.
- * @param funcName the name of calling function, it is used for error output in the debug model.
- * @return Return true if the value at the given acceptable index of stack is a table, otherwise return false.
- */
-extern AX_LUA_DLL bool luaval_to_color3b(lua_State* L, int lo, Color3B* outValue, const char* funcName = "");
-
-/**
- * Get a Color4B object value from the given acceptable index of stack.
+ * Get a Color32 object value from the given acceptable index of stack.
  * If the value at the given acceptable index of stack is a table it returns true, otherwise returns false.
  * If the table has the `r`,`g`, `b` and 'a' keys and the corresponding values are not nil, this function would assign
  * the values to the corresponding members of outValue. Otherwise, the value of members of outValue would be 0.
  *
  * @param L the current lua_State.
  * @param lo the given acceptable index of stack.
- * @param outValue the pointer to a Color4B object which stores the values from the Lua table.
+ * @param outValue the pointer to a Color32 object which stores the values from the Lua table.
  * @param funcName the name of calling function, it is used for error output in the debug model.
  * @return Return true if the value at the given acceptable index of stack is a table, otherwise return false.
  */
-extern bool luaval_to_color4b(lua_State* L, int lo, Color4B* outValue, const char* funcName = "");
+extern bool luaval_to_color32(lua_State* L, int lo, Color32* outValue, const char* funcName = "");
 
 /**
- * Get a Color4F object value from the given acceptable index of stack.
+ * Get a ax::Color object value from the given acceptable index of stack.
  * If the value at the given acceptable index of stack is a table it returns true, otherwise returns false.
  * If the table has the `r`,`g`, `b` and 'a' keys and the corresponding values are not nil, this function would assign
  * the values to the corresponding members of outValue. Otherwise, the value of members of outValue would be 0.
  *
  * @param L the current lua_State.
  * @param lo the given acceptable index of stack.
- * @param outValue the pointer to a Color4F object which stores the values from the Lua table.
+ * @param outValue the pointer to a ax::Color object which stores the values from the Lua table.
  * @param funcName the name of calling function, it is used for error output in the debug model.
  * @return Return true if the value at the given acceptable index of stack is a table, otherwise return false.
  */
-extern bool luaval_to_color4f(lua_State* L, int lo, Color4F* outValue, const char* funcName = "");
+extern bool luaval_to_color(lua_State* L, int lo, ax::Color* outValue, const char* funcName = "");
 #if defined(AX_ENABLE_PHYSICS)
 
 /**
@@ -473,18 +423,17 @@ static inline bool luaval_to_point(lua_State* L, int lo, ax::Vec2* outValue, con
     return luaval_to_vec2(L, lo, outValue);
 }
 
-AX_DEPRECATED(2.1) static inline bool luaval_to_kmMat4(lua_State* L,
-                                                            int lo,
-                                                            ax::Mat4* outValue,
-                                                            const char* funcName = "")
+AX_DEPRECATED(2.1)
+static inline bool luaval_to_kmMat4(lua_State* L, int lo, ax::Mat4* outValue, const char* funcName = "")
 {
     return luaval_to_mat4(L, lo, outValue);
 }
-AX_DEPRECATED(2.1) static inline bool luaval_to_array_of_Point(lua_State* L,
-                                                                    int lo,
-                                                                    ax::Vec2** points,
-                                                                    int* numPoints,
-                                                                    const char* funcName = "")
+AX_DEPRECATED(2.1)
+static inline bool luaval_to_array_of_Point(lua_State* L,
+                                            int lo,
+                                            ax::Vec2** points,
+                                            int* numPoints,
+                                            const char* funcName = "")
 {
     return luaval_to_array_of_vec2(L, lo, points, numPoints);
 }
@@ -560,9 +509,9 @@ bool luaval_to_ccvector(lua_State* L, int lo, ax::Vector<T>* ret, const char* fu
                 continue;
             }
 
-            T cobj = static_cast<T>(tolua_tousertype(L, -1, NULL));
-            if (NULL != cobj)
-                ret->pushBack(cobj);
+            T obj = static_cast<T>(tolua_tousertype(L, -1, NULL));
+            if (NULL != obj)
+                ret->pushBack(obj);
 
             lua_pop(L, 1);
         }
@@ -797,17 +746,17 @@ extern bool luaval_to_quaternion(lua_State* L, int lo, ax::Quaternion* outValue,
 extern bool luaval_to_texparams(lua_State* L, int lo, ax::Texture2D::TexParams* outValue, const char* funcName = "");
 
 /**
- * Get a ax::V3F_C4B_T2F object value from the given acceptable index of stack.
+ * Get a ax::V3F_T2F_C4F object value from the given acceptable index of stack.
  * If the value at the given acceptable index of stack is a table it returns true, otherwise returns false.
  * If the table has the `vertices`, `colors`, and `texCoords` keys and the corresponding values are not nil, this
  * function would assign the values to the corresponding members of outValue.
  * @param L the current lua_State.
  * @param lo the given acceptable index of stack.
- * @param outValue the pointer to a ax::V3F_C4B_T2F object which stores the values from the Lua table.
+ * @param outValue the pointer to a ax::V3F_T2F_C4F object which stores the values from the Lua table.
  * @param funcName the name of calling function, it is used for error output in the debug model.
  * @return true if the value at the given acceptable index of stack is a table, otherwise return false.
  */
-extern bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValue, const char* funcName = "");
+extern bool luaval_to_v3f_c4f_t2f(lua_State* L, int lo, ax::V3F_T2F_C4F* outValue, const char* funcName = "");
 
 /**
  * Get a ax::Tex2F object value from the given acceptable index of stack.
@@ -823,17 +772,17 @@ extern bool luaval_to_v3f_c4b_t2f(lua_State* L, int lo, ax::V3F_C4B_T2F* outValu
 extern bool luaval_to_tex2f(lua_State* L, int lo, ax::Tex2F* outValue, const char* funcName = "");
 
 /**
- * Get a pointer points to a std::vector<ax::V3F_C4B_T2F> from a Lua array table in the stack.
+ * Get a pointer points to a std::vector<ax::V3F_T2F_C4F> from a Lua array table in the stack.
  *
  * @param L the current lua_State.
  * @param lo the given acceptable index of stack.
- * @param ret a pointer points to a std::vector<ax::V3F_C4B_T2F>.
+ * @param ret a pointer points to a std::vector<ax::V3F_T2F_C4F>.
  * @param funcName the name of calling function, it is used for error output in the debug model.
  * @return Return true if the value at the given acceptable index of stack is a table, otherwise return false.
  */
 extern bool luaval_to_std_vector_v3f_c4b_t2f(lua_State* L,
                                              int lo,
-                                             std::vector<ax::V3F_C4B_T2F>* ret,
+                                             std::vector<ax::V3F_T2F_C4F>* ret,
                                              const char* funcName = "");
 
 /**
@@ -860,7 +809,7 @@ extern bool luaval_to_std_vector_vec3(lua_State* L, int lo, std::vector<ax::Vec3
 
 extern bool luaval_to_std_map_string_string(lua_State* L,
                                             int lo,
-                                            hlookup::string_map<std::string>* ret,
+                                            axstd::string_map<std::string>* ret,
                                             const char* funcName);
 
 /**@}**/
@@ -932,31 +881,22 @@ extern void size_to_luaval(lua_State* L, const Size& sz);
 extern void rect_to_luaval(lua_State* L, const Rect& rt);
 
 /**
- * Push a table converted from a ax::Color3B object into the Lua stack.
- * The format of table as follows: {r=numberValue1, g=numberValue2, b=numberValue3}
- *
- * @param L the current lua_State.
- * @param cc  a ax::Color3B object.
- */
-extern AX_LUA_DLL void color3b_to_luaval(lua_State* L, const Color3B& cc);
-
-/**
- * Push a table converted from a ax::Color4B object into the Lua stack.
+ * Push a table converted from a ax::Color32 object into the Lua stack.
  * The format of table as follows: {r=numberValue1, g=numberValue2, b=numberValue3, a=numberValue4}
  *
  * @param L the current lua_State.
- * @param cc a ax::Color4B object.
+ * @param cc a ax::Color32 object.
  */
-extern void color4b_to_luaval(lua_State* L, const Color4B& cc);
+extern void color32_to_luaval(lua_State* L, const Color32& cc);
 
 /**
- * Push a table converted from a ax::Color4F object into the Lua stack.
+ * Push a table converted from a ax::Color object into the Lua stack.
  * The format of table as follows: {r=numberValue1, g=numberValue2, b=numberValue3, a=numberValue4}
  *
  * @param L the current lua_State.
- * @param cc a ax::Color4F object.
+ * @param cc a ax::Color object.
  */
-extern void color4f_to_luaval(lua_State* L, const Color4F& cc);
+extern void color_to_luaval(lua_State* L, const ax::Color& cc);
 
 void std_thread_id_to_luaval(lua_State* L, const std::thread::id& value);
 
@@ -979,7 +919,7 @@ extern void physics_material_to_luaval(lua_State* L, const PhysicsMaterial& pm);
  * @param L the current lua_State.
  * @param info a ax::PhysicsRayCastInfo object.
  */
-extern void physics_raycastinfo_to_luaval(lua_State* L, const PhysicsRayCastInfo& info);
+extern void physics_raycastinfo_to_luaval(lua_State* L, const ax::PhysicsRayCastInfo& info);
 
 /**
  * Push a table converted from a ax::PhysicsContactData object into the Lua stack.
@@ -988,7 +928,7 @@ extern void physics_raycastinfo_to_luaval(lua_State* L, const PhysicsRayCastInfo
  * @param L the current lua_State.
  * @param data a ax::PhysicsContactData object.
  */
-extern void physics_contactdata_to_luaval(lua_State* L, const PhysicsContactData* data);
+extern void physics_contactdata_to_luaval(lua_State* L, const ax::PhysicsContactData* data);
 #endif  // #if defined(AX_ENABLE_PHYSICS)
 
 /**
@@ -1004,9 +944,9 @@ extern void affinetransform_to_luaval(lua_State* L, const AffineTransform& inVal
 /**
  * Push a table converted from a ax::FontDefinition object into the Lua stack.
  * The format of table as follows: {fontName=stringValue1, fontSize=numberValue1, fontAlignmentH=numberValue2,
- * fontAlignmentV=numberValue3,fontFillColor=color3b_table1, fontDimensions=size_table1, shadowEnabled=booleanValue1,
+ * fontAlignmentV=numberValue3,fontFillColor=color32_table1, fontDimensions=size_table1, shadowEnabled=booleanValue1,
  * shadowOffset=size_table2, shadowBlur=numberValue4, shadowOpacity=numberValue5, shadowEnabled=booleanValue2,
- * strokeColor=color3b_table2, strokeSize=size_table3}
+ * strokeColor=color32_table2, strokeSize=size_table3}
  *
  * @param L the current lua_State.
  * @param inValue a ax::FontDefinition object.
@@ -1223,8 +1163,8 @@ void object_to_luaval(lua_State* L, const char* type, T* ret)
         {
             // use c style cast, T may not polymorphic
             ax::Object* dynObject = (ax::Object*)(ret);
-            int ID             = (int)(dynObject->_ID);
-            int* luaID         = &(dynObject->_luaID);
+            int ID                = (int)(dynObject->_ID);
+            int* luaID            = &(dynObject->_luaID);
             toluafix_pushusertype_object(L, ID, luaID, (void*)ret, type);
         }
         else
@@ -1327,34 +1267,24 @@ AX_LUA_DLL extern void node_to_luaval(lua_State* L, const char* type, ax::Node* 
 /**
  * convert lua object VertexLayout to native object
  */
-AX_LUA_DLL bool luaval_to_vertexLayout(lua_State* L,
-                                       int pos,
-                                       ax::backend::VertexLayout& outLayout,
-                                       const char* message);
+AX_LUA_DLL bool luaval_to_vertexLayout(lua_State* L, int pos, ax::rhi::VertexLayout& outLayout, const char* message);
 
 /**
- * convert lua object SamplerDescriptor to native object
+ * convert lua object SamplerDesc to native object
  */
-AX_LUA_DLL bool luaval_to_samplerDescriptor(lua_State* L,
-                                            int pos,
-                                            ax::backend::SamplerDescriptor& desc,
-                                            const char* message);
+AX_LUA_DLL bool luaval_to_samplerDesc(lua_State* L, int pos, ax::rhi::SamplerDesc& desc, const char* message);
 
 /**
- * convert lua object to ax::backend::UniformLocation
+ * convert lua object to ax::rhi::UniformLocation
  */
-AX_LUA_DLL bool luaval_to_uniformLocation(lua_State* L,
-                                          int pos,
-                                          ax::backend::UniformLocation& desc,
-                                          const char* message);
+AX_LUA_DLL bool luaval_to_uniformLocation(lua_State* L, int pos, ax::rhi::UniformLocation& desc, const char* message);
 
 /**
- * convert ax::backend::UniformLocation to lua object
+ * convert ax::rhi::UniformLocation to lua object
  */
-AX_LUA_DLL void uniformLocation_to_luaval(lua_State* L, const ax::backend::UniformLocation& desc);
+AX_LUA_DLL void uniformLocation_to_luaval(lua_State* L, const ax::rhi::UniformLocation& desc);
 
-AX_LUA_DLL void program_activeattrs_to_luaval(lua_State* L,
-                                              const hlookup::string_map<ax::backend::AttributeBindInfo>& map);
+AX_LUA_DLL void program_activeattrs_to_luaval(lua_State* L, const axstd::string_map<ax::rhi::VertexInputDesc>& map);
 
 /**
  * convert ax::ResourceData to lua object

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -8,7 +8,7 @@
 #pragma once
 
 #include "CubismFramework.hpp"
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 
 #ifdef CSM_TARGET_ANDROID_ES2
 #include <jni.h>
@@ -34,7 +34,7 @@
 #include <OpenGL/gl.h>
 #endif
 
-#include "renderer/backend/Texture.h"
+#include "axmol/rhi/Texture.h"
 
 using namespace ax;
 
@@ -57,8 +57,7 @@ public:
             DrawCommand();
             virtual ~DrawCommand();
 
-            ax::backend::BlendDescriptor* GetBlendDescriptor();
-            ax::PipelineDescriptor* GetPipelineDescriptor();
+            ax::rhi::BlendDesc* GetBlendDescriptor();
             ax::CustomCommand* GetCommand();
 
         private:
@@ -150,15 +149,15 @@ public:
 
     void Viewport(csmFloat32 x, csmFloat32 y, csmFloat32 w, csmFloat32 h);
 
-    void SetColorBuffer(backend::TextureBackend* colorBuffer);
-    backend::TextureBackend* GetColorBuffer();
+    void SetColorBuffer(rhi::Texture* colorBuffer);
+    rhi::Texture* GetColorBuffer();
 
     void AddDrawCommand(DrawCommandBuffer::DrawCommand* drawCommand);
 
 private:
     void AddCommand(const std::function<void()>& fn);
 
-    backend::TextureBackend* _currentColorBuffer;
+    rhi::Texture* _currentColorBuffer;
     OperationStateData _operationStateArray[OperationType_TypeMax];
 };
 

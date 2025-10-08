@@ -29,7 +29,7 @@
 using namespace ax;
 using namespace ax::network;
 
-#define CHROME_UA                                                                                                   \
+#define CHROME_UA                                                                                               \
     "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 " \
     "Safari/537.36"
 
@@ -41,7 +41,7 @@ HttpClientTests::HttpClientTests()
 
 HttpClientTest::HttpClientTest() : _labelStatusCode(nullptr)
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     auto httpClient = HttpClient::getInstance();
 
@@ -53,9 +53,9 @@ HttpClientTest::HttpClientTest() : _labelStatusCode(nullptr)
     const int MARGIN = 40;
     const int SPACE  = 35;
 
-    const int LEFT  = winSize.width / 4 * 1;
-    const int CENTER  = winSize.width / 2;
-    const int RIGHT = winSize.width / 4 * 3;
+    const int LEFT   = canvasSize.width / 4 * 1;
+    const int CENTER = canvasSize.width / 2;
+    const int RIGHT  = canvasSize.width / 4 * 3;
 
     auto menuRequest = Menu::create();
     menuRequest->setPosition(Vec2::ZERO);
@@ -64,43 +64,43 @@ HttpClientTest::HttpClientTest() : _labelStatusCode(nullptr)
     // Get
     auto labelGet = Label::createWithTTF("Test Get", "fonts/arial.ttf", 22);
     auto itemGet  = MenuItemLabel::create(labelGet, AX_CALLBACK_1(HttpClientTest::onMenuGetTestClicked, this));
-    itemGet->setPosition(CENTER, winSize.height - MARGIN - SPACE);
+    itemGet->setPosition(CENTER, canvasSize.height - MARGIN - SPACE);
     menuRequest->addChild(itemGet);
 
     // Patch
     auto labelPatch = Label::createWithTTF("Test Patch", "fonts/arial.ttf", 22);
     auto itemPatch  = MenuItemLabel::create(labelPatch, AX_CALLBACK_1(HttpClientTest::onMenuPatchTestClicked, this));
-    itemPatch->setPosition(CENTER, winSize.height - MARGIN - 2 * SPACE);
+    itemPatch->setPosition(CENTER, canvasSize.height - MARGIN - 2 * SPACE);
     menuRequest->addChild(itemPatch);
 
     // Post
     auto labelPost = Label::createWithTTF("Test Post", "fonts/arial.ttf", 22);
     auto itemPost  = MenuItemLabel::create(labelPost, AX_CALLBACK_1(HttpClientTest::onMenuPostTestClicked, this));
-    itemPost->setPosition(LEFT, winSize.height - MARGIN - 3 * SPACE);
+    itemPost->setPosition(LEFT, canvasSize.height - MARGIN - 3 * SPACE);
     menuRequest->addChild(itemPost);
 
     // Post Binary
     auto labelPostBinary = Label::createWithTTF("Test Post Binary", "fonts/arial.ttf", 22);
     auto itemPostBinary =
         MenuItemLabel::create(labelPostBinary, AX_CALLBACK_1(HttpClientTest::onMenuPostBinaryTestClicked, this));
-    itemPostBinary->setPosition(RIGHT, winSize.height - MARGIN - 3 * SPACE);
+    itemPostBinary->setPosition(RIGHT, canvasSize.height - MARGIN - 3 * SPACE);
     menuRequest->addChild(itemPostBinary);
 
     // Put
     auto labelPut = Label::createWithTTF("Test Put", "fonts/arial.ttf", 22);
     auto itemPut  = MenuItemLabel::create(labelPut, AX_CALLBACK_1(HttpClientTest::onMenuPutTestClicked, this));
-    itemPut->setPosition(CENTER, winSize.height - MARGIN - 4 * SPACE);
+    itemPut->setPosition(CENTER, canvasSize.height - MARGIN - 4 * SPACE);
     menuRequest->addChild(itemPut);
 
     // Delete
     auto labelDelete = Label::createWithTTF("Test Delete", "fonts/arial.ttf", 22);
     auto itemDelete  = MenuItemLabel::create(labelDelete, AX_CALLBACK_1(HttpClientTest::onMenuDeleteTestClicked, this));
-    itemDelete->setPosition(CENTER, winSize.height - MARGIN - 5 * SPACE);
+    itemDelete->setPosition(CENTER, canvasSize.height - MARGIN - 5 * SPACE);
     menuRequest->addChild(itemDelete);
 
     // Response Code Label
     _labelStatusCode = Label::createWithTTF("HTTP Status Code", "fonts/arial.ttf", 18);
-    _labelStatusCode->setPosition(winSize.width / 2, winSize.height - MARGIN - 6 * SPACE);
+    _labelStatusCode->setPosition(canvasSize.width / 2, canvasSize.height - MARGIN - 6 * SPACE);
     addChild(_labelStatusCode);
 }
 
@@ -175,7 +175,7 @@ void HttpClientTest::onMenuPatchTestClicked(Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the body data
-        const char* bodyData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* bodyData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(bodyData, strlen(bodyData));
         request->setTag("PATCH Binary test1");
         HttpClient::getInstance()->send(request);
@@ -193,7 +193,7 @@ void HttpClientTest::onMenuPatchTestClicked(Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the post data
-        const char* bodyData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* bodyData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(bodyData, strlen(bodyData));
         request->setTag("PATCH Binary test2");
         HttpClient::getInstance()->send(request);
@@ -215,7 +215,7 @@ void HttpClientTest::onMenuPostTestClicked(ax::Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the post data
-        const char* postData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* postData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(postData, strlen(postData));
         request->setTag("POST test1");
         HttpClient::getInstance()->send(request);
@@ -231,7 +231,7 @@ void HttpClientTest::onMenuPostTestClicked(ax::Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the post data
-        const char* postData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* postData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(postData, strlen(postData));
         request->setTag("POST test2");
         HttpClient::getInstance()->send(request);
@@ -270,7 +270,7 @@ void HttpClientTest::onMenuPutTestClicked(Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the post data
-        const char* postData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* postData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(postData, strlen(postData));
         request->setTag("PUT Binary test1");
         HttpClient::getInstance()->send(request);
@@ -288,7 +288,7 @@ void HttpClientTest::onMenuPutTestClicked(Object* sender)
         request->setResponseCallback(AX_CALLBACK_2(HttpClientTest::onHttpRequestCompleted, this));
 
         // write the post data
-        const char* postData = "visitor=cocos2d&TestSuite=Extensions Test/NetworkTest";
+        const char* postData = "visitor=axmol&TestSuite=Extensions Test/NetworkTest";
         request->setRequestData(postData, strlen(postData));
         request->setTag("PUT Binary test2");
         HttpClient::getInstance()->send(request);
@@ -341,9 +341,9 @@ void HttpClientTest::onHttpRequestCompleted(HttpClient* sender, HttpResponse* re
         AXLOGI("{} completed", tag.data());
     }
 
-    int32_t statusCode    = response->getResponseCode();
-    char tmp[64] = {};
-    auto statusStr = fmt::format_to_z(tmp, "HTTP Status Code: {}, tag = {}", statusCode, tag.data());
+    int32_t statusCode = response->getResponseCode();
+    char tmp[64]       = {};
+    auto statusStr     = fmt::format_to_z(tmp, "HTTP Status Code: {}, tag = {}", statusCode, tag.data());
     _labelStatusCode->setString(statusStr);
     AXLOGI("response code: {}", statusCode);
 
@@ -357,22 +357,22 @@ void HttpClientTest::onHttpRequestCompleted(HttpClient* sender, HttpResponse* re
     // dump data
     auto buffer = response->getResponseData();
     buffer->push_back('\0');  // to c_str
-   AXLOGI("Http Test, dump data: {}", buffer->data());
-   AXLOGI("\n");
+    AXLOGI("Http Test, dump data: {}", buffer->data());
+    AXLOGI("\n");
     if (response->getHttpRequest()->getReferenceCount() != 2)
     {
-       AXLOGI("request ref count not 2, is {}", response->getHttpRequest()->getReferenceCount());
+        AXLOGI("request ref count not 2, is {}", response->getHttpRequest()->getReferenceCount());
     }
 }
 
 HttpClientClearRequestsTest::HttpClientClearRequestsTest() : _labelStatusCode(nullptr)
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     const int MARGIN = 40;
     const int SPACE  = 35;
 
-    const int CENTER = winSize.width / 2;
+    const int CENTER = canvasSize.width / 2;
 
     auto menuRequest = Menu::create();
     menuRequest->setPosition(Vec2::ZERO);
@@ -382,24 +382,24 @@ HttpClientClearRequestsTest::HttpClientClearRequestsTest() : _labelStatusCode(nu
     auto labelGet = Label::createWithTTF("Test Clear all Get", "fonts/arial.ttf", 22);
     auto itemGet =
         MenuItemLabel::create(labelGet, AX_CALLBACK_1(HttpClientClearRequestsTest::onMenuCancelAllClicked, this));
-    itemGet->setPosition(CENTER, winSize.height - MARGIN - SPACE);
+    itemGet->setPosition(CENTER, canvasSize.height - MARGIN - SPACE);
     menuRequest->addChild(itemGet);
 
     // Post
     auto labelPost = Label::createWithTTF("Test Clear but only with the tag DELETE", "fonts/arial.ttf", 22);
     auto itemPost =
         MenuItemLabel::create(labelPost, AX_CALLBACK_1(HttpClientClearRequestsTest::onMenuCancelSomeClicked, this));
-    itemPost->setPosition(CENTER, winSize.height - MARGIN - 2 * SPACE);
+    itemPost->setPosition(CENTER, canvasSize.height - MARGIN - 2 * SPACE);
     menuRequest->addChild(itemPost);
 
     // Response Code Label
     _labelStatusCode = Label::createWithTTF("HTTP Status Code", "fonts/arial.ttf", 18);
-    _labelStatusCode->setPosition(winSize.width / 2, winSize.height - MARGIN - 6 * SPACE);
+    _labelStatusCode->setPosition(canvasSize.width / 2, canvasSize.height - MARGIN - 6 * SPACE);
     addChild(_labelStatusCode);
 
     // Tracking Data Label
     _labelTrakingData = Label::createWithTTF("Got 0 of 0 expected http requests", "fonts/arial.ttf", 16);
-    _labelTrakingData->setPosition(CENTER, winSize.height - MARGIN - 5 * SPACE);
+    _labelTrakingData->setPosition(CENTER, canvasSize.height - MARGIN - 5 * SPACE);
     addChild(_labelTrakingData);
 
     _totalExpectedRequests  = 0;
@@ -417,7 +417,7 @@ void HttpClientClearRequestsTest::onMenuCancelAllClicked(ax::Object* sender)
     {
         HttpRequest* request = new HttpRequest();
         std::stringstream url;
-        url << "https://cocos2d-x.org/images/logo.png?id=" << std::to_string(i);
+        url << "https://axmol.dev/assets/img/logo.png?id=" << std::to_string(i);
         request->setUrl(url.str());
         request->setRequestType(HttpRequest::Type::GET);
         request->setResponseCallback(AX_CALLBACK_2(HttpClientClearRequestsTest::onHttpRequestCompleted, this));
@@ -446,7 +446,7 @@ void HttpClientClearRequestsTest::onMenuCancelSomeClicked(ax::Object* sender)
     {
         HttpRequest* request = new HttpRequest();
         std::stringstream url;
-        url << "https://cocos2d-x.org/images/logo.png?id=" << std::to_string(i);
+        url << "https://axmol.dev/assets/img/logo.png?id=" << std::to_string(i);
         request->setUrl(url.str());
         request->setRequestType(HttpRequest::Type::GET);
         request->setResponseCallback(AX_CALLBACK_2(HttpClientClearRequestsTest::onHttpRequestCompleted, this));
@@ -492,14 +492,15 @@ void HttpClientClearRequestsTest::onHttpRequestCompleted(HttpClient* sender, Htt
         AXLOGD("{} completed", tag.data());
     }
 
-    int32_t statusCode    = response->getResponseCode();
-    char tmp[64] = {};
-    auto statusStr = fmt::format_to_z(tmp, "HTTP Status Code: {}, tag = {}", statusCode, tag);
+    int32_t statusCode = response->getResponseCode();
+    char tmp[64]       = {};
+    auto statusStr     = fmt::format_to_z(tmp, "HTTP Status Code: {}, tag = {}", statusCode, tag);
     _labelStatusCode->setString(statusStr);
     AXLOGD("response code: {}", statusCode);
 
     _totalProcessedRequests++;
-    statusStr = fmt::format_to_z(tmp, "Got {} of {} expected http requests", _totalProcessedRequests, _totalExpectedRequests);
+    statusStr =
+        fmt::format_to_z(tmp, "Got {} of {} expected http requests", _totalProcessedRequests, _totalExpectedRequests);
     _labelTrakingData->setString(statusStr);
 
     if (!response->isSucceed())

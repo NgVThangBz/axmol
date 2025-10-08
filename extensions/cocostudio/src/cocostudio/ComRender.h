@@ -25,7 +25,7 @@ THE SOFTWARE.
 #pragma once
 
 #include "ComBase.h"
-#include "2d/Component.h"
+#include "axmol/2d/Component.h"
 #include "CocosStudioExport.h"
 
 namespace cocostudio
@@ -44,20 +44,20 @@ public:
     /**
      * @lua NA
      */
-    virtual void onEnter() override;
+    void onEnter() override;
     /**
      * @lua NA
      */
-    virtual void onExit() override;
+    void onExit() override;
     /**
      * @lua NA
      */
-    virtual void onAdd() override;
+    void onAdd() override;
     /**
      * @lua NA
      */
-    virtual void onRemove() override;
-    virtual bool serialize(void* r) override;
+    void onRemove() override;
+    bool serialize(void* r) override;
     virtual ax::Node* getNode();
     virtual void setNode(ax::Node* node);
     /**

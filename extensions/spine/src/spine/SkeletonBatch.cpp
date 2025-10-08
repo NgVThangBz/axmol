@@ -34,12 +34,10 @@
 
 USING_NS_AX;
 #define EVENT_AFTER_DRAW_RESET_POSITION "director_after_draw"
-using std::max;
-#define INITIAL_SIZE (10000)
+#define INITIAL_SIZE (2000)
 
-#include "renderer/backend/DriverBase.h"
-#include "renderer/Shaders.h"
-#include "renderer/backend/Types.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/renderer/Shaders.h"
 
 namespace spine {
 
@@ -59,8 +57,8 @@ namespace spine {
 
 	SkeletonBatch::SkeletonBatch() {
 
-		auto program = backend::Program::getBuiltinProgram(backend::ProgramType::POSITION_TEXTURE_COLOR);
-		_programState = new backend::ProgramState(program);// new default program state
+		auto program = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_TEXTURE_COLOR);
+		_programState = new rhi::ProgramState(program);// new default program state
 		for (unsigned int i = 0; i < INITIAL_SIZE; i++) {
 			_commandsPool.push_back(newCommand());
 		}
@@ -76,7 +74,7 @@ namespace spine {
 		Director::getInstance()->getEventDispatcher()->removeCustomEventListeners(EVENT_AFTER_DRAW_RESET_POSITION);
 
 		for (unsigned int i = 0; i < _commandsPool.size(); i++) {
-			AX_SAFE_RELEASE(_commandsPool[i]->getPipelineDescriptor().programState);
+            _commandsPool[i]->releasePSVL();
 			delete _commandsPool[i];
 			_commandsPool[i] = nullptr;
 		}
@@ -84,9 +82,9 @@ namespace spine {
 		AX_SAFE_RELEASE(_programState);
 	}
 
-	backend::ProgramState* SkeletonBatch::updateCommandPipelinePS(SkeletonCommand* command, backend::ProgramState* programState)
+	rhi::ProgramState* SkeletonBatch::updateCommandPipelinePS(SkeletonCommand* command, rhi::ProgramState* programState)
 	{
-		auto& currentState = command->getPipelineDescriptor().programState;
+		auto currentState = command->unsafePS();
 	#if defined(AX_VERSION)
                 if (currentState == nullptr ||
                     currentState->getBatchId() != programState->getBatchId())
@@ -95,10 +93,10 @@ namespace spine {
 		if(currentState == nullptr || currentState->getProgram() != programState->getProgram()) {
 	#endif
 			AX_SAFE_RELEASE(currentState);
-			currentState = programState->clone();
-		
-			command->_locMVP     = currentState->getUniformLocation(backend::UNIFORM_NAME_MVP_MATRIX);
-	        command->_locTexture = currentState->getUniformLocation(backend::UNIFORM_NAME_TEXTURE);
+            currentState  = programState->clone();
+            command->_locMVP     = currentState->getUniformLocation(rhi::UNIFORM_NAME_MVP_MATRIX);
+            command->_locTexture = currentState->getUniformLocation(rhi::UNIFORM_NAME_TEXTURE);
+            command->setWeakPSVL(currentState, currentState->getVertexLayout());
 	}
 		return currentState;
 	}
@@ -107,11 +105,11 @@ namespace spine {
 		reset();
 	}
 
-	axmol::V3F_C4B_T2F *SkeletonBatch::allocateVertices(uint32_t numVertices) {
+	axmol::V3F_T2F_C4B *SkeletonBatch::allocateVertices(uint32_t numVertices) {
 		if (_vertices.size() - _numVertices < numVertices) {
-			axmol::V3F_C4B_T2F *oldData = _vertices.data();
+			auto oldData = _vertices.data();
 			_vertices.resize((_vertices.size() + numVertices) * 2 + 1);
-			axmol::V3F_C4B_T2F *newData = _vertices.data();
+			auto newData = _vertices.data();
 			for (uint32_t i = 0; i < this->_nextFreeCommand; i++) {
 				SkeletonCommand *command = _commandsPool[i];
 				SkeletonCommand::Triangles &triangles = (SkeletonCommand::Triangles &) command->getTriangles();
@@ -119,7 +117,7 @@ namespace spine {
 			}
 		}
 
-		axmol::V3F_C4B_T2F *vertices = _vertices.data() + _numVertices;
+		axmol::V3F_T2F_C4B *vertices = _vertices.data() + _numVertices;
 		_numVertices += numVertices;
 		return vertices;
 	}
@@ -154,7 +152,7 @@ namespace spine {
 	}
 
 
-	axmol::TrianglesCommand *SkeletonBatch::addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, backend::ProgramState *programState, axmol::BlendFunc blendType, const axmol::TrianglesCommand::Triangles &triangles, const axmol::Mat4 &mv, uint32_t flags) {
+	axmol::TrianglesCommand *SkeletonBatch::addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, rhi::ProgramState *programState, axmol::BlendFunc blendType, const axmol::TrianglesCommand::Triangles &triangles, const axmol::Mat4 &mv, uint32_t flags) {
 		SkeletonCommand *command = nextFreeCommand();
 		const axmol::Mat4 &projectionMat = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
 
@@ -166,7 +164,7 @@ namespace spine {
 		auto pipelinePS = updateCommandPipelinePS(command, programState);
 
 		pipelinePS->setUniform(command->_locMVP, projectionMat.m, sizeof(projectionMat.m));
-		pipelinePS->setTexture(command->_locTexture, 0, texture->getBackendTexture());
+		pipelinePS->setTexture(command->_locTexture, 0, texture->getRHITexture());
 
 		command->init(globalOrder, texture, blendType, triangles, mv, flags);
 		renderer->addCommand(command);

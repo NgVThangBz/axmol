@@ -2,9 +2,9 @@
 
 #include "TextBMFontReader.h"
 
-#include "2d/FontAtlasCache.h"
-#include "ui/UITextBMFont.h"
-#include "platform/FileUtils.h"
+#include "axmol/2d/FontAtlasCache.h"
+#include "axmol/ui/UITextBMFont.h"
+#include "axmol/platform/FileUtils.h"
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/LocalizationManager.h"
@@ -73,7 +73,10 @@ void TextBMFontReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* co
                 labelBMFont->setFntFile(backgroundValue);
             }
         }
-        else if (key == P_Text) { labelBMFont->setString(value); }
+        else if (key == P_Text)
+        {
+            labelBMFont->setString(value);
+        }
     }  // end of for loop
     this->endSetBasicProperties(widget);
 }
@@ -155,7 +158,7 @@ Offset<Table> TextBMFontReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")

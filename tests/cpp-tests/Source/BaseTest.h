@@ -26,7 +26,7 @@
 #ifndef _CPPTESTS_BASETEST_H__
 #define _CPPTESTS_BASETEST_H__
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "extensions/axmol-ext.h"
 #include "GUI/ControlExtension/ControlExtensions.h"
 #include "GUI/ScrollView/ScrollView.h"
@@ -37,6 +37,7 @@ class TestSuite;
 
 extern ax::Size g_resourceSize;
 extern ax::Size g_designSize;
+extern const ax::Color g_testsDefaultClearColor;
 
 /**
  * Each test case should inherit from TestCase, and add to a TestSuite object.
@@ -115,6 +116,8 @@ private:
     TestSuite* _testSuite;
     float _runTime;
     std::string _testCaseName;
+
+    bool _enableInspector = false;
 };
 
 /**
@@ -172,6 +175,8 @@ public:
     virtual void enterNextTest();
     virtual void enterPreviousTest();
 
+    void enterTest(int index);
+
     int getCurrTestIndex() { return _currTestIndex; }
     virtual void runThisTest() override;
 
@@ -187,9 +192,7 @@ class TestCustomTableView;
 /**
  * An instance of TestList is a means for displaying hierarchical lists of TestSuite.
  */
-class TestList : public TestBase,
-                 public ax::extension::TableViewDataSource,
-                 public ax::extension::TableViewDelegate
+class TestList : public TestBase, public ax::extension::TableViewDataSource, public ax::extension::TableViewDelegate
 {
 public:
     TestList();
@@ -199,10 +202,8 @@ public:
 
     virtual void runThisTest() override;
 
-    virtual void tableCellTouched(ax::extension::TableView* table,
-                                  ax::extension::TableViewCell* cell) override;
-    virtual ax::extension::TableViewCell* tableCellAtIndex(ax::extension::TableView* table,
-                                                                ssize_t idx) override;
+    virtual void tableCellTouched(ax::extension::TableView* table, ax::extension::TableViewCell* cell) override;
+    virtual ax::extension::TableViewCell* tableCellAtIndex(ax::extension::TableView* table, ssize_t idx) override;
     virtual ax::Size tableCellSizeForIndex(ax::extension::TableView* table, ssize_t idx) override;
     virtual ssize_t numberOfCellsInTableView(ax::extension::TableView* table) override;
 
@@ -220,7 +221,7 @@ private:
     TestCustomTableView* _tableView{};
 };
 
-#define ADD_TEST(__className__) addTest(#__className__, []() { return new __className__; });
+#define ADD_TEST(__className__)      addTest(#__className__, []() { return new __className__; });
 
 #define ADD_TEST_CASE(__className__) addTestCase(#__className__, []() { return __className__::create(); });
 

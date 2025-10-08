@@ -36,15 +36,15 @@ enum
     kTagMenu1 = 1,
 };
 
-#define MID_CALLBACK 1000
-#define MID_CALLBACK2 1001
-#define MID_DISABLED 1002
-#define MID_ENABLE 1003
-#define MID_CONFIG 1004
-#define MID_QUIT 1005
-#define MID_OPACITY 1006
-#define MID_ALIGN 1007
-#define MID_CALLBACK3 1008
+#define MID_CALLBACK     1000
+#define MID_CALLBACK2    1001
+#define MID_DISABLED     1002
+#define MID_ENABLE       1003
+#define MID_CONFIG       1004
+#define MID_QUIT         1005
+#define MID_OPACITY      1006
+#define MID_ALIGN        1007
+#define MID_CALLBACK3    1008
 #define MID_BACKCALLBACK 1009
 
 MenuTests::MenuTests()
@@ -81,8 +81,8 @@ MenuLayerMainMenu::MenuLayerMainMenu()
     // Label Item (LabelAtlas)
     auto labelAtlas = LabelAtlas::create("0123456789", "fonts/labelatlas.png", 16, 24, '.');
     auto item3      = MenuItemLabel::create(labelAtlas, AX_CALLBACK_1(MenuLayerMainMenu::menuCallbackDisabled, this));
-    item3->setDisabledColor(Color3B(32, 32, 64));
-    item3->setColor(Color3B(200, 200, 255));
+    item3->setDisabledColor(Color32(32, 32, 64));
+    item3->setColor(Color32(200, 200, 255));
     AXLOGD("test MenuItem Label getString: {}", item3->getString());
     // Font Item
     auto item4 = MenuItemFont::create("I toggle enable items",
@@ -118,7 +118,7 @@ MenuLayerMainMenu::MenuLayerMainMenu()
     menu->alignItemsVertically();
 
     // elastic effect
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     int i = 0;
     for (const auto& child : menu->getChildren())
@@ -228,7 +228,7 @@ MenuLayer2::MenuLayer2()
 
         auto menu = Menu::create(item1, item2, item3, nullptr);
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         menu->setPosition(Vec2(s.width / 2, s.height / 2));
 
         menu->setTag(kTagMenu);
@@ -331,8 +331,8 @@ MenuLayer3::MenuLayer3()
         _disabledItem->setEnabled(!_disabledItem->isEnabled());
         _disabledItem->stopAllActions();
     });
-    auto item2 = MenuItemFont::create("--- Go Back ---",
-                                      [&](Object* sender) { static_cast<LayerMultiplex*>(_parent)->switchTo(0, false); });
+    auto item2 = MenuItemFont::create(
+        "--- Go Back ---", [&](Object* sender) { static_cast<LayerMultiplex*>(_parent)->switchTo(0, false); });
 
     auto spriteNormal   = Sprite::create(s_MenuItem, Rect(0, 23 * 2, 115, 23));
     auto spriteSelected = Sprite::create(s_MenuItem, Rect(0, 23 * 1, 115, 23));
@@ -347,7 +347,7 @@ MenuLayer3::MenuLayer3()
     auto menu = Menu::create(item1, item2, item3, nullptr);
     menu->setPosition(Vec2(0, 0));
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     item1->setPosition(Vec2(s.width / 2 - 150, s.height / 2));
     item2->setPosition(Vec2(s.width / 2 - 200, s.height / 2));
@@ -433,11 +433,11 @@ MenuLayer4::MenuLayer4()
 
     auto menu = Menu::create(title1, title2, item1, item2, title3, title4, item3, item4, back, nullptr);  // 9 items.
 
-    menu->alignItemsInColumns(2, 2, 2, 2, 1, NULL);
+    menu->alignItemsInColumns(2, 2, 2, 2, 1, nullptr);
 
     addChild(menu);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     menu->setPosition(Vec2(s.width / 2, s.height / 2));
 }
 
@@ -465,7 +465,7 @@ BugsTest::BugsTest()
     addChild(menu);
     menu->alignItemsVertically();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     menu->setPosition(Vec2(s.width / 2, s.height / 2));
 }
 
@@ -494,7 +494,7 @@ void BugsTest::backMenuCallback(ax::Object* pSender)
 
 RemoveMenuItemWhenMove::RemoveMenuItemWhenMove()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto label = Label::createWithTTF("click item and move, should not crash", "fonts/arial.ttf", 20);
     label->setPosition(Vec2(s.width / 2, s.height - 30));

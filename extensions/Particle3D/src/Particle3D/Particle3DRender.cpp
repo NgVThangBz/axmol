@@ -24,18 +24,18 @@
  ****************************************************************************/
 #include "Particle3D/ParticleSystem3D.h"
 #include <stddef.h>  // offsetof
-#include "base/Types.h"
+#include "axmol/base/Types.h"
 #include "Particle3D/Particle3DRender.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/Renderer.h"
-#include "renderer/TextureCache.h"
-#include "renderer/backend/ProgramState.h"
-#include "renderer/backend/Buffer.h"
-#include "renderer/backend/DriverBase.h"
-#include "renderer/Shaders.h"
-#include "base/Director.h"
-#include "3d/MeshRenderer.h"
-#include "2d/Camera.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/TextureCache.h"
+#include "axmol/rhi/ProgramState.h"
+#include "axmol/rhi/Buffer.h"
+#include "axmol/rhi/DriverBase.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/base/Director.h"
+#include "axmol/3d/MeshRenderer.h"
+#include "axmol/2d/Camera.h"
 
 namespace ax
 {
@@ -50,6 +50,8 @@ Particle3DQuadRender::~Particle3DQuadRender()
     AX_SAFE_RELEASE(_programState);
     AX_SAFE_RELEASE(_vertexBuffer);
     AX_SAFE_RELEASE(_indexBuffer);
+
+    AX_SAFE_RELEASE(_vertexLayout);
 }
 
 Particle3DQuadRender* Particle3DQuadRender::create(std::string_view texFile)
@@ -77,10 +79,9 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
 
     if (_vertexBuffer == nullptr)
     {
-        size_t stride = sizeof(Particle3DQuadRender::posuvcolor);
-        _vertexBuffer =
-            backend::DriverBase::getInstance()->newBuffer(stride * 4 * particleSystem->getParticleQuota(),
-                                                      backend::BufferType::VERTEX, backend::BufferUsage::DYNAMIC);
+        size_t stride = sizeof(V3F_T2F_C4F);
+        _vertexBuffer = rhi::DriverBase::getInstance()->createBuffer(
+            stride * 4 * particleSystem->getParticleQuota(), rhi::BufferType::VERTEX, rhi::BufferUsage::DYNAMIC);
         if (_vertexBuffer == nullptr)
         {
             AXLOGD("Particle3DQuadRender::render create vertex buffer failed");
@@ -91,8 +92,8 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
     if (_indexBuffer == nullptr)
     {
         _indexBuffer =
-            backend::DriverBase::getInstance()->newBuffer(sizeof(uint16_t) * 6 * particleSystem->getParticleQuota(),
-                                                      backend::BufferType::INDEX, backend::BufferUsage::DYNAMIC);
+            rhi::DriverBase::getInstance()->createBuffer(sizeof(uint16_t) * 6 * particleSystem->getParticleQuota(),
+                                                         rhi::BufferType::INDEX, rhi::BufferUsage::DYNAMIC);
         if (_indexBuffer == nullptr)
         {
             AXLOGD("Particle3DQuadRender::render create index buffer failed");
@@ -127,19 +128,19 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
         position                           = particle->position;
         _posuvcolors[vertexindex].position = (position + (-halfwidth - halfheight));
         _posuvcolors[vertexindex].color    = particle->color;
-        _posuvcolors[vertexindex].uv.set(particle->lb_uv);
+        _posuvcolors[vertexindex].texCoord.set(particle->lb_uv);
 
         _posuvcolors[vertexindex + 1].position = (position + (halfwidth - halfheight));
         _posuvcolors[vertexindex + 1].color    = particle->color;
-        _posuvcolors[vertexindex + 1].uv.set(particle->rt_uv.x, particle->lb_uv.y);
+        _posuvcolors[vertexindex + 1].texCoord.set(particle->rt_uv.x, particle->lb_uv.y);
 
         _posuvcolors[vertexindex + 2].position = (position + (-halfwidth + halfheight));
         _posuvcolors[vertexindex + 2].color    = particle->color;
-        _posuvcolors[vertexindex + 2].uv.set(particle->lb_uv.x, particle->rt_uv.y);
+        _posuvcolors[vertexindex + 2].texCoord.set(particle->lb_uv.x, particle->rt_uv.y);
 
         _posuvcolors[vertexindex + 3].position = (position + (halfwidth + halfheight));
         _posuvcolors[vertexindex + 3].color    = particle->color;
-        _posuvcolors[vertexindex + 3].uv.set(particle->rt_uv);
+        _posuvcolors[vertexindex + 3].texCoord.set(particle->rt_uv);
 
         _indexData[index]     = vertexindex;
         _indexData[index + 1] = vertexindex + 1;
@@ -179,7 +180,7 @@ void Particle3DQuadRender::render(Renderer* renderer, const Mat4& transform, Par
 
     if (_texture)
     {
-        _programState->setTexture(_locTexture, 0, _texture->getBackendTexture());
+        _programState->setTexture(_locTexture, 0, _texture->getRHITexture());
     }
     _stateBlock.setBlendFunc(particleSystem->getBlendFunc());
     auto uColor = Vec4(1, 1, 1, 1);
@@ -202,19 +203,19 @@ bool Particle3DQuadRender::initQuadRender(std::string_view texFile)
         if (tex)
         {
             _texture      = tex;
-            auto* program = backend::Program::getBuiltinProgram(backend::ProgramType::PARTICLE_TEXTURE_3D);
-            _programState = new backend::ProgramState(program);
+            auto* program = axpm->getBuiltinProgram(rhi::ProgramType::PARTICLE_TEXTURE_3D);
+            _programState = new rhi::ProgramState(program);
         }
     }
 
     if (!_programState)
     {
-        auto* program = backend::Program::getBuiltinProgram(backend::ProgramType::PARTICLE_COLOR_3D);
-        _programState = new backend::ProgramState(program);
+        auto* program = axpm->getBuiltinProgram(rhi::ProgramType::PARTICLE_COLOR_3D);
+        _programState = new rhi::ProgramState(program);
     }
 
-    auto& pipelineDescriptor        = _meshCommand.getPipelineDescriptor();
-    pipelineDescriptor.programState = _programState;
+    Object::assign(_vertexLayout, _programState->getVertexLayout());
+    _meshCommand.setWeakPSVL(_programState, _vertexLayout);
 
     _locColor   = _programState->getUniformLocation("u_color");
     _locPMatrix = _programState->getUniformLocation("u_PMatrix");
@@ -225,7 +226,7 @@ bool Particle3DQuadRender::initQuadRender(std::string_view texFile)
 
     _stateBlock.setDepthTest(true);
     _stateBlock.setDepthWrite(false);
-    _stateBlock.setCullFaceSide(backend::CullMode::BACK);
+    _stateBlock.setCullFaceSide(rhi::CullMode::BACK);
     _stateBlock.setCullFace(true);
 
     return true;
@@ -234,13 +235,12 @@ bool Particle3DQuadRender::initQuadRender(std::string_view texFile)
 void Particle3DQuadRender::onBeforeDraw()
 {
     auto* renderer            = Director::getInstance()->getRenderer();
-    auto& pipelineDescriptor  = _meshCommand.getPipelineDescriptor();
     _rendererDepthTestEnabled = renderer->getDepthTest();
-    _rendererDepthCmpFunc     = renderer->getDepthCompareFunction();
+    _rendererDepthCmpFunc     = renderer->getDepthCompareFunc();
     _rendererCullMode         = renderer->getCullMode();
     _rendererDepthWrite       = renderer->getDepthWrite();
     _rendererWinding          = renderer->getWinding();
-    _stateBlock.bind(&pipelineDescriptor);
+    _stateBlock.bind(&_meshCommand);
     renderer->setDepthTest(true);
 }
 
@@ -248,7 +248,7 @@ void Particle3DQuadRender::onAfterDraw()
 {
     auto* renderer = Director::getInstance()->getRenderer();
     renderer->setDepthTest(_rendererDepthTestEnabled);
-    renderer->setDepthCompareFunction(_rendererDepthCmpFunc);
+    renderer->setDepthCompareFunc(_rendererDepthCmpFunc);
     renderer->setCullMode(_rendererCullMode);
     renderer->setDepthWrite(_rendererDepthWrite);
     renderer->setWinding(_rendererWinding);
@@ -343,7 +343,7 @@ Particle3DRender::Particle3DRender()
     : _particleSystem(nullptr), _isVisible(true), _rendererScale(Vec3::ONE), _depthTest(true), _depthWrite(false)
 {
     _stateBlock.setCullFace(false);
-    _stateBlock.setCullFaceSide(backend::CullMode::BACK);
+    _stateBlock.setCullFaceSide(rhi::CullMode::BACK);
     _stateBlock.setDepthTest(false);
     _stateBlock.setDepthWrite(false);
     _stateBlock.setBlend(true);
@@ -392,4 +392,4 @@ void Particle3DRender::setBlendFunc(const BlendFunc& blendFunc)
     _stateBlock.setBlendFunc(blendFunc);
 }
 
-}
+}  // namespace ax

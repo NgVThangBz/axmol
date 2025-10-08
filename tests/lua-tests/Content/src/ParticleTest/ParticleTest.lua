@@ -10,7 +10,7 @@ local titleLabel = nil
 local subtitleLabel = nil
 local baseLayer_entry = nil
 
-local s = ax.Director:getInstance():getWinSize()
+local s = ax.Director:getInstance():getCanvasSize()
 
 local  onEnterCallback = nil
 
@@ -104,7 +104,7 @@ local function baseLayer_onEnterOrExit(tag)
 end
 
 local function getBaseLayer()
-	local layer = ax.LayerColor:create(ax.c4b(127,127,127,255))
+	local layer = ax.LayerColor:create(ax.color32(127,127,127,255))
 
     emitter = nil
 
@@ -244,7 +244,7 @@ local function ParticleReorder()
 
     onEnterCallback = function ()
         ParticleReorder_Order = 0
-        ParticleReorder_layer:setColor(ax.c3b(0, 0, 0))
+        ParticleReorder_layer:setColor(ax.color32(0, 0, 0))
         ParticleReorder_layer:removeChild(background, true)
         background = nil
 
@@ -262,13 +262,13 @@ local function ParticleReorder()
             end
 
             local emitter1 = ax.ParticleSystemQuad:create("Particles/SmallSun.plist")
-            emitter1:setStartColor(ax.c4f(1,0,0,1))
+            emitter1:setStartColor(ax.color(1,0,0,1))
             emitter1:setBlendAdditive(false)
             local emitter2 = ax.ParticleSystemQuad:create("Particles/SmallSun.plist")
-            emitter2:setStartColor(ax.c4f(0,1,0,1))
+            emitter2:setStartColor(ax.color(0,1,0,1))
             emitter2:setBlendAdditive(false)
             local emitter3 = ax.ParticleSystemQuad:create("Particles/SmallSun.plist")
-            emitter3:setStartColor(ax.c4f(0,0,1,1))
+            emitter3:setStartColor(ax.color(0,0,1,1))
             emitter3:setBlendAdditive(false)
 
             local neg = nil
@@ -344,7 +344,7 @@ local function ParticleBatchHybrid()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -375,16 +375,16 @@ local function ParticleBatchMultipleEmitters()
 	local layer = getBaseLayer()
 
     onEnterCallback = function()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
         local emitter1 = ax.ParticleSystemQuad:create("Particles/LavaFlow.plist")
-        emitter1:setStartColor(ax.c4f(1,0,0,1))
+        emitter1:setStartColor(ax.color(1,0,0,1))
         local emitter2 = ax.ParticleSystemQuad:create("Particles/LavaFlow.plist")
-        emitter2:setStartColor(ax.c4f(0,1,0,1))
+        emitter2:setStartColor(ax.color(0,1,0,1))
         local emitter3 = ax.ParticleSystemQuad:create("Particles/LavaFlow.plist")
-        emitter3:setStartColor(ax.c4f(0,0,1,1))
+        emitter3:setStartColor(ax.color(0,0,1,1))
 
         emitter1:setPosition(ax.p(s.width / 1.25, s.height / 1.25))
         emitter2:setPosition(ax.p(s.width / 2, s.height / 2))
@@ -732,10 +732,10 @@ local function DemoBigFlower()
         emitter:setEndSpinVar(0)
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(80.0)
@@ -807,10 +807,10 @@ local function DemoRotFlower()
         emitter:setEndSpinVar(2000)
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(30.0)
@@ -878,10 +878,10 @@ local function DemoModernArt()
         emitter:setEmissionRate(emitter:getTotalParticles() / emitter:getLife())
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(1.0)
@@ -978,7 +978,7 @@ local function DemoParticleFromFile(name)
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1003,7 +1003,7 @@ local function RadiusMode1()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1049,10 +1049,10 @@ local function RadiusMode1()
         emitter:setEndSpinVar(0)
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(32)
@@ -1078,7 +1078,7 @@ local function RadiusMode2()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1123,10 +1123,10 @@ local function RadiusMode2()
         emitter:setEndSpinVar(0)
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(32)
@@ -1152,7 +1152,7 @@ local function Issue704()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1198,10 +1198,10 @@ local function Issue704()
         emitter:setEndSpinVar(0)
 
         -- color of particles
-        emitter:setStartColor(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setStartColorVar(ax.c4f(0.5, 0.5, 0.5, 1.0))
-        emitter:setEndColor(ax.c4f(0.1, 0.1, 0.1, 0.2))
-        emitter:setEndColorVar(ax.c4f(0.1, 0.1, 0.1, 0.2))
+        emitter:setStartColor(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setStartColorVar(ax.color(0.5, 0.5, 0.5, 1.0))
+        emitter:setEndColor(ax.color(0.1, 0.1, 0.1, 0.2))
+        emitter:setEndColorVar(ax.color(0.1, 0.1, 0.1, 0.2))
 
         -- size, in pixels
         emitter:setStartSize(16)
@@ -1253,7 +1253,7 @@ local function Issue870()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
         local system = ax.ParticleSystemQuad:create("Particles/SpinningPeas.plist")
@@ -1279,7 +1279,7 @@ local function MultipleParticleSystems()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1308,7 +1308,7 @@ local function MultipleParticleSystemsBatched()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1375,7 +1375,7 @@ local function AddAndDeleteParticleSystems()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 
@@ -1440,7 +1440,7 @@ local function ReorderParticleSystems()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background ,true)
         background = nil
 
@@ -1488,18 +1488,18 @@ local function ReorderParticleSystems()
             particleSystem:setEndSpinVar(0)
 
             -- color of particles
-            local startColor = ax.c4f(0, 0, 0, 1)
+            local startColor = ax.color(0, 0, 0, 1)
             if i == 0 then startColor.r = 1
             elseif i == 1 then startColor.g = 1
             elseif i == 2 then startColor.b = 1
             end
 
             particleSystem:setStartColor(startColor)
-            particleSystem:setStartColorVar(ax.c4f(0, 0, 0, 0))
+            particleSystem:setStartColorVar(ax.color(0, 0, 0, 0))
 
             local endColor = startColor
             particleSystem:setEndColor(endColor)
-            particleSystem:setEndColorVar(ax.c4f(0, 0, 0, 0))
+            particleSystem:setEndColorVar(ax.color(0, 0, 0, 0))
 
             -- size, in pixels
             particleSystem:setStartSize(32)
@@ -1535,7 +1535,7 @@ local function PremultipliedAlphaTest()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 255))
+        layer:setColor(ax.color32(0, 0, 255))
         layer:removeChild(background, true)
         background = nil
 
@@ -1546,10 +1546,10 @@ local function PremultipliedAlphaTest()
 
         --assert(emitter:getOpacityModifyRGB(), "Particle texture does not have premultiplied alpha, test is useless")
 
-        emitter:setStartColor(ax.c4f(1, 1, 1, 1))
-        emitter:setEndColor(ax.c4f(1, 1, 1, 0))
-        emitter:setStartColorVar(ax.c4f(0, 0, 0, 0))
-        emitter:setEndColorVar(ax.c4f(0, 0, 0, 0))
+        emitter:setStartColor(ax.color(1, 1, 1, 1))
+        emitter:setEndColor(ax.color(1, 1, 1, 0))
+        emitter:setStartColorVar(ax.color(0, 0, 0, 0))
+        emitter:setEndColorVar(ax.color(0, 0, 0, 0))
 
         layer:addChild(emitter, 10)
 
@@ -1567,7 +1567,7 @@ local function PremultipliedAlphaTest2()
 	local layer = getBaseLayer()
 
     onEnterCallback = function ()
-        layer:setColor(ax.c3b(0, 0, 0))
+        layer:setColor(ax.color32(0, 0, 0))
         layer:removeChild(background, true)
         background = nil
 

@@ -25,7 +25,7 @@
  ****************************************************************************/
 
 #include "Particle3D/PU/PUSlaveBehaviour.h"
-#include "base/Macros.h"
+#include "axmol/base/Macros.h"
 
 namespace ax
 {
@@ -62,4 +62,4 @@ void PUSlaveBehaviour::copyAttributesTo(PUBehaviour* behaviour)
     PUBehaviour::copyAttributesTo(behaviour);
 }
 
-}
+}  // namespace ax

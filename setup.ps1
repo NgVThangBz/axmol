@@ -22,10 +22,9 @@ echo > /dev/null <<"out-null"
 #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Powershell Start ----------------------------------------------------#>
 
-$myRoot = $PSScriptRoot
-$AX_ROOT = $myRoot
+$AX_ROOT = $PSScriptRoot
 
-$Global:is_axmol_engine = Test-Path $(Join-Path $AX_ROOT 'core/axmol.cpp')
+$Global:is_axmol_engine = Test-Path $(Join-Path $AX_ROOT 'axmol/axmol.cpp')
 
 function println($message) { Write-Host "axmol: $message" }
 
@@ -322,7 +321,12 @@ else {
                 $DEPENDS += 'g++'
                 $DEPENDS += 'libasound2-dev'
                 $DEPENDS += 'libxxf86vm-dev'
+
+                # vlc
                 $DEPENDS += 'libvlc-dev', 'libvlccore-dev', 'vlc'
+
+                # wayland
+                $DEPENDS += 'libwayland-dev', 'wayland-protocols', 'libwayland-cursor0', 'libwayland-egl1', 'libwayland-egl-backend-dev', 'libegl1-mesa-dev', 'libgl1-mesa-dev'
 
                 # if vlc encouter codec error, install
                 # sudo apt install ubuntu-restricted-extras
@@ -356,7 +360,10 @@ else {
                     'fontconfig',
                     'gtk3',
                     'webkit2gtk',
-                    'vlc'
+                    'vlc',
+                    'wayland',
+                    'wayland-protocols',
+                    'libglvnd'
                 )
                 sudo pacman -S --needed --noconfirm @DEPENDS
             }
@@ -367,8 +374,8 @@ else {
     }
 }
 
-$1k_script = Join-Path $myRoot '1k/1kiss.ps1'
-$prefix = Join-Path $myRoot 'tools/external'
+$1k_script = Join-Path $PSScriptRoot '1k/1kiss.ps1'
+$prefix = Join-Path $PSScriptRoot 'tools/external'
 if (!(Test-Path $prefix -PathType Container)) {
     mkdirs $prefix
 }

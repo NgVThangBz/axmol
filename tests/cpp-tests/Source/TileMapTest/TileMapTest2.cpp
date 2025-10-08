@@ -25,8 +25,8 @@
 #include "TileMapTest2.h"
 #include "../testResource.h"
 
-#include "2d/FastTMXLayer.h"
-#include "2d/FastTMXTiledMap.h"
+#include "axmol/2d/FastTMXLayer.h"
+#include "axmol/2d/FastTMXTiledMap.h"
 
 using namespace ax;
 
@@ -186,7 +186,7 @@ void TileMapEditTestNew::updateMap(float dt)
     // over all your tiles in every frame. It's very expensive
     //    for(int x=0; x < tilemap.tgaInfo->width; x++) {
     //        for(int y=0; y < tilemap.tgaInfo->height; y++) {
-    //            Color3B c =[tilemap tileAt:Size(x,y));
+    //            Color32 c =[tilemap tileAt:Size(x,y));
     //            if( c.r != 0 ) {
     //                ////----AXLOGD("{},{} = {}", x,y,c.r);
     //            }
@@ -194,7 +194,7 @@ void TileMapEditTestNew::updateMap(float dt)
     //    }
 
     // NEW since v0.7
-    Color3B c = tilemap->getTileAt(Vec2(13, 21));
+    Color32 c = tilemap->getTileAt(Vec2(13, 21));
     c.r++;
     c.r %= 50;
     if (c.r == 0)
@@ -221,7 +221,7 @@ TMXOrthoTestNew::TMXOrthoTestNew()
     //
     // it should not flicker. No artifacts should appear
     //
-    // auto color = LayerColor::create( Color4B(64,64,64,255) );
+    // auto color = LayerColor::create( Color32(64,64,64,255) );
     // addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/orthogonal-test2.tmx");
@@ -493,7 +493,7 @@ std::string TMXReadWriteTestNew::title() const
 //------------------------------------------------------------------
 TMXHexTestNew::TMXHexTestNew()
 {
-    auto color = LayerColor::create(Color4B(64, 64, 64, 255));
+    auto color = LayerColor::create(Color32(64, 64, 64, 255));
     addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/hexa-test.tmx");
@@ -515,7 +515,7 @@ std::string TMXHexTestNew::title() const
 //------------------------------------------------------------------
 TMXIsoTestNew::TMXIsoTestNew()
 {
-    auto color = LayerColor::create(Color4B(64, 64, 64, 255));
+    auto color = LayerColor::create(Color32(64, 64, 64, 255));
     addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/iso-test.tmx");
@@ -539,7 +539,7 @@ std::string TMXIsoTestNew::title() const
 //------------------------------------------------------------------
 TMXIsoTest1New::TMXIsoTest1New()
 {
-    auto color = LayerColor::create(Color4B(64, 64, 64, 255));
+    auto color = LayerColor::create(Color32(64, 64, 64, 255));
     addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/iso-test1.tmx");
@@ -563,7 +563,7 @@ std::string TMXIsoTest1New::title() const
 //------------------------------------------------------------------
 TMXIsoTest2New::TMXIsoTest2New()
 {
-    auto color = LayerColor::create(Color4B(64, 64, 64, 255));
+    auto color = LayerColor::create(Color32(64, 64, 64, 255));
     addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/iso-test2.tmx");
@@ -590,7 +590,7 @@ std::string TMXIsoTest2New::title() const
 //------------------------------------------------------------------
 TMXUncompressedTestNew::TMXUncompressedTestNew()
 {
-    auto color = LayerColor::create(Color4B(64, 64, 64, 255));
+    auto color = LayerColor::create(Color32(64, 64, 64, 255));
     addChild(color, -1);
 
     auto map = ax::FastTMXTiledMap::create("TileMaps/iso-test2-uncompressed.tmx");
@@ -659,7 +659,7 @@ TMXOrthoObjectsTestNew::TMXOrthoObjectsTestNew()
     AXLOGD("{}", objectsVal.getDescription());
 
     auto drawNode = DrawNode::create();
-    Color4F color(1.0, 1.0, 1.0, 1.0);
+    Color color(1.0, 1.0, 1.0, 1.0);
     for (auto&& obj : objects)
     {
         ValueMap& dict = obj.asValueMap();
@@ -709,7 +709,7 @@ TMXIsoObjectsTestNew::TMXIsoObjectsTestNew()
     AXLOGD("{}", objectsVal.getDescription());
 
     auto drawNode = DrawNode::create();
-    Color4F color(1.0, 1.0, 1.0, 1.0);
+    Color color(1.0, 1.0, 1.0, 1.0);
     for (auto&& obj : objects)
     {
         ValueMap& dict = obj.asValueMap();
@@ -1338,7 +1338,7 @@ TMXGIDObjectsTestNew::TMXGIDObjectsTestNew()
     AXLOGD("----> Iterating over all the group objects");
 
     auto drawNode = DrawNode::create();
-    Color4F color(1.0, 1.0, 1.0, 1.0);
+    Color color(1.0, 1.0, 1.0, 1.0);
     auto group   = map->getObjectGroup("Object Layer 1");
     auto objects = group->getObjects();
     for (auto&& obj : objects)

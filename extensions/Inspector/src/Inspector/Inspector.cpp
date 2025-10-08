@@ -1,6 +1,6 @@
 #include "Inspector.h"
 #include "ImGuiPresenter.h"
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 #if __has_include(<cxxabi.h>)
 #    define AX_HAS_CXXABI 1
@@ -50,8 +50,7 @@ void InspectorNodePropertyHandler::drawProperties(Node* node)
         node->setScaleY(_scale[2]);
     }
 
-    float rotation[3] = {node->getRotationSkewX(), node->getRotationSkewX(),
-                         node->getRotationSkewY()};
+    float rotation[3] = {node->getRotationSkewX(), node->getRotationSkewX(), node->getRotationSkewY()};
     if (ImGui::DragFloat3("Rotation", rotation, 1.0f))
     {
         if (node->getRotationSkewX() != rotation[0])
@@ -99,9 +98,8 @@ void InspectorNodePropertyHandler::drawProperties(Node* node)
     auto color      = node->getColor();
     float _color[4] = {color.r / 255.f, color.g / 255.f, color.b / 255.f, node->getOpacity() / 255.f};
     ImGui::ColorEdit4("Color", _color);
-    node->setColor({static_cast<GLubyte>(_color[0] * 255), static_cast<GLubyte>(_color[1] * 255),
-                              static_cast<GLubyte>(_color[2] * 255)});
-    node->setOpacity(static_cast<int>(_color[3] * 255.f));
+    node->setColor({static_cast<uint8_t>(_color[0] * 255), static_cast<uint8_t>(_color[1] * 255),
+                    static_cast<uint8_t>(_color[2] * 255), static_cast<uint8_t>(_color[3] * 255.f)});
 }
 
 bool InspectorSpritePropertyHandler::isSupportedType(Node* node)
@@ -188,15 +186,15 @@ void Inspector::init()
 
     _beforeNewSceneEventListener = Director::getInstance()->getEventDispatcher()->addCustomEventListener(
         Director::EVENT_BEFORE_SET_NEXT_SCENE, [this](EventCustom*) {
-            if (!_autoAddToScenes)
-                return;
+        if (!_autoAddToScenes)
+            return;
 
         getInstance()->close();
     });
     _afterNewSceneEventListener = Director::getInstance()->getEventDispatcher()->addCustomEventListener(
         Director::EVENT_AFTER_SET_NEXT_SCENE, [this](EventCustom*) {
-            if (!_autoAddToScenes)
-                return;
+        if (!_autoAddToScenes)
+            return;
 
         getInstance()->openForCurrentScene();
     });
@@ -210,7 +208,7 @@ void Inspector::cleanup()
     eventDispatcher->removeEventListener(_afterNewSceneEventListener);
 
     _beforeNewSceneEventListener = nullptr;
-    _afterNewSceneEventListener = nullptr;
+    _afterNewSceneEventListener  = nullptr;
 }
 
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
@@ -221,7 +219,7 @@ std::string Inspector::demangle(const char* name)
     // typeid(Node).name() == "class ax::Node"
     // the + 6 gets rid of the class prefix
     // "class ax::Node" + 6 == "ax::Node"
-    return { name + 6 };
+    return {name + 6};
 }
 
 #elif AX_HAS_CXXABI
@@ -237,7 +235,7 @@ std::string Inspector::demangle(const char* mangled_name)
 
 std::string Inspector::demangle(const char* name)
 {
-    return { name };
+    return {name};
 }
 
 #endif
@@ -294,10 +292,10 @@ void Inspector::drawTreeRecursive(Node* node, int index)
 
     if (is_open)
     {
-        const auto &children = node->getChildren();
+        const auto& children = node->getChildren();
         for (int i = 0; auto* child : children)
         {
-            if(!child)
+            if (!child)
             {
                 continue;
             }
@@ -402,7 +400,7 @@ void Inspector::openForScene(Scene* target)
     auto* presenter = ImGuiPresenter::getInstance();
     presenter->addFont(FileUtils::getInstance()->fullPathForFilename(_fontPath), _fontSize);
     presenter->enableDPIScale();
-    presenter->addRenderLoop("#insp", AX_CALLBACK_0(Inspector::mainLoop , this), target);
+    presenter->addRenderLoop("#insp", AX_CALLBACK_0(Inspector::mainLoop, this), target);
 }
 
 void Inspector::openForCurrentScene()
@@ -413,7 +411,7 @@ void Inspector::openForCurrentScene()
 void Inspector::close()
 {
     _selected_node = nullptr;
-    _target = nullptr;
+    _target        = nullptr;
 
     auto presenter = ImGuiPresenter::getInstance();
     presenter->removeRenderLoop("#insp");
@@ -447,7 +445,7 @@ void Inspector::setAutoAddToScenes(bool autoAdd)
 
 void Inspector::mainLoop()
 {
-    if(!_target)
+    if (!_target)
     {
         close();
         return;
@@ -456,7 +454,8 @@ void Inspector::mainLoop()
     if (ImGui::Begin("Inspector"))
     {
         const auto avail = ImGui::GetContentRegionAvail();
-        if (ImGui::BeginChild("node.explorer.tree", ImVec2(avail.x * 0.5f, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
+        if (ImGui::BeginChild("node.explorer.tree", ImVec2(avail.x * 0.5f, 0), false,
+                              ImGuiWindowFlags_HorizontalScrollbar))
         {
             drawTreeRecursive(_target);
         }

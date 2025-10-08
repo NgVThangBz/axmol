@@ -23,11 +23,11 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "2d/Light.h"
-#include "3d/MeshRenderer.h"
-#include "3d/Animate3D.h"
-#include "3d/Animation3D.h"
-#include "platform/FileUtils.h"
+#include "axmol/2d/Light.h"
+#include "axmol/3d/MeshRenderer.h"
+#include "axmol/3d/Animate3D.h"
+#include "axmol/3d/Animation3D.h"
+#include "axmol/platform/FileUtils.h"
 #include "cocostudio/WidgetReader/MeshReader/MeshReader.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
@@ -76,7 +76,7 @@ Vec2 MeshReader::getVec2Attribute(pugi::xml_attribute attribute) const
 
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "X")
@@ -95,7 +95,7 @@ Vec2 MeshReader::getVec2Attribute(pugi::xml_attribute attribute) const
 }
 
 Offset<Table> MeshReader::createOptionsWithFlatBuffers(pugi::xml_node objectData,
-                                                           flatbuffers::FlatBufferBuilder* builder)
+                                                       flatbuffers::FlatBufferBuilder* builder)
 {
     auto temp          = Node3DReader::getInstance()->createOptionsWithFlatBuffers(objectData, builder);
     auto node3DOptions = *(Offset<Node3DOption>*)(&temp);
@@ -110,7 +110,7 @@ Offset<Table> MeshReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
     auto attribute = objectData.first_attribute();
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "RunAction3D")
@@ -166,7 +166,7 @@ Offset<Table> MeshReader::createOptionsWithFlatBuffers(pugi::xml_node objectData
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -230,13 +230,9 @@ void MeshReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Tabl
     uint8_t green = (uint8_t)nodeOptions->color()->g();
     uint8_t blue  = (uint8_t)nodeOptions->color()->b();
 
-    if (alpha != 255)
+    if (red != 255 || green != 255 || blue != 255 || alpha != 255)
     {
-        mesh->setOpacity(alpha);
-    }
-    if (red != 255 || green != 255 || blue != 255)
-    {
-        mesh->setColor(Color3B(red, green, blue));
+        mesh->setColor(Color32(red, green, blue, alpha));
     }
     if (isFlipped)
     {

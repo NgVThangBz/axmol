@@ -52,7 +52,7 @@ void MotionStreakTest1::onEnter()
 {
     MotionStreakTest::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // the root object just rotates around
     _root = Sprite::create(s_pathR1);
@@ -65,7 +65,7 @@ void MotionStreakTest1::onEnter()
     _target->setPosition(Vec2(s.width / 4, 0.0f));
 
     // create the streak object and add it to the scene
-    _streak = MotionStreak::create(2, 3, 32, Color3B::GREEN, s_streak);
+    _streak = MotionStreak::create(2, 3, 32, Color32::GREEN, s_streak);
     addChild(_streak);
     // schedule an update on each frame so we can synchronize the streak with the target
     schedule(AX_SCHEDULE_SELECTOR(MotionStreakTest1::onUpdate));
@@ -109,10 +109,10 @@ void MotionStreakTest2::onEnter()
     listener->onTouchesMoved = AX_CALLBACK_2(MotionStreakTest2::onTouchesMoved, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // create the streak object and add it to the scene
-    _streak = MotionStreak::create(3, 3, 64, Color3B::WHITE, s_streak);
+    _streak = MotionStreak::create(3, 3, 64, Color32::WHITE, s_streak);
     addChild(_streak);
 
     _streak->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -146,9 +146,9 @@ void Issue1358::onEnter()
     MotionStreakTest::onEnter();
 
     // ask director the the window size
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
-    _streak = MotionStreak::create(2.0f, 1.0f, 50.0f, Color3B(255, 255, 0), "Images/Icon.png");
+    _streak = MotionStreak::create(2.0f, 1.0f, 50.0f, Color32(255, 255, 0), "Images/Icon.png");
     addChild(_streak);
 
     _center = Vec2(size.width / 2, size.height / 2);
@@ -186,7 +186,7 @@ void Issue12226::onEnter()
     MotionStreakTest::onEnter();
 
     // ask director the the window size
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
 
     auto radius = size.width / 3;
 
@@ -194,7 +194,7 @@ void Issue12226::onEnter()
     outer->setPosition(size / 2);
     addChild(outer);
 
-    _streak = MotionStreak::create(1.0f, 3, radius * 1.5f, Color3B(0xA0, 0xA0, 0xA0), "ccb/particle-smoke.png");
+    _streak = MotionStreak::create(1.0f, 3, radius * 1.5f, Color32(0xA0, 0xA0, 0xA0), "ccb/particle-smoke.png");
     //    motionStreak->setOpacity(0x70);
     _streak->setPosition(outer->getPosition());
 
@@ -253,7 +253,7 @@ void MotionStreakTest::onEnter()
 {
     TestCase::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto itemMode = MenuItemToggle::createWithCallback(AX_CALLBACK_1(MotionStreakTest::modeCallback, this),
                                                        MenuItemFont::create("Use High Quality Mode"),

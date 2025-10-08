@@ -24,9 +24,9 @@
 
 #include "ShaderTest.h"
 #include "../testResource.h"
-#include "axmol.h"
-#include "renderer/Shaders.h"
-#include "renderer/backend/DriverBase.h"
+#include "axmol/axmol.h"
+#include "axmol/renderer/Shaders.h"
+#include "axmol/rhi/DriverBase.h"
 
 using namespace ax;
 USING_NS_AX_EXT;
@@ -104,14 +104,14 @@ bool ShaderNode::initWithVertex(std::string_view vert, std::string_view frag)
     setAnchorPoint(Vec2(0.5f, 0.5f));
 
     // init custom command
-    auto attrPosLoc = _programState->getAttributeLocation("a_position");
+    auto inputDesc = _programState->getVertexInputDesc("a_position");
 
-    auto vertexLayout = _programState->getMutableVertexLayout();
-    vertexLayout->setAttrib("a_position", attrPosLoc, backend::VertexFormat::FLOAT2, 0, false);
+    // auto vertexLayout = _programState->getMutableVertexLayout();
+    // vertexLayout->setAttrib("a_position", attrPosLoc, rhi::VertexFormat::FLOAT4, 0, false);
 
     float w = SIZE_X, h = SIZE_Y;
-    Vec2 vertices[6] = {Vec2(0.0f, 0.0f), Vec2(w, 0.0f), Vec2(w, h), Vec2(0.0f, 0.0f), Vec2(0.0f, h), Vec2(w, h)};
-    vertexLayout->setStride(sizeof(Vec2));
+    Vec3 vertices[6] = {Vec3(0.0f, 0.0f, 1.0f), Vec3(w, 0.0f, 1.0f), Vec3(w, h, 1.0f),
+                        Vec3(0.0f, 0.0f, 1.0f), Vec3(0.0f, h, 1.0f), Vec3(w, h, 1.0f)};
 
     /*
      * TODO: the Y-coordinate of subclasses are flipped in metal
@@ -119,7 +119,7 @@ bool ShaderNode::initWithVertex(std::string_view vert, std::string_view frag)
      * keywords: AX_USE_METAL , AX_USE_GL
      */
 
-    _customCommand.createVertexBuffer(sizeof(Vec2), 6, CustomCommand::BufferUsage::STATIC);
+    _customCommand.createVertexBuffer(sizeof(Vec3), 6, CustomCommand::BufferUsage::STATIC);
     _customCommand.updateVertexBuffer(vertices, sizeof(vertices));
 
     _customCommand.setDrawType(CustomCommand::DrawType::ARRAY);
@@ -129,8 +129,8 @@ bool ShaderNode::initWithVertex(std::string_view vert, std::string_view frag)
 
 void ShaderNode::loadShaderVertex(std::string_view vert, std::string_view frag)
 {
-    auto program      = ProgramManager::getInstance()->loadProgram(vert, frag, VertexLayoutType::Sprite);
-    auto programState = new backend::ProgramState(program);
+    auto program      = ProgramManager::getInstance()->loadProgram(vert, frag, VertexLayoutKind::Pos);
+    auto programState = new rhi::ProgramState(program);
     setProgramState(programState);
     AX_SAFE_RELEASE(programState);
 }
@@ -143,12 +143,12 @@ void ShaderNode::update(float dt)
 void ShaderNode::setPosition(const Vec2& newPosition)
 {
     Node::setPosition(newPosition);
-    auto position     = getPosition();
-    auto frameSize    = Director::getInstance()->getRenderView()->getFrameSize();
-    auto visibleSize  = Director::getInstance()->getVisibleSize();
-    auto retinaFactor = Director::getInstance()->getRenderView()->getRetinaFactor();
-    _center           = Vec2(position.x * frameSize.width / visibleSize.width * retinaFactor,
-                             position.y * frameSize.height / visibleSize.height * retinaFactor);
+    auto position    = getPosition();
+    auto frameSize   = Director::getInstance()->getRenderView()->getWindowSize();
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    auto renderScale = Director::getInstance()->getRenderView()->getRenderScale();
+    _center          = Vec2(position.x * frameSize.width / visibleSize.width * renderScale,
+                            position.y * frameSize.height / visibleSize.height * renderScale);
 }
 
 void ShaderNode::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
@@ -189,9 +189,9 @@ void ShaderNode::updateUniforms()
     _locCosTime    = _programState->getUniformLocation("u_CosTime");
     _locScreenSize = _programState->getUniformLocation("u_screenSize");
 
-    const Vec2& frameSize   = Director::getInstance()->getRenderView()->getFrameSize();
-    float retinaFactor      = Director::getInstance()->getRenderView()->getRetinaFactor();
-    auto screenSizeInPixels = frameSize * retinaFactor;
+    const Vec2& canvasSize  = Director::getInstance()->getRenderView()->getWindowSize();
+    float renderScale       = Director::getInstance()->getRenderView()->getRenderScale();
+    auto screenSizeInPixels = canvasSize * renderScale;
     _programState->setUniform(_locScreenSize, &screenSizeInPixels, sizeof(screenSizeInPixels));
 }
 
@@ -205,7 +205,7 @@ bool ShaderMonjori::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Monjori_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -235,7 +235,7 @@ bool ShaderMandelbrot::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Mandelbrot_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -264,7 +264,7 @@ bool ShaderJulia::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Julia_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -293,7 +293,7 @@ bool ShaderHeart::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Heart_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -323,7 +323,7 @@ bool ShaderFlower::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Flower_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -353,7 +353,7 @@ bool ShaderPlasma::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/example_Plasma_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
 
         addChild(sn);
@@ -417,7 +417,7 @@ bool SpriteBlur::initWithTexture(Texture2D* texture, const Rect& rect)
     _blurRadius = 0;
     if (Sprite::initWithTexture(texture, rect))
     {
-#if AX_ENABLE_CACHE_TEXTURE_DATA
+#if AX_ENABLE_CONTEXT_LOSS_RECOVERY
         auto listener =
             EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom* event) { initProgram(); });
 
@@ -434,8 +434,9 @@ bool SpriteBlur::initWithTexture(Texture2D* texture, const Rect& rect)
 
 void SpriteBlur::initProgram()
 {
-    auto program      = ProgramManager::getInstance()->loadProgram(positionTextureColor_vert, "custom/example_Blur_fs", VertexLayoutType::Sprite);
-    auto programState = new backend::ProgramState(program);
+    auto program      = ProgramManager::getInstance()->loadProgram(positionTextureColor_vert, "custom/example_Blur_fs",
+                                                                   VertexLayoutKind::Sprite);
+    auto programState = new rhi::ProgramState(program);
     setProgramState(programState);
     AX_SAFE_RELEASE(programState);
 
@@ -476,7 +477,7 @@ std::string ShaderBlur::subtitle() const
 
 void ShaderBlur::createSliderCtls()
 {
-    auto screenSize = Director::getInstance()->getWinSize();
+    auto screenSize = Director::getInstance()->getCanvasSize();
 
     {
         ControlSlider* slider = ControlSlider::create("extensions/sliderTrack.png", "extensions/sliderProgress.png",
@@ -523,7 +524,7 @@ bool ShaderBlur::init()
     {
         _blurSprite = SpriteBlur::create("Images/grossini.png");
         auto sprite = Sprite::create("Images/grossini.png");
-        auto s      = Director::getInstance()->getWinSize();
+        auto s      = Director::getInstance()->getCanvasSize();
         _blurSprite->setPosition(Vec2(s.width / 3, s.height / 2 + 30.0f));
         sprite->setPosition(Vec2(2 * s.width / 3, s.height / 2 + 30.0f));
 
@@ -566,16 +567,17 @@ bool ShaderRetroEffect::init()
             FileUtils::getInstance()->fullPathForFilename("custom/example_HorizontalColor_fs"));
         char* fragSource = (char*)fragStr.c_str();
 
-        auto program  = ProgramManager::getInstance()->loadProgram(positionTextureColor_vert, "custom/example_HorizontalColor_fs", VertexLayoutType::Sprite);
-        auto p        = new backend::ProgramState(program);
-        auto director = Director::getInstance();
+        auto program = ProgramManager::getInstance()->loadProgram(
+            positionTextureColor_vert, "custom/example_HorizontalColor_fs", VertexLayoutKind::Sprite);
+        auto p                         = new rhi::ProgramState(program);
+        auto director                  = Director::getInstance();
         const auto& screenSizeLocation = p->getUniformLocation("u_screenSize");
-        const auto& frameSize          = director->getRenderView()->getFrameSize();
-        float retinaFactor             = director->getRenderView()->getRetinaFactor();
-        auto screenSizeInPixels        = frameSize * retinaFactor;
+        const auto& windowSize         = director->getRenderView()->getWindowSize();
+        float renderScale              = director->getRenderView()->getRenderScale();
+        auto screenSizeInPixels        = windowSize * renderScale;
         p->setUniform(screenSizeLocation, &screenSizeInPixels, sizeof(screenSizeInPixels));
 
-        auto s = director->getWinSize();
+        auto s = director->getCanvasSize();
 
         _label = Label::createWithBMFont("fonts/west_england-64.fnt", "RETRO EFFECT");
         _label->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
@@ -641,7 +643,7 @@ bool ShaderLensFlare::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/shadertoy_LensFlare_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
         sn->setContentSize(Size(s.width / 2, s.height / 2));
         addChild(sn);
@@ -673,7 +675,7 @@ bool ShaderGlow::init()
     {
         auto sn = ShaderNode::shaderNodeWithVertex("", "custom/shadertoy_Glow_fs");
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
         sn->setPosition(Vec2(s.width / 2, s.height / 2));
         sn->setContentSize(Size(s.width / 2, s.height / 2));
         addChild(sn);
@@ -701,7 +703,7 @@ std::string ShaderMultiTexture::subtitle() const
 
 ui::Slider* ShaderMultiTexture::createSliderCtl()
 {
-    auto screenSize = Director::getInstance()->getWinSize();
+    auto screenSize = Director::getInstance()->getCanvasSize();
 
     ui::Slider* slider = ui::Slider::create();
     slider->loadBarTexture("cocosui/sliderTrack.png");
@@ -728,7 +730,7 @@ bool ShaderMultiTexture::init()
 {
     if (ShaderTestDemo::init())
     {
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
 
         // Left: normal sprite
         auto left = Sprite::create("Images/grossinis_sister1.png");
@@ -745,11 +747,12 @@ bool ShaderMultiTexture::init()
         addChild(_sprite);
         _sprite->setPosition(Vec2(s.width / 2, s.height / 2));
 
-        auto program        = ProgramManager::getInstance()->loadProgram("custom/example_MultiTexture_vs", "custom/example_MultiTexture_fs", VertexLayoutType::Sprite);
-        auto programState   = new backend::ProgramState(program);
+        auto program = ProgramManager::getInstance()->loadProgram(
+            "custom/example_MultiTexture_vs", "custom/example_MultiTexture_fs", VertexLayoutKind::Sprite);
+        auto programState = new rhi::ProgramState(program);
         _sprite->setProgramState(programState);
 
-        SET_TEXTURE(programState, "u_tex1", 1, right->getTexture()->getBackendTexture());
+        SET_TEXTURE(programState, "u_tex1", 1, right->getTexture()->getRHITexture());
         SET_UNIFORM(programState, "u_interpolate", 0.5f);
 
         // slider
@@ -779,5 +782,5 @@ void ShaderMultiTexture::changeTexture(Object*)
     Sprite* right = dynamic_cast<Sprite*>(getChildByTag(rightSpriteTag));
     right->setTexture(texture);
     auto programState = _sprite->getProgramState();
-    SET_TEXTURE(programState, "u_tex1", 1, right->getTexture()->getBackendTexture());
+    SET_TEXTURE(programState, "u_tex1", 1, right->getTexture()->getRHITexture());
 }

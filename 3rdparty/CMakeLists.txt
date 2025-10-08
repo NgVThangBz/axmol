@@ -162,22 +162,6 @@ if(AX_ENABLE_PHYSICS)
   ax_add_3rd(box2d OPTIONS ${box2d_opts})
 endif()
 
-if(AX_ENABLE_PHYSICS)
-  ax_add_3rd(chipmunk OPTIONS
-    "CP_BUILD_SHARED OFF"
-    "CP_BUILD_STATIC ON"
-    "CP_BUILD_DEMOS OFF"
-    "CP_INSTALL_STATIC OFF"
-  )
-  set_target_properties(chipmunk PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/chipmunk/include"
-  )
-
-  # !important axmol not use double precision
-  target_compile_definitions(chipmunk PUBLIC CP_USE_CGTYPES=0)
-  target_compile_definitions(chipmunk PUBLIC CP_USE_DOUBLES=0)
-endif()
-
 ax_add_3rd(freetype OPTIONS
   "DISABLE_FORCE_DEBUG_POSTFIX ON"
   "SKIP_INSTALL_ALL TRUE"
@@ -253,8 +237,13 @@ endif()
 
 if(AX_ENABLE_AUDIO)
   # The openal-soft(LGPL 2.1)
-  if(AX_USE_ALSOFT AND NOT EMSCRIPTEN)
-    set(alsoft_opts "ALSOFT_DLOPEN OFF" "ALSOFT_UTILS OFF" "ALSOFT_EXAMPLES OFF" "ALSOFT_INSTALL OFF")
+  if(AX_USE_ALSOFT)
+    set(alsoft_opts
+      "ALSOFT_DLOPEN OFF"
+      "ALSOFT_UTILS OFF"
+      "ALSOFT_EXAMPLES OFF"
+      "ALSOFT_INSTALL OFF"
+    )
 
     if(AX_USE_ALSOFT_STATIC)
       list(APPEND alsoft_opts "LIBTYPE STATIC")
@@ -280,17 +269,28 @@ if(AX_ENABLE_AUDIO)
       set(ALSOFT_RTKIT OFF CACHE BOOL "Enable RTKit support" FORCE)
     elseif(WINDOWS)
       list(APPEND alsoft_opts "ALSOFT_BACKEND_WASAPI ON" "ALSOFT_BACKEND_WAVE OFF" "ALSOFT_BACKEND_DSOUND OFF" "ALSOFT_BACKEND_WINMM OFF")
+    elseif(WASM)
+      list(APPEND alsoft_opts "ALSOFT_BACKEND_SDL2 ON" "ALSOFT_REQUIRE_SDL2 ON")
+      find_program(embuilder_script embuilder.ps1)
+      message(STATUS "Building wasm sdl2 port ...")
+      execute_process(
+        COMMAND ${PWSH_PROG} ${embuilder_script} build sdl2
+        WORKING_DIRECTORY ${_AX_ROOT}
+        RESULT_VARIABLE _ret
+        OUTPUT_VARIABLE _out
+        ERROR_VARIABLE  _err
+      )
+      message(STATUS "Build wasm sdl2 port done: ${_ret}")
     endif()
 
     if(WINRT)
       set(ALSOFT_CPPWINRT_VERSION ${AX_CPPWINRT_VERSION} CACHE STRING "" FORCE)
     endif()
 
-    ax_add_3rd(openal EXCLUDE_FROM_ALL TARGETS alcommon;OpenAL OPTIONS ${alsoft_opts})
+    ax_add_3rd(openal EXCLUDE_FROM_ALL TARGETS OpenAL;alsoft.common OPTIONS ${alsoft_opts})
 
-    target_include_directories(3rdparty INTERFACE openal)
     target_compile_definitions(3rdparty INTERFACE AX_USE_ALSOFT=1)
-    set_target_properties(OpenAL alcommon PROPERTIES CXX_STANDARD ${_AX_CXX_STD})
+    set_target_properties(OpenAL alsoft.common PROPERTIES CXX_STANDARD ${_AX_CXX_STD})
 
     if(AX_USE_ALSOFT_STATIC)
       target_compile_definitions(3rdparty INTERFACE AL_LIBTYPE_STATIC=1)
@@ -314,20 +314,14 @@ if(WINDOWS OR LINUX OR ANDROID OR WASM)
 endif()
 
 if((WINDOWS AND NOT WINRT) OR MACOSX OR LINUX)
-  if(NOT LINUX)
-    ax_add_3rd(glfw OPTIONS
-      "GLFW_BUILD_DOCS OFF"
-      "GLFW_INSTALL OFF"
-    )
-  else()
-    ax_add_3rd(glfw OPTIONS
-      "GLFW_BUILD_X11 ON"
-      "GLFW_BUILD_WAYLAND OFF"
-      "GLFW_BUILD_DOCS OFF"
-      "GLFW_INSTALL OFF"
-    )
+  set(_glfw_options "GLFW_BUILD_DOCS OFF" "GLFW_INSTALL OFF")
+  if(LINUX)
+    list(APPEND _glfw_options "GLFW_BUILD_X11 ON")
+    if(AX_ENABLE_WAYLAND)
+      list(APPEND _glfw_options "GLFW_BUILD_WAYLAND ON")
+    endif()
   endif()
-
+  ax_add_3rd(glfw OPTIONS ${_glfw_options})
   set_target_properties(glfw PROPERTIES OUTPUT_NAME glfw)
 
   if(NOT WINDOWS)
@@ -380,7 +374,7 @@ if(AX_WITH_KCP)
   ax_add_3rd(${kcp_SOURCE_DIR} TARGETS kcp)
 endif()
 
-if(WIN32)
+if(WIN32 AND AX_GLES_PROFILE)
   if(WINRT)
     ax_add_3rd(angle TARGETS angle::GLESv2;angle::EGL)
   else()

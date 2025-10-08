@@ -24,7 +24,7 @@
 #define DRAGONBONES_AX_FACTORY_H
 
 #include "DragonBonesHeaders.h"
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "CCArmatureDisplay.h"
 
 DRAGONBONES_NAMESPACE_BEGIN
@@ -84,9 +84,9 @@ public:
             _dragonBonesInstance        = new DragonBones(eventManager);
             _dragonBonesInstance->yDown = false;
 
-            ax::Director::getInstance()->getScheduler()->schedule(
-                [&](float passedTime) { _dragonBonesInstance->advanceTime(passedTime); }, this, 0.0f, false,
-                "dragonBonesClock");
+            ax::Director::getInstance()->getScheduler()->schedule([&](float passedTime) {
+                _dragonBonesInstance->advanceTime(passedTime);
+            }, this, 0.0f, false, "dragonBonesClock");
         }
 
         _dragonBones = _dragonBonesInstance;
@@ -186,8 +186,7 @@ public:
      * @version DragonBones 3.0
      * @language zh_CN
      */
-    virtual ax::Sprite* getTextureDisplay(std::string_view textureName,
-                                               std::string_view dragonBonesName = "") const;
+    virtual ax::Sprite* getTextureDisplay(std::string_view textureName, std::string_view dragonBonesName = "") const;
     /**
      * - A global sound event manager.
      * Sound events can be listened to uniformly from the manager.

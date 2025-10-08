@@ -25,8 +25,8 @@
 #ifndef _RENDERTEXTURE_TEST_H_
 #define _RENDERTEXTURE_TEST_H_
 
-#include "axmol.h"
-#include "renderer/backend/DepthStencilState.h"
+#include "axmol/axmol.h"
+#include "axmol/rhi/DepthStencilState.h"
 #include "../BaseTest.h"
 
 DEFINE_TEST_SUITE(RenderTextureTests);
@@ -102,7 +102,7 @@ public:
     virtual void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
 
 private:
-//    ax::CallbackCommand _renderCmds[4];
+    //    ax::CallbackCommand _renderCmds[4];
     void onBeforeClear();
     void onBeforeStencil();
     void onBeforeDraw();
@@ -110,7 +110,7 @@ private:
 
 private:
     ax::Renderer* _renderer;
-    ax::backend::DepthStencilDescriptor _dsDesc;
+    ax::rhi::DepthStencilDesc _dsDesc;
     ax::RenderTexture* _rtx;
     ax::Sprite* _spriteDS;
     ax::Sprite* _spriteDraw;

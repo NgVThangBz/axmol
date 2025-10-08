@@ -26,10 +26,10 @@
  ****************************************************************************/
 
 #include "NavMeshTest.h"
-#include "physics3d/Physics3DWorld.h"
-#include "physics3d/Physics3D.h"
-#include "3d/Bundle3D.h"
-#include "2d/Light.h"
+#include "axmol/physics3d/Physics3DWorld.h"
+#include "axmol/physics3d/Physics3D.h"
+#include "axmol/3d/Bundle3D.h"
+#include "axmol/2d/Light.h"
 
 USING_NS_AX_EXT;
 using namespace ax;
@@ -56,7 +56,7 @@ void NavMeshDisabled::onEnter()
     auto label =
         Label::createWithTTF(ttfConfig, "Should enable AX_ENABLE_NAVMESH & AX_ENABLE_PHYSICS\n to run this test case");
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     label->setPosition(Vec2(size.width / 2, size.height / 2));
 
     addChild(label);
@@ -86,14 +86,14 @@ bool NavMeshBaseTestDemo::init()
 
         _angle = 0.0f;
 
-        Size size = Director::getInstance()->getWinSize();
-        _camera = Camera::createPerspective(30.0f, size.width / size.height, 1.0f, 1000.0f);
+        Size size = Director::getInstance()->getCanvasSize();
+        _camera   = Camera::createPerspective(30.0f, size.width / size.height, 1.0f, 1000.0f);
         _camera->setPosition3D(Vec3(0.0f, 50.0f, 100.0f));
         _camera->lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f));
         _camera->setCameraFlag(CameraFlag::USER1);
         this->addChild(_camera);
 
-        auto listener = EventListenerTouchAllAtOnce::create();
+        auto listener            = EventListenerTouchAllAtOnce::create();
         listener->onTouchesBegan = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesBegan, this);
         listener->onTouchesMoved = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesMoved, this);
         listener->onTouchesEnded = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesEnded, this);
@@ -143,11 +143,11 @@ void NavMeshBaseTestDemo::initScene()
     std::vector<Vec3> trianglesList = Bundle3D::getTrianglesList("NavMesh/scene.obj");
 
     Physics3DRigidBodyDes rbDes;
-    rbDes.mass = 0.0f;
-    rbDes.shape = Physics3DShape::createMesh(&trianglesList[0], (int)trianglesList.size() / 3);
+    rbDes.mass     = 0.0f;
+    rbDes.shape    = Physics3DShape::createMesh(&trianglesList[0], (int)trianglesList.size() / 3);
     auto rigidBody = Physics3DRigidBody::create(&rbDes);
     auto component = Physics3DComponent::create(rigidBody);
-    auto mesh = MeshRenderer::create("NavMesh/scene.obj");
+    auto mesh      = MeshRenderer::create("NavMesh/scene.obj");
     mesh->addComponent(component);
     mesh->setCameraMask((unsigned short)CameraFlag::USER1);
     this->addChild(mesh);
@@ -158,11 +158,11 @@ void NavMeshBaseTestDemo::initScene()
     setNavMesh(navMesh);
     setNavMeshDebugCamera(_camera);
 
-    auto ambientLight = AmbientLight::create(Color3B(64, 64, 64));
+    auto ambientLight = AmbientLight::create(Color32(64, 64, 64));
     ambientLight->setCameraMask((unsigned short)CameraFlag::USER1);
     this->addChild(ambientLight);
 
-    auto dirLight = DirectionLight::create(Vec3(1.2f, -1.1f, 0.5f), Color3B(255, 255, 255));
+    auto dirLight = DirectionLight::create(Vec3(1.2f, -1.1f, 0.5f), Color32(255, 255, 255));
     dirLight->setCameraMask((unsigned short)CameraFlag::USER1);
     this->addChild(dirLight);
 }
@@ -171,10 +171,10 @@ void NavMeshBaseTestDemo::createAgent(const Vec3& pos)
 {
     std::string filePath = "MeshRendererTest/girl.c3b";
     NavMeshAgentParam param;
-    param.radius = 2.0f;
-    param.height = 8.0f;
+    param.radius   = 2.0f;
+    param.height   = 8.0f;
     param.maxSpeed = 8.0f;
-    auto agent = NavMeshAgent::create(param);
+    auto agent     = NavMeshAgent::create(param);
     auto agentNode = MeshRenderer::create(filePath);
     agent->setOrientationRefAxes(Vec3(-1.0f, 0.0f, 1.0f));
     AgentUserData* data = new AgentUserData{0.0f};
@@ -189,7 +189,7 @@ void NavMeshBaseTestDemo::createAgent(const Vec3& pos)
     this->addChild(node);
 
     auto animation = Animation3D::create(filePath);
-    auto animate = Animate3D::create(animation);
+    auto animate   = Animate3D::create(animation);
     if (animate)
     {
         agentNode->runAction(RepeatForever::create(animate));
@@ -201,7 +201,7 @@ void NavMeshBaseTestDemo::createAgent(const Vec3& pos)
 
 void NavMeshBaseTestDemo::createObstacle(const Vec3& pos)
 {
-    auto obstacle = NavMeshObstacle::create(2.0f, 8.0f);
+    auto obstacle     = NavMeshObstacle::create(2.0f, 8.0f);
     auto obstacleNode = MeshRenderer::create("MeshRendererTest/cylinder.c3b");
     obstacleNode->setPosition3D(pos + Vec3(0.0f, -0.5f, 0.0f));
     obstacleNode->setRotation3D(Vec3(-90.0f, 0.0f, 0.0f));
@@ -236,7 +236,7 @@ void NavMeshBaseTestDemo::moveAgents(const ax::Vec3& des)
                 agent->getOwner()->setPosition3D(
                     jump(&linkdata.startPosition, &linkdata.endPosition, 10.0f, data->time));
                 Vec3 dir = linkdata.endPosition - linkdata.startPosition;
-                dir.y = 0.0f;
+                dir.y    = 0.0f;
                 dir.normalize();
                 Vec3 axes;
                 Vec3 refAxes = Vec3(-1.0f, 0.0f, 1.0f);
@@ -286,11 +286,11 @@ void NavMeshBasicTestDemo::touchesEnded(const std::vector<ax::Touch*>& touches, 
         return;
     if (!touches.empty())
     {
-        auto touch = touches[0];
+        auto touch    = touches[0];
         auto location = touch->getLocationInView();
         Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
-        auto size = Director::getInstance()->getWinSize();
+        auto size = Director::getInstance()->getCanvasSize();
         _camera->unproject(size, &nearP, &nearP);
         _camera->unproject(size, &farP, &farP);
 
@@ -422,11 +422,11 @@ void NavMeshAdvanceTestDemo::touchesEnded(const std::vector<ax::Touch*>& touches
         return;
     if (!touches.empty())
     {
-        auto touch = touches[0];
+        auto touch    = touches[0];
         auto location = touch->getLocationInView();
         Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
-        auto size = Director::getInstance()->getWinSize();
+        auto size = Director::getInstance()->getCanvasSize();
         _camera->unproject(size, &nearP, &nearP);
         _camera->unproject(size, &farP, &farP);
 

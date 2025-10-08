@@ -30,10 +30,10 @@ THE SOFTWARE.
 #include "Frame.h"
 #include "TimeLine.h"
 #include "ActionTimeline.h"
-#include "platform/FileUtils.h"
-#include "2d/SpriteFrameCache.h"
-#include "2d/SpriteFrame.h"
-#include "base/Utils.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/2d/SpriteFrameCache.h"
+#include "axmol/2d/SpriteFrame.h"
+#include "axmol/base/Utils.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
 
@@ -189,7 +189,7 @@ ActionTimeline* ActionTimelineCache::loadAnimationActionWithContent(std::string_
     doc.Parse<0>(content.data(), content.length());
     if (doc.HasParseError())
     {
-        AXLOGD("GetParseError {}\n",  static_cast<int>(doc.GetParseError()));
+        AXLOGD("GetParseError {}\n", static_cast<int>(doc.GetParseError()));
     }
 
     const rapidjson::Value& json = DICTOOL->getSubDictionary_json(doc, ACTION);
@@ -360,7 +360,7 @@ Frame* ActionTimelineCache::loadColorFrame(const rapidjson::Value& json)
     uint8_t green = (uint8_t)DICTOOL->getIntValue_json(json, GREEN);
     uint8_t blue  = (uint8_t)DICTOOL->getIntValue_json(json, BLUE);
 
-    frame->setColor(Color3B(red, green, blue));
+    frame->setColor(Color32(red, green, blue));
 
     return frame;
 }
@@ -703,8 +703,7 @@ Frame* ActionTimelineCache::loadColorFrameWithFlatBuffers(const flatbuffers::Col
     ColorFrame* frame = ColorFrame::create();
 
     auto f_color = flatbuffers->color();
-    Color3B color(f_color->r(), f_color->g(), f_color->b());
-    frame->setColor(color);
+    frame->setColor(Color32(f_color->r(), f_color->g(), f_color->b(), f_color->a()));
 
     int frameIndex = flatbuffers->frameIndex();
     frame->setFrameIndex(frameIndex);
@@ -900,8 +899,8 @@ Frame* ActionTimelineCache::loadBlendFrameWithFlatBuffers(const flatbuffers::Ble
 {
     BlendFuncFrame* frame = BlendFuncFrame::create();
     ax::BlendFunc blend;
-    blend.src = backend::BlendFactor::ONE;
-    blend.dst = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+    blend.src = rhi::BlendFactor::ONE;
+    blend.dst = rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
     if (nullptr != flatbuffers->blendFunc())
     {
         blend.src = utils::toBackendBlendFactor(flatbuffers->blendFunc()->src());

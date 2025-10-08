@@ -1,0 +1,358 @@
+/****************************************************************************
+Copyright (c) 2010-2012 cocos2d-x.org
+Copyright (c) 2013-2016 Chukong Technologies Inc.
+Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md)
+
+https://axmol.dev/
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+****************************************************************************/
+
+#pragma once
+/// @cond DO_NOT_SHOW
+
+#include "axmol/platform/PlatformMacros.h"
+#include "axmol/platform/FileUtils.h"
+#include <string>
+
+#if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
+#    include "axmol/platform/android/FileUtils-android.h"
+#elif (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
+// for import ssize_t on win32 platform
+#    include "axmol/platform/StdC.h"
+#endif
+
+#include "axmol/base/Data.h"
+
+#include <span>
+
+#ifndef _unz64_H
+struct unz_file_info_s;
+#endif
+
+/**
+ * @addtogroup base
+ * @{
+ */
+namespace ax
+{
+
+/** XXX: pragma pack ???
+ * @struct CCZHeader
+ */
+struct CCZHeader
+{
+    unsigned char sig[4];            /** Signature. Should be 'CCZ!' 4 bytes. */
+    unsigned short compression_type; /** Should be 0. */
+    unsigned short version;          /** Should be 2 (although version type==1 is also supported). */
+    unsigned int reserved;           /** Reserved for users. */
+    unsigned int len;                /** Size of the uncompressed file. */
+};
+
+enum
+{
+    CCZ_COMPRESSION_ZLIB,  /** zlib format. */
+    CCZ_COMPRESSION_BZIP2, /** bzip2 format (not supported yet). */
+    CCZ_COMPRESSION_GZIP,  /** gzip format (not supported yet). */
+    CCZ_COMPRESSION_NONE,  /** plain (not supported yet). */
+};
+
+class AX_DLL ZipUtils
+{
+public:
+    template <typename _Ty, size_t _Extent = std::dynamic_extent>
+    inline static yasio::byte_buffer compressGZ(std::span<_Ty, _Extent> in, int level = -1)
+    {
+        return compressGZ(in.data(), in.size_bytes(), level);
+    }
+    template <typename _Ty, size_t _Extent = std::dynamic_extent>
+    inline static yasio::byte_buffer decompressGZ(std::span<_Ty, _Extent> in, int expected_size = -1)
+    {
+        return decompressGZ(in.data(), in.size_bytes(), expected_size);
+    }
+
+    static yasio::byte_buffer compressGZ(const void* in, size_t inlen, int level = -1);
+    static yasio::byte_buffer decompressGZ(const void* in, size_t inlen, int expected_size = -1);
+
+    /**
+     * Inflates either zlib or gzip deflated memory. The inflated memory is expected to be freed by the caller.
+     *
+     * It will allocate 256k for the destination buffer. If it is not enough it will multiply the previous buffer size
+     * per 2, until there is enough memory.
+     *
+     * @return The length of the deflated buffer.
+     * @since v0.8.1
+     */
+    static ssize_t inflateMemory(unsigned char* in, ssize_t inLength, unsigned char** out);
+
+    /**
+     * Inflates either zlib or gzip deflated memory. The inflated memory is expected to be freed by the caller.
+     *
+     * @param outLengthHint It is assumed to be the needed room to allocate the inflated buffer.
+     *
+     * @return The length of the deflated buffer.
+     * @since v1.0.0
+     */
+    static ssize_t inflateMemoryWithHint(unsigned char* in,
+                                         ssize_t inLength,
+                                         unsigned char** out,
+                                         ssize_t outLengthHint);
+
+    /**
+     * Inflates a GZip file into memory.
+     *
+     * @return The length of the deflated buffer.
+     * @since v0.99.5
+     */
+    static int inflateGZipFile(const char* filename, unsigned char** out);
+
+    /**
+     * Test a file is a GZip format file or not.
+     *
+     * @return True is a GZip format file. false is not.
+     * @since v3.0
+     */
+    static bool isGZipFile(const char* filename);
+
+    /**
+     * Test the buffer is GZip format or not.
+     *
+     * @return True is GZip format. false is not.
+     * @since v3.0
+     */
+    static bool isGZipBuffer(const unsigned char* buffer, ssize_t len);
+
+    /**
+     * Inflates a CCZ file into memory.
+     *
+     * @return The length of the deflated buffer.
+     * @since v0.99.5
+     */
+    static int inflateCCZFile(const char* filename, unsigned char** out);
+
+    /**
+     * Inflates a buffer with CCZ format into memory.
+     *
+     * @return The length of the deflated buffer.
+     * @since v3.0
+     */
+    static int inflateCCZBuffer(const unsigned char* buffer, ssize_t len, unsigned char** out);
+
+    /**
+     * Test a file is a CCZ format file or not.
+     *
+     * @return True is a CCZ format file. false is not.
+     * @since v3.0
+     */
+    static bool isCCZFile(const char* filename);
+
+    /**
+     * Test the buffer is CCZ format or not.
+     *
+     * @return True is CCZ format. false is not.
+     * @since v3.0
+     */
+    static bool isCCZBuffer(const unsigned char* buffer, ssize_t len);
+
+    /**
+     * Sets the pvr.ccz encryption key parts separately for added security.
+     *
+     * Example: If the key used to encrypt the pvr.ccz file is
+     * 0xaaaaaaaabbbbbbbbccccccccdddddddd you will call this function 4
+     * different times, preferably from 4 different source files, as follows
+     *
+     * ZipUtils::setPvrEncryptionKeyPart(0, 0xaaaaaaaa);
+     * ZipUtils::setPvrEncryptionKeyPart(1, 0xbbbbbbbb);
+     * ZipUtils::setPvrEncryptionKeyPart(2, 0xcccccccc);
+     * ZipUtils::setPvrEncryptionKeyPart(3, 0xdddddddd);
+     *
+     * Splitting the key into 4 parts and calling the function from 4 different source
+     * files increases the difficulty to reverse engineer the encryption key.
+     * Be aware that encryption is *never* 100% secure and the key code
+     * can be cracked by knowledgable persons.
+     *
+     * IMPORTANT: Be sure to call setPvrEncryptionKey or
+     * setPvrEncryptionKeyPart with all of the key parts *before* loading
+     * the sprite sheet or decryption will fail and the sprite sheet
+     * will fail to load.
+     *
+     * @param index Part of the key [0..3].
+     * @param value Value of the key part.
+     */
+    static void setPvrEncryptionKeyPart(int index, unsigned int value);
+
+    /**
+     * Sets the pvr.ccz encryption key.
+     *
+     * Example: If the key used to encrypt the pvr.ccz file is
+     * 0xaaaaaaaabbbbbbbbccccccccdddddddd you will call this function with
+     * the key split into 4 parts as follows
+     *
+     * ZipUtils::setPvrEncryptionKey(0xaaaaaaaa, 0xbbbbbbbb, 0xcccccccc, 0xdddddddd);
+     *
+     * Note that using this function makes it easier to reverse engineer and discover
+     * the complete key because the key parts are present in one function call.
+     *
+     * IMPORTANT: Be sure to call setPvrEncryptionKey or setPvrEncryptionKeyPart
+     * with all of the key parts *before* loading the spritesheet or decryption
+     * will fail and the sprite sheet will fail to load.
+     *
+     * @param keyPart1 The key value part 1.
+     * @param keyPart2 The key value part 2.
+     * @param keyPart3 The key value part 3.
+     * @param keyPart4 The key value part 4.
+     */
+    static void setPvrEncryptionKey(unsigned int keyPart1,
+                                    unsigned int keyPart2,
+                                    unsigned int keyPart3,
+                                    unsigned int keyPart4);
+
+private:
+    static int inflateMemoryWithHint(unsigned char* in,
+                                     ssize_t inLength,
+                                     unsigned char** out,
+                                     ssize_t* outLength,
+                                     ssize_t outLengthHint);
+    static void decodeEncodedPvr(unsigned int* data, ssize_t len);
+    static unsigned int checksumPvr(const unsigned int* data, ssize_t len);
+
+    static unsigned int s_uEncryptedPvrKeyParts[4];
+    static unsigned int s_uEncryptionKey[1024];
+    static bool s_bEncryptionKeyIsValid;
+};
+
+// forward declaration
+struct ZipEntryInfo;
+struct ZipFilePrivate;
+
+/**
+ * Zip file - reader helper class.
+ *
+ * It will cache the file list of a particular zip file with positions inside an archive,
+ * so it would be much faster to read some particular files or to check their existence.
+ *
+ * @since v2.0.5
+ */
+class AX_DLL ZipFile
+{
+public:
+    static ZipFile* createFromFile(std::string_view zipFile, std::string_view filter = ""sv);
+
+    virtual ~ZipFile();
+
+    bool initWithFile(std::string_view zipFile, std::string_view filter = ""sv);
+
+    /**
+     * Regenerate accessible file list based on a new filter string.
+     *
+     * @param filter New filter string (first part of files names)
+     * @return true whenever zip file is open successfully and it is possible to locate
+     *              at least the first file, false otherwise
+     *
+     * @since v2.0.5
+     */
+    bool setFilter(std::string_view filter);
+
+    /**
+     * Check does a file exists or not in zip file
+     *
+     * @param fileName File to be checked on existence
+     * @return true whenever file exists, false otherwise
+     *
+     * @since v2.0.5
+     */
+    bool fileExists(std::string_view fileName) const;
+
+    /**
+     * Get files and folders in pathname
+     *
+     * @param dirname
+     * @return
+     */
+    std::vector<std::string> listFiles(std::string_view pathname) const;
+
+    /**
+     * Get resource file data from a zip file.
+     * @param fileName File name
+     * @param[out] buffer If the file read operation succeeds, if will contain the file data.
+     * @return True if successful.
+     */
+    bool getFileData(std::string_view fileName, ResizableBuffer* buffer);
+
+    std::string getFirstFilename();
+    std::string getNextFilename();
+
+    /**
+     * zipFile Streaming support, !!!important, the file in zip must no compress level, otherwise
+     *  stream seek doesn't work.
+     */
+    ZipEntryInfo* vopen(std::string_view fileName);
+    int vread(ZipEntryInfo*, void* buf, unsigned int size);
+    int64_t vseek(ZipEntryInfo*, int64_t offset, int origin);
+    void vclose(ZipEntryInfo*);
+    int64_t vsize(ZipEntryInfo*);
+
+    /**
+     * @brief Create a ZipFile instance from a raw memory buffer.
+     *
+     * @deprecated Since axmol-2.9. This API performs an internal copy of the buffer,
+     *             which may cause unnecessary overhead. It is deprecated and
+     *             will be removed in future versions.
+     *
+     * @note Use createWithData() instead, which allows move semantics and
+     *       avoids the extra copy for better performance.
+     *
+     * @param buffer Pointer to the raw memory buffer.
+     * @param size   Size of the buffer in bytes.
+     * @return A pointer to the newly created ZipFile instance.
+     */
+    AX_DEPRECATED(2.9) static ZipFile* createWithBuffer(const void* buffer, unsigned long size);
+
+    /**
+     * @brief Create a ZipFile instance from the given data buffer.
+     *
+     * This function takes the parameter by value to allow the caller to decide
+     * whether the data should be copied or moved:
+     * - Passing an lvalue (e.g. `data`) will copy the buffer.
+     * - Passing an rvalue or using `std::move(data)` will move the buffer,
+     *   avoiding an extra copy and improving performance.
+     *
+     * @param data The input data buffer. Can be copied or moved depending on how
+     *             the caller provides it.
+     * @return A pointer to the newly created ZipFile instance.
+     */
+    static ZipFile* createWithData(Data data);
+
+private:
+    ZipFile();
+
+    bool initWithData(Data data);
+    int getCurrentFileInfo(std::string* filename, unz_file_info_s* info);
+
+    /** Internal data like zip file pointer / file list array and so on */
+    ZipFilePrivate* _data;
+};
+
+}  // end of namespace ax
+
+// end group
+/// @}
+
+/// @endcond

@@ -28,12 +28,11 @@
 
 #include <vector>
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/Particle3DRender.h"
-#include "renderer/RenderState.h"
-#include "renderer/backend/Types.h"
-#include "renderer/backend/Buffer.h"
+#include "axmol/renderer/RenderState.h"
+#include "axmol/rhi/Buffer.h"
 
 namespace ax
 {
@@ -44,8 +43,8 @@ struct PUParticle3D;
 class AX_EX_DLL PURender : public Particle3DRender
 {
 public:
-    virtual void prepare(){};
-    virtual void unPrepare(){};
+    virtual void prepare() {};
+    virtual void unPrepare() {};
     virtual void updateRender(PUParticle3D* particle, float deltaTime, bool firstParticle);
 
     std::string_view getRenderType() const { return _renderType; };
@@ -66,7 +65,7 @@ class AX_EX_DLL PUParticle3DEntityRender : public PURender
 {
 public:
     void copyAttributesTo(PUParticle3DEntityRender* render);
-    virtual void reset() override;
+    void reset() override;
     PUParticle3DEntityRender();
     virtual ~PUParticle3DEntityRender();
 
@@ -78,36 +77,30 @@ protected:
     void onAfterDraw();
 
 protected:
-    struct VertexInfo
-    {
-        Vec3 position;
-        Vec2 uv;
-        Vec4 color;
-    };
-
     MeshCommand _meshCommand;
 
     RenderState::StateBlock _stateBlock;
-    Texture2D* _texture                  = nullptr;
-    backend::ProgramState* _programState = nullptr;
-    backend::Buffer* _indexBuffer        = nullptr;  // index buffer
-    backend::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
+    Texture2D* _texture              = nullptr;
+    rhi::ProgramState* _programState = nullptr;
+    rhi::VertexLayout* _vertexLayout = nullptr;
+    rhi::Buffer* _indexBuffer        = nullptr;  // index buffer
+    rhi::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
 
-    std::vector<VertexInfo> _vertices;
+    std::vector<V3F_T2F_C4F> _vertices;
     std::vector<uint16_t> _indices;
 
     std::string _texFile;
 
-    backend::UniformLocation _locColor;
-    backend::UniformLocation _locTexture;
-    backend::UniformLocation _locPMatrix;
+    rhi::UniformLocation _locColor;
+    rhi::UniformLocation _locTexture;
+    rhi::UniformLocation _locPMatrix;
 
     // renderer state cache variables
-    bool _rendererDepthTestEnabled                 = true;
-    backend::CompareFunction _rendererDepthCmpFunc = backend::CompareFunction::LESS;
-    backend::CullMode _rendererCullMode            = backend::CullMode::BACK;
-    backend::Winding _rendererWinding              = backend::Winding::COUNTER_CLOCK_WISE;
-    bool _rendererDepthWrite                       = false;
+    bool _rendererDepthTestEnabled         = true;
+    rhi::CompareFunc _rendererDepthCmpFunc = rhi::CompareFunc::LESS;
+    rhi::CullMode _rendererCullMode        = rhi::CullMode::BACK;
+    rhi::Winding _rendererWinding          = rhi::Winding::COUNTER_CLOCK_WISE;
+    bool _rendererDepthWrite               = false;
 };
 
 class AX_EX_DLL PUParticle3DQuadRender : public PUParticle3DEntityRender
@@ -161,9 +154,9 @@ public:
     void setTextureCoordsColumns(unsigned short textureCoordsColumns);
     unsigned int getNumTextureCoords();
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual PUParticle3DQuadRender* clone() override;
+    PUParticle3DQuadRender* clone() override;
     void copyAttributesTo(PUParticle3DQuadRender* render);
 
     PUParticle3DQuadRender();
@@ -172,7 +165,7 @@ public:
 protected:
     void getOriginOffset(int& offsetX, int& offsetY);
     void determineUVCoords(PUParticle3D* particle);
-    void fillVertex(unsigned short index, const Vec3& pos, const Vec4& color, const Vec2& uv);
+    void fillVertex(unsigned short index, const Vec3& pos, const Color& color, const Vec2& uv);
     void fillTriangle(unsigned short index, unsigned short v0, unsigned short v1, unsigned short v2);
 
 protected:
@@ -194,12 +187,12 @@ class AX_EX_DLL PUParticle3DModelRender : public PURender
 public:
     static PUParticle3DModelRender* create(std::string_view modelFile, std::string_view texFile = "");
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual PUParticle3DModelRender* clone() override;
+    PUParticle3DModelRender* clone() override;
     void copyAttributesTo(PUParticle3DModelRender* render);
 
-    virtual void reset() override;
+    void reset() override;
     PUParticle3DModelRender();
     virtual ~PUParticle3DModelRender();
 
@@ -215,9 +208,9 @@ class AX_EX_DLL PUParticle3DBoxRender : public PUParticle3DEntityRender
 public:
     static PUParticle3DBoxRender* create(std::string_view texFile = "");
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual PUParticle3DBoxRender* clone() override;
+    PUParticle3DBoxRender* clone() override;
 
     PUParticle3DBoxRender();
     virtual ~PUParticle3DBoxRender();
@@ -231,9 +224,9 @@ class AX_EX_DLL PUSphereRender : public PUParticle3DEntityRender
 public:
     static PUSphereRender* create(std::string_view texFile = "");
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual PUSphereRender* clone() override;
+    PUSphereRender* clone() override;
     void copyAttributesTo(PUSphereRender* render);
 
     PUSphereRender();
@@ -245,7 +238,7 @@ protected:
 protected:
     unsigned short _numberOfRings;
     unsigned short _numberOfSegments;
-    std::vector<VertexInfo> _vertexTemplate;
+    std::vector<V3F_T2F_C4F> _vertexTemplate;
 };
 
-}
+}  // namespace ax

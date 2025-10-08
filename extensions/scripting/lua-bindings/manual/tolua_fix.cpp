@@ -24,7 +24,7 @@
  ****************************************************************************/
 
 #include "lua-bindings/manual/tolua_fix.h"
-#include "base/Object.h"
+#include "axmol/base/Object.h"
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include <stdlib.h>
 
@@ -55,7 +55,7 @@ TOLUA_API int toluafix_pushusertype_object(lua_State* L, int refid, int* p_refid
         return -1;
     }
 
-    Object* vPtr         = static_cast<Object*>(ptr);
+    Object* vPtr      = static_cast<Object*>(ptr);
     const char* vType = getLuaTypeName(vPtr, type);
 
     if (*p_refid == 0)
@@ -166,7 +166,8 @@ TOLUA_API int toluafix_remove_ccobject_by_refid(lua_State* L, int refid)
     lua_pop(L, 1); /* stack: mt ubox */
     if (ud == NULL)
     {
-        AXLOGW("[LUA WARN] remove CCObject with NULL userdata, refid: {}, ptr: {}, type: {}n", refid, fmt::ptr(ptr), type);
+        AXLOGW("[LUA WARN] remove CCObject with NULL userdata, refid: {}, ptr: {}, type: {}n", refid, fmt::ptr(ptr),
+               type);
         lua_pop(L, 2);
         return -1;
     }

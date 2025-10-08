@@ -2,8 +2,8 @@
 
 #include "TextFieldExReader.h"
 
-#include "ui/UITextFieldEx.h"
-#include "platform/FileUtils.h"
+#include "axmol/ui/UITextFieldEx.h"
+#include "axmol/platform/FileUtils.h"
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/LocalizationManager.h"
@@ -16,14 +16,9 @@ using namespace ax;
 using namespace ui;
 using namespace flatbuffers;
 
-inline Color4B Color4BFromFb(const FColor* pColor)
+inline Color32 Color32FromFb(const FColor* pColor)
 {
-    return Color4B(pColor->r(), pColor->g(), pColor->b(), pColor->a());
-}
-
-inline Color3B Color3BFromFb(const FColor* pColor)
-{
-    return Color3B(pColor->r(), pColor->g(), pColor->b());
+    return Color32(pColor->r(), pColor->g(), pColor->b(), pColor->a());
 }
 
 namespace cocostudio
@@ -82,9 +77,9 @@ Offset<Table> TextFieldExReader::createOptionsWithFlatBuffers(pugi::xml_node obj
     int maxLength                 = 10;
     bool isEnabled                = true;
     bool isEditable               = true;
-    Color4B textColor;
-    Color4B placeholderColor;
-    Color4B cursorColor;
+    Color32 textColor;
+    Color32 placeholderColor;
+    Color32 cursorColor;
 
     // attributes
     auto attribute = objectData.first_attribute();
@@ -149,7 +144,7 @@ Offset<Table> TextFieldExReader::createOptionsWithFlatBuffers(pugi::xml_node obj
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -174,7 +169,7 @@ Offset<Table> TextFieldExReader::createOptionsWithFlatBuffers(pugi::xml_node obj
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -203,7 +198,7 @@ Offset<Table> TextFieldExReader::createOptionsWithFlatBuffers(pugi::xml_node obj
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -232,7 +227,7 @@ Offset<Table> TextFieldExReader::createOptionsWithFlatBuffers(pugi::xml_node obj
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -335,9 +330,9 @@ void TextFieldExReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffer
     }*/
     textField->setString(text);
 
-    textField->setTextColor(Color4BFromFb(options->textColor()));
-    textField->setPlaceholderColor(Color4BFromFb(options->placeholderColor()));
-    textField->setCursorColor(Color3BFromFb(options->cursorColor()));
+    textField->setTextColor(Color32FromFb(options->textColor()));
+    textField->setPlaceholderColor(Color32FromFb(options->placeholderColor()));
+    textField->setCursorColor(Color32FromFb(options->cursorColor()));
 
     auto widgetReader = NodeReader::getInstance();
     widgetReader->setPropsWithFlatBuffers(textField, (Table*)options->nodeOptions());

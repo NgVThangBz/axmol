@@ -30,7 +30,7 @@ extern "C" {
 #include "lua.h"
 }
 
-#include "base/ScriptSupport.h"
+#include "axmol/base/ScriptSupport.h"
 #include "lua-bindings/manual/LuaStack.h"
 #include "lua-bindings/manual/LuaValue.h"
 #include "lua-bindings/manual/base/LuaScriptHandlerMgr.h"
@@ -75,7 +75,7 @@ public:
      *
      * @return kScriptTypeLua.
      */
-    virtual ccScriptType getScriptType() override { return kScriptTypeLua; };
+    ccScriptType getScriptType() override { return kScriptTypeLua; };
 
     /**
      * Get LuaStack of the LuaEngine.
@@ -110,8 +110,8 @@ public:
     virtual int reload(const char* moduleFileName);
 
     /**
-     * Remove the related reference about the Object object stored in the Lua table by set the value of corresponding key
-     * nil: The related Lua tables are toluafix_refid_ptr_mapping,toluafix_refid_type_mapping,tolua_value_root and
+     * Remove the related reference about the Object object stored in the Lua table by set the value of corresponding
+     * key nil: The related Lua tables are toluafix_refid_ptr_mapping,toluafix_refid_type_mapping,tolua_value_root and
      * object_Metatable["tolua_ubox"] or tolua_ubox. Meanwhile set the corresponding userdata nullptr and remove the all
      * the lua function reference corresponding to this object.
      *
@@ -120,21 +120,21 @@ public:
      *
      * @param object the key object to remove script object.
      */
-    virtual void removeScriptObjectByObject(Object* object) override;
+    void removeScriptObjectByObject(Object* object) override;
 
     /**
      * Remove Lua function reference by nHandler by setting toluafix_refid_function_mapping[nHandle] nil.
      *
      * @param nHandler the function reference index to find the corresponding Lua function pointer.
      */
-    virtual void removeScriptHandler(int nHandler) override;
+    void removeScriptHandler(int nHandler) override;
 
     /**
      * Reallocate Lua function reference index to the Lua function pointer to add reference.
      *
      * @param nHandler the function reference index to find the corresponding Lua function pointer.
      */
-    virtual int reallocateScriptHandler(int nHandler) override;
+    int reallocateScriptHandler(int nHandler) override;
 
     /**
      * Execute script code contained in the given string.
@@ -142,7 +142,7 @@ public:
      * @param codes holding the valid script code that should be executed.
      * @return 0 if the string is executed correctly, other if the string is executed wrongly.
      */
-    virtual int executeString(const char* codes) override;
+    int executeString(const char* codes) override;
 
     /**
      * Execute a script file.
@@ -150,7 +150,7 @@ public:
      * @param filename String object holding the filename of the script file that is to be executed.
      * @return the return values by calling executeFunction.
      */
-    virtual int executeScriptFile(const char* filename) override;
+    int executeScriptFile(const char* filename) override;
 
     /**
      * Execute a scripted global function.
@@ -160,7 +160,7 @@ public:
      * be executed.
      * @return The integer value returned from the script function.
      */
-    virtual int executeGlobalFunction(const char* functionName) override;
+    int executeGlobalFunction(const char* functionName) override;
     virtual int executeNodeEvent(Node* pNode, int nAction);
     virtual int executeMenuItemEvent(MenuItem* pMenuItem);
     virtual int executeCallFuncActionEvent(CallFunc* pAction, Object* pTarget = NULL);
@@ -170,14 +170,14 @@ public:
     virtual int executeAccelerometerEvent(Layer* pLayer, Acceleration* pAccelerationValue);
     virtual int executeEvent(int nHandler,
                              const char* pEventName,
-                             Object* pEventSource                 = NULL,
+                             Object* pEventSource              = NULL,
                              const char* pEventSourceClassName = NULL);
     /**
      * Handle the assert message.
      *
      * @return return true if current _callFromLua of LuaStack is not equal to 0 otherwise return false.
      */
-    virtual bool handleAssert(const char* msg) override;
+    bool handleAssert(const char* msg) override;
 
     /**
      * Parse the config information data.
@@ -187,7 +187,7 @@ public:
      * @return if __onParseConfig function exist in the Lua, it return the value that _stack->executeFunction returns
      * otherwise return false.
      */
-    virtual bool parseConfig(ConfigType type, std::string_view str) override;
+    bool parseConfig(ConfigType type, std::string_view str) override;
 
     /**
      * When some events triggered in the c++ also needs to pass on to lua to handle, we could call this function to send
@@ -197,7 +197,7 @@ public:
      * @return default return 0 otherwise return values the same as handleNodeEvent, handleMenuClickedEvent or
      * handleCallFuncActionEvent,etc.
      */
-    virtual int sendEvent(const ScriptEvent& message) override;
+    int sendEvent(const ScriptEvent& message) override;
 
     /**
      * Pass on the events related with ScrollView,TableCell,AssertManager, Armature, Accelerometer, Keyboard, Touch,
@@ -258,8 +258,7 @@ private:
     LuaStack* _stack;
 };
 
-}
+}  // namespace ax
 
 // end group
 /// @}
-

@@ -25,7 +25,7 @@
  ****************************************************************************/
 
 #include "PUUtil.h"
-#include "base/Macros.h"
+#include "axmol/base/Macros.h"
 
 namespace ax
 {
@@ -117,4 +117,4 @@ ax::Vec3 PUUtil::perpendicular(const Vec3& src)
     return perp;
 }
 
-}
+}  // namespace ax

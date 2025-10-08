@@ -70,7 +70,7 @@ Vec3 Node3DReader::getVec3Attribute(pugi::xml_attribute attribute) const
 
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "X")
@@ -105,7 +105,7 @@ Offset<Table> Node3DReader::createOptionsWithFlatBuffersForNode(pugi::xml_node o
     Vec2 position     = Vec2::ZERO;
     Vec2 scale        = Vec2(1.0f, 1.0f);
     Vec2 anchorPoint  = Vec2::ZERO;
-    Color4B color(255, 255, 255, 255);
+    Color32 color(255, 255, 255, 255);
 
     Vec2 size         = Vec2::ZERO;
     bool flipX        = false;
@@ -181,7 +181,7 @@ Offset<Table> Node3DReader::createOptionsWithFlatBuffersForNode(pugi::xml_node o
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -202,7 +202,7 @@ Offset<Table> Node3DReader::createOptionsWithFlatBuffersForNode(pugi::xml_node o
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -223,7 +223,7 @@ Offset<Table> Node3DReader::createOptionsWithFlatBuffersForNode(pugi::xml_node o
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "A")
@@ -287,7 +287,7 @@ Offset<Table> Node3DReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
     auto attribute = objectData.first_attribute();
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "CameraFlagMode")

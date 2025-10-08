@@ -22,9 +22,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "base/Director.h"
-#include "2d/Camera.h"
-#include "platform/FileUtils.h"
+#include "axmol/base/Director.h"
+#include "axmol/2d/Camera.h"
+#include "axmol/platform/FileUtils.h"
 #include "cocostudio/WidgetReader/UserCameraReader/UserCameraReader.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
@@ -73,7 +73,7 @@ Vec2 UserCameraReader::getVec2Attribute(pugi::xml_attribute attribute) const
 
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "X")
@@ -106,7 +106,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
     auto attribute = objectData.first_attribute();
     while (attribute)
     {
-        attriname         = attribute.name();
+        attriname              = attribute.name();
         std::string_view value = attribute.value();
 
         if (attriname == "Fov")
@@ -193,7 +193,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -224,7 +224,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -255,7 +255,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -286,7 +286,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -317,7 +317,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -348,7 +348,7 @@ Offset<Table> UserCameraReader::createOptionsWithFlatBuffers(pugi::xml_node obje
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -445,7 +445,7 @@ Node* UserCameraReader::createNodeWithFlatBuffers(const flatbuffers::Table* user
     float nearClip = options->nearClip();
     float farClip  = options->farClip();
 
-    auto size      = Director::getInstance()->getWinSize();
+    auto size      = Director::getInstance()->getCanvasSize();
     Camera* camera = Camera::createPerspective(fov, size.width / size.height, nearClip, farClip);
 
     setPropsWithFlatBuffers(camera, userCameraDOptions);

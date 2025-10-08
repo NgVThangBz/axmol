@@ -26,8 +26,8 @@
 #include "ShaderTest2.h"
 #include "ShaderTest.h"
 #include "../testResource.h"
-#include "axmol.h"
-#include "renderer/backend/DriverBase.h"
+#include "axmol/axmol.h"
+#include "axmol/rhi/DriverBase.h"
 #include <tuple>
 
 using namespace ax;
@@ -63,7 +63,7 @@ static int tuple_sort(const std::tuple<ssize_t, Effect*, QuadCommand>& tuple1,
     return std::get<0>(tuple1) < std::get<0>(tuple2);
 }
 
-static void updateUniforms(backend::ProgramState* programState)
+static void updateUniforms(rhi::ProgramState* programState)
 {
     float time = Director::getInstance()->getTotalFrames() * Director::getInstance()->getAnimationInterval();
     Vec4 uTime(time / 10.0f, time, time * 2.0f, time * 4.0f);
@@ -126,7 +126,7 @@ public:
         {
             // negative effects: order < 0
             int idx = 0;
-            for (auto&&effect : _effects)
+            for (auto&& effect : _effects)
             {
 
                 if (std::get<0>(effect) >= 0)
@@ -145,7 +145,7 @@ public:
             // normal effect: order == 0
             _trianglesCommand.init(_globalZOrder, _texture, _blendFunc, _polyInfo.triangles, transform, flags);
 
-            updateUniforms(_trianglesCommand.getPipelineDescriptor().programState);
+            updateUniforms(_trianglesCommand.unsafePS());
             renderer->addCommand(&_trianglesCommand);
 
             // positive effects: order >= 0
@@ -155,7 +155,7 @@ public:
                 auto* programState = std::get<1>(*it)->getProgramState();
                 updateUniforms(programState);
                 q.init(_globalZOrder, _texture, _blendFunc, &_quad, 1, transform, flags);
-                q.getPipelineDescriptor().programState = programState;
+                q.setWeakPSVL(programState, std::get<1>(*it)->getVertexLayout());
                 renderer->addCommand(&q);
                 idx++;
             }
@@ -166,7 +166,7 @@ protected:
     EffectSprite() : _defaultEffect(nullptr) { _effects.reserve(2); }
     ~EffectSprite()
     {
-        for (auto&&tuple : _effects)
+        for (auto&& tuple : _effects)
         {
             std::get<1>(tuple)->release();
         }
@@ -183,10 +183,13 @@ protected:
 
 bool Effect::initProgramState(std::string_view fragmentFilename)
 {
-    auto program      = ProgramManager::getInstance()->loadProgram(positionTextureColor_vert, fragmentFilename, VertexLayoutType::Sprite);
-    auto programState = new backend::ProgramState(program);
+    auto program      = ProgramManager::getInstance()->loadProgram(positionTextureColor_vert, fragmentFilename,
+                                                                   VertexLayoutKind::Sprite);
+    auto programState = new rhi::ProgramState(program);
     AX_SAFE_RELEASE(_programState);
     _programState = programState;
+
+    Object::assign(_vertexLayout, _programState->getVertexLayout());
 
     return _programState != nullptr;
 }
@@ -196,6 +199,7 @@ Effect::Effect() {}
 Effect::~Effect()
 {
     AX_SAFE_RELEASE_NULL(_programState);
+    AX_SAFE_RELEASE_NULL(_vertexLayout);
 }
 
 // Blur
@@ -390,7 +394,7 @@ protected:
     {
         auto s = sprite->getTexture()->getContentSizeInPixels();
         SET_UNIFORM(_programState, "textureResolution", Vec2(s.width, s.height));
-        s = Director::getInstance()->getWinSize();
+        s = Director::getInstance()->getCanvasSize();
         SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
     }
 };
@@ -413,7 +417,7 @@ public:
     }
     void setKBump(float value);
     void setLightPos(const Vec3& pos);
-    void setLightColor(const Color4F& color);
+    void setLightColor(const Color& color);
     float getKBump() const { return _kBump; }
 
 protected:
@@ -422,7 +426,7 @@ protected:
     virtual void setTarget(EffectSprite* sprite) override;
     EffectSprite* _sprite;
     Vec3 _lightPos;
-    Color4F _lightColor;
+    Color _lightColor;
     float _kBump;
 };
 
@@ -435,7 +439,7 @@ bool EffectNormalMapped::init()
 bool EffectNormalMapped::initNormalMap(std::string_view normalMapFileName)
 {
     auto normalMapTexture = Director::getInstance()->getTextureCache()->addImage(normalMapFileName);
-    SET_TEXTURE(_programState, "u_normalMap", 1, normalMapTexture->getBackendTexture());
+    SET_TEXTURE(_programState, "u_normalMap", 1, normalMapTexture->getRHITexture());
     return true;
 }
 void EffectNormalMapped::setTarget(EffectSprite* sprite)
@@ -457,7 +461,7 @@ void EffectNormalMapped::setLightPos(const Vec3& pos)
     SET_UNIFORM(_programState, "u_lightPosInLocalSpace", Vec4(_lightPos.x, _lightPos.y, _lightPos.z, 1));
 }
 
-void EffectNormalMapped::setLightColor(const Color4F& color)
+void EffectNormalMapped::setLightColor(const Color& color)
 {
     _lightColor = color;
     SET_UNIFORM(_programState, "u_diffuseL", Vec3(_lightColor.r, _lightColor.g, _lightColor.b));
@@ -470,10 +474,10 @@ bool EffectSpriteTest::init()
     if (ShaderTestDemo2::init())
     {
 
-        auto layer = LayerColor::create(Color4B::BLUE);
+        auto layer = LayerColor::create(Color32::BLUE);
         this->addChild(layer);
 
-        auto s = Director::getInstance()->getWinSize();
+        auto s = Director::getInstance()->getCanvasSize();
 
         auto itemPrev = MenuItemImage::create("Images/b1.png", "Images/b2.png", [&](Object* sender) {
             _vectorIndex--;
@@ -537,7 +541,7 @@ bool EffectSpriteLamp::init()
     if (ShaderTestDemo2::init())
     {
 
-        auto s  = Director::getInstance()->getWinSize();
+        auto s  = Director::getInstance()->getCanvasSize();
         _sprite = EffectSprite::create("Images/elephant1_Diffuse.png");
         // auto contentSize = _sprite->getContentSize();
         _sprite->setPosition(Vec2(s.width / 2, s.height / 2));
@@ -552,7 +556,7 @@ bool EffectSpriteLamp::init()
         Mat4 mat = _sprite->getNodeToWorldTransform();
         Point lightPosInLocalSpace =
             PointApplyAffineTransform(Vec2(pos.x, pos.y), _sprite->getWorldToNodeAffineTransform());
-        lampEffect->setLightColor(Color4F(1, 1, 1, 1));
+        lampEffect->setLightColor(Color(1, 1, 1, 1));
         lampEffect->setLightPos(Vec3(lightPosInLocalSpace.x, lightPosInLocalSpace.y, 50.0f));
         lampEffect->setKBump(2);
         _sprite->setEffect(lampEffect);
@@ -569,10 +573,10 @@ bool EffectSpriteLamp::init()
 
 void EffectSpriteLamp::onTouchesBegan(const std::vector<Touch*>& touches, Event* unused_event)
 {
-    for (auto&&item : touches)
+    for (auto&& item : touches)
     {
         auto touch         = item;
-        auto s             = Director::getInstance()->getWinSize();
+        auto s             = Director::getInstance()->getCanvasSize();
         Point loc_winSpace = touch->getLocationInView();
         _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
         Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
@@ -585,10 +589,10 @@ void EffectSpriteLamp::onTouchesBegan(const std::vector<Touch*>& touches, Event*
 
 void EffectSpriteLamp::onTouchesMoved(const std::vector<Touch*>& touches, Event* unused_event)
 {
-    for (auto&&item : touches)
+    for (auto&& item : touches)
     {
         auto touch         = item;
-        auto s             = Director::getInstance()->getWinSize();
+        auto s             = Director::getInstance()->getCanvasSize();
         Point loc_winSpace = touch->getLocationInView();
         _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
         Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
@@ -601,10 +605,10 @@ void EffectSpriteLamp::onTouchesMoved(const std::vector<Touch*>& touches, Event*
 
 void EffectSpriteLamp::onTouchesEnded(const std::vector<Touch*>& touches, Event* unused_event)
 {
-    for (auto&&item : touches)
+    for (auto&& item : touches)
     {
         auto touch         = item;
-        auto s             = Director::getInstance()->getWinSize();
+        auto s             = Director::getInstance()->getCanvasSize();
         Point loc_winSpace = touch->getLocationInView();
         _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
         Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);

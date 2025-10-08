@@ -80,7 +80,7 @@ set(lua_bindings_auto_headers
   auto/axlua_ui_auto.hpp
   auto/axlua_physics_auto.hpp
   auto/axlua_extension_auto.hpp
-  auto/axlua_backend_auto.hpp
+  auto/axlua_rhi_auto.hpp
   auto/axlua_fairygui_auto.hpp
 )
 
@@ -97,7 +97,7 @@ set(lua_bindings_auto_files
   auto/axlua_audioengine_auto.cpp
   auto/axlua_physics3d_auto.cpp
   auto/axlua_navmesh_auto.cpp
-  auto/axlua_backend_auto.cpp
+  auto/axlua_rhi_auto.cpp
   auto/axlua_fairygui_auto.cpp
 )
 
@@ -221,6 +221,7 @@ setup_ax_extension_config(${_AX_LUA_LIB} DNTLINK)
 target_include_directories(${_AX_LUA_LIB}
   PRIVATE ${ax_root}/3rdparty
   PUBLIC ${ax_root}/3rdparty/lua
+  PUBLIC ${ax_root}/extensions/scripting
   PRIVATE manual/platform/android
   PRIVATE manual/platform/android/jni
   PRIVATE ${ax_root}/extensions/spine/runtime/include
@@ -236,10 +237,8 @@ if(BUILD_SHARED_LIBS)
   target_compile_definitions(${_AX_LUA_LIB} PRIVATE CCS_DLLIMPORT)
 endif()
 
-if(WINDOWS)
-  if(WINRT)
+if(WINRT)
     target_compile_options(${_AX_LUA_LIB} PUBLIC /wd4700)
-  endif()
 endif()
 
 set_target_properties(${_AX_LUA_LIB}

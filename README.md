@@ -2,7 +2,7 @@
 
 # Axmol Engine
 
-## A Multi-platform Engine for Mobile, Desktop and Xbox.
+## A Multi-platform Engine for Desktop, XBOX (UWP), WebAssembly and Mobile games.
 
 [Axmol Engine](https://axmol.dev) is an open-source, C++ multi-platform engine designed for mobile devices, desktop, and Xbox, well-suited for 2D game development. It was launched in November 2019 as a fork of Cocos2d-x v4.0.
 
@@ -28,6 +28,16 @@ Please [visit our Wiki](https://github.com/axmolengine/axmol/wiki) to know more 
 [![ossinsight](https://badgen.net/badge/icon/ossinsight/pink?icon=awesome&label&color)](https://ossinsight.io/collections/game-engine/)
 
 [Chinese ver. / 简体中文](README_CN.md)
+
+***
+
+## 📢 Branches
+
+> **Important Notice**  
+> - **`dev` branch**: Serves as the **v3** development branch. It is under active development and may contain unstable or experimental features.  
+> - **`release/2.x` branch**: Serves as the **stable production branch**. It is recommended for production use to ensure stability and compatibility.  
+>
+> Use the `dev` branch if you want to contribute to v3 development or test new features. For production deployment, please use the `release/2.x` branch.
 
 ***
 
@@ -59,13 +69,14 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 * C++
 * Lua
 
-**Renderer backends**:
+**Renderer RHI**:
 * Metal for macOS, iOS and tvOS
 * OpenGL 3.3+ for Linux, macOS and Win32
 * OpenGL ES 2.0+ for Android
 * OpenGL ES 3.0+ for iOS and tvOS
 * ANGLE GLES 3.0+ for Win32 and UWP
 * WebGL 2.0 (OpenGL ES 3.0): WASM
+* D3D11 for Win32 and UWP (since axmol-v3)
 
 **Architectures**:
 * iOS/tvOS (x64, arm64)
@@ -74,11 +85,11 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 * Linux (x64)
 * OSX (x64, arm64)
 * UWP (x64, arm64)
-* Wasm32
+* Wasm32, Wasm64(since axmol-v3)
 
 **Supported 2D physics engines** ([more info here](https://github.com/axmolengine/axmol/wiki/2D-Physics-Engines-Information)):
 * Box2D
-* Chipmunk2D (Will be removed in axmol-v3)
+* ~~Chipmunk2D~~ (Removed in `dev` (v3))
 
 **Supported 3D physics engines**:
 * Bullet Physics SDK
@@ -97,6 +108,8 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 
 Some highlights:
 
+- Added **D3D11** render support (axmol-v3)
+- **Add HiDPI support for Windows/Linux/WebAssembly desktop platforms** (axmol-v3)
 - **New MediaPlayer**: render video as texture2D using MediaEngine. [More info in our Wiki](https://github.com/axmolengine/axmol/wiki/Media-Player).
 - Windows video player support (based on Microsoft Media Foundation)
 - **WebAssembly support** (by @nowasm) - Preview: [Axmol tests](https://axmol.netlify.app/wasm/cpp-tests/cpp-tests)
@@ -124,6 +137,7 @@ Some highlights:
 - Using SAX parser for .plist files
 - ASTC 4x4 / 6x6 / 8x8 support (if hardware decoding is not supported, then software decoding is used)
 - ETC2 RGB / RGBA support (if hardware decoding is not supported, then software decoding is used)
+- Migrate VR rendering support from the legacy project and enhance it (axmol-v3)
  
 Please read the [full list of changes since Cocos2d-x v4.0](CHANGELOG.md). 
 

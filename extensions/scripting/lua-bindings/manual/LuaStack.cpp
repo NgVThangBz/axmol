@@ -51,9 +51,9 @@ extern "C" {
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include "lua-bindings/auto/axlua_physics_auto.hpp"
 #include "lua-bindings/manual/physics/axlua_physics_manual.hpp"
-#include "lua-bindings/auto/axlua_backend_auto.hpp"
-#include "base/ZipUtils.h"
-#include "platform/FileUtils.h"
+#include "lua-bindings/auto/axlua_rhi_auto.hpp"
+#include "axmol/base/ZipUtils.h"
+#include "axmol/platform/FileUtils.h"
 
 namespace
 {
@@ -151,7 +151,7 @@ int axlua_log_with_level(lua_State* L)
         auto formated_msg = axlua_tostr(L, 2);
 
         char fmt_pos_buf[8];
-        const int fmtc     = (std::min)((argc - 2), max_fmt_count);
+        const int fmtc = (std::min)((argc - 2), max_fmt_count);
         for (int fmti = 0; fmti < fmtc; ++fmti)
         {
             auto pos     = axlua_format_pos(fmt_pos_buf, sizeof(fmt_pos_buf), fmti);
@@ -214,7 +214,7 @@ bool LuaStack::init()
 
     g_luaType.clear();
     register_all_ax_base(_state);
-    register_all_ax_backend(_state);
+    register_all_ax_rhi(_state);
     register_all_ax_manual(_state);
     register_all_ax_module_manual(_state);
     register_all_ax_math_manual(_state);
@@ -482,7 +482,7 @@ int LuaStack::executeFunction(int numArgs)
         if (traceback == 0)
         {
             AXLOGE("[LUA ERROR] {}", lua_tostring(_state, -1)); /* L: ... error */
-            lua_pop(_state, 1);                                // remove error message from stack
+            lua_pop(_state, 1);                                 // remove error message from stack
         }
         else /* L: ... G error */
         {
@@ -599,7 +599,7 @@ int LuaStack::executeFunction(int handler,
             if (traceCallback == 0)
             {
                 AXLOGE("[LUA ERROR] {}", lua_tostring(_state, -1)); /* L: ... error */
-                lua_pop(_state, 1);                                // remove error message from stack
+                lua_pop(_state, 1);                                 // remove error message from stack
             }
             else /* L: ... G error */
             {
@@ -791,4 +791,4 @@ int LuaStack::luaLoadBuffer(lua_State* L, const char* chunk, int chunkSize, cons
     return r;
 }
 
-}
+}  // namespace ax

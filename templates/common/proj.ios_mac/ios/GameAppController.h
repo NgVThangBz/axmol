@@ -26,7 +26,7 @@
  ****************************************************************************/
 #pragma once
 
-#import "platform/ios/AxmolAppController.h"
+#import "axmol/platform/ios/AxmolAppController.h"
 
 @interface GameAppController : AxmolAppController {
 }

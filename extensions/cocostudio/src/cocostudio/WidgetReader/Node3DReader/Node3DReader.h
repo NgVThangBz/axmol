@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "math/Vec3.h"
+#include "axmol/math/Vec3.h"
 #include "cocostudio/CocosStudioExport.h"
 #include "cocostudio/WidgetReader/NodeReaderProtocol.h"
 #include "cocostudio/WidgetReader/NodeReaderDefine.h"
@@ -54,4 +54,3 @@ protected:
     ax::Vec3 getVec3Attribute(pugi::xml_attribute attribute) const;
 };
 }  // namespace cocostudio
-

@@ -23,7 +23,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "AppDelegate.h"
 #include "lua-bindings/manual/LuaEngine.h"
 #include "lua_assetsmanager_test_sample.h"
@@ -36,11 +36,11 @@ AppDelegate::AppDelegate() {}
 
 AppDelegate::~AppDelegate() {}
 
-void AppDelegate::initGfxContextAttrs()
+void AppDelegate::initContextAttrs()
 {
-    GfxContextAttrs gfxContextAttrs = {8, 8, 8, 8, 24, 8, 0};
+    ContextAttrs gfxContextAttrs = {8, 8, 8, 8, 24, 8, 0};
 
-    RenderView::setGfxContextAttrs(gfxContextAttrs);
+    setContextAttrs(gfxContextAttrs);
 }
 
 bool AppDelegate::applicationDidFinishLaunching()

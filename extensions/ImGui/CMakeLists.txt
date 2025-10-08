@@ -37,16 +37,11 @@ add_library(${target_name} STATIC
   ${HEADER}
   ${SOURCE})
 
-if(WASM)
-  target_compile_definitions(${target_name} PRIVATE EMSCRIPTEN_USE_EMBEDDED_GLFW3=1)
-endif()
-
 target_include_directories(${target_name}
   PRIVATE src/ImGui
   INTERFACE src
 )
 
-ax_find_shaders(${CMAKE_CURRENT_LIST_DIR}/shaders IMGUI_SHADER_SOURCES)
-ax_target_compile_shaders(${target_name} FILES ${IMGUI_SHADER_SOURCES} CUSTOM)
+ax_add_shader_target_for(${target_name} PATH "${CMAKE_CURRENT_LIST_DIR}/shaders")
 
 setup_ax_extension_config(${target_name})

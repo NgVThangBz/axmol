@@ -49,14 +49,17 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
   # compile defines can't inherit when link prebuits, so need add manually
   target_compile_definitions(${APP_NAME}
     PRIVATE YASIO_SSL_BACKEND=1
-    PRIVATE AX_GLES_PROFILE=${AX_GLES_PROFILE}
     PRIVATE OPENSSL_SUPPRESS_DEPRECATED=1
     PRIVATE NOUNCRYPT=1
     PRIVATE P2T_STATIC_EXPORTS=1
     PRIVATE BT_USE_SSE_IN_API=1
-    PRIVATE CP_USE_DOUBLES=0
-    PRIVATE CP_USE_CGTYPES=0
   )
+
+  if(AX_GLES_PROFILE)
+    target_compile_definitions(${APP_NAME} PRIVATE AX_GLES_PROFILE=${AX_GLES_PROFILE})
+  else()
+    target_compile_definitions(${APP_NAME} PRIVATE AX_GLES_PROFILE=0)
+  endif()
 
   ax_config_pred(${APP_NAME} AX_USE_ALSOFT)
   ax_config_pred(${APP_NAME} AX_ENABLE_MSEDGE_WEBVIEW2)
@@ -83,17 +86,16 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
     PRIVATE ${AX_ROOT_DIR}
     PRIVATE ${AX_ROOT_DIR}/3rdparty
     PRIVATE ${AX_ROOT_DIR}/extensions
-    PRIVATE ${AX_ROOT_DIR}/core
-    PRIVATE ${AX_ROOT_DIR}/core/platform
-    PRIVATE ${AX_ROOT_DIR}/core/base
-    PRIVATE ${AX_ROOT_DIR}/core/audio
-    PRIVATE ${AX_ROOT_DIR}/core/platform/win32
+    PRIVATE ${AX_ROOT_DIR}/axmol
+    PRIVATE ${AX_ROOT_DIR}/axmol/platform
+    PRIVATE ${AX_ROOT_DIR}/axmol/base
+    PRIVATE ${AX_ROOT_DIR}/axmol/audio
+    PRIVATE ${AX_ROOT_DIR}/axmol/platform/win32
     PRIVATE ${AX_ROOT_DIR}/3rdparty/fmt/include
     PRIVATE ${AX_ROOT_DIR}/3rdparty/robin-map/include
     PRIVATE ${AX_ROOT_DIR}/3rdparty/freetype/include
     PRIVATE ${AX_ROOT_DIR}/3rdparty/glfw/include/GLFW
     PRIVATE ${AX_ROOT_DIR}/3rdparty/box2d/include
-    PRIVATE ${AX_ROOT_DIR}/3rdparty/chipmunk/include
     PRIVATE ${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/engine/3rdparty/freetype/include
     PRIVATE ${AX_ROOT_DIR}/3rdparty/webp/src/webp
     PRIVATE ${AX_ROOT_DIR}/3rdparty/pugixml
@@ -137,7 +139,6 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
   set(LIBS
     axmol
     box2d
-    chipmunk
     freetype
     webp
     pugixml
@@ -227,24 +228,19 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
       set(ssl_dll_suffix "-${ARCH_ALIAS}")
     endif()
 
-    add_custom_command(TARGET ${APP_NAME} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    set(_prebuilt_dlls
       "${AX_ROOT_DIR}/3rdparty/openssl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libcrypto-3${ssl_dll_suffix}.dll"
       "${AX_ROOT_DIR}/3rdparty/openssl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libssl-3${ssl_dll_suffix}.dll"
       "${AX_ROOT_DIR}/3rdparty/curl/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libcurl.dll"
       "${AX_ROOT_DIR}/3rdparty/zlib/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/zlib1.dll"
-      $<TARGET_FILE_DIR:${APP_NAME}>)
+    )
 
     if(AX_ENABLE_AUDIO)
-      add_custom_command(TARGET ${APP_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}OpenAL32.dll"
-        $<TARGET_FILE_DIR:${APP_NAME}>)
+      list(APPEND _prebuilt_dlls "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}OpenAL32.dll")
     endif()
 
     if(BUILD_SHARED_LIBS)
-      add_custom_command(TARGET ${APP_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      list(APPEND _prebuilt_dlls
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}glad.dll"
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}glfw.dll"
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}pugixml.dll"
@@ -255,34 +251,36 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}particle3d.dll"
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}physics-nodes.dll"
         "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}spine.dll"
-        "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}assets-manager.dll"
-        $<TARGET_FILE_DIR:${APP_NAME}>)
+        "${AX_ROOT_DIR}/${AX_PREBUILT_DIR}/bin/${BUILD_CONFIG_DIR}assets-manager.dll")
     endif()
 
     # Copy windows angle binaries
     if(AX_GLES_PROFILE)
-      add_custom_command(TARGET ${APP_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      list(APPEND _prebuilt_dlls
         "${AX_ROOT_DIR}/3rdparty/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll"
-        "${AX_ROOT_DIR}/3rdparty/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll"
-        "${AX_ROOT_DIR}/3rdparty/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/d3dcompiler_47.dll"
-        $<TARGET_FILE_DIR:${APP_NAME}>
-      )
+        "${AX_ROOT_DIR}/3rdparty/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll")
+    endif()
+
+    if(AX_GLES_PROFILE OR AX_RENDER_API STREQUAL "d3d")
+      find_windows_sdk_bin(_winsdk_bin_dir ${ARCH_ALIAS})
+      list(APPEND _prebuilt_dlls "${_winsdk_bin_dir}/d3dcompiler_47.dll")
     endif()
 
     if(AX_ENABLE_MSEDGE_WEBVIEW2)
       if(CMAKE_GENERATOR MATCHES "Ninja")
         target_link_libraries(${APP_NAME} "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/${ARCH_ALIAS}/WebView2Loader.dll.lib")
         target_include_directories(${APP_NAME} PRIVATE "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/include")
-        add_custom_command(TARGET ${APP_NAME} POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/${ARCH_ALIAS}/WebView2Loader.dll"
-          $<TARGET_FILE_DIR:${APP_NAME}>
-        )
+        list(APPEND _prebuilt_dlls "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/${ARCH_ALIAS}/WebView2Loader.dll")
       else()
         target_link_libraries(${APP_NAME} "${_NUGET_PACKAGE_DIR}/Microsoft.Web.WebView2/build/native/Microsoft.Web.WebView2.targets")
       endif()
     endif()
+
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${_prebuilt_dlls}
+          $<TARGET_FILE_DIR:${APP_NAME}>
+        )
   endif()
 
   # prebuilt, need copy axslc folder to target output directory

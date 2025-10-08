@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 
 namespace ax
 {
@@ -76,5 +76,4 @@ protected:
     double _persistence;
 };
 
-}
-
+}  // namespace ax

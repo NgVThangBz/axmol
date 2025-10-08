@@ -26,7 +26,7 @@
 
 #pragma once
 
-//#include <iostream>
+// #include <iostream>
 #include "Particle3D/PU/PUParticleSystem3D.h"
 #include "Particle3D/PU/PUScriptTranslator.h"
 #include "Particle3D/PU/PUScriptCompiler.h"
@@ -42,14 +42,13 @@ public:
 
     void setParticleSystem3D(PUParticleSystem3D* pu) { _system = pu; };
 
-    virtual bool isParticleSystemTranslator() const override { return true; }
+    bool isParticleSystemTranslator() const override { return true; }
 
 public:
-    virtual void translate(PUScriptCompiler* compiler, PUAbstractNode* node) override;
+    void translate(PUScriptCompiler* compiler, PUAbstractNode* node) override;
 
 protected:
     PUParticleSystem3D* _system;
 };
 
-}
-
+}  // namespace ax

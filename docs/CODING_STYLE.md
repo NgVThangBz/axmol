@@ -142,27 +142,16 @@ Correct use of header files can make a huge difference to the readability, size 
 
 The following rules will guide you through the various pitfalls of using header files.
 
-## The #define Guard
+## The #include Guard
 
-All header files should have `#define` guards to prevent multiple inclusion. The format of the symbol name should be `<PROJECT>_<PATH>_<FILE>_H_.`
+All header files should have `#pragma once` guards to prevent multiple inclusion.
 
-To guarantee uniqueness, they should be based on the full path in a project's source tree. For example, the file `axmol/core/2d/Sprite.h` in project foo should have the following guard:
-
-```cpp
-#ifndef AX_CORE_2D_SPRITE_H_
-#define AX_CORE_2D_SPRITE_H_
-
-...
-
-#endif  // AX_CORE_2D_SPRITE_H_
-```
+To guarantee uniqueness, they should be based on the full path in a project's source tree. For example, the file `axmol/axmol/2d/Sprite.h` in project foo should have the following guard:
 
 ```cpp
-// Pragma once is still open for debate
+// Pragma once
 #pragma once
 ```
-
-We are considering using `#pragma once` as well, although we haven't determined yet if it is supported in all our target platforms.
 
 ## Forward Declarations
 

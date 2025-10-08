@@ -28,13 +28,13 @@
 #include "Particle3D/PU/PURibbonTrailRender.h"
 #include "Particle3D/PU/PUUtil.h"
 #include "Particle3D/PU/PUSimpleSpline.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/Renderer.h"
-#include "renderer/TextureCache.h"
-#include "base/Director.h"
-#include "3d/MeshRenderer.h"
-#include "3d/Mesh.h"
-#include "2d/Camera.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/TextureCache.h"
+#include "axmol/base/Director.h"
+#include "axmol/3d/MeshRenderer.h"
+#include "axmol/3d/Mesh.h"
+#include "axmol/2d/Camera.h"
 #include <sstream>
 
 namespace ax
@@ -192,22 +192,22 @@ void PURibbonTrailRender::setRandomInitialColor(bool randomInitialColour)
     _randomInitialColor = randomInitialColour;
 }
 //-----------------------------------------------------------------------
-const Vec4& PURibbonTrailRender::getInitialColor() const
+const Color& PURibbonTrailRender::getInitialColor() const
 {
     return _initialColor;
 }
 //-----------------------------------------------------------------------
-void PURibbonTrailRender::setInitialColor(const Vec4& initialColour)
+void PURibbonTrailRender::setInitialColor(const Color& initialColour)
 {
     _initialColor = initialColour;
 }
 //-----------------------------------------------------------------------
-const Vec4& PURibbonTrailRender::getColorChange() const
+const Color& PURibbonTrailRender::getColorChange() const
 {
     return _colorChange;
 }
 //-----------------------------------------------------------------------
-void PURibbonTrailRender::setColorChange(const Vec4& colourChange)
+void PURibbonTrailRender::setColorChange(const Color& colourChange)
 {
     _colorChange = colourChange;
 }
@@ -421,4 +421,4 @@ void PURibbonTrailRender::updateParticles(const ParticlePool& pool)
     }
 }
 
-}
+}  // namespace ax

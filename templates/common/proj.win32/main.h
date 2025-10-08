@@ -32,5 +32,4 @@
 #include <tchar.h>
 
 // C RunTime Header Files
-#include "platform/StdC.h"
-
+#include "axmol/platform/StdC.h"

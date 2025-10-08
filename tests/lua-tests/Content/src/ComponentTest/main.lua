@@ -3,7 +3,7 @@ local function ComponentTestLayer()
     local layer = ax.Layer:create()
 
     -- set background color
-    local bgLayer = ax.LayerColor:create(ax.c4b(0, 128, 255, 255));
+    local bgLayer = ax.LayerColor:create(ax.color32(0, 128, 255, 255));
     layer:addChild(bgLayer);
 
     -- create game scene

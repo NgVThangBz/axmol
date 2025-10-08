@@ -31,24 +31,32 @@ MultiTouchTests::MultiTouchTests()
     ADD_TEST_CASE(MultiTouchTest);
 }
 
-static const Color3B* s_TouchColors[5] = {&Color3B::YELLOW, &Color3B::BLUE, &Color3B::GREEN, &Color3B::RED,
-                                          &Color3B::MAGENTA};
+static const Color32* s_TouchColors[5] = {&Color32::YELLOW, &Color32::BLUE, &Color32::GREEN, &Color32::RED,
+                                          &Color32::MAGENTA};
 
 class TouchPoint : public Node
 {
 public:
-    TouchPoint(const Vec2& touchPoint, const Color3B& touchColor)
+    TouchPoint(const Vec2& touchPoint, const Color32& touchColor)
     {
-        DrawNode* drawNode = DrawNode::create();
-        auto s             = Director::getInstance()->getWinSize();
-        Color4F color(touchColor.r / 255.0f, touchColor.g / 255.0f, touchColor.b / 255.0f, 1.0f);
-        drawNode->drawLine(Vec2(0.0f, touchPoint.y), Vec2(s.width, touchPoint.y), color);
-        drawNode->drawLine(Vec2(touchPoint.x, 0.0f), Vec2(touchPoint.x, s.height), color);
-        drawNode->drawDot(touchPoint, 3, color);
-        addChild(drawNode);
+        _drawNode = DrawNode::create();
+
+        _touchColor = Color{touchColor};
+        addChild(_drawNode);
+
+        updatePosition(touchPoint);
     }
 
-    static TouchPoint* touchPointWithParent(Node* pParent, const Vec2& touchPoint, const Color3B& touchColor)
+    void updatePosition(const Vec2& touchPoint)
+    {
+        _drawNode->clear();
+        auto s = Director::getInstance()->getCanvasSize();
+        _drawNode->drawLine(Vec2(0.0f, touchPoint.y), Vec2(s.width, touchPoint.y), _touchColor);
+        _drawNode->drawLine(Vec2(touchPoint.x, 0.0f), Vec2(touchPoint.x, s.height), _touchColor);
+        _drawNode->drawDot(touchPoint, 3, _touchColor);
+    }
+
+    static TouchPoint* touchPointWithParent(Node* pParent, const Vec2& touchPoint, const Color32& touchColor)
     {
         auto pRet = new TouchPoint(touchPoint, touchColor);
         pRet->setContentSize(pParent->getContentSize());
@@ -56,6 +64,9 @@ public:
         pRet->autorelease();
         return pRet;
     }
+
+    Color _touchColor;
+    DrawNode* _drawNode{nullptr};
 };
 
 bool MultiTouchTest::init()
@@ -88,6 +99,7 @@ void MultiTouchTest::onTouchesBegan(const std::vector<Touch*>& touches, Event* e
         auto touchPoint = TouchPoint::touchPointWithParent(this, location, *s_TouchColors[touch->getID() % 5]);
 
         addChild(touchPoint);
+        AXLOGI("*** BEGIN TOUCH, id:{}", touch->getID());
         s_map.insert(touch->getID(), touchPoint);
     }
 }
@@ -99,13 +111,16 @@ void MultiTouchTest::onTouchesMoved(const std::vector<Touch*>& touches, Event* e
         auto touch    = item;
         auto pTP      = s_map.at(touch->getID());
         auto location = touch->getLocation();
+        if (pTP)
+        {
+            pTP->updatePosition(location);
+        }
 
-        removeChild(pTP, true);
-        s_map.erase(touch->getID());
-
-        auto touchPointNew = TouchPoint::touchPointWithParent(this, location, *s_TouchColors[touch->getID() % 5]);
-        addChild(touchPointNew);
-        s_map.insert(touch->getID(), touchPointNew);
+        //        removeChild(pTP, true);
+        //        s_map.erase(touch->getID());
+        //
+        //        auto touchPointNew = TouchPoint::touchPointWithParent(this, location, *s_TouchColors[touch->getID() %
+        //        5]); addChild(touchPointNew); s_map.insert(touch->getID(), touchPointNew);
     }
 }
 
@@ -115,6 +130,7 @@ void MultiTouchTest::onTouchesEnded(const std::vector<Touch*>& touches, Event* e
     {
         auto touch = item;
         auto pTP   = s_map.at(touch->getID());
+        AXLOGI("### END TOUCH, id:{}", touch->getID());
         removeChild(pTP, true);
         s_map.erase(touch->getID());
     }

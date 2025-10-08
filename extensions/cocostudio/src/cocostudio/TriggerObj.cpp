@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "TriggerObj.h"
-#include "base/EventListenerCustom.h"
+#include "axmol/base/EventListenerCustom.h"
 
 using namespace ax;
 
@@ -292,11 +292,11 @@ void TriggerObj::serialize(cocostudio::CocoLoader* pCocoLoader, cocostudio::stEx
 
                 EventListenerCustom* listener =
                     EventListenerCustom::create(custom_event_name, [this](EventCustom* /*evt*/) {
-                        if (detect())
-                        {
-                            done();
-                        }
-                    });
+                    if (detect())
+                    {
+                        done();
+                    }
+                });
                 _listeners.pushBack(listener);
                 TriggerMng::getInstance()->addEventListenerWithFixedPriority(listener, 1);
             }

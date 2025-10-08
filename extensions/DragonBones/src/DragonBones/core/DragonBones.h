@@ -1,4 +1,4 @@
-﻿/**
+/**
  * The MIT License (MIT)
  *
  * Copyright (c) 2012-2018 DragonBones team and other contributors
@@ -28,12 +28,11 @@
 #include <string>
 #include <algorithm>
 #include <vector>
-#include <map>
 #include <tuple>
 #include <functional>
 #include <sstream>
 #include <assert.h>
-#include "base/hlookup.h"
+#include "axmol/tlx/hlookup.hpp"
 // dragonBones assert
 #define DRAGONBONES_ASSERT(cond, msg) \
     do                                \
@@ -62,36 +61,51 @@ public:                                                          \
         static const auto typeIndex = typeid(CLASS).hash_code(); \
         return typeIndex;                                        \
     }                                                            \
-    virtual std::size_t getClassTypeIndex() const override { return CLASS::getTypeIndex(); }
+    virtual std::size_t getClassTypeIndex() const override       \
+    {                                                            \
+        return CLASS::getTypeIndex();                            \
+    }
 
-#define BIND_CLASS_TYPE_A(CLASS)                                                             \
-public:                                                                                      \
-    static std::size_t getTypeIndex()                                                        \
-    {                                                                                        \
-        static const auto typeIndex = typeid(CLASS).hash_code();                             \
-        return typeIndex;                                                                    \
-    }                                                                                        \
-    virtual std::size_t getClassTypeIndex() const override { return CLASS::getTypeIndex(); } \
-                                                                                             \
-public:                                                                                      \
-    CLASS() { _onClear(); }                                                                  \
-    ~CLASS() { _onClear(); }                                                                 \
-                                                                                             \
-private:                                                                                     \
-    CLASS(const CLASS&);                                                                     \
+#define BIND_CLASS_TYPE_A(CLASS)                                 \
+public:                                                          \
+    static std::size_t getTypeIndex()                            \
+    {                                                            \
+        static const auto typeIndex = typeid(CLASS).hash_code(); \
+        return typeIndex;                                        \
+    }                                                            \
+    virtual std::size_t getClassTypeIndex() const override       \
+    {                                                            \
+        return CLASS::getTypeIndex();                            \
+    }                                                            \
+                                                                 \
+public:                                                          \
+    CLASS()                                                      \
+    {                                                            \
+        _onClear();                                              \
+    }                                                            \
+    ~CLASS()                                                     \
+    {                                                            \
+        _onClear();                                              \
+    }                                                            \
+                                                                 \
+private:                                                         \
+    CLASS(const CLASS&);                                         \
     void operator=(const CLASS&)
 
-#define BIND_CLASS_TYPE_B(CLASS)                                                             \
-public:                                                                                      \
-    static std::size_t getTypeIndex()                                                        \
-    {                                                                                        \
-        static const auto typeIndex = typeid(CLASS).hash_code();                             \
-        return typeIndex;                                                                    \
-    }                                                                                        \
-    virtual std::size_t getClassTypeIndex() const override { return CLASS::getTypeIndex(); } \
-                                                                                             \
-private:                                                                                     \
-    CLASS(const CLASS&);                                                                     \
+#define BIND_CLASS_TYPE_B(CLASS)                                 \
+public:                                                          \
+    static std::size_t getTypeIndex()                            \
+    {                                                            \
+        static const auto typeIndex = typeid(CLASS).hash_code(); \
+        return typeIndex;                                        \
+    }                                                            \
+    virtual std::size_t getClassTypeIndex() const override       \
+    {                                                            \
+        return CLASS::getTypeIndex();                            \
+    }                                                            \
+                                                                 \
+private:                                                         \
+    CLASS(const CLASS&);                                         \
     void operator=(const CLASS&)
 
 #define DRAGONBONES_DISALLOW_COPY_AND_ASSIGN(CLASS) \

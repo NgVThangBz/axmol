@@ -24,11 +24,11 @@
 
 #include "GameMapReader.h"
 
-#include "2d/Label.h"
-#include "2d/TMXXMLParser.h"
-#include "2d/FastTMXTiledMap.h"
-#include "platform/FileUtils.h"
-#include "base/UTF8.h"
+#include "axmol/2d/Label.h"
+#include "axmol/2d/TMXXMLParser.h"
+#include "axmol/2d/FastTMXTiledMap.h"
+#include "axmol/platform/FileUtils.h"
+#include "axmol/base/text_utils.h"
 
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/WidgetReader/NodeReader/NodeReader.h"
@@ -85,7 +85,7 @@ Offset<Table> GameMapReader::createOptionsWithFlatBuffers(pugi::xml_node objectD
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")

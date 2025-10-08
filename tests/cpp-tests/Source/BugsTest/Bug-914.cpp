@@ -40,11 +40,11 @@ bool Bug914Layer::init()
         _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
         // ask director the the window size
-        auto size = Director::getInstance()->getWinSize();
+        auto size = Director::getInstance()->getCanvasSize();
         LayerColor* layer;
         for (int i = 0; i < 5; i++)
         {
-            layer = LayerColor::create(Color4B(i * 20, i * 20, i * 20, 255));
+            layer = LayerColor::create(Color32(i * 20, i * 20, i * 20, 255));
             layer->setContentSize(Size(i * 100.0f, i * 100.0f));
             layer->setPosition(size.width / 2, size.height / 2);
             layer->setAnchorPoint(Vec2(0.5f, 0.5f));

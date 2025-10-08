@@ -1,0 +1,173 @@
+/****************************************************************************
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+
+ https://axmol.dev
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ****************************************************************************/
+
+#include "axmol/network/WebSocket-wasm.h"
+#include "axmol/base/Logging.h"
+
+namespace ax
+{
+
+namespace network
+{
+
+EM_BOOL WebSocket::em_ws_onopen(int eventType, const EmscriptenWebSocketOpenEvent* websocketEvent, void* userData)
+{
+    auto ws = static_cast<WebSocket*>(userData);
+    if (!ws || !ws->_delegate)
+        return EM_TRUE;
+    ws->_state = WebSocket::State::OPEN;
+    ws->_delegate->onOpen(ws);
+    return EM_TRUE;
+}
+
+EM_BOOL WebSocket::em_ws_onerror(int eventType, const EmscriptenWebSocketErrorEvent* websocketEvent, void* userData)
+{
+    auto ws = static_cast<WebSocket*>(userData);
+    if (!ws || !ws->_delegate)
+        return EM_TRUE;
+    ws->_state = WebSocket::State::CLOSED;
+    ws->_delegate->onError(ws, ErrorCode::CONNECTION_FAILURE);
+    return EM_TRUE;
+}
+
+EM_BOOL WebSocket::em_ws_onclose(int eventType, const EmscriptenWebSocketCloseEvent* websocketEvent, void* userData)
+{
+    auto ws = static_cast<WebSocket*>(userData);
+    if (!ws || !ws->_delegate)
+        return EM_TRUE;
+    ws->_state = WebSocket::State::CLOSED;
+    ws->_delegate->onClose(ws, (uint16_t)websocketEvent->code, websocketEvent->reason);
+    return EM_TRUE;
+}
+
+EM_BOOL WebSocket::em_ws_onmessage(int eventType, const EmscriptenWebSocketMessageEvent* websocketEvent, void* userData)
+{
+    auto ws = static_cast<WebSocket*>(userData);
+    if (!ws || !ws->_delegate)
+        return EM_TRUE;
+    WebSocket::Data dataView;
+    dataView.bytes    = reinterpret_cast<const char*>(websocketEvent->data);
+    dataView.isBinary = !websocketEvent->isText;
+    dataView.len      = websocketEvent->numBytes;
+    ws->_delegate->onMessage(ws, dataView);
+    return EM_TRUE;
+}
+
+WebSocket::WebSocket() {}
+
+WebSocket::~WebSocket()
+{
+    if (_wsfd >= 0)
+    {
+        emscripten_websocket_delete(_wsfd);
+    }
+}
+
+bool WebSocket::open(Delegate* delegate, std::string_view url, std::string_view caFilePath, std::string_view protocols)
+{
+    if (url.empty())
+    {
+        AXLOGW("ws open fail, url is empty!");
+        return false;
+    }
+
+    _delegate = delegate;
+
+    _url          = url;
+    _subProtocols = protocols;
+
+    EmscriptenWebSocketCreateAttributes ws_attrs = {_url.c_str(),
+                                                    _subProtocols.empty() ? nullptr : _subProtocols.c_str(), EM_TRUE};
+
+    AXLOGD("ws open url: {}, protocols: {}", ws_attrs.url, ws_attrs.protocols ? ws_attrs.protocols : "");
+
+    _state = WebSocket::State::CONNECTING;
+    _wsfd  = emscripten_websocket_new(&ws_attrs);
+
+    // chrome/edge can't connect
+    // firefox works with "Sec-Fetch-Site: cross-site" in request header
+    // refer: https://github.com/emscripten-axmol/emscripten/issues/19100
+    // wasm websocket callback thread same with axmol render thread
+    emscripten_websocket_set_onopen_callback(_wsfd, this, em_ws_onopen);
+    emscripten_websocket_set_onerror_callback(_wsfd, this, em_ws_onerror);
+    emscripten_websocket_set_onclose_callback(_wsfd, this, em_ws_onclose);
+    emscripten_websocket_set_onmessage_callback(_wsfd, this, em_ws_onmessage);
+    return true;
+}
+/**
+ *  @brief Sends string data to websocket server.
+ *
+ *  @param message string data.
+ *  @lua sendstring
+ */
+void WebSocket::send(std::string_view message)
+{
+    auto error = emscripten_websocket_send_utf8_text(_wsfd, message.data());
+    if (error)
+        AXLOGW("Failed to emscripten_websocket_send_utf8_text(): {}", error);
+}
+
+/**
+ *  @brief Sends binary data to websocket server.
+ *
+ *  @param binaryMsg binary string data.
+ *  @param len the size of binary string data.
+ *  @lua sendstring
+ */
+void WebSocket::send(const void* data, unsigned int len)
+{
+    auto error = emscripten_websocket_send_binary(_wsfd, const_cast<void*>(data), len);
+    if (error)
+        AXLOGW("Failed to emscripten_websocket_send_binary(): {}", error);
+}
+
+/**
+ *  @brief Closes the connection to server synchronously.
+ *  @note It's a synchronous method, it will not return until websocket thread exits.
+ */
+void WebSocket::close(uint16_t code, std::string_view reason)
+{
+    closeAsync(code, reason);
+}
+
+/**
+ *  @brief Closes the connection to server asynchronously.
+ *  @note It's an asynchronous method, it just notifies websocket thread to exit and returns directly,
+ *        If using 'closeAsync' to close websocket connection,
+ *        be careful of not using destructed variables in the callback of 'onClose'.
+ */
+void WebSocket::closeAsync(uint16_t code, std::string_view reason)
+{
+    // close code: Uncaught DOMException: Failed to execute 'close' on 'WebSocket':
+    // The code must be either 1000, or between 3000 and 4999. 1024 is neither.
+    EMSCRIPTEN_RESULT error = emscripten_websocket_close(_wsfd, (unsigned short)code, reason.data());
+    if (!error)
+        _state = WebSocket::State::CLOSING;
+    else
+        AXLOGW("Failed to emscripten_websocket_close(): {}", error);
+}
+
+}  // namespace network
+
+}  // namespace ax

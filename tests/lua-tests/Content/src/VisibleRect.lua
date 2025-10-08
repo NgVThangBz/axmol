@@ -6,10 +6,6 @@ VisibleRect.s_visibleRect = ax.rect(0,0,0,0)
 
 function VisibleRect:lazyInit()
     if (self.s_visibleRect.width == 0.0 and self.s_visibleRect.height == 0.0) then
-        --[[
-        local pEGLView = ax.EGLView:getInstance()
-        local origin   = pEGLView:getVisibleOrigin()
-        ]]--
         local director = ax.Director:getInstance()
         local origin = director:getVisibleOrigin()
         local visibleSize = director:getVisibleSize()

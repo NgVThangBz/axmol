@@ -30,17 +30,17 @@
 #ifndef SPINE_SKELETONTWOCOLORBATCH_H_
 #define SPINE_SKELETONTWOCOLORBATCH_H_
 
-#include "axmol.h"
-#include "renderer/backend/ProgramState.h"
+#include "axmol/axmol.h"
+#include "axmol/rhi/ProgramState.h"
 #include <spine/spine.h>
 #include <vector>
 
 namespace spine {
 	struct V3F_C4B_C4B_T2F {
 		axmol::Vec3 position;
-		axmol::Color4B color;
-		axmol::Color4B color2;
-		axmol::Tex2F texCoords;
+		axmol::Color32 color;
+		axmol::Color32 color2;
+		axmol::Tex2F texCoord;
 	};
 
 	struct TwoColorTriangles {
@@ -56,11 +56,11 @@ namespace spine {
 
 		~TwoColorTrianglesCommand();
 
-		void init(float globalOrder, axmol::Texture2D *texture, axmol::backend::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
+		void init(float globalOrder, axmol::Texture2D *texture, axmol::rhi::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
 
-		void updateCommandPipelineDescriptor(axmol::backend::ProgramState *programState);
+		void updateCommandPipelineDescriptor(axmol::rhi::ProgramState *programState);
 
-		inline axmol::backend::TextureBackend *getTexture() const { return _texture; }
+		inline axmol::rhi::Texture *getTexture() const { return _texture; }
 
 		void draw(axmol::Renderer *renderer);
 
@@ -92,10 +92,11 @@ namespace spine {
 
 
 		void *_prog = nullptr;
-		axmol::backend::TextureBackend *_texture = nullptr;
-		axmol::backend::ProgramState *_programState = nullptr;
-		axmol::backend::UniformLocation _locPMatrix;
-		axmol::backend::UniformLocation _locTexture;
+		axmol::rhi::Texture *_texture = nullptr;
+		axmol::rhi::ProgramState *_programState = nullptr;
+        axmol::rhi::VertexLayout* _vertexLayout = nullptr;
+		axmol::rhi::UniformLocation _locPMatrix;
+		axmol::rhi::UniformLocation _locTexture;
 
 		axmol::BlendFunc _blendType;
 		TwoColorTriangles _triangles;
@@ -117,7 +118,7 @@ namespace spine {
 		unsigned short *allocateIndices(uint32_t numIndices);
 		void deallocateIndices(uint32_t numIndices);
 
-		TwoColorTrianglesCommand *addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, axmol::backend::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
+		TwoColorTrianglesCommand *addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, axmol::rhi::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
 
 		void batch(axmol::Renderer *renderer, TwoColorTrianglesCommand *command);
 

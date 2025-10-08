@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "2d/Component.h"
-#include "2d/Node.h"
+#include "axmol/base/Object.h"
+#include "axmol/2d/Component.h"
+#include "axmol/2d/Node.h"
 #include "cocostudio/CocosStudioExport.h"
 #include "cocostudio/WidgetReader/NodeReaderProtocol.h"
 
@@ -49,4 +49,3 @@ public:
     ax::Node* createNodeWithFlatBuffers(const flatbuffers::Table* nodeOptions);
 };
 }  // namespace cocostudio
-

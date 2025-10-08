@@ -24,23 +24,18 @@
 
 #pragma once
 
-#include "2d/Sprite.h"
+#include "axmol/2d/Sprite.h"
 #include "extensions/ExtensionMacros.h"
 #include "extensions/ExtensionExport.h"
-#include "base/EventListenerCustom.h"
+#include "axmol/base/EventListenerCustom.h"
 
-#if (AX_ENABLE_CHIPMUNK_INTEGRATION || AX_ENABLE_BOX2D_INTEGRATION)
-
-struct cpBody;
-class b2Body;
+#include "box2d/box2d.h"
 
 NS_AX_EXT_BEGIN
 
 /** A Sprite subclass that is bound to a physics body.
  It works with:
- - Chipmunk: Preprocessor macro AX_ENABLE_CHIPMUNK_INTEGRATION should be defined
- - Objective-Chipmunk: Preprocessor macro AX_ENABLE_CHIPMUNK_INTEGRATION should be defined
- - Box2d: Preprocessor macro AX_ENABLE_BOX2D_INTEGRATION should be defined
+ - Box2D
 
  Features and Limitations:
  - Scale and Skew properties are ignored.
@@ -87,46 +82,39 @@ public:
 
     PhysicsSprite();
 
-    virtual bool isDirty() const override;
+    bool isDirty() const override;
 
     /** Keep the sprite's rotation separate from the body. */
     bool isIgnoreBodyRotation() const;
     void setIgnoreBodyRotation(bool bIgnoreBodyRotation);
 
     //
-    // Chipmunk specific
-    //
-    /** Body accessor when using regular Chipmunk */
-    cpBody* getCPBody() const;
-    void setCPBody(cpBody* pBody);
-
-    //
     // Box2d specific
     //
     /** Body accessor when using box2d */
-    b2Body* getB2Body() const;
-    void setB2Body(b2Body* pBody);
+    b2BodyId getB2Body() const;
+    void setB2Body(b2BodyId pBody);
 
     float getPTMRatio() const;
     void setPTMRatio(float fPTMRatio);
     virtual void syncPhysicsTransform() const;
 
     // overrides
-    virtual const Vec2& getPosition() const override;
-    virtual void getPosition(float* x, float* y) const override;
-    virtual float getPositionX() const override;
-    virtual float getPositionY() const override;
-    virtual Vec3 getPosition3D() const override;
-    virtual void setPosition(const Vec2& position) override;
-    virtual void setPosition(float x, float y) override;
-    virtual void setPositionX(float x) override;
-    virtual void setPositionY(float y) override;
-    virtual void setPosition3D(const Vec3& position) override;
-    virtual float getRotation() const override;
-    virtual void setRotation(float fRotation) override;
+    const Vec2& getPosition() const override;
+    void getPosition(float* x, float* y) const override;
+    float getPositionX() const override;
+    float getPositionY() const override;
+    Vec3 getPosition3D() const override;
+    void setPosition(const Vec2& position) override;
+    void setPosition(float x, float y) override;
+    void setPositionX(float x) override;
+    void setPositionY(float y) override;
+    void setPosition3D(const Vec3& position) override;
+    float getRotation() const override;
+    void setRotation(float fRotation) override;
 
-    virtual void onEnter() override;
-    virtual void onExit() override;
+    void onEnter() override;
+    void onExit() override;
 
 protected:
     const Vec2& getPosFromPhysics() const;
@@ -135,11 +123,8 @@ protected:
 protected:
     bool _ignoreBodyRotation;
 
-    // chipmunk specific
-    cpBody* _CPBody;
-
     // box2d specific
-    b2Body* _pB2Body;
+    b2BodyId _bodyId{};
     float _PTMRatio;
 
     // Event for update synchronise physic transform
@@ -147,5 +132,3 @@ protected:
 };
 
 NS_AX_EXT_END
-
-#endif  // AX_ENABLE_CHIPMUNK_INTEGRATION || AX_ENABLE_BOX2D_INTEGRATION

@@ -30,7 +30,6 @@
 //
 
 #include "Bug-DrawNode.h"
-#include "renderer/backend/Types.h"
 
 using namespace ax;
 
@@ -38,26 +37,26 @@ bool BugDrawNodeLayer::init()
 {
     if (BugsTestBase::init())
     {
-        auto size       = Director::getInstance()->getWinSize();
+        auto size       = Director::getInstance()->getCanvasSize();
         auto testSprite = Sprite::create("Images/close.png");
         BlendFunc blend;
-        blend.src = backend::BlendFactor::ZERO;
-        blend.dst = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+        blend.src = rhi::BlendFactor::ZERO;
+        blend.dst = rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
         testSprite->setBlendFunc(blend);
         testSprite->setPosition(Vec2(size.width / 2, size.height / 2));
         testSprite->setScale(10);
         addChild(testSprite);
 
         auto drawNode = DrawNode::create();
-        drawNode->drawLine(Vec2(0, 0), Vec2(size.width, size.height), Color4F(1, 0, 0, 0.5f));
+        drawNode->drawLine(Vec2(0, 0), Vec2(size.width, size.height), Color(1, 0, 0, 0.5f));
         Vec2 point = Vec2(size.width / 2, size.height / 2);
-        drawNode->drawPoint(point, 8, Color4F(1, 0, 0, 0.5f));
+        drawNode->drawPoint(point, 8, Color(1, 0, 0, 0.5f));
         addChild(drawNode);
 
         auto label = Label::create();
         label->setString(std::string("If you see a red line with a block at center, the bug is fixed!"));
         label->setPosition(size.width / 2, size.height / 4);
-        label->setTextColor(Color4B::ORANGE);
+        label->setTextColor(Color32::ORANGE);
         addChild(label);
 
         return true;

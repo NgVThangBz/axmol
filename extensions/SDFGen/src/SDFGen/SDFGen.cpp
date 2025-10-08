@@ -2,14 +2,14 @@
 
 #include <yasio/singleton.hpp>
 #include <yasio/byte_buffer.hpp>
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
-#include "base/ZipUtils.h"
+#include "axmol/base/ZipUtils.h"
 
 #include "ImGuiPresenter.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <zlib.h>
-#include "base/JsonWriter.h"
+#include "axmol/base/JsonWriter.h"
 #include "yasio/utils.hpp"
 
 NS_AX_EXT_BEGIN
@@ -175,7 +175,7 @@ protected:
         _atlasName = fmt::format("df {} {}", params->faceSize, params->sourceFont);
 
         std::u32string utf32;
-        if (StringUtils::UTF8ToUTF32(_fontFreeType->getGlyphCollection(), utf32))
+        if (text_utils::UTF8ToUTF32(_fontFreeType->getGlyphCollection(), utf32))
             this->prepareLetterDefinitions(utf32);
 
         _pageDatas.emplace_back(_currentPageData, _currentPageData + _currentPageDataSize);

@@ -154,7 +154,7 @@ function EventDispatcherTestDemo:createMenu()
     menu:addChild(self._nextItem,itemTagBasic)
     self._nextItem:registerScriptTapHandler(self.nextCallback)
 
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
     self._backItem:setPosition(ax.p(size.width / 2 - self._restarItem:getContentSize().width * 2, self._restarItem:getContentSize().height / 2))
     self._restarItem:setPosition(ax.p(size.width / 2, self._restarItem:getContentSize().height / 2))
     self._nextItem:setPosition(ax.p(size.width / 2 + self._restarItem:getContentSize().width * 2, self._restarItem:getContentSize().height / 2))
@@ -166,14 +166,14 @@ end
 
 function EventDispatcherTestDemo:creatTitleAndSubTitle(idx)
     local title = ax.Label:createWithTTF(EventDispatcherTestDemo.title(idx),s_arialPath,18)
-    title:setColor(ax.c3b(128,128,0))
+    title:setColor(ax.color32(128,128,0))
     self:addChild(title, 1, 10000)
     title:setAnchorPoint(ax.p(0.5, 0.5))
     title:setPosition( ax.p(VisibleRect:center().x, VisibleRect:top().y - 30))
     local subTitle = nil
     if "" ~= EventDispatcherTestDemo.subTitle(idx) then
         local subTitle = ax.Label:createWithTTF(EventDispatcherTestDemo.subTitle(idx), s_arialPath, 18)
-        subTitle:setColor(ax.c3b(128,128,0))
+        subTitle:setColor(ax.color32(128,128,0))
         self:addChild(subTitle, 1, 10001)
         subTitle:setAnchorPoint(ax.p(0.5, 0.5))
         subTitle:setPosition( ax.p(VisibleRect:center().x, VisibleRect:top().y - 60) )
@@ -325,7 +325,7 @@ function TouchableSpriteWithFixedPriority:onEnter()
         local rect = ax.rect(0, 0, s.width, s.height)
 
         if ax.rectContainsPoint(rect, locationInNode) then
-            self:setColor(ax.c3b(255, 0, 0))
+            self:setColor(ax.color32(255, 0, 0))
             return true
         end
 
@@ -337,7 +337,7 @@ function TouchableSpriteWithFixedPriority:onEnter()
     end
 
     local  function onTouchEnded(touch, event)
-        self:setColor(ax.c3b(255, 255, 255))
+        self:setColor(ax.color32(255, 255, 255))
         if self._removeListenerOnTouchEnded then
             eventDispatcher:removeEventListener(self._listener)
             self._listener = nil
@@ -475,7 +475,7 @@ function RemoveListenerWhenDispatchingTest:onEnter()
         local rect = ax.rect(0, 0, s.width, s.height)
 
          if ax.rectContainsPoint(rect, locationInNode) then
-            sprite1:setColor(ax.c3b(255, 0, 0))
+            sprite1:setColor(ax.color32(255, 0, 0))
             return true
         end
 
@@ -483,7 +483,7 @@ function RemoveListenerWhenDispatchingTest:onEnter()
     end
 
     local function onTouchEnded(touch, event)
-        sprite1:setColor(ax.c3b(255, 255, 255))
+        sprite1:setColor(ax.color32(255, 255, 255))
     end
 
     local listener1 = ax.EventListenerTouchOneByOne:create()
@@ -718,7 +718,7 @@ function SpriteAccelerationEventTest.extend(target)
 end
 
 function SpriteAccelerationEventTest:onEnter()
-    ax.Device:setAccelerometerEnabled(true)
+    self:setAccelerometerEnabled(true)
     local origin = ax.Director:getInstance():getVisibleOrigin()
     local size   = ax.Director:getInstance():getVisibleSize()
     local sprite = ax.Sprite:create("Images/ball.png")
@@ -1245,8 +1245,8 @@ function StopPropagationTest:isPointInNode(pt, node)
 end
 
 function StopPropagationTest:isPointInTopHalfAreaOfScreen(pt)
-    local winSize = ax.Director:getInstance():getWinSize()
-    if pt.y >= winSize.height / 2 then
+    local canvasSize = ax.Director:getInstance():getCanvasSize()
+    if pt.y >= canvasSize.height / 2 then
         return true
     end
 
@@ -1307,7 +1307,7 @@ function PauseResumeTargetTest:onEnter()
         local eventDispatcher = self:getEventDispatcher()
         eventDispatcher:pauseEventListenersForTarget(self, true)
 
-        local colorLayer = ax.LayerColor:create(ax.c4b(0, 0, 255, 100))
+        local colorLayer = ax.LayerColor:create(ax.color32(0, 0, 255, 100))
         self:addChild(colorLayer, 99999)
 
         local function closePopUp(tag, sender)

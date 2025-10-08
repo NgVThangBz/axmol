@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include <vector>
 #include "extensions/ExtensionExport.h"
 
@@ -101,5 +101,4 @@ protected:
     /// Matrix of coefficients
     Mat4 _coeffs;
 };
-}
-
+}  // namespace ax

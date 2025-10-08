@@ -25,7 +25,7 @@
 #ifndef _SCHEDULER_TEST_H_
 #define _SCHEDULER_TEST_H_
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "extensions/axmol-ext.h"
 #include "../BaseTest.h"
 
@@ -436,10 +436,10 @@ private:
         void update(float dt);
 
     private:
-        TestClass* _nextObj            = nullptr;
-        int _index                     = 0;
+        TestClass* _nextObj       = nullptr;
+        int _index                = 0;
         ax::Scheduler* _scheduler = nullptr;
-        bool _cleanedUp                = false;
+        bool _cleanedUp           = false;
     };
     std::vector<TestClass*> _testvector;
 };

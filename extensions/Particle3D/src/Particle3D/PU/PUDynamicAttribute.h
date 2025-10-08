@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "PUSimpleSpline.h"
 #include <vector>
 
@@ -123,14 +123,14 @@ public:
 
     /** Todo
      */
-    virtual float getValue(float x = 0) override;
+    float getValue(float x = 0) override;
 
     /** Todo
      */
     virtual void setValue(float value);
 
-    virtual PUDynamicAttributeFixed* clone() override;
-    virtual void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
+    PUDynamicAttributeFixed* clone() override;
+    void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
 
 protected:
     float _value;
@@ -155,7 +155,7 @@ public:
 
     /** Todo
      */
-    virtual float getValue(float x = 0) override;
+    float getValue(float x = 0) override;
 
     /** Todo
      */
@@ -165,8 +165,8 @@ public:
     float getMax() const;
     void setMinMax(float min, float max);
 
-    virtual PUDynamicAttributeRandom* clone() override;
-    virtual void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
+    PUDynamicAttributeRandom* clone() override;
+    void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
 
 protected:
     float _min, _max;
@@ -203,7 +203,7 @@ public:
 
     /** Todo
      */
-    virtual float getValue(float x = 0) override;
+    float getValue(float x = 0) override;
 
     /** Todo
      */
@@ -225,8 +225,8 @@ public:
      */
     void removeAllControlPoints();
 
-    virtual PUDynamicAttributeCurved* clone() override;
-    virtual void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
+    PUDynamicAttributeCurved* clone() override;
+    void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
 
 protected:
     /** Todo
@@ -280,7 +280,7 @@ public:
 
     /** Todo
      */
-    virtual float getValue(float x = 0) override;
+    float getValue(float x = 0) override;
 
     /** Get and set the OscillationType
      */
@@ -307,8 +307,8 @@ public:
     float getAmplitude() const;
     void setAmplitude(float amplitude);
 
-    virtual PUDynamicAttributeOscillate* clone() override;
-    virtual void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
+    PUDynamicAttributeOscillate* clone() override;
+    void copyAttributesTo(PUDynamicAttribute* dynamicAttribute) override;
 
 protected:
     OscillationType _oscillationType;
@@ -327,5 +327,4 @@ public:
      */
     float calculate(PUDynamicAttribute* dyn, float x, float defaultValue = 0.0f);
 };
-}
-
+}  // namespace ax

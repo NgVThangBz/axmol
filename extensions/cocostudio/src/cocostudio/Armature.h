@@ -24,7 +24,6 @@ THE SOFTWARE.
 
 #pragma once
 
-
 #include "ArmatureDefine.h"
 #include "Bone.h"
 #include "BatchNode.h"
@@ -32,7 +31,7 @@ THE SOFTWARE.
 #include "SpriteFrameCacheHelper.h"
 #include "ArmatureDataManager.h"
 #include "CocosStudioExport.h"
-#include "math/Math.h"
+#include "axmol/math/Math.h"
 
 class b2Body;
 struct cpBody;
@@ -71,7 +70,7 @@ public:
     /**
      * Init the empty armature
      */
-    virtual bool init() override;
+    bool init() override;
 
     /**
      * Init an armature with specified name
@@ -117,7 +116,7 @@ public:
     /**
      * This boundingBox will calculate all bones' boundingBox every time
      */
-    virtual ax::Rect getBoundingBox() const override;
+    ax::Rect getBoundingBox() const override;
 
     Bone* getBoneAtPoint(float x, float y) const;
 
@@ -125,16 +124,14 @@ public:
     /**
      * @lua NA
      */
-    virtual void visit(ax::Renderer* renderer,
-                       const ax::Mat4& parentTransform,
-                       uint32_t parentFlags) override;
-    virtual void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
-    virtual void update(float dt) override;
+    virtual void visit(ax::Renderer* renderer, const ax::Mat4& parentTransform, uint32_t parentFlags) override;
+    void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
+    void update(float dt) override;
 
-    virtual void onEnter() override;
-    virtual void onExit() override;
+    void onEnter() override;
+    void onExit() override;
 
-    virtual const ax::Mat4& getNodeToParentTransform() const override;
+    const ax::Mat4& getNodeToParentTransform() const override;
     /**
      *  @lua NA
      */
@@ -148,8 +145,8 @@ public:
      * Set contentsize and Calculate anchor point.
      */
     virtual void updateOffsetPoint();
-    virtual void setAnchorPoint(const ax::Vec2& point) override;
-    virtual const ax::Vec2& getAnchorPointInPoints() const override;
+    void setAnchorPoint(const ax::Vec2& point) override;
+    const ax::Vec2& getAnchorPointInPoints() const override;
     virtual const ax::Vec2& getOffsetPoints() const;
 
     virtual void setAnimation(ArmatureAnimation* animation);
@@ -217,9 +214,8 @@ protected:
 
     mutable bool _armatureTransformDirty;
 
-    ax::StringMap<Bone*>
-        _boneDic;  //! The dictionary of the bones, include all bones in the armature, no matter it is the direct bone
-                   //! or the indirect bone. It is different from m_pChindren.
+    ax::StringMap<Bone*> _boneDic;  //! The dictionary of the bones, include all bones in the armature, no matter it is
+                                    //! the direct bone or the indirect bone. It is different from m_pChindren.
 
     ax::Vector<Bone*> _topBoneList;
 

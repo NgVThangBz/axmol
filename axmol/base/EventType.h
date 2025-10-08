@@ -1,0 +1,58 @@
+/****************************************************************************
+ Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+ https://axmol.dev/
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ****************************************************************************/
+
+#pragma once
+
+/// @cond DO_NOT_SHOW
+
+/**
+ * This header is used for defining event types using in NotificationCenter
+ */
+
+// The application will come to foreground.
+// This message is posted in axmol/platform/android/jni/Java_dev_axmol_lib_AxmolRenderer.cpp.
+#define EVENT_COME_TO_FOREGROUND "event_come_to_foreground"
+
+// The renderer[android:GLSurfaceView.Renderer  WP8:Cocos2dRenderer] was recreated.
+// This message is used for reloading resources before renderer is recreated on Android/WP8.
+// This message is posted in axmol/platform/android/javaactivity.cpp and
+// cocos\platform\wp8-xaml\cpp\Cocos2dRenderer.cpp.
+#define EVENT_RENDERER_RECREATED "event_renderer_recreated"
+
+// The application will come to background.
+// This message is used for doing something before coming to background, such as save RenderTexture.
+// This message is posted in axmol/platform/android/jni/Java_dev_axmol_lib_AxmolRenderer.cpp and
+// cocos\platform\wp8-xaml\cpp\Cocos2dRenderer.cpp.
+#define EVENT_COME_TO_BACKGROUND "event_come_to_background"
+
+// The application will be restarted.
+// This message is used for notifying application code of a pending application restart.
+// This message is posted in axmol/platform/android/javaactivity.cpp
+#define EVENT_APP_RESTARTING "event_app_restarting"
+
+// The application has made a warm start, creating a new Activity, Surface View and Renderer
+// This message is used for notifying application code of a warm start.
+// This message is posted in axmol/platform/android/javaactivity.cpp
+#define EVENT_APP_WARM_START "event_app_warm_start"

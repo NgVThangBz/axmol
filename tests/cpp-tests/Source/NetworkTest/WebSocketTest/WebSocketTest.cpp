@@ -27,7 +27,7 @@
 #include "../NetworkTest.h"
 #include "testResource.h"
 
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
 /* https://websocket.org/
  list of public test servers: (Note, on china mainland, may need VPN):
@@ -40,7 +40,7 @@
    - https://blog.postman.com/introducing-postman-websocket-echo-service/
    - other https://www.lob.com/blog/websocket-org-is-down-here-is-an-alternative
 */
-#define ECHO_SERVER_URL "wss://ws.ifelse.io"
+#define ECHO_SERVER_URL  "wss://ws.ifelse.io"
 #define SOCKETIO_SERVICE "wss://ws.postman-echo.com/socketio"
 
 using namespace ax;
@@ -64,7 +64,7 @@ WebSocketTest::WebSocketTest()
     , _sendTextTimes(0)
     , _sendBinaryTimes(0)
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     const int MARGIN = 40;
     const int SPACE  = 35;
@@ -76,20 +76,20 @@ WebSocketTest::WebSocketTest()
     // Send Text
     auto labelSendText = Label::createWithTTF("Send Text", "fonts/arial.ttf", 20);
     auto itemSendText = MenuItemLabel::create(labelSendText, AX_CALLBACK_1(WebSocketTest::onMenuSendTextClicked, this));
-    itemSendText->setPosition(Vec2(winSize.width / 2, winSize.height - MARGIN - SPACE));
+    itemSendText->setPosition(Vec2(canvasSize.width / 2, canvasSize.height - MARGIN - SPACE));
     menuRequest->addChild(itemSendText);
 
     labelSendText = Label::createWithTTF("Send Multiple Text", "fonts/arial.ttf", 20);
     itemSendText =
         MenuItemLabel::create(labelSendText, AX_CALLBACK_1(WebSocketTest::onMenuSendMultipleTextClicked, this));
-    itemSendText->setPosition(Vec2(winSize.width / 2, winSize.height - MARGIN - 2 * SPACE));
+    itemSendText->setPosition(Vec2(canvasSize.width / 2, canvasSize.height - MARGIN - 2 * SPACE));
     menuRequest->addChild(itemSendText);
 
     // Send Binary
     auto labelSendBinary = Label::createWithTTF("Send Binary", "fonts/arial.ttf", 20);
     auto itemSendBinary =
         MenuItemLabel::create(labelSendBinary, AX_CALLBACK_1(WebSocketTest::onMenuSendBinaryClicked, this));
-    itemSendBinary->setPosition(Vec2(winSize.width / 2, winSize.height - MARGIN - 3 * SPACE));
+    itemSendBinary->setPosition(Vec2(canvasSize.width / 2, canvasSize.height - MARGIN - 3 * SPACE));
     menuRequest->addChild(itemSendBinary);
 
     // Send Text Status Label
@@ -354,7 +354,7 @@ void WebSocketTest::onMenuSendBinaryClicked(ax::Object* sender)
 
 WebSocketCloseTest::WebSocketCloseTest() : _wsiTest(nullptr)
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     _wsiTest = new network::WebSocket();
 
@@ -421,7 +421,7 @@ void WebSocketCloseTest::onError(network::WebSocket* ws, const network::WebSocke
 WebSocketDelayTest::WebSocketDelayTest()
     : _wsiSendText(nullptr), _sendTextStatus(nullptr), _progressStatus(nullptr), _sendTextTimes(0)
 {
-    auto winSize = Director::getInstance()->getWinSize();
+    auto canvasSize = Director::getInstance()->getCanvasSize();
 
     const int MARGIN = 40;
     const int SPACE  = 35;
@@ -432,11 +432,11 @@ WebSocketDelayTest::WebSocketDelayTest()
 
     // Send Text
     char buf[60];
-    auto cmdLabel = fmt::format_to_z(buf, "Send {} Text", SEND_TEXT_TIMES);
+    auto cmdLabel      = fmt::format_to_z(buf, "Send {} Text", SEND_TEXT_TIMES);
     auto labelSendText = Label::createWithTTF(cmdLabel, "fonts/arial.ttf", 20);
     auto itemSendText =
         MenuItemLabel::create(labelSendText, AX_CALLBACK_1(WebSocketDelayTest::onMenuSendTextClicked, this));
-    itemSendText->setPosition(Vec2(winSize.width / 2, winSize.height - MARGIN - SPACE));
+    itemSendText->setPosition(Vec2(canvasSize.width / 2, canvasSize.height - MARGIN - SPACE));
     menuRequest->addChild(itemSendText);
 
     // Send Text Status Label
@@ -536,7 +536,7 @@ void WebSocketDelayTest::onMessage(network::WebSocket* ws, const network::WebSoc
     {
         _receiveTextTimes++;
         char buf[100];
-        auto infoStr = fmt::format_to_z(buf, "{}", _receiveTextTimes);
+        auto infoStr        = fmt::format_to_z(buf, "{}", _receiveTextTimes);
         std::string textStr = (std::string("response text msg: ") + data.bytes + ", ");
         textStr += infoStr;
         AXLOGD("{}", textStr);

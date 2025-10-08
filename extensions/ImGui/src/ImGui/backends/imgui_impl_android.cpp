@@ -1,20 +1,20 @@
 #include "imgui_impl_android.h"
 #include "imgui_impl_axmol.h"
-#include "base/Director.h"
-#include "base/EventListenerTouch.h"
-#include "base/IMEDelegate.h"
-#include "renderer/backend/Backend.h"
+#include "axmol/base/Director.h"
+#include "axmol/base/EventListenerTouch.h"
+#include "axmol/base/IMEDelegate.h"
+#include "axmol/rhi/axmol-rhi.h"
 #include <functional>
 #include <android/native_window.h>
 #include <android/input.h>
 #include <android/keycodes.h>
 #include <android/log.h>
 #include <imgui_internal.h>
-#include "base/IMEDelegate.h"
-#include "base/EventDispatcher.h"
+#include "axmol/base/IMEDelegate.h"
+#include "axmol/base/EventDispatcher.h"
 
 using namespace ax;
-using namespace backend;
+using namespace ax::rhi;
 
 // Clang warnings with -Weverything
 #if defined(__clang__)
@@ -73,11 +73,11 @@ static ImGui_ImplAndroid_Data* ImGui_ImplAndroid_GetBackendData()
     return ImGui::GetCurrentContext() ? (ImGui_ImplAndroid_Data*)ImGui::GetIO().BackendPlatformUserData : nullptr;
 }
 
-static ax::Vec2 convertToUICoordinates(const Vec2& pos)
+static ax::Vec2 convertToScreen(const Vec2& pos)
 {
     auto* bd    = ImGui_ImplAndroid_GetBackendData();
     ImGuiIO& io = ImGui::GetIO();
-    auto origin = bd->Window->getViewPortRect().origin;
+    auto origin = bd->Window->getViewportRect().origin;
     auto uiX    = (pos.x * bd->Window->getScaleX() + origin.x) / io.DisplayFramebufferScale.x;
     auto uiY    = (pos.y * bd->Window->getScaleY() + origin.y) / io.DisplayFramebufferScale.y;
 
@@ -144,7 +144,7 @@ bool ImGui_ImplAndroid_InitForAxmol(RenderView* window, bool install_callbacks)
     touchListener->onTouchBegan = [](Touch* touch, Event* event) -> bool {
         ImGuiIO& io                = ImGui::GetIO();
         ImGui_ImplAndroid_Data* bd = ImGui_ImplAndroid_GetBackendData();
-        auto location              = convertToUICoordinates(touch->getLocationInView());
+        auto location              = convertToScreen(touch->getLocationInView());
         auto touchPos              = ImVec2(location.x, location.y);
 
         // We perform our own hit test here because on Android there is no real mouse hover event.
@@ -170,7 +170,7 @@ bool ImGui_ImplAndroid_InitForAxmol(RenderView* window, bool install_callbacks)
             return;
         ImGuiIO& io                = ImGui::GetIO();
         ImGui_ImplAndroid_Data* bd = ImGui_ImplAndroid_GetBackendData();
-        auto location              = convertToUICoordinates(touch->getLocationInView());
+        auto location              = convertToScreen(touch->getLocationInView());
         io.AddMousePosEvent(location.x, location.y);
         bd->LastValidMousePos = ImVec2(location.x, location.y);
     };
@@ -180,7 +180,7 @@ bool ImGui_ImplAndroid_InitForAxmol(RenderView* window, bool install_callbacks)
             return;
         ImGuiIO& io                = ImGui::GetIO();
         ImGui_ImplAndroid_Data* bd = ImGui_ImplAndroid_GetBackendData();
-        auto location              = convertToUICoordinates(touch->getLocationInView());
+        auto location              = convertToScreen(touch->getLocationInView());
         io.AddMousePosEvent(location.x, location.y);
         bd->LastValidMousePos = ImVec2(location.x, location.y);
         io.AddMouseButtonEvent(0, false);
@@ -205,7 +205,7 @@ bool ImGui_ImplAndroid_InitForAxmol(RenderView* window, bool install_callbacks)
 
         ImGuiIO& io                = ImGui::GetIO();
         ImGui_ImplAndroid_Data* bd = ImGui_ImplAndroid_GetBackendData();
-        auto location              = convertToUICoordinates(touch->getLocationInView());
+        auto location              = convertToScreen(touch->getLocationInView());
         io.AddMousePosEvent(location.x, location.y);
         bd->LastValidMousePos = ImVec2(location.x, location.y);
         io.AddMouseButtonEvent(0, false);
@@ -247,8 +247,8 @@ void ImGui_ImplAndroid_NewFrame()
     // Setup display size (every frame to accommodate for window resizing)
     int32_t window_width  = bd->ViewResolution.width;
     int32_t window_height = bd->ViewResolution.height;
-    int display_width     = bd->Window->getFrameSize().width;
-    int display_height    = bd->Window->getFrameSize().height;
+    int display_width     = bd->Window->getWindowSize().width;
+    int display_height    = bd->Window->getWindowSize().height;
 
     io.DisplaySize = ImVec2((float)window_width, (float)window_height);
     if (window_width > 0 && window_height > 0)

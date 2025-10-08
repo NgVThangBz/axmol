@@ -37,7 +37,7 @@
 #include "Particle3D/PU/PUObserver.h"
 #include "Particle3D/PU/PUObserverManager.h"
 #include "Particle3D/PU/PUBehaviour.h"
-#include "platform/FileUtils.h"
+#include "axmol/platform/FileUtils.h"
 
 namespace ax
 {
@@ -1578,4 +1578,4 @@ void PUParticleSystem3D::forceStopParticleSystem()
     unPrepared();
 }
 
-}
+}  // namespace ax

@@ -29,7 +29,7 @@
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 
-#    include "ui/UIEditBox/UIEditBox.h"
+#    include "axmol/ui/UIEditBox/UIEditBox.h"
 
 class Bug14327Layer : public BugsTestBase, public ax::ui::EditBoxDelegate
 {
@@ -40,9 +40,8 @@ public:
     virtual std::string title() const override { return "Bug14327"; }
 
     virtual void editBoxEditingDidBegin(ax::ui::EditBox* editBox) override;
-    virtual void editBoxEditingDidEndWithAction(
-        ax::ui::EditBox* editBox,
-        ax::ui::EditBoxDelegate::EditBoxEndAction EditBoxEndAction) override;
+    virtual void editBoxEditingDidEndWithAction(ax::ui::EditBox* editBox,
+                                                ax::ui::EditBoxDelegate::EditBoxEndAction EditBoxEndAction) override;
     virtual void editBoxTextChanged(ax::ui::EditBox* editBox, std::string_view text) override;
     virtual void editBoxReturn(ax::ui::EditBox* editBox) override;
 

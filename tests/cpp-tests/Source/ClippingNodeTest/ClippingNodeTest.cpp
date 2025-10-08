@@ -32,9 +32,9 @@
 
 #include "ClippingNodeTest.h"
 #include "../testResource.h"
-#include "renderer/Renderer.h"
-#include "renderer/backend/ProgramState.h"
-#include "renderer/Shaders.h"
+#include "axmol/renderer/Renderer.h"
+#include "axmol/rhi/ProgramState.h"
+#include "axmol/renderer/Shaders.h"
 
 using namespace ax;
 
@@ -115,7 +115,7 @@ std::string BasicTest::subtitle() const
 
 void BasicTest::setup()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto stencil = this->stencil();
     stencil->setTag(kTagStencilNode);
@@ -152,7 +152,7 @@ DrawNode* BasicTest::shape()
     triangle[1] = Vec2(100, -100);
     triangle[2] = Vec2(0, 100);
 
-    static Color4F green(0, 1, 0, 1);
+    static Color green(0, 1, 0, 1);
     shape->drawPolygon(triangle, 3, green, 0, green);
     return shape;
 }
@@ -428,8 +428,8 @@ void HoleDemo::pokeHoleAtPoint(Vec2 point)
 void HoleDemo::onTouchesBegan(const std::vector<Touch*>& touches, Event* event)
 {
     Touch* touch = (Touch*)touches[0];
-    Vec2 point   = _outerClipper->convertToNodeSpace(Director::getInstance()->convertToGL(touch->getLocationInView()));
-    auto rect    = Rect(0, 0, _outerClipper->getContentSize().width, _outerClipper->getContentSize().height);
+    Vec2 point = _outerClipper->convertToNodeSpace(Director::getInstance()->screenToWorld(touch->getLocationInView()));
+    auto rect  = Rect(0, 0, _outerClipper->getContentSize().width, _outerClipper->getContentSize().height);
     if (!rect.containsPoint(point))
         return;
     this->pokeHoleAtPoint(point);
@@ -464,7 +464,7 @@ void ScrollViewDemo::setup()
     rectangle[2] = Vec2(clipper->getContentSize().width, clipper->getContentSize().height);
     rectangle[3] = Vec2(0.0f, clipper->getContentSize().height);
 
-    Color4F white(1, 1, 1, 1);
+    Color white(1, 1, 1, 1);
     stencil->drawPolygon(rectangle, 4, white, 1, white);
     clipper->setStencil(stencil);
 
@@ -487,7 +487,7 @@ void ScrollViewDemo::onTouchesBegan(const std::vector<Touch*>& touches, Event* e
 {
     Touch* touch = touches[0];
     auto clipper = this->getChildByTag(kTagClipperNode);
-    Vec2 point   = clipper->convertToNodeSpace(Director::getInstance()->convertToGL(touch->getLocationInView()));
+    Vec2 point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(touch->getLocationInView()));
     auto rect    = Rect(0, 0, clipper->getContentSize().width, clipper->getContentSize().height);
     _scrolling   = rect.containsPoint(point);
     _lastPoint   = point;
@@ -499,7 +499,7 @@ void ScrollViewDemo::onTouchesMoved(const std::vector<Touch*>& touches, Event* e
         return;
     Touch* touch = touches[0];
     auto clipper = this->getChildByTag(kTagClipperNode);
-    auto point   = clipper->convertToNodeSpace(Director::getInstance()->convertToGL(touch->getLocationInView()));
+    auto point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(touch->getLocationInView()));
     Vec2 diff    = point - _lastPoint;
     auto content = clipper->getChildByTag(kTagContentNode);
     content->setPosition(content->getPosition() + diff);
@@ -515,7 +515,7 @@ void ScrollViewDemo::onTouchesEnded(const std::vector<Touch*>& touches, Event* e
 
 // RawStencilBufferTests
 
-//#if _AX_DEBUG > 1
+// #if _AX_DEBUG > 1
 
 static const float _alphaThreshold = 0.05f;
 
@@ -557,27 +557,29 @@ void RawStencilBufferTest::setup()
 
 void RawStencilBufferTest::initCommands()
 {
-//    auto renderer               = Director::getInstance()->getRenderer();
-//    _enableStencilCallback.func = [=]() { renderer->setStencilTest(true); };
-//    _enableStencilCallback.init(_globalZOrder);
-//
-//    _disableStencilCallback.func = [=]() { renderer->setStencilTest(false); };
-//    _disableStencilCallback.init(_globalZOrder);
+    //    auto renderer               = Director::getInstance()->getRenderer();
+    //    _enableStencilCallback.func = [=]() { renderer->setStencilTest(true); };
+    //    _enableStencilCallback.init(_globalZOrder);
+    //
+    //    _disableStencilCallback.func = [=]() { renderer->setStencilTest(false); };
+    //    _disableStencilCallback.init(_globalZOrder);
 
-    auto program              = backend::Program::getBuiltinProgram(backend::ProgramType::POSITION_UCOLOR);
-    _programState             = new backend::ProgramState(program);
+    auto program              = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_UCOLOR);
+    _programState             = new rhi::ProgramState(program);
     _locColor                 = _programState->getProgram()->getUniformLocation("u_color");
     _locMVPMatrix             = _programState->getProgram()->getUniformLocation("u_MVPMatrix");
     const auto& projectionMat = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
     _programState->setUniform(_locMVPMatrix, projectionMat.m, sizeof(projectionMat.m));
 
+    Object::assign(_vertexLayout, _programState->getVertexLayout());
+
     size_t neededCmdSize = _planeCount * 2;
     _renderCmds.resize(neededCmdSize);
-    auto winPoint  = Vec2(Director::getInstance()->getWinSize());
+    auto winPoint  = Vec2(Director::getInstance()->getCanvasSize());
     auto planeSize = winPoint * (1.0 / _planeCount);
     BlendFunc blend;
-    blend.src = backend::BlendFactor::ONE;
-    blend.dst = backend::BlendFactor::ONE_MINUS_SRC_ALPHA;
+    blend.src = rhi::BlendFactor::ONE;
+    blend.dst = rhi::BlendFactor::ONE_MINUS_SRC_ALPHA;
     for (int i = 0, cmdIndex = 0; i < _planeCount; i++)
     {
         auto stencilPoint = planeSize * (_planeCount - i);
@@ -589,28 +591,28 @@ void RawStencilBufferTest::initCommands()
         cmd.setBeforeCallback(AX_CALLBACK_0(RawStencilBufferTest::onBeforeDrawClip, this, i));
         Vec2 vertices[]          = {Vec2::ZERO, Vec2(stencilPoint.x, 0.0f), stencilPoint, Vec2(0.0f, stencilPoint.y)};
         unsigned short indices[] = {0, 2, 1, 0, 3, 2};
-        cmd.createVertexBuffer(sizeof(Vec2), 4, backend::BufferUsage::STATIC);
+        cmd.createVertexBuffer(sizeof(Vec2), 4, rhi::BufferUsage::STATIC);
         cmd.updateVertexBuffer(vertices, sizeof(vertices));
-        cmd.createIndexBuffer(backend::IndexFormat::U_SHORT, 6, backend::BufferUsage::STATIC);
+        cmd.createIndexBuffer(rhi::IndexFormat::U_SHORT, 6, rhi::BufferUsage::STATIC);
         cmd.updateIndexBuffer(indices, sizeof(indices));
-        cmd.getPipelineDescriptor().programState = _programState;
+        cmd.setWeakPSVL(_programState, _vertexLayout);
 
         auto& cmd2 = _renderCmds[cmdIndex];
         cmdIndex++;
         cmd2.init(_globalZOrder, blend);
         cmd2.setBeforeCallback(AX_CALLBACK_0(RawStencilBufferTest::onBeforeDrawSprite, this, i));
         Vec2 vertices2[] = {Vec2::ZERO, Vec2(winPoint.x, 0.0f), winPoint, Vec2(0.0f, winPoint.y)};
-        cmd2.createVertexBuffer(sizeof(Vec2), 4, backend::BufferUsage::STATIC);
+        cmd2.createVertexBuffer(sizeof(Vec2), 4, rhi::BufferUsage::STATIC);
         cmd2.updateVertexBuffer(vertices2, sizeof(vertices2));
-        cmd2.createIndexBuffer(backend::IndexFormat::U_SHORT, 6, backend::BufferUsage::STATIC);
+        cmd2.createIndexBuffer(rhi::IndexFormat::U_SHORT, 6, rhi::BufferUsage::STATIC);
         cmd2.updateIndexBuffer(indices, sizeof(indices));
-        cmd2.getPipelineDescriptor().programState = _programState;
+        cmd2.setWeakPSVL(_programState, _vertexLayout);
     }
 }
 
 void RawStencilBufferTest::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
-    auto winPoint  = Vec2(Director::getInstance()->getWinSize());
+    auto winPoint  = Vec2(Director::getInstance()->getCanvasSize());
     auto planeSize = winPoint * (1.0 / _planeCount);
 
     renderer->addCallbackCommand([=]() { renderer->setStencilTest(true); }, _globalZOrder);
@@ -623,7 +625,7 @@ void RawStencilBufferTest::draw(Renderer* renderer, const Mat4& transform, uint3
         _sprites.at(i)->setPosition(spritePoint);
         _spritesStencil.at(i)->setPosition(spritePoint);
 
-        renderer->clear(ClearFlag::STENCIL, Color4F::BLACK, 0.f, 0x0, _globalZOrder);
+        renderer->clear(ClearFlag::STENCIL, Color::BLACK, 0.f, 0x0, _globalZOrder);
 
         renderer->addCommand(&_renderCmds[cmdIndex]);
         cmdIndex++;
@@ -667,18 +669,16 @@ void RawStencilBufferTest::setupStencilForClippingOnPlane(int plane)
     auto renderer          = Director::getInstance()->getRenderer();
     unsigned int planeMask = 0x1 << plane;
     renderer->setStencilWriteMask(planeMask);
-    renderer->setStencilCompareFunction(backend::CompareFunction::NEVER, planeMask, planeMask);
-    renderer->setStencilOperation(backend::StencilOperation::REPLACE, backend::StencilOperation::KEEP,
-                                  backend::StencilOperation::KEEP);
+    renderer->setStencilCompareFunc(rhi::CompareFunc::NEVER, planeMask, planeMask);
+    renderer->setStencilOp(rhi::StencilOp::REPLACE, rhi::StencilOp::KEEP, rhi::StencilOp::KEEP);
 }
 
 void RawStencilBufferTest::setupStencilForDrawingOnPlane(int plane)
 {
     auto renderer          = Director::getInstance()->getRenderer();
     unsigned int planeMask = 0x1 << plane;
-    renderer->setStencilCompareFunction(backend::CompareFunction::EQUAL, planeMask, planeMask);
-    renderer->setStencilOperation(backend::StencilOperation::KEEP, backend::StencilOperation::KEEP,
-                                  backend::StencilOperation::KEEP);
+    renderer->setStencilCompareFunc(rhi::CompareFunc::EQUAL, planeMask, planeMask);
+    renderer->setStencilOp(rhi::StencilOp::KEEP, rhi::StencilOp::KEEP, rhi::StencilOp::KEEP);
 }
 
 //@implementation RawStencilBufferTest2
@@ -726,8 +726,8 @@ void RawStencilBufferTestAlphaTest::setup()
     RawStencilBufferTest::setup();
     for (int i = 0; i < _planeCount; ++i)
     {
-        auto program = backend::Program::getBuiltinProgram(backend::ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST);
-        auto programState = new backend::ProgramState(program);
+        auto program      = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_TEXTURE_COLOR_ALPHA_TEST);
+        auto programState = new rhi::ProgramState(program);
         programState->setUniform(programState->getUniformLocation("u_alpha_value"), &_alphaThreshold,
                                  sizeof(_alphaThreshold));
         _spritesStencil.at(i)->setProgramState(programState);
@@ -792,9 +792,8 @@ void RawStencilBufferTest6::setupStencilForClippingOnPlane(int plane)
 {
     int planeMask = 0x1 << plane;
     auto renderer = Director::getInstance()->getRenderer();
-    renderer->setStencilCompareFunction(backend::CompareFunction::NEVER, planeMask, planeMask);
-    renderer->setStencilOperation(backend::StencilOperation::REPLACE, backend::StencilOperation::KEEP,
-                                  backend::StencilOperation::KEEP);
+    renderer->setStencilCompareFunc(rhi::CompareFunc::NEVER, planeMask, planeMask);
+    renderer->setStencilOp(rhi::StencilOp::REPLACE, rhi::StencilOp::KEEP, rhi::StencilOp::KEEP);
     renderer->setDepthTest(false);
     renderer->setDepthWrite(false);
 }
@@ -806,7 +805,7 @@ void RawStencilBufferTest6::setupStencilForDrawingOnPlane(int plane)
     RawStencilBufferTest::setupStencilForDrawingOnPlane(plane);
 }
 
-//#endif // _AX_DEBUG > 1
+// #endif // _AX_DEBUG > 1
 
 // ClippingToRenderTextureTest
 
@@ -835,7 +834,7 @@ void ClippingToRenderTextureTest::setup()
         this->reproduceBug();
     });
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
     // create menu, it's an autorelease object
     auto menu = Menu::create(button, nullptr);
     menu->setPosition(Point(s.width / 2, s.height / 2));
@@ -870,7 +869,7 @@ void ClippingToRenderTextureTest::expectedBehaviour()
     triangle[0] = Point(-50, -50);
     triangle[1] = Point(50, -50);
     triangle[2] = Point(0, 50);
-    Color4F green(0, 1, 0, 1);
+    Color green(0, 1, 0, 1);
     stencil->drawPolygon(triangle, 3, green, 0, green);
 
     auto clipper = ClippingNode::create();
@@ -884,7 +883,7 @@ void ClippingToRenderTextureTest::expectedBehaviour()
     triangle[0] = Point(-200, -200);
     triangle[1] = Point(200, -200);
     triangle[2] = Point(0, 200);
-    Color4F red(1, 0, 0, 1);
+    Color red(1, 0, 0, 1);
     img->drawPolygon(triangle, 3, red, 0, red);
     clipper->addChild(img);
 }
@@ -913,7 +912,7 @@ void ClippingToRenderTextureTest::reproduceBug()
     triangle[0] = Point(-50, -50);
     triangle[1] = Point(50, -50);
     triangle[2] = Point(0, 50);
-    Color4F green(0, 1, 0, 1);
+    Color green(0, 1, 0, 1);
     stencil->drawPolygon(triangle, 3, green, 0, green);
 
     auto clipper = ClippingNode::create();
@@ -927,14 +926,14 @@ void ClippingToRenderTextureTest::reproduceBug()
     triangle[0] = Point(-200, -200);
     triangle[1] = Point(200, -200);
     triangle[2] = Point(0, 200);
-    Color4F red(1, 0, 0, 1);
+    Color red(1, 0, 0, 1);
     img->drawPolygon(triangle, 3, red, 0, red);
     clipper->addChild(img);
 
     // container rendered on Texture the size of the screen and because Clipping node use stencil buffer so we need to
     // create RenderTexture with depthStencil format parameter
     RenderTexture* rt =
-        RenderTexture::create(visibleSize.width, visibleSize.height, backend::PixelFormat::RGBA8, PixelFormat::D24S8);
+        RenderTexture::create(visibleSize.width, visibleSize.height, rhi::PixelFormat::RGBA8, PixelFormat::D24S8);
     rt->setPosition(visibleSize.width / 2, visibleSize.height / 2);
     this->addChild(rt);
 
@@ -984,16 +983,17 @@ std::string ClippingNodePerformanceTest::subtitle() const
 
 void ClippingNodePerformanceTest::setup()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto countLabel = Label::createWithTTF("0", "fonts/arial.ttf", 30);
-    countLabel->enableOutline(Color4B(0, 0, 0, 255), 2);
+    countLabel->enableOutline(Color32(0, 0, 0, 255), 2);
     countLabel->setPosition(Vec2(s.width / 2, s.height - 120));
     addChild(countLabel, 1);
-    
-    auto addClippingNode = [this, s, countLabel] (int count) -> void {
-        for (int i = 0; i < count; i++) {
-            Vec2 pos = Vec2(random(0, (int) s.width), random(0, (int) s.height));
+
+    auto addClippingNode = [this, s, countLabel](int count) -> void {
+        for (int i = 0; i < count; i++)
+        {
+            Vec2 pos     = Vec2(random(0, (int)s.width), random(0, (int)s.height));
             auto stencil = Sprite::create("Images/stars2.png");
             auto clipper = ClippingNode::create(stencil);
             clipper->setPosition(pos);
@@ -1004,18 +1004,16 @@ void ClippingNodePerformanceTest::setup()
             auto spriteA = Sprite::create("Images/grossini.png");
             clipper->addChild(spriteA);
         }
-        
+
         _totalCount += count;
         countLabel->setString(std::to_string(_totalCount));
     };
     addClippingNode(100);
-    
+
     MenuItemFont::setFontName("fonts/arial.ttf");
     MenuItemFont::setFontSize(65);
-    auto increase = MenuItemFont::create(" + ", [=] (Object*) -> void {
-        addClippingNode(10);
-    });
-    increase->setColor(Color3B(0, 200, 20));
+    auto increase = MenuItemFont::create(" + ", [=](Object*) -> void { addClippingNode(10); });
+    increase->setColor(Color32(0, 200, 20));
     auto menu = Menu::create(increase, nullptr);
     menu->setPosition(Vec2(s.width / 2, s.height - 80));
     addChild(menu, 1);
@@ -1084,14 +1082,14 @@ void UniqueChildStencilTest::addChildStencils()
     // Child stencil 1
     constexpr auto radius = 30.f;
     auto* drawNode        = DrawNode::create();
-    drawNode->drawSolidCircle(Vec2(50, 50), radius, 360, 180, 1, 1, Color4F::MAGENTA);
+    drawNode->drawSolidCircle(Vec2(50, 50), radius, 360, 180, 1, 1, Color::MAGENTA);
 
     _parentStencil->addChild(drawNode);
 
     // Child stencil 2
     drawNode = DrawNode::create();
     drawNode->drawSolidRect(Vec2(contentSize.width - 75, contentSize.height - 75),
-                            Vec2(contentSize.width - 25, contentSize.height - 25), Color4F::MAGENTA);
+                            Vec2(contentSize.width - 25, contentSize.height - 25), Color::MAGENTA);
     _parentStencil->addChild(drawNode);
 
     // Child stencil 3

@@ -51,7 +51,7 @@ SceneTestLayer1 = function()
 
     ret:addChild( menu )
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local  sprite = ax.Sprite:create(s_pPathGrossini)
     ret:addChild(sprite)
     sprite:setPosition( ax.p(s.width-40, s.height/2) )
@@ -113,7 +113,7 @@ SceneTestLayer2 = function()
 
     ret:addChild( menu )
 
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
     local  sprite = ax.Sprite:create(s_pPathGrossini)
     ret:addChild(sprite)
     sprite:setPosition( ax.p(s.width-40, s.height/2) )
@@ -131,13 +131,13 @@ end
 --------------------------------------------------------------------
 
 SceneTestLayer3 = function()
-    local ret = ax.LayerColor:create(ax.c4b(0,0,255,255))
-    local s = ax.Director:getInstance():getWinSize()
+    local ret = ax.LayerColor:create(ax.color32(0,0,255,255))
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local function item0Clicked(tag, pSender)
         local newScene = ax.Scene:create()
         newScene:addChild(SceneTestLayer3())
-        ax.Director:getInstance():pushScene(ax.TransitionFade:create(0.5, newScene, ax.c3b(0,255,255)))
+        ax.Director:getInstance():pushScene(ax.TransitionFade:create(0.5, newScene, ax.color32(0,255,255)))
     end
 
     local function item1Clicked(tag, pSender)

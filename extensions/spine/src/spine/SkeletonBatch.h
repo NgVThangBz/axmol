@@ -30,16 +30,16 @@
 #ifndef SPINE_SKELETONBATCH_H_
 #define SPINE_SKELETONBATCH_H_
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
-#include "renderer/backend/ProgramState.h"
+#include "axmol/rhi/ProgramState.h"
 #include <spine/spine.h>
 #include <vector>
 
 namespace spine {
 	struct SkeletonCommand : public axmol::TrianglesCommand {
-		axmol::backend::UniformLocation _locMVP;
-		axmol::backend::UniformLocation _locTexture;
+		axmol::rhi::UniformLocation _locMVP;
+		axmol::rhi::UniformLocation _locTexture;
 	};
 	class SP_API SkeletonBatch {
 	public:
@@ -49,13 +49,13 @@ namespace spine {
 
 		void update(float delta);
 
-		axmol::V3F_C4B_T2F *allocateVertices(uint32_t numVertices);
+		axmol::V3F_T2F_C4B *allocateVertices(uint32_t numVertices);
 		void deallocateVertices(uint32_t numVertices);
 		unsigned short *allocateIndices(uint32_t numIndices);
 		void deallocateIndices(uint32_t numVertices);
-		axmol::TrianglesCommand *addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, axmol::backend::ProgramState *programState, axmol::BlendFunc blendType, const axmol::TrianglesCommand::Triangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
+		axmol::TrianglesCommand *addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, axmol::rhi::ProgramState *programState, axmol::BlendFunc blendType, const axmol::TrianglesCommand::Triangles &triangles, const axmol::Mat4 &mv, uint32_t flags);
 
-		axmol::backend::ProgramState* updateCommandPipelinePS(SkeletonCommand* command, axmol::backend::ProgramState* programState);
+		axmol::rhi::ProgramState* updateCommandPipelinePS(SkeletonCommand* command, axmol::rhi::ProgramState* programState);
 
 	protected:
 		SkeletonBatch();
@@ -67,14 +67,14 @@ namespace spine {
 
 		SkeletonCommand* newCommand();
 
-		ax::backend::ProgramState*                     _programState; // The default program state
+		ax::rhi::ProgramState*                     _programState; // The default program state
 
 		// pool of commands
 		std::vector<SkeletonCommand *> _commandsPool;
 		uint32_t _nextFreeCommand;
 
 		// pool of vertices
-		std::vector<axmol::V3F_C4B_T2F> _vertices;
+		std::vector<axmol::V3F_T2F_C4B> _vertices;
 		uint32_t _numVertices;
 
 		// pool of indices

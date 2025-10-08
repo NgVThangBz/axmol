@@ -1,6 +1,6 @@
 #include "cocostudio/WidgetReader/ArmatureNodeReader/ArmatureNodeReader.h"
 
-#include "platform/FileUtils.h"
+#include "axmol/platform/FileUtils.h"
 
 #include "flatbuffers/flatbuffers.h"
 #include "cocostudio/WidgetReader/NodeReader/NodeReader.h"
@@ -102,7 +102,7 @@ Offset<Table> ArmatureNodeReader::createOptionsWithFlatBuffers(pugi::xml_node ob
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "Type")

@@ -26,7 +26,7 @@
 #ifndef __DRAW_NODE_3D_H__
 #define __DRAW_NODE_3D_H__
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 namespace ax
 {
@@ -43,7 +43,7 @@ public:
     /**
      * Draw 3D Line
      */
-    void drawLine(const ax::Vec3& from, const ax::Vec3& to, const Color4F& color);
+    void drawLine(const ax::Vec3& from, const ax::Vec3& to, const Color& color);
 
     /**
      * Draw 3D cube
@@ -58,7 +58,7 @@ public:
      *        vertices[7]:Left-top-back.
      * @param color
      */
-    void drawCube(ax::Vec3* vertices, const Color4F& color);
+    void drawCube(ax::Vec3* vertices, const Color& color);
 
     /** Clear the geometry in the node's buffer. */
     void clear();
@@ -95,10 +95,9 @@ protected:
 
     BlendFunc _blendFunc;
     ax::CustomCommand _customCommand;
-    backend::ProgramState* _programStateLine                 = nullptr;
-    backend::DepthStencilDescriptor* _depthstencilDescriptor = nullptr;
-    backend::UniformLocation _locMVPMatrix;
-    std::vector<V3F_C4B> _bufferLines;
+    rhi::DepthStencilDesc* _depthstencilDescriptor = nullptr;
+    rhi::UniformLocation _locMVPMatrix;
+    axstd::pod_vector<V3F_C4F> _bufferLines;
 
 private:
     AX_DISALLOW_COPY_AND_ASSIGN(DrawNode3D);
@@ -107,6 +106,6 @@ private:
     bool _rendererDepthTestEnabled = true;
 };
 
-}
+}  // namespace ax
 
 #endif  // __DRAW_NODE_3D_H__

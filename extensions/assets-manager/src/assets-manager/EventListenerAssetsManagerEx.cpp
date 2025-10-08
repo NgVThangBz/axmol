@@ -26,7 +26,7 @@
 #include "EventListenerAssetsManagerEx.h"
 #include "EventAssetsManagerEx.h"
 #include "AssetsManagerEx.h"
-#include "base/UTF8.h"
+#include "axmol/base/text_utils.h"
 
 NS_AX_EXT_BEGIN
 

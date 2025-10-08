@@ -1,7 +1,7 @@
 #ifndef __GLOADER3D_H__
 #define __GLOADER3D_H__
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include "FairyGUIMacros.h"
 #include "GObject.h"
 
@@ -42,8 +42,8 @@ public:
     const ax::Node* getContent() { return _content; }
     void setContent(ax::Node* value);
 
-    ax::Color3B getColor() const;
-    void setColor(const ax::Color3B& value);
+    ax::Color32 getColor() const;
+    void setColor(const ax::Color32& value);
 
     bool isPlaying() const { return _playing; }
     void setPlaying(bool value);
@@ -99,7 +99,7 @@ private:
     bool _loop;
     std::string _animationName;
     std::string _skinName;
-    ax::Color3B _color;
+    ax::Color32 _color;
 
     FUIContainer* _container;
     ax::Node* _content;

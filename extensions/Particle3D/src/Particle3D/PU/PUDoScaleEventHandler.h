@@ -26,8 +26,8 @@
 
 #pragma once
 
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "Particle3D/PU/PUEventHandler.h"
 #include <vector>
 #include <string>
@@ -72,17 +72,16 @@ public:
 
     /**
      */
-    virtual void handle(PUParticleSystem3D* particleSystem, PUParticle3D* particle, float timeElapsed) override;
+    void handle(PUParticleSystem3D* particleSystem, PUParticle3D* particle, float timeElapsed) override;
 
-    virtual void copyAttributesTo(PUEventHandler* eventHandler) override;
+    void copyAttributesTo(PUEventHandler* eventHandler) override;
 
     PUDoScaleEventHandler();
-    virtual ~PUDoScaleEventHandler(){};
+    virtual ~PUDoScaleEventHandler() {};
 
 protected:
     float _scaleFraction;
     ScaleType _scaleType;
 };
 
-}
-
+}  // namespace ax

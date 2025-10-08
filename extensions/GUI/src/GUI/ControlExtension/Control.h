@@ -31,7 +31,7 @@
 #pragma once
 
 #include "ControlUtils.h"
-#include "2d/Layer.h"
+#include "axmol/2d/Layer.h"
 #include "extensions/ExtensionExport.h"
 
 NS_AX_EXT_BEGIN
@@ -177,8 +177,8 @@ public:
     virtual bool isTouchInside(Touch* touch);
 
     // Overrides
-    virtual bool isOpacityModifyRGB() const override;
-    virtual void setOpacityModifyRGB(bool bOpacityModifyRGB) override;
+    bool isOpacityModifyRGB() const override;
+    void setOpacityModifyRGB(bool bOpacityModifyRGB) override;
 
     /**
      */
@@ -188,7 +188,7 @@ public:
      */
     virtual ~Control();
 
-    virtual bool init() override;
+    bool init() override;
 
 protected:
     /**

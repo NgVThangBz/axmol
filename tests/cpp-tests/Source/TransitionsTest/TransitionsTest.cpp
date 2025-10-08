@@ -34,7 +34,7 @@ using namespace ax;
 class FadeWhiteTransition : public TransitionFade
 {
 public:
-    static TransitionScene* create(float t, Scene* s) { return TransitionFade::create(t, s, Color3B::WHITE); }
+    static TransitionScene* create(float t, Scene* s) { return TransitionFade::create(t, s, Color32::WHITE); }
 };
 
 class FlipXLeftOver : public TransitionFlipX
@@ -159,9 +159,10 @@ public:
 
 #define STRINGIFY(x) #x
 
-#define TRANS(__className__)                                                                     \
-    {                                                                                            \
-        [](float t, Scene* s) { return __className__::create(t, s); }, STRINGIFY(__className__), \
+#define TRANS(__className__)                                           \
+    {                                                                  \
+        [](float t, Scene* s) { return __className__::create(t, s); }, \
+        STRINGIFY(__className__),                                      \
     }
 struct _transitions
 {
@@ -268,7 +269,7 @@ TestLayer1::TestLayer1(std::string_view transitionName)
 {
     float x, y;
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     x         = size.width;
     y         = size.height;
 
@@ -278,11 +279,11 @@ TestLayer1::TestLayer1(std::string_view transitionName)
 
     auto title = Label::createWithTTF(transitionName, "fonts/Thonburi.ttf", 32);
     addChild(title);
-    title->setColor(Color3B(255, 32, 32));
+    title->setColor(Color32(255, 32, 32));
     title->setPosition(Vec2(x / 2, y - 100));
 
     auto label = Label::createWithTTF("SCENE 1", "fonts/Marker Felt.ttf", 38);
-    label->setColor(Color3B(16, 16, 255));
+    label->setColor(Color32(16, 16, 255));
     label->setPosition(Vec2(x / 2, y / 2));
     addChild(label);
 
@@ -338,7 +339,7 @@ TestLayer2::TestLayer2(std::string_view transitionName)
 {
     float x, y;
 
-    auto size = Director::getInstance()->getWinSize();
+    auto size = Director::getInstance()->getCanvasSize();
     x         = size.width;
     y         = size.height;
 
@@ -348,11 +349,11 @@ TestLayer2::TestLayer2(std::string_view transitionName)
 
     auto title = Label::createWithTTF(transitionName, "fonts/Thonburi.ttf", 32);
     addChild(title);
-    title->setColor(Color3B(255, 32, 32));
+    title->setColor(Color32(255, 32, 32));
     title->setPosition(Vec2(x / 2, y - 100));
 
     auto label = Label::createWithTTF("SCENE 2", "fonts/Marker Felt.ttf", 38);
-    label->setColor(Color3B(16, 16, 255));
+    label->setColor(Color32(16, 16, 255));
     label->setPosition(Vec2(x / 2, y / 2));
     addChild(label);
 

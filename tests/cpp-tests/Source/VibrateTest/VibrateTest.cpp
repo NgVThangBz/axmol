@@ -23,10 +23,10 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "platform/PlatformConfig.h"
+#include "axmol/platform/PlatformConfig.h"
 
 #include "VibrateTest.h"
-#include "ui/CocosGUI.h"
+#include "axmol/ui/CocosGUI.h"
 
 using namespace ax;
 using namespace ax::ui;
@@ -65,11 +65,11 @@ public:
         _enabled = enabled;
         if (_enabled)
         {
-            this->setColor(Color3B::WHITE);
+            this->setColor(Color32::WHITE);
         }
         else
         {
-            this->setColor(Color3B::GRAY);
+            this->setColor(Color32::GRAY);
         }
     }
 

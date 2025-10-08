@@ -58,7 +58,7 @@ bool UITextFieldTest::init()
 
         // Add the alert
         Text* alert = Text::create("TextField", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.075f));
         _uiLayer->addChild(alert);
@@ -82,7 +82,7 @@ void UITextFieldTest::textFieldEvent(Object* pSender, TextField::EventType type)
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -93,7 +93,7 @@ void UITextFieldTest::textFieldEvent(Object* pSender, TextField::EventType type)
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(("detach with IME"));
     }
@@ -121,7 +121,7 @@ bool UITextFieldTest_MaxLength::init()
 {
     if (UIScene::init())
     {
-        Size screenSize = Director::getInstance()->getWinSize();
+        Size screenSize = Director::getInstance()->getCanvasSize();
 
         // Add a label in which the textfield events will be displayed
         _displayValueLabel = Text::create("No Event", "fonts/Marker Felt.ttf", 32);
@@ -132,7 +132,7 @@ bool UITextFieldTest_MaxLength::init()
 
         // Add the alert
         Text* alert = Text::create("TextField max length", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f - alert->getContentSize().height * 3.075f));
         _uiLayer->addChild(alert);
@@ -157,7 +157,7 @@ void UITextFieldTest_MaxLength::textFieldEvent(Object* pSender, TextField::Event
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -168,7 +168,7 @@ void UITextFieldTest_MaxLength::textFieldEvent(Object* pSender, TextField::Event
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(fmt::format("detach with IME max length {}", textField->getMaxLength()));
     }
@@ -202,7 +202,7 @@ bool UITextFieldTest_Password::init()
 {
     if (UIScene::init())
     {
-        Size screenSize = Director::getInstance()->getWinSize();
+        Size screenSize = Director::getInstance()->getCanvasSize();
 
         // Add a label in which the textfield events will be displayed
         _displayValueLabel = Text::create("No Event", "fonts/Marker Felt.ttf", 32);
@@ -213,7 +213,7 @@ bool UITextFieldTest_Password::init()
 
         // Add the alert
         Text* alert = Text::create("TextField password", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f - alert->getContentSize().height * 3.075f));
         _uiLayer->addChild(alert);
@@ -238,7 +238,7 @@ void UITextFieldTest_Password::textFieldEvent(Object* pSender, TextField::EventT
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -249,7 +249,7 @@ void UITextFieldTest_Password::textFieldEvent(Object* pSender, TextField::EventT
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(("detach with IME password"));
     }
@@ -288,7 +288,7 @@ bool UITextFieldTest_LineWrap::init()
 
         // Add the alert
         Text* alert = Text::create("TextField line wrap", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.075));
         _uiLayer->addChild(alert);
@@ -326,7 +326,7 @@ void UITextFieldTest_LineWrap::textFieldEvent(Object* pSender, TextField::EventT
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         textField->setTextHorizontalAlignment(TextHAlignment::CENTER);
         textField->setTextVerticalAlignment(TextVAlignment::CENTER);
@@ -391,7 +391,7 @@ void UITextFieldTest_TrueTypeFont::textFieldEvent(Object* pSender, TextField::Ev
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -402,7 +402,7 @@ void UITextFieldTest_TrueTypeFont::textFieldEvent(Object* pSender, TextField::Ev
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(("detach with IME"));
     }
@@ -464,7 +464,7 @@ void UITextFieldTest_BMFont::textFieldEvent(Object* pSender, TextField::EventTyp
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -475,7 +475,7 @@ void UITextFieldTest_BMFont::textFieldEvent(Object* pSender, TextField::EventTyp
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(("detach with IME"));
     }
@@ -523,8 +523,8 @@ bool UITextFieldTest_PlaceHolderColor::init()
         // Create the textfield
         TextField* textField = TextField::create("input words here", "Arial", 30);
         textField->setPlaceHolder("input text here");
-        textField->setPlaceHolderColor(Color4B::GREEN);
-        textField->setTextColor(Color4B::RED);
+        textField->setPlaceHolderColor(Color32::GREEN);
+        textField->setTextColor(Color32::RED);
         textField->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f));
         textField->addEventListener(AX_CALLBACK_2(UITextFieldTest_PlaceHolderColor::textFieldEvent, this));
         _uiLayer->addChild(textField);
@@ -540,7 +540,7 @@ void UITextFieldTest_PlaceHolderColor::textFieldEvent(Object* pSender, TextField
     case TextField::EventType::ATTACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(
             0.225f,
             Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f + textField->getContentSize().height / 2.0f)));
@@ -551,7 +551,7 @@ void UITextFieldTest_PlaceHolderColor::textFieldEvent(Object* pSender, TextField
     case TextField::EventType::DETACH_WITH_IME:
     {
         TextField* textField = dynamic_cast<TextField*>(pSender);
-        Size screenSize      = Director::getInstance()->getWinSize();
+        Size screenSize      = Director::getInstance()->getCanvasSize();
         textField->runAction(MoveTo::create(0.175f, Vec2(screenSize.width / 2.0f, screenSize.height / 2.0f)));
         _displayValueLabel->setString(("detach with IME"));
     }
@@ -561,7 +561,7 @@ void UITextFieldTest_PlaceHolderColor::textFieldEvent(Object* pSender, TextField
     {
         _displayValueLabel->setString(("insert words"));
         AXLOGD("{}, {}", dynamic_cast<TextField*>(pSender)->getContentSize().width,
-              dynamic_cast<TextField*>(pSender)->getContentSize().height);
+               dynamic_cast<TextField*>(pSender)->getContentSize().height);
     }
     break;
 

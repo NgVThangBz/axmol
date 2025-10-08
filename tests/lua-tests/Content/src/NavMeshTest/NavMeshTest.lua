@@ -53,7 +53,7 @@ end
 function NavMeshBaseTestDemo:init()
     self._angle = 0.0
     self._agents = {}
-    local size = ax.Director:getInstance():getWinSize()
+    local size = ax.Director:getInstance():getCanvasSize()
     self._camera = ax.Camera:createPerspective(30.0, size.width / size.height, 1.0, 1000.0)
     self._camera:setPosition3D(ax.vec3(0.0, 50.0, 100.0))
     self._camera:lookAt(ax.vec3(0.0, 0.0, 0.0), ax.vec3(0.0, 1.0, 0.0))
@@ -130,11 +130,11 @@ function NavMeshBaseTestDemo:initScene()
     self:setNavMesh(navMesh)
     self:setNavMeshDebugCamera(self._camera)
 
-    local ambientLight = ax.AmbientLight:create(ax.c3b(64, 64, 64))
+    local ambientLight = ax.AmbientLight:create(ax.color32(64, 64, 64))
     ambientLight:setCameraMask(ax.CameraFlag.USER1)
     self:addChild(ambientLight)
 
-    local dirLight = ax.DirectionLight:create(ax.vec3(1.2, -1.1, 0.5), ax.c3b(255, 255, 255))
+    local dirLight = ax.DirectionLight:create(ax.vec3(1.2, -1.1, 0.5), ax.color32(255, 255, 255))
     dirLight:setCameraMask(ax.CameraFlag.USER1)
     self:addChild(dirLight)
 end
@@ -270,7 +270,7 @@ function NavMeshBasicTestDemo:registerTouchEvent()
             local nearP = ax.vec3(location.x, location.y, 0.0)
             local farP  = ax.vec3(location.x, location.y, 1.0)
 
-            local size = ax.Director:getInstance():getWinSize()
+            local size = ax.Director:getInstance():getCanvasSize()
             nearP = self._camera:unproject(size, nearP, nearP)
             farP  = self._camera:unproject(size, farP, farP)
 
@@ -356,7 +356,7 @@ function NavMeshAdvanceTestDemo:registerTouchEvent()
             local nearP = ax.vec3(location.x, location.y, 0.0)
             local farP  = ax.vec3(location.x, location.y, 1.0)
 
-            local size = ax.Director:getInstance():getWinSize()
+            local size = ax.Director:getInstance():getCanvasSize()
             nearP = self._camera:unproject(size, nearP, nearP)
             farP  = self._camera:unproject(size, farP, farP)
 

@@ -1,6 +1,7 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -26,14 +27,14 @@
 #include "lua-bindings/auto/axlua_3d_auto.hpp"
 #include "lua-bindings/manual/LuaBasicConversions.h"
 #include "lua-bindings/manual/LuaEngine.h"
-#include "3d/Bundle3D.h"
-#include "3d/MeshRenderer.h"
-#include "3d/Terrain.h"
+#include "axmol/3d/Bundle3D.h"
+#include "axmol/3d/MeshRenderer.h"
+#include "axmol/3d/Terrain.h"
 
 int axlua_3d_MeshRenderer_getAABB(lua_State* L)
 {
-    int argc                = 0;
-    ax::MeshRenderer* cobj = nullptr;
+    int argc              = 0;
+    ax::MeshRenderer* obj = nullptr;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -44,12 +45,12 @@ int axlua_3d_MeshRenderer_getAABB(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::MeshRenderer*)tolua_tousertype(L, 1, 0);
+    obj = (ax::MeshRenderer*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_MeshRenderer_getAABB'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_MeshRenderer_getAABB'", nullptr);
         return 0;
     }
 #endif
@@ -57,7 +58,7 @@ int axlua_3d_MeshRenderer_getAABB(lua_State* L)
     argc = lua_gettop(L) - 1;
     if (argc == 0)
     {
-        ax::AABB* ret = const_cast<ax::AABB*>(&(cobj->getAABB()));
+        ax::AABB* ret = const_cast<ax::AABB*>(&(obj->getAABB()));
         object_to_luaval<ax::AABB>(L, "ax.AABB", (ax::AABB*)ret);
         return 1;
     }
@@ -107,16 +108,13 @@ int axlua_3d_MeshRenderer_createAsync(lua_State* L)
 #endif
             LUA_FUNCTION handler = toluafix_ref_function(L, 4, 0);
 
-            ax::MeshRenderer::createAsync(
-                modelPath, texturePath,
-                [=](ax::MeshRenderer* mesh, void* callbackparam) {
-                    auto stack = LuaEngine::getInstance()->getLuaStack();
-                    int id     = (mesh) ? (int)mesh->_ID : -1;
-                    int* luaID = (mesh) ? &mesh->_luaID : nullptr;
-                    toluafix_pushusertype_object(stack->getLuaState(), id, luaID, (void*)mesh, "ax.MeshRenderer");
-                    stack->executeFunctionByHandler(handler, 1);
-                },
-                nullptr);
+            ax::MeshRenderer::createAsync(modelPath, texturePath, [=](ax::MeshRenderer* mesh, void* callbackparam) {
+                auto stack = LuaEngine::getInstance()->getLuaStack();
+                int id     = (mesh) ? (int)mesh->_ID : -1;
+                int* luaID = (mesh) ? &mesh->_luaID : nullptr;
+                toluafix_pushusertype_object(stack->getLuaState(), id, luaID, (void*)mesh, "ax.MeshRenderer");
+                stack->executeFunctionByHandler(handler, 1);
+            }, nullptr);
 
             lua_settop(L, 1);
             return 1;
@@ -140,16 +138,13 @@ int axlua_3d_MeshRenderer_createAsync(lua_State* L)
 #endif
             LUA_FUNCTION handler = toluafix_ref_function(L, 3, 0);
 
-            ax::MeshRenderer::createAsync(
-                modelPath,
-                [=](ax::MeshRenderer* mesh, void* callbackparam) {
-                    auto stack = LuaEngine::getInstance()->getLuaStack();
-                    int id     = (mesh) ? (int)mesh->_ID : -1;
-                    int* luaID = (mesh) ? &mesh->_luaID : nullptr;
-                    toluafix_pushusertype_object(stack->getLuaState(), id, luaID, (void*)mesh, "ax.MeshRenderer");
-                    stack->executeFunctionByHandler(handler, 1);
-                },
-                nullptr);
+            ax::MeshRenderer::createAsync(modelPath, [=](ax::MeshRenderer* mesh, void* callbackparam) {
+                auto stack = LuaEngine::getInstance()->getLuaStack();
+                int id     = (mesh) ? (int)mesh->_ID : -1;
+                int* luaID = (mesh) ? &mesh->_luaID : nullptr;
+                toluafix_pushusertype_object(stack->getLuaState(), id, luaID, (void*)mesh, "ax.MeshRenderer");
+                stack->executeFunctionByHandler(handler, 1);
+            }, nullptr);
 
             lua_settop(L, 1);
             return 1;
@@ -362,7 +357,7 @@ int axlua_3d_Terrain_create(lua_State* L)
         ax::Terrain::CrackFixedType arg1;
 
         ok &= luaval_to_terraindata(L, 2, &arg0);
-        ok &= luaval_to_int32(L, 3, (int*)&arg1, "ax.Terrain:create");
+        ok &= luaval_to_int(L, 3, (int*)&arg1, "ax.Terrain:create");
         if (!ok)
         {
             tolua_error(L, "invalid arguments in function 'axlua_3d_Terrain_create'", nullptr);
@@ -383,9 +378,9 @@ tolua_lerror:
 
 int axlua_3d_Terrain_getHeight(lua_State* L)
 {
-    int argc               = 0;
-    ax::Terrain* cobj = nullptr;
-    bool ok                = true;
+    int argc         = 0;
+    ax::Terrain* obj = nullptr;
+    bool ok          = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
@@ -394,11 +389,11 @@ int axlua_3d_Terrain_getHeight(lua_State* L)
     if (!tolua_isusertype(L, 1, "ax.Terrain", 0, &tolua_err))
         goto tolua_lerror;
 #endif
-    cobj = (ax::Terrain*)tolua_tousertype(L, 1, 0);
+    obj = (ax::Terrain*)tolua_tousertype(L, 1, 0);
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_Terrain_getHeight'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_Terrain_getHeight'", nullptr);
         return 0;
     }
 #endif
@@ -414,7 +409,7 @@ int axlua_3d_Terrain_getHeight(lua_State* L)
             {
                 break;
             }
-            double ret = cobj->getHeight(arg0);
+            double ret = obj->getHeight(arg0);
             tolua_pushnumber(L, (lua_Number)ret);
             return 1;
         }
@@ -438,7 +433,7 @@ int axlua_3d_Terrain_getHeight(lua_State* L)
             {
                 break;
             }
-            double ret = cobj->getHeight(arg0, arg1);
+            double ret = obj->getHeight(arg0, arg1);
             tolua_pushnumber(L, (lua_Number)ret);
             vec3_to_luaval(L, *arg1);
             return 2;
@@ -463,7 +458,7 @@ int axlua_3d_Terrain_getHeight(lua_State* L)
             {
                 break;
             }
-            double ret = cobj->getHeight(arg0, arg1);
+            double ret = obj->getHeight(arg0, arg1);
             tolua_pushnumber(L, (lua_Number)ret);
             return 1;
         }
@@ -494,7 +489,7 @@ int axlua_3d_Terrain_getHeight(lua_State* L)
             {
                 break;
             }
-            double ret = cobj->getHeight(arg0, arg1, &arg2);
+            double ret = obj->getHeight(arg0, arg1, &arg2);
             tolua_pushnumber(L, (lua_Number)ret);
             vec3_to_luaval(L, arg2);
             return 2;
@@ -514,9 +509,9 @@ tolua_lerror:
 
 int axlua_3d_Terrain_getIntersectionPoint(lua_State* tolua_S)
 {
-    int argc               = 0;
-    ax::Terrain* cobj = nullptr;
-    bool ok                = true;
+    int argc         = 0;
+    ax::Terrain* obj = nullptr;
+    bool ok          = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
@@ -525,11 +520,11 @@ int axlua_3d_Terrain_getIntersectionPoint(lua_State* tolua_S)
     if (!tolua_isusertype(tolua_S, 1, "ax.Terrain", 0, &tolua_err))
         goto tolua_lerror;
 #endif
-    cobj = (ax::Terrain*)tolua_tousertype(tolua_S, 1, 0);
+    obj = (ax::Terrain*)tolua_tousertype(tolua_S, 1, 0);
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(tolua_S, "invalid 'cobj' in function 'axlua_3d_Terrain_getIntersectionPoint'", nullptr);
+        tolua_error(tolua_S, "invalid 'obj' in function 'axlua_3d_Terrain_getIntersectionPoint'", nullptr);
         return 0;
     }
 #endif
@@ -552,7 +547,7 @@ int axlua_3d_Terrain_getIntersectionPoint(lua_State* tolua_S)
             {
                 break;
             }
-            bool ret = cobj->getIntersectionPoint(*arg0, arg1);
+            bool ret = obj->getIntersectionPoint(*arg0, arg1);
             tolua_pushboolean(tolua_S, (bool)ret);
             vec3_to_luaval(tolua_S, arg1);
             return 2;
@@ -570,7 +565,7 @@ int axlua_3d_Terrain_getIntersectionPoint(lua_State* tolua_S)
             {
                 break;
             }
-            ax::Vec3 ret = cobj->getIntersectionPoint(*arg0);
+            ax::Vec3 ret = obj->getIntersectionPoint(*arg0);
             vec3_to_luaval(tolua_S, ret);
             return 1;
         }
@@ -664,9 +659,9 @@ static int register_all_ax_3d_manual(lua_State* L)
 
 int axlua_3d_AABB_reset(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -677,12 +672,12 @@ int axlua_3d_AABB_reset(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_reset'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_reset'", nullptr);
         return 0;
     }
 #endif
@@ -692,7 +687,7 @@ int axlua_3d_AABB_reset(lua_State* L)
     {
         if (!ok)
             return 0;
-        cobj->reset();
+        obj->reset();
         lua_settop(L, 1);
         return 1;
     }
@@ -708,9 +703,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_set(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -721,12 +716,12 @@ int axlua_3d_AABB_set(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_set'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_set'", nullptr);
         return 0;
     }
 #endif
@@ -742,7 +737,7 @@ int axlua_3d_AABB_set(lua_State* L)
         ok &= luaval_to_vec3(L, 3, &arg1, "ax.AABB:set");
         if (!ok)
             return 0;
-        cobj->set(arg0, arg1);
+        obj->set(arg0, arg1);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AABB:set", argc, 2);
@@ -757,9 +752,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_transform(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -770,12 +765,12 @@ int axlua_3d_AABB_transform(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_transform'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_transform'", nullptr);
         return 0;
     }
 #endif
@@ -788,7 +783,7 @@ int axlua_3d_AABB_transform(lua_State* L)
         ok &= luaval_to_mat4(L, 2, &arg0, "ax.AABB:transform");
         if (!ok)
             return 0;
-        cobj->transform(arg0);
+        obj->transform(arg0);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AABB:transform", argc, 1);
@@ -803,9 +798,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_getCenter(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -816,12 +811,12 @@ int axlua_3d_AABB_getCenter(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_getCenter'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_getCenter'", nullptr);
         return 0;
     }
 #endif
@@ -831,7 +826,7 @@ int axlua_3d_AABB_getCenter(lua_State* L)
     {
         if (!ok)
             return 0;
-        ax::Vec3 ret = cobj->getCenter();
+        ax::Vec3 ret = obj->getCenter();
         vec3_to_luaval(L, ret);
         return 1;
     }
@@ -847,9 +842,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_isEmpty(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -860,12 +855,12 @@ int axlua_3d_AABB_isEmpty(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_isEmpty'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_isEmpty'", nullptr);
         return 0;
     }
 #endif
@@ -875,7 +870,7 @@ int axlua_3d_AABB_isEmpty(lua_State* L)
     {
         if (!ok)
             return 0;
-        bool ret = cobj->isEmpty();
+        bool ret = obj->isEmpty();
         tolua_pushboolean(L, (bool)ret);
         return 1;
     }
@@ -891,9 +886,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_getCorners(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -904,12 +899,12 @@ int axlua_3d_AABB_getCorners(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_getCorners'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_getCorners'", nullptr);
         return 0;
     }
 #endif
@@ -922,7 +917,7 @@ int axlua_3d_AABB_getCorners(lua_State* L)
         ok &= luaval_to_object<ax::Vec3>(L, 2, "ax.Vec3", &arg0, "ax.AABB:getCorners");
         if (!ok)
             return 0;
-        cobj->getCorners(arg0);
+        obj->getCorners(arg0);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AABB:getCorners", argc, 1);
@@ -937,9 +932,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_updateMinMax(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -950,12 +945,12 @@ int axlua_3d_AABB_updateMinMax(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_updateMinMax'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_updateMinMax'", nullptr);
         return 0;
     }
 #endif
@@ -971,7 +966,7 @@ int axlua_3d_AABB_updateMinMax(lua_State* L)
         ok &= luaval_to_ssize_t(L, 3, &arg1, "ax.AABB:updateMinMax");
         if (!ok)
             return 0;
-        cobj->updateMinMax(arg0, arg1);
+        obj->updateMinMax(arg0, arg1);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.AABB:updateMinMax", argc, 2);
@@ -986,9 +981,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_containPoint(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -999,12 +994,12 @@ int axlua_3d_AABB_containPoint(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::AABB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::AABB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_AABB_containPoint'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_AABB_containPoint'", nullptr);
         return 0;
     }
 #endif
@@ -1017,7 +1012,7 @@ int axlua_3d_AABB_containPoint(lua_State* L)
         ok &= luaval_to_vec3(L, 2, &arg0, "ax.AABB:containPoint");
         if (!ok)
             return 0;
-        bool ret = cobj->containPoint(arg0);
+        bool ret = obj->containPoint(arg0);
         tolua_pushboolean(L, (bool)ret);
         return 1;
     }
@@ -1033,9 +1028,9 @@ tolua_lerror:
 }
 int axlua_3d_AABB_constructor(lua_State* L)
 {
-    int argc            = 0;
-    ax::AABB* cobj = nullptr;
-    bool ok             = true;
+    int argc      = 0;
+    ax::AABB* obj = nullptr;
+    bool ok       = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
@@ -1059,8 +1054,8 @@ int axlua_3d_AABB_constructor(lua_State* L)
             {
                 break;
             }
-            cobj = new ax::AABB(arg0, arg1);
-            tolua_pushusertype(L, (void*)cobj, "ax.AABB");
+            obj = new ax::AABB(arg0, arg1);
+            tolua_pushusertype(L, (void*)obj, "ax.AABB");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -1070,8 +1065,8 @@ int axlua_3d_AABB_constructor(lua_State* L)
     {
         if (argc == 0)
         {
-            cobj = new ax::AABB();
-            tolua_pushusertype(L, (void*)cobj, "ax.AABB");
+            obj = new ax::AABB();
+            tolua_pushusertype(L, (void*)obj, "ax.AABB");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -1117,7 +1112,7 @@ tolua_lerror:
 
 int axlua_3d_set_AABB_min(lua_State* L)
 {
-    int argc            = 0;
+    int argc       = 0;
     ax::AABB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1186,7 +1181,7 @@ tolua_lerror:
 
 int axlua_3d_set_AABB_max(lua_State* L)
 {
-    int argc            = 0;
+    int argc       = 0;
     ax::AABB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1258,9 +1253,9 @@ int lua_register_axis_3d_AABB(lua_State* L)
 
 int axlua_3d_OBB_reset(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -1271,12 +1266,12 @@ int axlua_3d_OBB_reset(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::OBB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::OBB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_OBB_reset'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_OBB_reset'", nullptr);
         return 0;
     }
 #endif
@@ -1286,7 +1281,7 @@ int axlua_3d_OBB_reset(lua_State* L)
     {
         if (!ok)
             return 0;
-        cobj->reset();
+        obj->reset();
         lua_settop(L, 1);
         return 1;
     }
@@ -1302,9 +1297,9 @@ tolua_lerror:
 }
 int axlua_3d_OBB_set(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -1315,12 +1310,12 @@ int axlua_3d_OBB_set(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::OBB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::OBB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_OBB_set'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_OBB_set'", nullptr);
         return 0;
     }
 #endif
@@ -1345,7 +1340,7 @@ int axlua_3d_OBB_set(lua_State* L)
         ok &= luaval_to_vec3(L, 6, &arg4, "ax.OBB:set");
         if (!ok)
             return 0;
-        cobj->set(arg0, arg1, arg2, arg3, arg4);
+        obj->set(arg0, arg1, arg2, arg3, arg4);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.OBB:set", argc, 5);
@@ -1360,9 +1355,9 @@ tolua_lerror:
 }
 int axlua_3d_OBB_transform(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -1373,12 +1368,12 @@ int axlua_3d_OBB_transform(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::OBB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::OBB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_OBB_transform'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_OBB_transform'", nullptr);
         return 0;
     }
 #endif
@@ -1391,7 +1386,7 @@ int axlua_3d_OBB_transform(lua_State* L)
         ok &= luaval_to_mat4(L, 2, &arg0, "ax.OBB:transform");
         if (!ok)
             return 0;
-        cobj->transform(arg0);
+        obj->transform(arg0);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.OBB:transform", argc, 1);
@@ -1407,9 +1402,9 @@ tolua_lerror:
 
 int axlua_3d_OBB_containPoint(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -1420,12 +1415,12 @@ int axlua_3d_OBB_containPoint(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::OBB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::OBB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_OBB_containPoint'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_OBB_containPoint'", nullptr);
         return 0;
     }
 #endif
@@ -1438,7 +1433,7 @@ int axlua_3d_OBB_containPoint(lua_State* L)
         ok &= luaval_to_vec3(L, 2, &arg0, "ax.OBB:containPoint");
         if (!ok)
             return 0;
-        bool ret = cobj->containPoint(arg0);
+        bool ret = obj->containPoint(arg0);
         tolua_pushboolean(L, (bool)ret);
         return 1;
     }
@@ -1455,9 +1450,9 @@ tolua_lerror:
 
 int axlua_3d_OBB_constructor(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
+    bool ok      = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
@@ -1474,8 +1469,8 @@ int axlua_3d_OBB_constructor(lua_State* L)
             {
                 break;
             }
-            cobj = new ax::OBB(*arg0);
-            tolua_pushusertype(L, (void*)cobj, "ax.OBB");
+            obj = new ax::OBB(*arg0);
+            tolua_pushusertype(L, (void*)obj, "ax.OBB");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -1485,8 +1480,8 @@ int axlua_3d_OBB_constructor(lua_State* L)
     {
         if (argc == 0)
         {
-            cobj = new ax::OBB();
-            tolua_pushusertype(L, (void*)cobj, "ax.OBB");
+            obj = new ax::OBB();
+            tolua_pushusertype(L, (void*)obj, "ax.OBB");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -1504,14 +1499,14 @@ int axlua_3d_OBB_constructor(lua_State* L)
                 break;
             }
             int arg1;
-            ok &= luaval_to_int32(L, 3, (int*)&arg1, "ax.OBB:OBB");
+            ok &= luaval_to_int(L, 3, (int*)&arg1, "ax.OBB:OBB");
 
             if (!ok)
             {
                 break;
             }
-            cobj = new ax::OBB(arg0, arg1);
-            tolua_pushusertype(L, (void*)cobj, "ax.OBB");
+            obj = new ax::OBB(arg0, arg1);
+            tolua_pushusertype(L, (void*)obj, "ax.OBB");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -1529,9 +1524,9 @@ int axlua_3d_OBB_constructor(lua_State* L)
 
 int axlua_3d_OBB_intersects(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
-    bool ok            = true;
+    bool ok       = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
     if (!tolua_isusertype(L, 1, "ax.OBB", 0, &tolua_err))
@@ -1598,7 +1593,7 @@ tolua_lerror:
 
 int axlua_3d_set_OBB_center(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1667,7 +1662,7 @@ tolua_lerror:
 
 int axlua_3d_set_OBB_xAxis(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1736,7 +1731,7 @@ tolua_lerror:
 
 int axlua_3d_set_OBB_yAxis(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1805,7 +1800,7 @@ tolua_lerror:
 
 int axlua_3d_set_OBB_zAxis(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1874,7 +1869,7 @@ tolua_lerror:
 
 int axlua_3d_set_OBB_extents(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::OBB* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -1915,8 +1910,8 @@ tolua_lerror:
 
 int axlua_3d_OBB_getCorners(lua_State* L)
 {
-    int argc           = 0;
-    ax::OBB* cobj = nullptr;
+    int argc     = 0;
+    ax::OBB* obj = nullptr;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -1927,12 +1922,12 @@ int axlua_3d_OBB_getCorners(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::OBB*)tolua_tousertype(L, 1, 0);
+    obj = (ax::OBB*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_OBB_getCorners'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_OBB_getCorners'", nullptr);
         return 0;
     }
 #endif
@@ -1969,7 +1964,7 @@ int axlua_3d_OBB_getCorners(lua_State* L)
             lua_pop(L, 1);
         }
 
-        cobj->getCorners(arg0);
+        obj->getCorners(arg0);
 
         lua_newtable(L);
 
@@ -2028,9 +2023,9 @@ int lua_register_axis_3d_OBB(lua_State* L)
 
 int axlua_3d_Ray_set(lua_State* L)
 {
-    int argc           = 0;
-    ax::Ray* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::Ray* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -2041,12 +2036,12 @@ int axlua_3d_Ray_set(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::Ray*)tolua_tousertype(L, 1, 0);
+    obj = (ax::Ray*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_Ray_set'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_Ray_set'", nullptr);
         return 0;
     }
 #endif
@@ -2062,7 +2057,7 @@ int axlua_3d_Ray_set(lua_State* L)
         ok &= luaval_to_vec3(L, 3, &arg1, "ax.Ray:set");
         if (!ok)
             return 0;
-        cobj->set(arg0, arg1);
+        obj->set(arg0, arg1);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Ray:set", argc, 2);
@@ -2077,9 +2072,9 @@ tolua_lerror:
 }
 int axlua_3d_Ray_transform(lua_State* L)
 {
-    int argc           = 0;
-    ax::Ray* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::Ray* obj = nullptr;
+    bool ok      = true;
 
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
@@ -2090,12 +2085,12 @@ int axlua_3d_Ray_transform(lua_State* L)
         goto tolua_lerror;
 #endif
 
-    cobj = (ax::Ray*)tolua_tousertype(L, 1, 0);
+    obj = (ax::Ray*)tolua_tousertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
-    if (!cobj)
+    if (!obj)
     {
-        tolua_error(L, "invalid 'cobj' in function 'axlua_3d_Ray_transform'", nullptr);
+        tolua_error(L, "invalid 'obj' in function 'axlua_3d_Ray_transform'", nullptr);
         return 0;
     }
 #endif
@@ -2108,7 +2103,7 @@ int axlua_3d_Ray_transform(lua_State* L)
         ok &= luaval_to_mat4(L, 2, &arg0, "ax.Ray:transform");
         if (!ok)
             return 0;
-        cobj->transform(arg0);
+        obj->transform(arg0);
         return 0;
     }
     luaL_error(L, "%s has wrong number of arguments: %d, was expecting %d \n", "ax.Ray:transform", argc, 1);
@@ -2124,9 +2119,9 @@ tolua_lerror:
 
 int axlua_3d_Ray_intersects(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::Ray* self = nullptr;
-    bool ok            = true;
+    bool ok       = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
     if (!tolua_isusertype(L, 1, "ax.Ray", 0, &tolua_err))
@@ -2167,9 +2162,9 @@ tolua_lerror:
 
 int axlua_3d_Ray_constructor(lua_State* L)
 {
-    int argc           = 0;
-    ax::Ray* cobj = nullptr;
-    bool ok            = true;
+    int argc     = 0;
+    ax::Ray* obj = nullptr;
+    bool ok      = true;
 #if _AX_DEBUG >= 1
     tolua_Error tolua_err;
 #endif
@@ -2193,8 +2188,8 @@ int axlua_3d_Ray_constructor(lua_State* L)
             {
                 break;
             }
-            cobj = new ax::Ray(arg0, arg1);
-            tolua_pushusertype(L, (void*)cobj, "ax.Ray");
+            obj = new ax::Ray(arg0, arg1);
+            tolua_pushusertype(L, (void*)obj, "ax.Ray");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -2204,8 +2199,8 @@ int axlua_3d_Ray_constructor(lua_State* L)
     {
         if (argc == 0)
         {
-            cobj = new ax::Ray();
-            tolua_pushusertype(L, (void*)cobj, "ax.Ray");
+            obj = new ax::Ray();
+            tolua_pushusertype(L, (void*)obj, "ax.Ray");
             tolua_register_gc(L, lua_gettop(L));
             return 1;
         }
@@ -2251,7 +2246,7 @@ tolua_lerror:
 
 int axlua_3d_set_Ray_origin(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::Ray* self = nullptr;
 
 #if _AX_DEBUG >= 1
@@ -2320,7 +2315,7 @@ tolua_lerror:
 
 int axlua_3d_set_Ray_direction(lua_State* L)
 {
-    int argc           = 0;
+    int argc      = 0;
     ax::Ray* self = nullptr;
 
 #if _AX_DEBUG >= 1

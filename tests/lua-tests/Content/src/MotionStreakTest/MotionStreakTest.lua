@@ -3,7 +3,7 @@ local streak = nil
 local titleLabel = nil
 local subtitleLabel = nil
 
-local s = ax.Director:getInstance():getWinSize()
+local s = ax.Director:getInstance():getCanvasSize()
 local scheduler = ax.Director:getInstance():getScheduler()
 
 local firstTick = nil
@@ -69,7 +69,7 @@ local function MotionStreakTest1()
     root:addChild(target)
     target:setPosition(ax.p(s.width / 4, 0))
 
-    streak = ax.MotionStreak:create(2, 3, 32, ax.c3b(0, 255, 0), s_streak)
+    streak = ax.MotionStreak:create(2, 3, 32, ax.color32(0, 255, 0), s_streak)
     layer:addChild(streak)
 
     local a1 = ax.RotateBy:create(2, 360)
@@ -79,12 +79,12 @@ local function MotionStreakTest1()
     root:runAction(ax.RepeatForever:create(ax.Sequence:create(motion, motion:reverse())))
     root:runAction(action1)
 
-    local colorAction = ax.RepeatForever:create(ax.Sequence:create(ax.TintTo:create(0.2, 255, 0, 0),
-                                                ax.TintTo:create(0.2, 0, 255, 0),
-                                                ax.TintTo:create(0.2, 0, 0, 255),
-                                                ax.TintTo:create(0.2, 0, 255, 255),
-                                                ax.TintTo:create(0.2, 255, 255, 0),
-                                                ax.TintTo:create(0.2, 255, 255, 255)))
+    local colorAction = ax.RepeatForever:create(ax.Sequence:create(ax.TintTo:create(0.2, ax.color32(255, 0, 0)),
+                                                ax.TintTo:create(0.2, ax.color32(0, 255, 0)),
+                                                ax.TintTo:create(0.2, ax.color32(0, 0, 255)),
+                                                ax.TintTo:create(0.2, ax.color32(0, 255, 255)),
+                                                ax.TintTo:create(0.2, ax.color32(255, 255, 0)),
+                                                ax.TintTo:create(0.2, ax.color32(255, 255, 255))))
 
     streak:runAction(colorAction)
 
@@ -101,7 +101,7 @@ end
 local function MotionStreakTest2()
 	local layer = getBaseLayer()
 
-    streak = ax.MotionStreak:create(3, 3, 64, ax.c3b(255, 255, 255), s_streak)
+    streak = ax.MotionStreak:create(3, 3, 64, ax.color32(255, 255, 255), s_streak)
     layer:addChild(streak)
 
     streak:setPosition(ax.p(s.width / 2, s.height / 2))
@@ -150,7 +150,7 @@ end
 local function Issue1358()
 	local layer = getBaseLayer()
 
-	streak = ax.MotionStreak:create(2.0, 1.0, 50.0, ax.c3b(255, 255, 0), "Images/Icon.png")
+	streak = ax.MotionStreak:create(2.0, 1.0, 50.0, ax.color32(255, 255, 0), "Images/Icon.png")
     layer:addChild(streak)
 
     center = ax.p(s.width / 2, s.height / 2)

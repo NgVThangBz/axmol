@@ -27,7 +27,7 @@ local vAlignCount = #(verticalAlignment)
 local function showFont(ret, pFont)
 
     cclog("vAlignIdx="..vAlignIdx)
-    local s = ax.Director:getInstance():getWinSize()
+    local s = ax.Director:getInstance():getCanvasSize()
 
     local blockSize = ax.size(s.width/3, 200)
     local fontSize = 26
@@ -40,9 +40,9 @@ local function showFont(ret, pFont)
     local right = ax.Label:createWithTTF("alignment right", pFont, fontSize,
                                     blockSize, ax.TEXT_ALIGNMENT_RIGHT, verticalAlignment[vAlignIdx])
 
-    local leftColor = ax.LayerColor:create(ax.c4b(100, 100, 100, 255), blockSize.width, blockSize.height)
-    local centerColor = ax.LayerColor:create(ax.c4b(200, 100, 100, 255), blockSize.width, blockSize.height)
-    local rightColor = ax.LayerColor:create(ax.c4b(100, 100, 200, 255), blockSize.width, blockSize.height)
+    local leftColor = ax.LayerColor:create(ax.color32(100, 100, 100, 255), blockSize.width, blockSize.height)
+    local centerColor = ax.LayerColor:create(ax.color32(200, 100, 100, 255), blockSize.width, blockSize.height)
+    local rightColor = ax.LayerColor:create(ax.color32(100, 100, 200, 255), blockSize.width, blockSize.height)
 
     leftColor:setIgnoreAnchorPointForPosition(false)
     centerColor:setIgnoreAnchorPointForPosition(false)

@@ -28,7 +28,7 @@
 
 #include "Particle3D/PU/PUAffector.h"
 #include "Particle3D/PU/PUDynamicAttribute.h"
-#include "base/Types.h"
+#include "axmol/base/Types.h"
 
 namespace ax
 {
@@ -41,14 +41,14 @@ public:
 
     static PUJetAffector* create();
 
-    virtual void updatePUAffector(PUParticle3D* particle, float deltaTime) override;
+    void updatePUAffector(PUParticle3D* particle, float deltaTime) override;
 
     /**
      */
     PUDynamicAttribute* getDynAcceleration() const { return _dynAcceleration; };
     void setDynAcceleration(PUDynamicAttribute* dynAcceleration);
 
-    virtual void copyAttributesTo(PUAffector* affector) override;
+    void copyAttributesTo(PUAffector* affector) override;
 
     PUJetAffector();
     virtual ~PUJetAffector();
@@ -60,5 +60,4 @@ protected:
      */
     PUDynamicAttribute* _dynAcceleration;
 };
-}
-
+}  // namespace ax

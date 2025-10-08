@@ -2,6 +2,7 @@
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -40,11 +41,11 @@ enum
 
 //------------------------------------------------------------------
 //
-// TestCocosNodeDemo
+// TestNodeDemo
 //
 //------------------------------------------------------------------
 
-CocosNodeTests::CocosNodeTests()
+NodeTests::NodeTests()
 {
     ADD_TEST_CASE(CameraTest1);
     ADD_TEST_CASE(CameraTest2);
@@ -75,11 +76,11 @@ CocosNodeTests::CocosNodeTests()
     ADD_TEST_CASE(NodeWorldSpace);
 }
 
-TestCocosNodeDemo::TestCocosNodeDemo(void) {}
+TestNodeDemo::TestNodeDemo(void) {}
 
-TestCocosNodeDemo::~TestCocosNodeDemo(void) {}
+TestNodeDemo::~TestNodeDemo(void) {}
 
-std::string TestCocosNodeDemo::title() const
+std::string TestNodeDemo::title() const
 {
     return "Node Test";
 }
@@ -92,9 +93,9 @@ std::string TestCocosNodeDemo::title() const
 
 void NodeTest2::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sp1 = Sprite::create(s_pathSister1);
     auto sp2 = Sprite::create(s_pathSister2);
@@ -289,7 +290,7 @@ std::string NodeTest6::subtitle() const
 //------------------------------------------------------------------
 StressTest1::StressTest1()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sp1 = Sprite::create(s_pathSister1);
     addChild(sp1, 0, kTagSprite1);
@@ -303,7 +304,7 @@ void StressTest1::shouldNotCrash(float dt)
 {
     unschedule("should_not_crash_key");
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     // if the node has timers, it crashes
     auto explosion = ParticleSun::create();
@@ -338,7 +339,7 @@ std::string StressTest1::subtitle() const
 //------------------------------------------------------------------
 StressTest2::StressTest2()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto sublayer = Layer::create();
 
@@ -403,7 +404,7 @@ void SchedulerTest1::doSomething(float dt) {}
 
 std::string SchedulerTest1::subtitle() const
 {
-    return "cocosnode scheduler test #1";
+    return "Node scheduler test #1";
 }
 
 //------------------------------------------------------------------
@@ -418,25 +419,21 @@ SchedulerCallbackTest::SchedulerCallbackTest()
     node->setName("a node");
 
     _total = 0;
-    node->schedule(
-        [&](float dt) {
-            _total += dt;
-            AXLOGD("hello world: {} - total: {}", dt, _total);
-        },
-        0.5, "some_key");
+    node->schedule([&](float dt) {
+        _total += dt;
+        AXLOGD("hello world: {} - total: {}", dt, _total);
+    }, 0.5, "some_key");
 
-    node->scheduleOnce(
-        [&](float dt) {
-            // the local variable "node" will go out of scope, so I have to get it from "this"
-            auto anode = this->getChildByName("a node");
-            anode->unschedule("some_key");
-        },
-        5, "ignore_key");
+    node->scheduleOnce([&](float dt) {
+        // the local variable "node" will go out of scope, so I have to get it from "this"
+        auto anode = this->getChildByName("a node");
+        anode->unschedule("some_key");
+    }, 5, "ignore_key");
 }
 
 void SchedulerCallbackTest::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     AXLOGD("--onEnter-- Must be called before the scheduled lambdas");
 }
 
@@ -496,7 +493,7 @@ NodeToWorld3D::NodeToWorld3D()
     //  - It tests different anchor Points
     //  - It tests different children anchor points
 
-    Size s      = Director::getInstance()->getWinSize();
+    Size s      = Director::getInstance()->getCanvasSize();
     auto parent = Node::create();
     parent->setContentSize(s);
     parent->setAnchorPoint(Vec2(0.5f, 0.5f));
@@ -540,7 +537,7 @@ std::string NodeToWorld3D::subtitle() const
 //------------------------------------------------------------------
 void CameraOrbitTest::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->getRenderer()->setDepthTest(true);
     Director::getInstance()->getRenderer()->setDepthWrite(true);
@@ -552,12 +549,12 @@ void CameraOrbitTest::onExit()
     Director::getInstance()->getRenderer()->setDepthTest(false);
     Director::getInstance()->getRenderer()->setDepthWrite(false);
     Director::getInstance()->setProjection(_preProjection);
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 CameraOrbitTest::CameraOrbitTest()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto p = Sprite::create(s_back3);
     addChild(p, 0);
@@ -613,7 +610,7 @@ std::string CameraOrbitTest::subtitle() const
 
 void CameraZoomTest::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
 }
@@ -621,12 +618,12 @@ void CameraZoomTest::onEnter()
 void CameraZoomTest::onExit()
 {
     Director::getInstance()->setProjection(_preProjection);
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 CameraZoomTest::CameraZoomTest()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     Sprite* sprite;
     //    Camera *cam;
@@ -681,20 +678,20 @@ std::string CameraZoomTest::subtitle() const
 //------------------------------------------------------------------
 void CameraCenterTest::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
 }
 
 void CameraCenterTest::onExit()
 {
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
     Director::getInstance()->setProjection(_preProjection);
 }
 
 CameraCenterTest::CameraCenterTest()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     Sprite* sprite;
     OrbitCamera* orbit;
@@ -703,7 +700,7 @@ CameraCenterTest::CameraCenterTest()
     sprite = Sprite::create("Images/white-512x512.png");
     addChild(sprite, 0);
     sprite->setPosition(Vec2(s.width / 5 * 1, s.height / 5 * 1));
-    sprite->setColor(Color3B::RED);
+    sprite->setColor(Color32::RED);
     sprite->setTextureRect(Rect(0.0f, 0.0f, 120.0f, 50.0f));
     orbit = OrbitCamera::create(10.0f, 1.0f, 0.0f, 0.0f, 360.0f, 0.0f, 0.0f);
     sprite->runAction(RepeatForever::create(orbit));
@@ -713,7 +710,7 @@ CameraCenterTest::CameraCenterTest()
     sprite = Sprite::create("Images/white-512x512.png");
     addChild(sprite, 0, 40);
     sprite->setPosition(Vec2(s.width / 5 * 1, s.height / 5 * 4));
-    sprite->setColor(Color3B::BLUE);
+    sprite->setColor(Color32::BLUE);
     sprite->setTextureRect(Rect(0.0f, 0.0f, 120.0f, 50.0f));
     orbit = OrbitCamera::create(10.0f, 1.0f, 0.0f, 0.0f, 360.0f, 0.0f, 0.0f);
     sprite->runAction(RepeatForever::create(orbit));
@@ -722,7 +719,7 @@ CameraCenterTest::CameraCenterTest()
     sprite = Sprite::create("Images/white-512x512.png");
     addChild(sprite, 0);
     sprite->setPosition(Vec2(s.width / 5 * 4, s.height / 5 * 1));
-    sprite->setColor(Color3B::YELLOW);
+    sprite->setColor(Color32::YELLOW);
     sprite->setTextureRect(Rect(0.0f, 0.0f, 120.0f, 50.0f));
     orbit = OrbitCamera::create(10.0f, 1.0f, 0.0f, 0.0f, 360.0f, 0.0f, 0.0f);
     sprite->runAction(RepeatForever::create(orbit));
@@ -731,7 +728,7 @@ CameraCenterTest::CameraCenterTest()
     sprite = Sprite::create("Images/white-512x512.png");
     addChild(sprite, 0, 40);
     sprite->setPosition(Vec2(s.width / 5 * 4, s.height / 5 * 4));
-    sprite->setColor(Color3B::GREEN);
+    sprite->setColor(Color32::GREEN);
     sprite->setTextureRect(Rect(0.0f, 0.0f, 120.0f, 50.0f));
     orbit = OrbitCamera::create(10.0f, 1.0f, 0.0f, 0.0f, 360.0f, 0.0f, 0.0f);
     sprite->runAction(RepeatForever::create(orbit));
@@ -740,7 +737,7 @@ CameraCenterTest::CameraCenterTest()
     sprite = Sprite::create("Images/white-512x512.png");
     addChild(sprite, 0, 40);
     sprite->setPosition(Vec2(s.width / 2, s.height / 2));
-    sprite->setColor(Color3B::WHITE);
+    sprite->setColor(Color32::WHITE);
     sprite->setTextureRect(Rect(0.0f, 0.0f, 120.0f, 50.0f));
     orbit = OrbitCamera::create(10.0f, 1.0f, 0.0f, 0.0f, 360.0f, 0.0f, 0.0f);
     sprite->runAction(RepeatForever::create(orbit));
@@ -767,7 +764,7 @@ ConvertToNode::ConvertToNode()
     listener->onTouchesEnded = AX_CALLBACK_2(ConvertToNode::onTouchesEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto rotate = RotateBy::create(10, 360);
     auto action = RepeatForever::create(rotate);
@@ -884,7 +881,7 @@ std::string NodeNonOpaqueTest::subtitle() const
 
 NodeGlobalZValueTest::NodeGlobalZValueTest()
 {
-    Size s = Director::getInstance()->getWinSize();
+    Size s = Director::getInstance()->getCanvasSize();
     for (int i = 0; i < 9; i++)
     {
         Sprite* sprite;
@@ -942,29 +939,28 @@ public:
         auto sprite = new MySprite;
         sprite->initWithFile(spritefilename);
         sprite->autorelease();
-        auto program      = backend::Program::getBuiltinProgram(backend::ProgramType::POSITION_TEXTURE_COLOR);
-        auto programState = new backend::ProgramState(program);
+        auto program      = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_TEXTURE_COLOR);
+        auto programState = new rhi::ProgramState(program);
         sprite->setProgramState(programState, true);
         return sprite;
     }
-    bool setProgramState(backend::ProgramState* programState, bool ownPS = false) override;
+    bool setProgramState(rhi::ProgramState* programState, bool ownPS = false) override;
     virtual void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
 
 protected:
     CustomCommand _customCommand;
 };
 
-bool MySprite::setProgramState(backend::ProgramState* programState, bool ownPS/* = false*/)
+bool MySprite::setProgramState(rhi::ProgramState* programState, bool ownPS /* = false*/)
 {
     if (Sprite::setProgramState(programState, ownPS))
     {
-        auto& pipelineDescriptor        = _customCommand.getPipelineDescriptor();
-        pipelineDescriptor.programState = programState;
+        _customCommand.setWeakPSVL(_programState, _vertexLayout);
 
         _customCommand.setDrawType(CustomCommand::DrawType::ARRAY);
         _customCommand.setPrimitiveType(CustomCommand::PrimitiveType::TRIANGLE_STRIP);
-        _customCommand.createVertexBuffer(sizeof(V3F_C4B_T2F), 4, CustomCommand::BufferUsage::STATIC);
-        _customCommand.updateVertexBuffer(&_quad, 4 * sizeof(V3F_C4B_T2F));
+        _customCommand.createVertexBuffer(sizeof(V3F_T2F_C4B), 4, CustomCommand::BufferUsage::STATIC);
+        _customCommand.updateVertexBuffer(&_quad, 4 * sizeof(V3F_T2F_C4B));
         return true;
     }
     return false;
@@ -974,8 +970,7 @@ void MySprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
     const auto& projectionMat = Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
     auto mvpMatrix            = projectionMat * transform;
-    _customCommand.getPipelineDescriptor().programState->setUniform(_mvpMatrixLocation, mvpMatrix.m,
-                                                                    sizeof(mvpMatrix.m));
+    _customCommand.unsafePS()->setUniform(_mvpMatrixLocation, mvpMatrix.m, sizeof(mvpMatrix.m));
     _customCommand.init(_globalZOrder, transform, flags);
     renderer->addCommand(&_customCommand);
 }
@@ -988,7 +983,7 @@ void MySprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 
 void CameraTest1::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
     Director::getInstance()->getRenderer()->setDepthTest(true);
@@ -1000,12 +995,12 @@ void CameraTest1::onExit()
     Director::getInstance()->setProjection(_preProjection);
     Director::getInstance()->getRenderer()->setDepthTest(false);
     Director::getInstance()->getRenderer()->setDepthWrite(false);
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 CameraTest1::CameraTest1()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     _sprite1 = MySprite::create(s_back3);
     addChild(_sprite1);
@@ -1039,7 +1034,7 @@ std::string CameraTest1::subtitle() const
 //------------------------------------------------------------------
 void CameraTest2::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
     _preProjection = Director::getInstance()->getProjection();
     Director::getInstance()->setProjection(Director::Projection::_3D);
     Director::getInstance()->getRenderer()->setDepthTest(true);
@@ -1051,12 +1046,12 @@ void CameraTest2::onExit()
     Director::getInstance()->setProjection(_preProjection);
     Director::getInstance()->getRenderer()->setDepthTest(false);
     Director::getInstance()->getRenderer()->setDepthWrite(false);
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 CameraTest2::CameraTest2()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     _sprite1 = MySprite::create(s_back3);
     addChild(_sprite1);
@@ -1145,7 +1140,7 @@ NodeNormalizedPositionTest2::NodeNormalizedPositionTest2() : _accum(0)
     }
     scheduleUpdate();
 
-    setContentSize(Director::getInstance()->getWinSize());
+    setContentSize(Director::getInstance()->getCanvasSize());
     _copyContentSize = getContentSize();
 
     //    setAnchorPoint(Vec2(0.5,0.5));
@@ -1223,14 +1218,14 @@ std::string NodeNameTest::subtitle() const
 
 void NodeNameTest::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
 
     this->scheduleOnce(AX_CALLBACK_1(NodeNameTest::test, this), 0.05f, "test_key");
 }
 
 void NodeNameTest::onExit()
 {
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 void NodeNameTest::test(float dt)
@@ -1372,7 +1367,7 @@ void NodeNameTest::test(float dt)
         for (int k = 0; k < 10; ++k)
         {
             auto child = Node::create();
-            auto name = fmt::format_to_z(tmp, "node{}", k);
+            auto name  = fmt::format_to_z(tmp, "node{}", k);
             child->setName(name);
             node->addChild(child);
         }
@@ -1419,17 +1414,17 @@ void NodeNameTest::test(float dt)
 //------------------------------------------------------------------
 void Issue16100Test::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
 
     // create user camera
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     auto delay = DelayTime::create(0.1f);
     auto f     = CallFunc::create([this, s]() {
         auto camera = Camera::createOrthographic(s.width * 2, s.height * 2, -1024, 1024);
         camera->setCameraFlag(CameraFlag::USER1);
         addChild(camera);
-        });
+    });
     this->runAction(Sequence::createWithTwoActions(delay, f));
 
     // grossini using default camera
@@ -1462,7 +1457,7 @@ void Issue16100Test::onEnter()
 
 void Issue16100Test::onExit()
 {
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 std::string Issue16100Test::title() const
@@ -1482,7 +1477,7 @@ std::string Issue16100Test::subtitle() const
 //------------------------------------------------------------------
 void Issue16735Test::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
     auto origin      = Director::getInstance()->getVisibleOrigin();
@@ -1500,16 +1495,16 @@ void Issue16735Test::onEnter()
 
     auto d = DrawNode::create();
     d->drawLine(Vec2(origin.x, origin.y + visibleSize.height / 2),
-                Vec2(origin.x + visibleSize.width, origin.y + visibleSize.height / 2), Color4F::RED);
+                Vec2(origin.x + visibleSize.width, origin.y + visibleSize.height / 2), Color::RED);
     d->drawLine(Vec2(origin.x + visibleSize.width / 2, origin.y),
-                Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height), Color4F::RED);
+                Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height), Color::RED);
 
     addChild(d);
 }
 
 void Issue16735Test::onExit()
 {
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 std::string Issue16735Test::title() const
@@ -1529,7 +1524,7 @@ std::string Issue16735Test::subtitle() const
 //------------------------------------------------------------------
 void NodeWorldSpace::onEnter()
 {
-    TestCocosNodeDemo::onEnter();
+    TestNodeDemo::onEnter();
 
     scheduleUpdate();
 
@@ -1543,7 +1538,7 @@ void NodeWorldSpace::onEnter()
 
 void NodeWorldSpace::onExit()
 {
-    TestCocosNodeDemo::onExit();
+    TestNodeDemo::onExit();
 }
 
 void NodeWorldSpace::update(float dt)
@@ -1566,5 +1561,6 @@ std::string NodeWorldSpace::title() const
 
 std::string NodeWorldSpace::subtitle() const
 {
-    return "Child sprite (small one) should always stay at the center of screen\nthe child sprite is a child of the moving parent sprite";
+    return "Child sprite (small one) should always stay at the center of screen\nthe child sprite is a child of the "
+           "moving parent sprite";
 }

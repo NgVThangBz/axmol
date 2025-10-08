@@ -24,13 +24,13 @@
 
 #if !defined(__EMSCRIPTEN__)
 
-#include "platform/PlatformConfig.h"
-#include "CurlTest.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "curl/curl.h"
+#    include "axmol/platform/PlatformConfig.h"
+#    include "CurlTest.h"
+#    include "stdio.h"
+#    include "stdlib.h"
+#    include "curl/curl.h"
 
-#include "base/format.h"
+#    include "axmol/tlx/format.hpp"
 
 using namespace ax;
 
@@ -69,10 +69,10 @@ static size_t WriteMemoryCallback(void* contents, size_t size, size_t nmemb, voi
     struct MemoryStruct* mem = (struct MemoryStruct*)userp;
 
     mem->memory = (char*)realloc(mem->memory, mem->size + realsize + 1);
-    if (mem->memory == NULL)
+    if (mem->memory == nullptr)
     {
         /* out of memory! */
-        AXLOGE("not enough memory (realloc returned NULL)\n");
+        AXLOGE("not enough memory (realloc returned nullptr)\n");
         return 0;
     }
 

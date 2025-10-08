@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -20,16 +20,16 @@
 #include "SampleScene.h"
 
 //cocos2d
-#include "base/Director.h"
-#include "renderer/Texture2D.h"
-#include "renderer/TextureCache.h"
+#include "axmol/base/Director.h"
+#include "axmol/renderer/Texture2D.h"
+#include "axmol/renderer/TextureCache.h"
 
 using namespace std;
 using namespace Csm;
 using namespace Csm::Constant;
 using namespace Csm::DefaultParameterId;
 using namespace LAppDefine;
-using namespace ax::backend;
+using namespace ax::rhi;
 
 #if USE_AUDIO_ENGINE
 #include "audio/include/AudioEngine.h"
@@ -641,19 +641,14 @@ void LAppModel::SetupTextures()
 
         // Cocos2d-x
         // テクスチャをファイルからロードする. ロードできなければnullptrが返る
-        Texture2D* texture = Director::getInstance()->getTextureCache()->addImage(std::string(texturePath.GetRawString()));
+        Texture2D* texture = Director::getInstance()->getTextureCache()->addImage(std::string(texturePath.GetRawString()), true);
 
         // テクスチャが読めていなければバインド処理をスキップ
         if(!texture) continue;
 
-        const SamplerDescriptor texParams = {
-          SamplerFilter::LINEAR_MIPMAP_LINEAR,
-          SamplerFilter::LINEAR,
-          SamplerAddressMode::CLAMP_TO_EDGE,
-          SamplerAddressMode::CLAMP_TO_EDGE
-        };
+        SamplerDesc texParams;
+        Texture2D::chooseSamplerDesc(true, true, texParams);
         texture->setTexParameters(texParams);
-        texture->generateMipmap();
         _loadedTextures.PushBack(texture);
 
         //Cocos2d
@@ -758,7 +753,7 @@ void LAppModel::MakeRenderingTarget()
     if (!_renderSprite && !_renderBuffer->IsValid())
     {
         float aspectFactor = 1.0f;
-        int frameW = Director::getInstance()->getRenderView()->getFrameSize().width, frameH = Director::getInstance()->getRenderView()->getFrameSize().height;
+        int frameW = Director::getInstance()->getRenderView()->getWindowSize().width, frameH = Director::getInstance()->getRenderView()->getWindowSize().height;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_MAC)
         // Retina対策でこっちからとる
@@ -772,7 +767,7 @@ void LAppModel::MakeRenderingTarget()
         Size visibleSize = Director::getInstance()->getVisibleSize();
         Point origin = Director::getInstance()->getVisibleOrigin();
 
-        _renderSprite = RenderTexture::create(frameW, frameH, ax::backend::PixelFormat::RGBA8);
+        _renderSprite = RenderTexture::create(frameW, frameH, ax::rhi::PixelFormat::RGBA8);
         _renderSprite->setPosition(Point(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
         _renderSprite->getSprite()->getTexture()->setAntiAliasTexParameters();
         _renderSprite->getSprite()->setBlendFunc(BlendFunc::ALPHA_NON_PREMULTIPLIED);
@@ -782,14 +777,7 @@ void LAppModel::MakeRenderingTarget()
         _renderSprite->setVisible(true);
 
         // _renderSpriteのテクスチャを作成する
-        _renderSprite->getSprite()->getTexture()->setTexParameters(
-          ax::Texture2D::TexParams(
-            ax::backend::SamplerFilter::LINEAR,                    // MagFilter
-            ax::backend::SamplerFilter::LINEAR,                    // MinFilter
-            ax::backend::SamplerAddressMode::CLAMP_TO_EDGE,      // AddressingMode S
-            ax::backend::SamplerAddressMode::CLAMP_TO_EDGE       // AddressingMode T
-          )
-        );
+        _renderSprite->getSprite()->getTexture()->setTexParameters(ax::Texture2D::TexParams{});
 
         // レンダリングバッファの描画先をそのテクスチャにする
         _renderBuffer->CreateOffscreenFrame(frameW, frameH, _renderSprite);
@@ -802,7 +790,8 @@ void LAppModel::SetSpriteColor(float r, float g, float b, float a)
 {
     if (_renderSprite != NULL)
     {
-        _renderSprite->getSprite()->setColor(Color3B(static_cast<unsigned char>(255.0f * r), static_cast<unsigned char>(255.0f * g), static_cast<unsigned char>(255.0f * b)));
-        _renderSprite->getSprite()->setOpacity(static_cast<unsigned char>(255.0f * a));
+        _renderSprite->getSprite()->setColor(
+            Color32(static_cast<unsigned char>(255.0f * r), static_cast<unsigned char>(255.0f * g),
+                    static_cast<unsigned char>(255.0f * b), static_cast<unsigned char>(255.0f * a)));
     }
 }

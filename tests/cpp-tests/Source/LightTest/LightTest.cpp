@@ -37,7 +37,7 @@ LightTest::LightTest() : _directionalLight(nullptr), _pointLight(nullptr), _spot
     addLights();
     scheduleUpdate();
 
-    auto s      = Director::getInstance()->getWinSize();
+    auto s      = Director::getInstance()->getCanvasSize();
     auto camera = Camera::createPerspective(60, (float)s.width / s.height, 1.0f, 1000.0f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.0f, 100.0f, 100.0f));
@@ -105,7 +105,7 @@ std::string LightTest::title() const
 
 void LightTest::addSprite()
 {
-    auto s = Director::getInstance()->getWinSize();
+    auto s = Director::getInstance()->getCanvasSize();
 
     //{
     //    std::string fileName = "MeshRendererTest/plane.c3b";
@@ -165,64 +165,64 @@ void LightTest::addSprite()
 
 void LightTest::addLights()
 {
-    auto s        = Director::getInstance()->getWinSize();
-    _ambientLight = AmbientLight::create(Color3B(200, 200, 200));
+    auto s        = Director::getInstance()->getCanvasSize();
+    _ambientLight = AmbientLight::create(Color32(200, 200, 200));
     _ambientLight->retain();
     _ambientLight->setEnabled(true);
     addChild(_ambientLight);
     _ambientLight->setCameraMask(2);
 
-    _directionalLight = DirectionLight::create(Vec3(-1.0f, -1.0f, 0.0f), Color3B(200, 200, 200));
+    _directionalLight = DirectionLight::create(Vec3(-1.0f, -1.0f, 0.0f), Color32(200, 200, 200));
     _directionalLight->retain();
     _directionalLight->setEnabled(false);
     addChild(_directionalLight);
     _directionalLight->setCameraMask(2);
 
-    _pointLight = PointLight::create(Vec3(0.0f, 0.0f, 0.0f), Color3B(200, 200, 200), 10000.0f);
+    _pointLight = PointLight::create(Vec3(0.0f, 0.0f, 0.0f), Color32(200, 200, 200), 10000.0f);
     _pointLight->retain();
     _pointLight->setEnabled(false);
     addChild(_pointLight);
     _pointLight->setCameraMask(2);
 
     _spotLight =
-        SpotLight::create(Vec3(-1.0f, -1.0f, 0.0f), Vec3(0.0f, 0.0f, 0.0f), Color3B(200, 200, 200), 0.0, 0.5, 10000.0f);
+        SpotLight::create(Vec3(-1.0f, -1.0f, 0.0f), Vec3(0.0f, 0.0f, 0.0f), Color32(200, 200, 200), 0.0, 0.5, 10000.0f);
     _spotLight->retain();
     _spotLight->setEnabled(false);
     addChild(_spotLight);
     _spotLight->setCameraMask(2);
 
     {
-        auto tintto1 = TintTo::create(4, 0, 0, 255);
-        auto tintto2 = TintTo::create(4, 0, 255, 0);
-        auto tintto3 = TintTo::create(4, 255, 0, 0);
-        auto tintto4 = TintTo::create(4, 255, 255, 255);
+        auto tintto1 = TintTo::create(4, Color32(0, 0, 255));
+        auto tintto2 = TintTo::create(4, Color32(0, 255, 0));
+        auto tintto3 = TintTo::create(4, Color32(255, 0, 0));
+        auto tintto4 = TintTo::create(4, Color32(255, 255, 255));
         auto seq     = Sequence::create(tintto1, tintto2, tintto3, tintto4, nullptr);
         _ambientLight->runAction(RepeatForever::create(seq));
     }
 
     {
-        auto tintto1 = TintTo::create(4, 255, 0, 0);
-        auto tintto2 = TintTo::create(4, 0, 255, 0);
-        auto tintto3 = TintTo::create(4, 0, 0, 255);
-        auto tintto4 = TintTo::create(4, 255, 255, 255);
+        auto tintto1 = TintTo::create(4, Color32(255, 0, 0));
+        auto tintto2 = TintTo::create(4, Color32(0, 255, 0));
+        auto tintto3 = TintTo::create(4, Color32(0, 0, 255));
+        auto tintto4 = TintTo::create(4, Color32(255, 255, 255));
         auto seq     = Sequence::create(tintto1, tintto2, tintto3, tintto4, nullptr);
         _directionalLight->runAction(RepeatForever::create(seq));
     }
 
     {
-        auto tintto1 = TintTo::create(4, 255, 0, 0);
-        auto tintto2 = TintTo::create(4, 0, 255, 0);
-        auto tintto3 = TintTo::create(4, 0, 0, 255);
-        auto tintto4 = TintTo::create(4, 255, 255, 255);
+        auto tintto1 = TintTo::create(4, Color32(255, 0, 0));
+        auto tintto2 = TintTo::create(4, Color32(0, 255, 0));
+        auto tintto3 = TintTo::create(4, Color32(0, 0, 255));
+        auto tintto4 = TintTo::create(4, Color32(255, 255, 255));
         auto seq     = Sequence::create(tintto2, tintto1, tintto3, tintto4, nullptr);
         _pointLight->runAction(RepeatForever::create(seq));
     }
 
     {
-        auto tintto1 = TintTo::create(4, 255, 0, 0);
-        auto tintto2 = TintTo::create(4, 0, 255, 0);
-        auto tintto3 = TintTo::create(4, 0, 0, 255);
-        auto tintto4 = TintTo::create(4, 255, 255, 255);
+        auto tintto1 = TintTo::create(4, Color32(255, 0, 0));
+        auto tintto2 = TintTo::create(4, Color32(0, 255, 0));
+        auto tintto3 = TintTo::create(4, Color32(0, 0, 255));
+        auto tintto4 = TintTo::create(4, Color32(255, 255, 255));
         auto seq     = Sequence::create(tintto3, tintto2, tintto1, tintto4, nullptr);
         _spotLight->runAction(RepeatForever::create(seq));
     }
@@ -264,7 +264,7 @@ void LightTest::SwitchLight(Object* sender, LightType lightType)
     {
     case LightType::AMBIENT:
     {
-        bool isON = !_ambientLight->isEnabled();
+        bool isON    = !_ambientLight->isEnabled();
         auto infoStr = fmt::format_to_z(tmp, "Ambient Light {}", isON == true ? "ON" : "OFF");
         _ambientLight->setEnabled(isON);
         _ambientLightLabel->setString(infoStr);
@@ -273,7 +273,7 @@ void LightTest::SwitchLight(Object* sender, LightType lightType)
 
     case LightType::DIRECTIONAL:
     {
-        bool isON = !_directionalLight->isEnabled();
+        bool isON    = !_directionalLight->isEnabled();
         auto infoStr = fmt::format_to_z(tmp, "Directional Light {}", isON == true ? "ON" : "OFF");
         _directionalLight->setEnabled(isON);
         _directionalLightLabel->setString(infoStr);
@@ -282,7 +282,7 @@ void LightTest::SwitchLight(Object* sender, LightType lightType)
 
     case LightType::POINT:
     {
-        bool isON = !_pointLight->isEnabled();
+        bool isON    = !_pointLight->isEnabled();
         auto infoStr = fmt::format_to_z(tmp, "Point Light {}", isON == true ? "ON" : "OFF");
         _pointLight->setEnabled(isON);
         _pointLightLabel->setString(infoStr);
@@ -291,7 +291,7 @@ void LightTest::SwitchLight(Object* sender, LightType lightType)
 
     case LightType::SPOT:
     {
-        bool isON = !_spotLight->isEnabled();
+        bool isON    = !_spotLight->isEnabled();
         auto infoStr = fmt::format_to_z(tmp, "Spot Light {}", isON == true ? "ON" : "OFF");
         _spotLight->setEnabled(isON);
         _spotLightLabel->setString(infoStr);

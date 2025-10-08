@@ -4,7 +4,7 @@ require "TransitionsTest/TransitionsName"
 local SceneIdx = -1
 local CurSceneNo = 2
 local TRANSITION_DURATION = 1.2
-local s = ax.Director:getInstance():getWinSize()
+local s = ax.Director:getInstance():getCanvasSize()
 
 local function switchSceneTypeNo()
     if CurSceneNo == 1 then
@@ -64,12 +64,12 @@ local function createLayer1()
 
     local titleLabel = ax.Label:createWithTTF(Transition_Name[SceneIdx], s_thonburiPath, 32)
     layer:addChild(titleLabel)
-    titleLabel:setColor(ax.c3b(255,32,32))
+    titleLabel:setColor(ax.color32(255,32,32))
     titleLabel:setAnchorPoint(ax.p(0.5, 0.5))
     titleLabel:setPosition(x / 2, y - 100)
 
     local label = ax.Label:createWithTTF("SCENE 1", s_markerFeltFontPath, 38)
-    label:setColor(ax.c3b(16,16,255))
+    label:setColor(ax.color32(16,16,255))
     label:setAnchorPoint(ax.p(0.5, 0.5))
     label:setPosition(x / 2, y / 2)
     layer:addChild(label)
@@ -110,11 +110,11 @@ local function createLayer2()
     local titleLabel = ax.Label:createWithTTF(Transition_Name[SceneIdx], s_thonburiPath, 32 )
     layer:addChild(titleLabel)
     titleLabel:setAnchorPoint(ax.p(0.5, 0.5))
-    titleLabel:setColor(ax.c3b(255,32,32))
+    titleLabel:setColor(ax.color32(255,32,32))
     titleLabel:setPosition(x / 2, y - 100)
 
     local label = ax.Label:createWithTTF("SCENE 2", s_markerFeltFontPath, 38)
-    label:setColor(ax.c3b(16,16,255))
+    label:setColor(ax.color32(16,16,255))
     label:setAnchorPoint(ax.p(0.5, 0.5))
     label:setPosition(x / 2, y / 2)
     layer:addChild(label)
@@ -191,7 +191,7 @@ local function createTransition(index, t, scene)
     elseif index == Transition_Table.CCTransitionFade then
         scene = ax.TransitionFade:create(t, scene)
     elseif index == Transition_Table.FadeWhiteTransition then
-        scene = ax.TransitionFade:create(t, scene, ax.c3b(255, 255, 255))
+        scene = ax.TransitionFade:create(t, scene, ax.color32(255, 255, 255))
     elseif index == Transition_Table.FlipXLeftOver then
         scene = ax.TransitionFlipX:create(t, scene, ax.TRANSITION_ORIENTATION_LEFT_OVER )
     elseif index == Transition_Table.FlipXRightOver then

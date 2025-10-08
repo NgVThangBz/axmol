@@ -27,10 +27,13 @@
 #include <string>
 #include "AppDelegate.h"
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 #include "controller.h"
 #include "BaseTest.h"
 #include "extensions/axmol-ext.h"
+
+#include <charconv>
+#include <system_error>
 
 using namespace ax;
 
@@ -45,15 +48,25 @@ AppDelegate::~AppDelegate()
     //  cocostudio::ArmatureDataManager::destroyInstance();
 }
 
-// if you want a different context, modify the value of gfxContextAttrs
+// if you want a different context, modify the value of contextAttrs
 // it will affect all platforms
-void AppDelegate::initGfxContextAttrs()
+void AppDelegate::initContextAttrs()
 {
-    // set graphics context attributes: red,green,blue,alpha,depth,stencil
-    GfxContextAttrs gfxContextAttrs = {8, 8, 8, 8, 24, 8, 0};
+    // set app context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
+    // powerPreference only affect when RHI backend is D3D
+    ContextAttrs contextAttrs = {.powerPreference = PowerPreference::HighPerformance};
 
-    RenderView::setGfxContextAttrs(gfxContextAttrs);
-    
+    // V-Sync is enabled by default since axmol 2.2.
+    // Uncomment to disable V-Sync and unlock FPS.
+    // contextAttrs.vsync = false;
+
+    // Enable high-DPI scaling support (non-win32 platforms only)
+    // Note: on win32, cpp-tests keep the default render mode to ensure consistent performance benchmarks
+#if AX_TARGET_PLATFORM != AX_PLATFORM_WIN32
+    contextAttrs.renderScaleMode = RenderScaleMode::Physical;
+#endif
+    setContextAttrs(contextAttrs);
+
     Device::setPreferredOrientation(Device::Orientation::SensorLandscape);
 }
 
@@ -71,8 +84,8 @@ bool AppDelegate::applicationDidFinishLaunching()
     Configuration::getInstance()->loadConfigFile("configs/config-example.plist");
 
     // initialize director
-    auto director = Director::getInstance();
-    auto renderView   = director->getRenderView();
+    auto director   = Director::getInstance();
+    auto renderView = director->getRenderView();
     if (!renderView)
     {
         std::string title = "Cpp Tests";
@@ -80,22 +93,22 @@ bool AppDelegate::applicationDidFinishLaunching()
         title += " *Debug*",
 #endif
 #ifdef AX_PLATFORM_PC
-        renderView = RenderViewImpl::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height), 1.0F, true);
+            renderView = RenderViewImpl::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height),
+                                                        1.0F, true);
 #else
         renderView = RenderViewImpl::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height));
 #endif
         director->setRenderView(renderView);
     }
 
-    director->setStatsDisplay(true);
+    const char* const autotest_capture = std::getenv("AXMOL_AUTOTEST_CAPTURE_DIR");
+    director->setStatsDisplay(!autotest_capture || !autotest_capture[0]);
 
-#ifdef AX_PLATFORM_PC
-    director->setAnimationInterval(1.0f / glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate);
-#else
-    director->setAnimationInterval(1.0f / 60);
-#endif
+    director->setAnimationInterval(1.0f / Device::getDisplayRefreshRate());
 
-    auto screenSize = renderView->getFrameSize();
+    auto screenSize = renderView->getWindowSize();
+
+    AXLOGI("AppDelegate::applicationDidFinishLaunching - Screen size: {} x {}", screenSize.width, screenSize.height);
 
     auto fileUtils = FileUtils::getInstance();
     std::vector<std::string> searchPaths;
@@ -123,13 +136,25 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     renderView->setDesignResolutionSize(g_designSize.width, g_designSize.height, ResolutionPolicy::SHOW_ALL);
 
+    director->setClearColor(g_testsDefaultClearColor);
+
     // Enable Remote Console
     auto console = director->getConsole();
     console->listenOnTCP(5678);
 
     _testController = TestController::getInstance();
 
-    if (std::getenv("AXMOL_START_AUTOTEST"))
+    const char* const autotest_env = std::getenv("AXMOL_START_AUTOTEST");
+    int autotest                   = 0;
+    if (autotest_env)
+    {
+        const std::from_chars_result r =
+            std::from_chars(autotest_env, autotest_env + std::strlen(autotest_env), autotest);
+        if (r.ec != std::errc{})
+            AXLOGW("Could not parse AXMOL_START_AUTOTEST: {}.", std::make_error_code(r.ec).message());
+    }
+
+    if (autotest != 0)
     {
         _testController->startAutoTest();
     }
@@ -157,4 +182,9 @@ void AppDelegate::applicationWillEnterForeground()
     }
 
     Director::getInstance()->startAnimation();
+}
+
+void AppDelegate::applicationScreenSizeChanged(int newWidth, int newHeight)
+{
+    AXLOGI("AppDelegate::applicationScreenSizeChanged: ({},{})", newWidth, newHeight);
 }

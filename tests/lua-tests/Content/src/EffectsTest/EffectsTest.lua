@@ -2,7 +2,7 @@ require "EffectsTest/EffectsName"
 
 
 local ActionIdx = -1
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 local kTagTextLayer  = 1
 local kTagBackground = 1
 local kTagLabel      = 2
@@ -324,7 +324,7 @@ local function createEffect(idx, t)
 end
 
 function CreateEffectsTestLayer()
-    testLayer = ax.LayerColor:create(ax.c4b(32,128,32,255))
+    testLayer = ax.LayerColor:create(ax.color32(32,128,32,255))
 
 
     gridNodeTarget = ax.NodeGrid:create()

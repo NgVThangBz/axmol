@@ -25,7 +25,7 @@
 #pragma once
 
 #include "BaseTest.h"
-#include "renderer/backend/ProgramState.h"
+#include "axmol/rhi/ProgramState.h"
 #include <string>
 
 namespace ax
@@ -130,7 +130,7 @@ protected:
 
     float _cylinder_texture_offset;
     float _shining_duration;
-    ax::backend::ProgramState* _state = nullptr;
+    ax::rhi::ProgramState* _state = nullptr;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     ax::EventListenerCustom* _backToForegroundListener;
@@ -167,7 +167,7 @@ private:
     unsigned int _curState;
     ax::MeshRenderer* _plane;
     ax::MeshRenderer* _orc;
-    ax::backend::ProgramState* _state = nullptr;
+    ax::rhi::ProgramState* _state = nullptr;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     ax::EventListenerCustom* _backToForegroundListener;
@@ -198,7 +198,7 @@ public:
     virtual std::string subtitle() const override;
 
 protected:
-    ax::backend::ProgramState* _state;
+    ax::rhi::ProgramState* _state;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     ax::EventListenerCustom* _backToForegroundListener;
@@ -415,10 +415,7 @@ protected:
     void initDrawBox();
     void reachEndCallBack();
 
-    void unproject(const ax::Mat4& viewProjection,
-                   const ax::Size* viewport,
-                   ax::Vec3* src,
-                   ax::Vec3* dst);
+    void unproject(const ax::Mat4& viewProjection, const ax::Size* viewport, ax::Vec3* src, ax::Vec3* dst);
     void calculateRayByLocationInView(ax::Ray* ray, const ax::Vec2& location);
 };
 

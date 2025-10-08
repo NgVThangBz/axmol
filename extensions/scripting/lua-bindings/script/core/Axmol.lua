@@ -285,19 +285,24 @@ function ax.rectIntersection( rect1, rect2 )
     return intersection
 end
 
---Color3B
-function ax.c3b( _r,_g,_b )
-    return { r = _r, g = _g, b = _b }
-end
-
---Color4B
-function ax.c4b( _r,_g,_b,_a )
+-- Color32 deprecated, use ax.color32 instead
+function ax.color32( _r,_g,_b,_a )
     return { r = _r, g = _g, b = _b, a = _a }
 end
 
---Color4F
+-- ax::Color deprecated, use ax.color instead
 function ax.c4f( _r,_g,_b,_a )
     return { r = _r, g = _g, b = _b, a = _a }
+end
+
+-- Color32
+function ax.color32( _r,_g,_b,_a )
+    return { r = _r, g = _g, b = _b, a = _a or 255 }
+end
+
+-- Color
+function ax.color( _r,_g,_b,_a )
+    return { r = _r, g = _g, b = _b, a = _a or 1.0 }
 end
 
 local function isFloatColor(c)
@@ -379,34 +384,19 @@ function ax.Quad3(_tl, _tr, _bl, _br)
     return { tl = _tl, tr = _tr, bl = _bl, br = _br }
 end
 
---V2F_C4B_T2F
-function ax.V2F_C4B_T2F(_vertices, _colors, _texCoords)
+--V2F_T2F_C4F
+function ax.V2F_T2F_C4F(_vertices, _colors, _texCoords)
     return { vertices = _vertices, colors = _colors, texCoords = _texCoords }
 end
 
---V2F_C4F_T2F
-function ax.V2F_C4F_T2F(_vertices, _colors, _texCoords)
+--V3F_T2F_C4F
+function ax.V3F_T2F_C4F(_vertices, _colors, _texCoords)
     return { vertices = _vertices, colors = _colors, texCoords = _texCoords }
 end
 
---V3F_C4B_T2F
-function ax.V3F_C4B_T2F(_vertices, _colors, _texCoords)
-    return { vertices = _vertices, colors = _colors, texCoords = _texCoords }
-end
-
---V2F_C4B_T2F_Quad
-function ax.V2F_C4B_T2F_Quad(_bl, _br, _tl, _tr)
-    return { bl = _bl, br = _br, tl = _tl, tr = _tr }
-end
-
---V3F_C4B_T2F_Quad
-function ax.V3F_C4B_T2F_Quad(_tl, _bl, _tr, _br)
+--V3F_T2F_C4F_Quad
+function ax.V3F_T2F_C4F_Quad(_tl, _bl, _tr, _br)
     return { tl = _tl, bl = _bl, tr = _tr, br = _br }
-end
-
---V2F_C4F_T2F_Quad
-function ax.V2F_C4F_T2F_Quad(_bl, _br, _tl, _tr)
-    return { bl = _bl, br = _br, tl = _tl, tr = _tr }
 end
 
 --T2F_Quad

@@ -1,11 +1,11 @@
-local size = ax.Director:getInstance():getWinSize()
+local size = ax.Director:getInstance():getCanvasSize()
 local layer = nil
 local kTagSprite = 1
 
 local function initWithLayer()
     local sprite = ax.Sprite:create(s_pPathGrossini)
 
-    local bgLayer = ax.LayerColor:create(ax.c4b(255,255,0,255))
+    local bgLayer = ax.LayerColor:create(ax.color32(255,255,0,255))
     layer:addChild(bgLayer, -1)
 
     layer:addChild(sprite, 0, kTagSprite)

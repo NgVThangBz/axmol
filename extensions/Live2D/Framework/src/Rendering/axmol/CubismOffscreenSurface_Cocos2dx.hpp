@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -38,7 +38,7 @@
 #include <OpenGL/gl.h>
 #endif
 
-#include "renderer/backend/RenderTarget.h"
+#include "axmol/rhi/RenderTarget.h"
 
 using namespace ax;
 
@@ -59,7 +59,7 @@ public:
      * @brief   指定の描画ターゲットに向けて描画開始
      *
      */
-    void BeginDraw(CubismCommandBuffer_Cocos2dx* commandBuffer, backend::TextureBackend* colorBufferOnFinishDrawing);
+    void BeginDraw(CubismCommandBuffer_Cocos2dx* commandBuffer, rhi::Texture* colorBufferOnFinishDrawing);
 
     /**
      * @brief   描画終了
@@ -114,15 +114,15 @@ public:
 
 private:
     ax::RenderTexture*      _renderTexture;         ///< レンダリングターゲットとしてのアドレス
-    backend::TextureBackend*          _colorBuffer;
+    rhi::Texture*          _colorBuffer;
     csmBool _isInheritedRenderTexture;
 
-    backend::TextureBackend*      _previousColorBuffer; ///< 旧フレームバッファ
+    rhi::Texture*      _previousColorBuffer; ///< 旧フレームバッファ
 
     csmUint32   _bufferWidth;           ///< Create時に指定された幅
     csmUint32   _bufferHeight;          ///< Create時に指定された高さ
 
-    csmRectF _viewPortSize;
+    csmRectF _viewportSize;
 };
 
 

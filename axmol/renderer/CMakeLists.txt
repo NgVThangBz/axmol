@@ -1,0 +1,45 @@
+set(_AX_RENDERER_HEADER
+  renderer/CallbackCommand.h
+  renderer/CustomCommand.h
+  renderer/GroupCommand.h
+  renderer/Material.h
+  renderer/MeshCommand.h
+  renderer/Pass.h
+  renderer/PipelineDesc.h
+  renderer/QuadCommand.h
+  renderer/RenderCommand.h
+  renderer/RenderCommandPool.h
+  renderer/Renderer.h
+  renderer/RenderState.h
+  renderer/Technique.h
+  renderer/Texture2D.h
+  renderer/TextureAtlas.h
+  renderer/TextureCache.h
+  renderer/TextureCube.h
+  renderer/TrianglesCommand.h
+  renderer/ProgramManager.h
+  renderer/ProgramStateRegistry.h
+  renderer/Shaders.h
+)
+
+set(_AX_RENDERER_SRC
+  renderer/CallbackCommand.cpp
+  renderer/CustomCommand.cpp
+  renderer/GroupCommand.cpp
+  renderer/Material.cpp
+  renderer/MeshCommand.cpp
+  renderer/Pass.cpp
+  renderer/QuadCommand.cpp
+  renderer/RenderCommand.cpp
+  renderer/RenderState.cpp
+  renderer/Renderer.cpp
+  renderer/Technique.cpp
+  renderer/Texture2D.cpp
+  renderer/TextureAtlas.cpp
+  renderer/TextureCache.cpp
+  renderer/TextureCube.cpp
+  renderer/TrianglesCommand.cpp
+  renderer/ProgramManager.cpp
+  renderer/ProgramStateRegistry.cpp
+  renderer/Shaders.cpp
+)

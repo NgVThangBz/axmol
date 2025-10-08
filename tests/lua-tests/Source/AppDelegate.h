@@ -25,7 +25,7 @@
 #ifndef __APP_DELEGATE_H__
 #define __APP_DELEGATE_H__
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 /**
 @brief    The cocos2d Application.
@@ -38,25 +38,25 @@ public:
     AppDelegate();
     virtual ~AppDelegate();
 
-    void initGfxContextAttrs();
+    void initContextAttrs() override;
     /**
     @brief    Implement Director and Scene init code here.
     @return true    Initialize success, app continue.
     @return false   Initialize failed, app terminate.
     */
-    virtual bool applicationDidFinishLaunching();
+    bool applicationDidFinishLaunching() override;
 
     /**
     @brief  Called when the application moves to the background
     @param  the pointer of the application
     */
-    virtual void applicationDidEnterBackground();
+    void applicationDidEnterBackground() override;
 
     /**
     @brief  Called when the application reenters the foreground
     @param  the pointer of the application
     */
-    virtual void applicationWillEnterForeground();
+    void applicationWillEnterForeground() override;
 };
 
 #endif  // __APP_DELEGATE_H__

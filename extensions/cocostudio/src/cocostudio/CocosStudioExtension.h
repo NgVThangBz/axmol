@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "math/AffineTransform.h"
+#include "axmol/math/AffineTransform.h"
 #include "CocosStudioExport.h"
 
 namespace ax
@@ -16,5 +16,4 @@ public:
 private:
 };
 
-}
-
+}  // namespace ax

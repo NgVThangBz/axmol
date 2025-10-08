@@ -48,7 +48,7 @@ bool UITextTest::init()
         Size widgetSize = _widget->getContentSize();
 
         Text* alert = Text::create("Text", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -73,7 +73,7 @@ bool UITextTest_LineWrap::init()
         Size widgetSize = _widget->getContentSize();
 
         Text* alert = Text::create("Text line wrap", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -119,7 +119,7 @@ bool UILabelTest_Effect::init()
         alert->setString("Label Effect");
         alert->setFontName("fonts/Marker Felt.ttf");
         alert->setFontSize(30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.05f));
         _uiLayer->addChild(alert);
@@ -139,7 +139,7 @@ bool UILabelTest_Effect::init()
         Text* glow_label = Text::create();
         glow_label->setFontName("fonts/Marker Felt.ttf");
         glow_label->setString("Glow");
-        glow_label->enableGlow(Color4B::RED);
+        glow_label->enableGlow(Color32::RED);
 
         glow_label->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - 20));
 
@@ -149,14 +149,14 @@ bool UILabelTest_Effect::init()
         Text* outline_label = Text::create();
         outline_label->setString("Outline");
         AXLOGD("content size without outline: {} {}", outline_label->getContentSize().width,
-              outline_label->getContentSize().height);
-        outline_label->enableOutline(Color4B::GREEN, 4);
+               outline_label->getContentSize().height);
+        outline_label->enableOutline(Color32::GREEN, 4);
         outline_label->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - shadow_label->getContentSize().height - 50));
 
         _uiLayer->addChild(outline_label);
         AXLOGD("content size after applying outline: {} {}", outline_label->getContentSize().width,
-              outline_label->getContentSize().height);
+               outline_label->getContentSize().height);
 
         // create buttons to disable effect and add
         auto disableOutlineBtn = Button::create();
@@ -167,7 +167,7 @@ bool UILabelTest_Effect::init()
         disableOutlineBtn->addClickEventListener([=](Object*) {
             outline_label->disableEffect(LabelEffect::OUTLINE);
             AXLOGD("content size after disable outline: {} {}", outline_label->getContentSize().width,
-                  outline_label->getContentSize().height);
+                   outline_label->getContentSize().height);
         });
         this->addChild(disableOutlineBtn);
 
@@ -199,7 +199,7 @@ bool UITextTest_TTF::init()
         Size widgetSize = _widget->getContentSize();
 
         Text* alert = Text::create("Text set TTF font", "fonts/Marker Felt.ttf", 30);
-        alert->setColor(Color3B(159, 168, 176));
+        alert->setColor(Color32(159, 168, 176));
         alert->setPosition(
             Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
         _uiLayer->addChild(alert);
@@ -268,8 +268,8 @@ bool UITextTest_Clone::init()
         singleText->setString("CHUKONG");
         singleText->setTouchScaleChangeEnabled(true);
         singleText->setTouchEnabled(true);
-        singleText->enableOutline(Color4B(255, 0, 0, 100), 10);
-        singleText->enableShadow(Color4B::YELLOW, Size(2, -2), 0);
+        singleText->enableOutline(Color32(255, 0, 0, 100), 10);
+        singleText->enableShadow(Color32::YELLOW, Size(2, -2), 0);
         _uiLayer->addChild(singleText);
 
         auto cloneText = singleText->clone();

@@ -27,13 +27,12 @@
 
 #include <vector>
 
-#include "renderer/RenderState.h"
-#include "renderer/backend/Types.h"
-#include "renderer/MeshCommand.h"
-#include "renderer/CallbackCommand.h"
-#include "renderer/backend/Buffer.h"
-#include "base/Object.h"
-#include "math/Math.h"
+#include "axmol/renderer/RenderState.h"
+#include "axmol/renderer/MeshCommand.h"
+#include "axmol/renderer/CallbackCommand.h"
+#include "axmol/rhi/Buffer.h"
+#include "axmol/base/Object.h"
+#include "axmol/math/Math.h"
 #include "extensions/ExtensionExport.h"
 
 namespace ax
@@ -98,9 +97,9 @@ class AX_EX_DLL Particle3DQuadRender : public Particle3DRender
 public:
     static Particle3DQuadRender* create(std::string_view texFile = "");
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual void reset() override;
+    void reset() override;
     Particle3DQuadRender();
     virtual ~Particle3DQuadRender();
 
@@ -112,34 +111,28 @@ protected:
 
 protected:
     MeshCommand _meshCommand;
-    //CallbackCommand _beforeCommand;
-    //CallbackCommand _afterCommand;
-    Texture2D* _texture                  = nullptr;
-    backend::ProgramState* _programState = nullptr;
-    backend::Buffer* _indexBuffer        = nullptr;  // index buffer
-    backend::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
+    // CallbackCommand _beforeCommand;
+    // CallbackCommand _afterCommand;
+    Texture2D* _texture              = nullptr;
+    rhi::ProgramState* _programState = nullptr;
+    rhi::VertexLayout* _vertexLayout = nullptr;
+    rhi::Buffer* _indexBuffer        = nullptr;  // index buffer
+    rhi::Buffer* _vertexBuffer       = nullptr;  // vertex buffer
 
-    struct posuvcolor
-    {
-        Vec3 position;
-        Vec2 uv;
-        Vec4 color;
-    };
-
-    std::vector<posuvcolor> _posuvcolors;  // vertex data
-    std::vector<uint16_t> _indexData;      // index data
+    std::vector<ax::V3F_T2F_C4F> _posuvcolors;  // vertex data
+    std::vector<uint16_t> _indexData;           // index data
     std::string _texFile;
 
-    backend::UniformLocation _locColor;
-    backend::UniformLocation _locTexture;
-    backend::UniformLocation _locPMatrix;
+    rhi::UniformLocation _locColor;
+    rhi::UniformLocation _locTexture;
+    rhi::UniformLocation _locPMatrix;
 
     // renderer state cache variables
-    bool _rendererDepthTestEnabled                 = true;
-    backend::CompareFunction _rendererDepthCmpFunc = backend::CompareFunction::LESS;
-    backend::CullMode _rendererCullMode            = backend::CullMode::BACK;
-    backend::Winding _rendererWinding              = backend::Winding::COUNTER_CLOCK_WISE;
-    bool _rendererDepthWrite                       = false;
+    bool _rendererDepthTestEnabled         = true;
+    rhi::CompareFunc _rendererDepthCmpFunc = rhi::CompareFunc::LESS;
+    rhi::CullMode _rendererCullMode        = rhi::CullMode::BACK;
+    rhi::Winding _rendererWinding          = rhi::Winding::COUNTER_CLOCK_WISE;
+    bool _rendererDepthWrite               = false;
 };
 
 // particle renderer using MeshRenderer
@@ -148,9 +141,9 @@ class AX_EX_DLL Particle3DModelRender : public Particle3DRender
 public:
     static Particle3DModelRender* create(std::string_view modelFile, std::string_view texFile = "");
 
-    virtual void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
+    void render(Renderer* renderer, const Mat4& transform, ParticleSystem3D* particleSystem) override;
 
-    virtual void reset() override;
+    void reset() override;
     Particle3DModelRender();
     virtual ~Particle3DModelRender();
 
@@ -161,4 +154,4 @@ protected:
     Vec3 _meshSize;
 };
 
-}
+}  // namespace ax

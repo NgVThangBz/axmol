@@ -44,7 +44,7 @@ bool UIEditBoxTest::init()
 {
     if (UIScene::init())
     {
-        auto renderView        = Director::getInstance()->getRenderView();
+        auto renderView    = Director::getInstance()->getRenderView();
         auto visibleOrigin = renderView->getVisibleOrigin();
         auto visibleSize   = renderView->getVisibleSize();
 
@@ -64,9 +64,9 @@ bool UIEditBoxTest::init()
         _editName = ui::EditBox::create(editBoxSize + Size(0, 40), ui::Scale9Sprite::create(pNormalSprite));
         _editName->setPosition(
             Vec2(visibleOrigin.x + visibleSize.width / 2 - 50, visibleOrigin.y + visibleSize.height * 3 / 4));
-        _editName->setFontColor(Color3B::RED);
+        _editName->setFontColor(Color32::RED);
         _editName->setPlaceHolder("Name:");
-        _editName->setPlaceholderFontColor(Color3B::WHITE);
+        _editName->setPlaceholderFontColor(Color32::WHITE);
         _editName->setMaxLength(8);
         _editName->setFontSize((int)editBoxSize.height / 2);
         _editName->setText("v👐👊💝");
@@ -79,7 +79,8 @@ bool UIEditBoxTest::init()
         auto buttonSize = button->getContentSize();
         button->setTitleText("Single Line");
         button->setPosition(_editName->getPosition() + Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        button->addClickEventListener([this](Object* /*sender*/) { _editName->setInputMode(ui::EditBox::InputMode::SINGLE_LINE); });
+        button->addClickEventListener(
+            [this](Object* /*sender*/) { _editName->setInputMode(ui::EditBox::InputMode::SINGLE_LINE); });
         addChild(button);
 
         // middle
@@ -87,7 +88,7 @@ bool UIEditBoxTest::init()
             ui::EditBox::create(Size(editBoxSize.width, editBoxSize.height + 20), "extensions/orange_edit.png");
         _editPassword->setPosition(
             Vec2(visibleOrigin.x + visibleSize.width / 2 - 50, visibleOrigin.y + visibleSize.height / 2));
-        _editPassword->setFontColor(Color3B::GREEN);
+        _editPassword->setFontColor(Color32::GREEN);
         _editPassword->setPlaceHolder("Password:");
         _editPassword->setMaxLength(6);
         _editPassword->setInputFlag(ui::EditBox::InputFlag::PASSWORD);
@@ -129,7 +130,8 @@ bool UIEditBoxTest::init()
         buttonEmail->setTitleText("Multiline");
         buttonEmail->setPosition(_editEmailParent->getPosition() +
                                  Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        buttonEmail->addClickEventListener([this](Object* /*sender*/) { _editEmail->setInputMode(ui::EditBox::InputMode::ANY); });
+        buttonEmail->addClickEventListener(
+            [this](Object* /*sender*/) { _editEmail->setInputMode(ui::EditBox::InputMode::ANY); });
         addChild(buttonEmail);
 
         return true;
@@ -178,7 +180,7 @@ bool UIEditBoxTestToggleVisibility::init()
 {
     if (UIScene::init())
     {
-        auto renderView        = Director::getInstance()->getRenderView();
+        auto renderView    = Director::getInstance()->getRenderView();
         auto visibleOrigin = renderView->getVisibleOrigin();
         auto visibleSize   = renderView->getVisibleSize();
 
@@ -198,9 +200,9 @@ bool UIEditBoxTestToggleVisibility::init()
         _editName = ui::EditBox::create(editBoxSize + Size(0, 40), ui::Scale9Sprite::create(pNormalSprite));
         _editName->setPosition(
             Vec2(visibleOrigin.x + visibleSize.width / 2 - 50, visibleOrigin.y + visibleSize.height * 3 / 4));
-        _editName->setFontColor(Color3B::RED);
+        _editName->setFontColor(Color32::RED);
         _editName->setPlaceHolder("Name:");
-        _editName->setPlaceholderFontColor(Color3B::WHITE);
+        _editName->setPlaceholderFontColor(Color32::WHITE);
         _editName->setMaxLength(8);
         _editName->setFontSize((int)editBoxSize.height / 2);
         _editName->setText("v👐👊💝");
@@ -220,7 +222,7 @@ bool UIEditBoxTestToggleVisibility::init()
         _editPassword = ui::EditBox::create(editBoxSize, "extensions/orange_edit.png");
         _editPassword->setPosition(
             Vec2(visibleOrigin.x + visibleSize.width / 2 - 50, visibleOrigin.y + visibleSize.height / 2));
-        _editPassword->setFontColor(Color3B::GREEN);
+        _editPassword->setFontColor(Color32::GREEN);
         _editPassword->setPlaceHolder("Password:");
         _editPassword->setMaxLength(6);
         _editPassword->setInputFlag(ui::EditBox::InputFlag::PASSWORD);
@@ -262,7 +264,8 @@ bool UIEditBoxTestToggleVisibility::init()
         buttonEmail->setTitleText("Toggle Visibility");
         buttonEmail->setPosition(_editEmailParent->getPosition() +
                                  Vec2(editBoxSize.width / 2 + buttonSize.width / 2, 0.0f));
-        buttonEmail->addClickEventListener([this](Object* /*sender*/) { _editEmail->setVisible(!_editEmail->isVisible()); });
+        buttonEmail->addClickEventListener(
+            [this](Object* /*sender*/) { _editEmail->setVisible(!_editEmail->isVisible()); });
         addChild(buttonEmail);
 
         return true;
@@ -307,7 +310,7 @@ bool UIEditBoxTestTextHorizontalAlignment::init()
         return false;
     }
 
-    const auto renderView        = Director::getInstance()->getRenderView();
+    const auto renderView    = Director::getInstance()->getRenderView();
     const auto visibleOrigin = renderView->getVisibleOrigin();
     const auto visibleSize   = renderView->getVisibleSize();
     const auto editBoxSize   = Size(visibleSize.width - 100, visibleSize.height * 0.1f);
@@ -317,9 +320,9 @@ bool UIEditBoxTestTextHorizontalAlignment::init()
         ui::EditBox* editbox =
             ui::EditBox::create(editBoxSize + Size(0, 40), ui::Scale9Sprite::create("extensions/green_edit.png"));
         editbox->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2 - 50, (float)position_y));
-        editbox->setFontColor(Color3B::RED);
+        editbox->setFontColor(Color32::RED);
         editbox->setPlaceHolder(text.data());
-        editbox->setPlaceholderFontColor(Color3B::WHITE);
+        editbox->setPlaceholderFontColor(Color32::WHITE);
         editbox->setPlaceholderFontSize((int)editBoxSize.height / 2);
         editbox->setFontSize((int)editBoxSize.height / 2);
         editbox->setText(text.data());
@@ -343,7 +346,7 @@ bool UIEditBoxTestPressedAndDisabled::init()
         return false;
     }
 
-    auto renderView            = Director::getInstance()->getRenderView();
+    auto renderView        = Director::getInstance()->getRenderView();
     auto visibleOrigin     = renderView->getVisibleOrigin();
     auto visibleSize       = renderView->getVisibleSize();
     const auto editBoxSize = Size(visibleSize.width - 100, visibleSize.height * 0.1f);
@@ -351,9 +354,9 @@ bool UIEditBoxTestPressedAndDisabled::init()
     ui::EditBox* editbox =
         ui::EditBox::create(editBoxSize + Size(0, 40), "extensions/yellow_edit.png", "extensions/orange_edit.png");
     editbox->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2, visibleOrigin.y + visibleSize.height * 3 / 4));
-    editbox->setFontColor(Color3B::GREEN);
+    editbox->setFontColor(Color32::GREEN);
     editbox->setPlaceHolder("Test Pressed Image");
-    editbox->setPlaceholderFontColor(Color3B::WHITE);
+    editbox->setPlaceholderFontColor(Color32::WHITE);
     editbox->setPlaceholderFontSize((int)editBoxSize.height / 2);
     editbox->setFontSize((int)editBoxSize.height / 2);
     editbox->setReturnType(ui::EditBox::KeyboardReturnType::DONE);
@@ -362,9 +365,9 @@ bool UIEditBoxTestPressedAndDisabled::init()
     editbox = ui::EditBox::create(editBoxSize + Size(0, 40), "extensions/yellow_edit.png", "extensions/orange_edit.png",
                                   "extensions/green_edit.png");
     editbox->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2, visibleOrigin.y + visibleSize.height / 2));
-    editbox->setFontColor(Color3B::GREEN);
+    editbox->setFontColor(Color32::GREEN);
     editbox->setPlaceHolder("Test Disabled Image - green");
-    editbox->setPlaceholderFontColor(Color3B::WHITE);
+    editbox->setPlaceholderFontColor(Color32::WHITE);
     editbox->setPlaceholderFontSize((int)editBoxSize.height / 2);
     editbox->setFontSize((int)editBoxSize.height / 2);
     editbox->setReturnType(ui::EditBox::KeyboardReturnType::DONE);
@@ -373,9 +376,9 @@ bool UIEditBoxTestPressedAndDisabled::init()
 
     editbox = ui::EditBox::create(editBoxSize + Size(0, 40), "extensions/yellow_edit.png");
     editbox->setPosition(Vec2(visibleOrigin.x + visibleSize.width / 2, visibleOrigin.y + visibleSize.height / 4));
-    editbox->setFontColor(Color3B::GREEN);
+    editbox->setFontColor(Color32::GREEN);
     editbox->setPlaceHolder("Disabled Gray effect");
-    editbox->setPlaceholderFontColor(Color3B::WHITE);
+    editbox->setPlaceholderFontColor(Color32::WHITE);
     editbox->setPlaceholderFontSize((int)editBoxSize.height / 2);
     editbox->setFontSize((int)editBoxSize.height / 2);
     editbox->setReturnType(ui::EditBox::KeyboardReturnType::DONE);

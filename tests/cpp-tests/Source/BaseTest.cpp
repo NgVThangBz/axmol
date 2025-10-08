@@ -26,9 +26,10 @@
 #include "BaseTest.h"
 #include "testResource.h"
 #include "controller.h"
+#include "feature-detect.h"
 
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
-#include "Inspector/Inspector.h"
+#if AX_ENABLE_EXT_IMGUI
+#    include "Inspector/Inspector.h"
 #endif
 
 using namespace ax;
@@ -38,6 +39,8 @@ USING_NS_AX_EXT;
 
 Size g_resourceSize(960, 640);
 Size g_designSize(480, 320);
+
+const Color g_testsDefaultClearColor = Color32{0x36, 0x3B, 0x44, 0xFF};
 
 TestBase::TestBase() : _parentTest(nullptr), _isTestList(false) {}
 
@@ -149,8 +152,7 @@ void TestList::addTest(std::string_view testName, std::function<TestBase*()> cal
 {
     if (!testName.empty())
     {
-        _childTestNames.emplace_back(
-            fmt::format("{}:{}", static_cast<int>(_childTestNames.size() + 1), testName));
+        _childTestNames.emplace_back(fmt::format("{}:{}", static_cast<int>(_childTestNames.size() + 1), testName));
         _testCallbacks.emplace_back(callback);
     }
 }
@@ -216,8 +218,8 @@ void TestList::runThisTest()
         closeItem->setPosition(VisibleRect::right().x - 30, VisibleRect::top().y - 30);
 
         auto autoTestLabel = Label::createWithTTF("Start AutoTest", "fonts/arial.ttf", 16);
-        auto autoTestItem =
-            MenuItemLabel::create(autoTestLabel, [&](Object* sender) { TestController::getInstance()->startAutoTest(); });
+        auto autoTestItem  = MenuItemLabel::create(
+            autoTestLabel, [&](Object* sender) { TestController::getInstance()->startAutoTest(); });
         autoTestItem->setPosition(Vec2(VisibleRect::left().x + 60, VisibleRect::bottom().y + 50));
 
         auto menu = Menu::create(closeItem, autoTestItem, nullptr);
@@ -345,6 +347,18 @@ void TestSuite::enterNextTest()
     Director::getInstance()->replaceScene(scene);
 }
 
+void TestSuite::enterTest(int index)
+{
+    _currTestIndex = index % _childTestNames.size();
+
+    auto scene    = _testCallbacks[_currTestIndex]();
+    auto testCase = getTestCase(scene);
+    testCase->setTestSuite(this);
+    testCase->setTestCaseName(_childTestNames[_currTestIndex]);
+
+    Director::getInstance()->replaceScene(scene);
+}
+
 void TestSuite::enterPreviousTest()
 {
     if (_currTestIndex > 0)
@@ -416,6 +430,11 @@ bool TestCase::init()
 {
     if (Scene::init())
     {
+        const char* const autotest_capture = std::getenv("AXMOL_AUTOTEST_CAPTURE_DIR");
+        // Disable the inspector if we are capturing the scene because its
+        // rendering changes from one run to the next.
+        _enableInspector = !autotest_capture || !autotest_capture[0];
+
         // add title and subtitle
         TTFConfig ttfConfig("fonts/arial.ttf", 26);
         _titleLabel = Label::createWithTTF(ttfConfig, title());
@@ -467,8 +486,7 @@ void TestCase::onEnter()
 
     if (_testSuite)
     {
-        _titleLabel->setString(fmt::format("{}:{}", static_cast<int>(_testSuite->getCurrTestIndex() + 1), 
-                               title()));
+        _titleLabel->setString(fmt::format("{}:{}", static_cast<int>(_testSuite->getCurrTestIndex() + 1), title()));
     }
     else
     {
@@ -482,16 +500,21 @@ void TestCase::onEnter()
         _nextTestItem->setVisible(false);
         _restartTestItem->setVisible(false);
     }
-
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
-    extension::Inspector::getInstance()->openForScene(this);
+#if AX_ENABLE_EXT_IMGUI
+#    if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+    if (_enableInspector)
+        extension::Inspector::getInstance()->openForScene(this);
+#    endif
 #endif
 }
 
 void TestCase::onExit()
 {
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
-    extension::Inspector::getInstance()->close();
+#if AX_ENABLE_EXT_IMGUI
+#    if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+    if (_enableInspector)
+        extension::Inspector::getInstance()->close();
+#    endif
 #endif
     Scene::onExit();
 }
@@ -522,6 +545,7 @@ void TestCase::priorTestCallback(Object* sender)
 
 void TestCase::onBackCallback(Object* sender)
 {
+    _director->setClearColor(g_testsDefaultClearColor);
     if (_testSuite)
     {
         _testSuite->backsUpOneLevel();

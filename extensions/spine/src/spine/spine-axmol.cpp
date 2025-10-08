@@ -41,30 +41,52 @@ AxmolAtlasAttachmentLoader::~AxmolAtlasAttachmentLoader() {}
 void AxmolAtlasAttachmentLoader::configureAttachment(Attachment *attachment) {
 }
 
-backend::SamplerAddressMode wrap(TextureWrap wrap) {
-	return wrap == TextureWrap_ClampToEdge ? backend::SamplerAddressMode::CLAMP_TO_EDGE : backend::SamplerAddressMode::REPEAT;
-}
+static Texture2D::TexParams chooseTexParams(spine::AtlasPage& page)
+{
+    Texture2D::TexParams texParams{};
+    switch (page.minFilter)
+    {
+    case TextureFilter_Linear:
+        texParams.minFilter = rhi::SamplerFilter::MIN_LINEAR;
+        break;
+    case TextureFilter_Nearest:
+        texParams.minFilter = rhi::SamplerFilter::MIN_NEAREST;
+        break;
+    case TextureFilter_MipMap:
+        texParams.minFilter = rhi::SamplerFilter::MIN_LINEAR;
+        break;
+    case TextureFilter_MipMapNearestNearest:
+        texParams.minFilter = rhi::SamplerFilter::MIN_NEAREST;
+        texParams.mipFilter = rhi::SamplerFilter::MIP_NEAREST;
+        break;
+    case TextureFilter_MipMapLinearNearest:
+        texParams.minFilter = rhi::SamplerFilter::MIN_NEAREST;
+        texParams.mipFilter = rhi::SamplerFilter::MIP_LINEAR;
+        break;
+    case TextureFilter_MipMapNearestLinear:
+        texParams.minFilter = rhi::SamplerFilter::MIN_LINEAR;
+        texParams.mipFilter = rhi::SamplerFilter::MIP_NEAREST;
+        break;
+    case TextureFilter_MipMapLinearLinear:
+        texParams.minFilter = rhi::SamplerFilter::MIN_LINEAR;
+        texParams.mipFilter = rhi::SamplerFilter::MIP_LINEAR;
+        break;
+    }
+    switch (page.magFilter)
+    {
+    case TextureFilter_Linear:
+        texParams.magFilter = rhi::SamplerFilter::MAG_LINEAR;
+        break;
+    case TextureFilter_Nearest:
+        texParams.magFilter = rhi::SamplerFilter::MAG_NEAREST;
+        break;
+    }
 
-backend::SamplerFilter filter(TextureFilter filter) {
-	switch (filter) {
-		case TextureFilter_Unknown:
-			break;
-		case TextureFilter_Nearest:
-			return backend::SamplerFilter::NEAREST;
-		case TextureFilter_Linear:
-			return backend::SamplerFilter::LINEAR;
-		case TextureFilter_MipMap:
-			return backend::SamplerFilter::LINEAR;
-		case TextureFilter_MipMapNearestNearest:
-			return backend::SamplerFilter::NEAREST;
-		case TextureFilter_MipMapLinearNearest:
-			return backend::SamplerFilter::NEAREST;
-		case TextureFilter_MipMapNearestLinear:
-			return backend::SamplerFilter::LINEAR;
-		case TextureFilter_MipMapLinearLinear:
-			return backend::SamplerFilter::LINEAR;
-	}
-	return backend::SamplerFilter::LINEAR;
+    texParams.sAddressMode = page.uWrap == TextureWrap_ClampToEdge ? rhi::SamplerAddressMode::CLAMP_TO_EDGE
+                                                                   : rhi::SamplerAddressMode::REPEAT;
+    texParams.tAddressMode = page.vWrap == TextureWrap_ClampToEdge ? rhi::SamplerAddressMode::CLAMP_TO_EDGE
+                                                                   : rhi::SamplerAddressMode::REPEAT;
+    return texParams;
 }
 
 AxmolTextureLoader::AxmolTextureLoader() : TextureLoader() {}
@@ -75,8 +97,8 @@ void AxmolTextureLoader::load(AtlasPage &page, const spine::String &path) {
 	AXASSERT(texture != nullptr, "Invalid image");
 	if (texture) {
 		texture->retain();
-		Texture2D::TexParams textureParams(filter(page.minFilter), filter(page.magFilter), wrap(page.uWrap), wrap(page.vWrap));
-		texture->setTexParameters(textureParams);
+		Texture2D::TexParams texParams = chooseTexParams(page);
+		texture->setTexParameters(texParams);
 
 		page.texture = texture;
 		page.width = texture->getPixelsWide();

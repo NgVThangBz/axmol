@@ -11,14 +11,12 @@ $Global:LASTEXITCODE = 0
 # pwsh function alias
 function println($message) { Write-Host "axmol: $message" }
 
-$myRoot = $PSScriptRoot
-
 # 0: windows, 1: linux, 2: macos
 # $IsWin = $IsWindows -or ("$env:OS" -eq 'Windows_NT')
 
 # parse engine version
-$AX_ROOT = (Resolve-Path $myRoot/../..).Path
-$axver_file = (Resolve-Path $AX_ROOT/core/axmolver.h.in).Path
+$AX_ROOT = (Resolve-Path $PSScriptRoot/../..).Path
+$axver_file = (Resolve-Path $AX_ROOT/axmol/axmolver.h.in).Path
 $content = $(Get-Content -Path $axver_file)
 
 function parse_axver($part) {
@@ -33,7 +31,7 @@ $axmolVersion = "$(parse_axver 'MAJOR').$(parse_axver 'MINOR').$(parse_axver 'PA
 $git_prog = (Get-Command 'git' -ErrorAction SilentlyContinue).Source
 if ($git_prog) {
     $branchName = $(git -C $AX_ROOT branch --show-current 2>$null)
-    if ($branchName -eq 'dev') {
+    if ($branchName) {
         $commitHash = $(git -C $AX_ROOT rev-parse --short=7 HEAD 2>$null)
         $axmolVersion += "-$commitHash"
     }
@@ -143,7 +141,7 @@ function axmol_deploy() {
         # read applicationId aka package name
         $outputMetaFile = Join-Path $apkDir 'output-metadata.json'
         $outputMeta = ConvertFrom-Json $(Get-Content $outputMetaFile -raw)
-        $androidAppId = $outputMeta.applicationId 
+        $androidAppId = $outputMeta.applicationId
 
         # read activityName
         $androidManifestFile = Join-Path $proj_dir 'proj.android/app/AndroidManifest.xml'
@@ -244,7 +242,7 @@ function axmol_run() {
 
 $builtinPlugins = @{
     new    = @{
-        proc  = (Join-Path $myRoot 'axmol_new.ps1');
+        proc  = (Join-Path $PSScriptRoot 'axmol_new.ps1');
         usage = @"
 usage: axmol new -p dev.axmol.hellocpp -d path/to/project -l cpp --portrait <ProjectName>
 Creates a new project.
@@ -280,7 +278,7 @@ Build projects to binary.
 
 options:
   -h: show this help message and exit
-  -p: build target platform, valid value are: win32,winuwp(winrt),linux,android,osx,ios,tvos,wasm
+  -p: build target platform, valid value are: win32,winuwp(winrt),linux,android,osx,ios,tvos,wasm,wasm64
       for android: will search ndk in sdk_root which is specified by env:ANDROID_HOME first,
       if not found, by default will install ndk-r16b or can be specified by option: -cc 'ndk-r23c'
   -a: build arch: x86,x64,armv7,arm64; for android can be list by ';', i.e: 'arm64;x64'
@@ -365,9 +363,9 @@ $plugin = $builtinPlugins["$cmdName"]
 if ($plugin) {
     # -h will consumed by param
     # !!!Note: 3 condition statement: 'xxx = if(c) { v1 } else { v2 }' will lost array type if source array only 1 element
-    if ($args.Count -gt 1) { 
-        $sub_args = $args[1..($args.Count - 1)] 
-    } 
+    if ($args.Count -gt 1) {
+        $sub_args = $args[1..($args.Count - 1)]
+    }
     else {
         $sub_args = @()
     }
@@ -383,7 +381,7 @@ if ($help -or ($sub_args -and $sub_args[0] -eq '--help')) {
     else {
         println $tool_usage
     }
-    return 
+    return
 }
 
 if (!$plugin) { $plugin = $builtinPlugins['build'] }

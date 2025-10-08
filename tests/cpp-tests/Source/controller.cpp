@@ -46,8 +46,8 @@ public:
 #    pragma message("The optional extension Effekseer is enabled.")
         addTest("Effekseer", []() { return new EffekseerTests(); });
 #endif
-        addTest("Scene3D", [](){return new Scene3DTests(); });
-#if defined(AX_PLATFORM_PC) || (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
+        addTest("Scene3D", []() { return new Scene3DTests(); });
+#if AX_ENABLE_EXT_IMGUI
         addTest("ImGui", []() { return new ImGuiTests(); });
 #endif
         addTest("Texture2D", []() { return new Texture2DTests(); });
@@ -58,12 +58,8 @@ public:
         addTest("AudioEngine", []() { return new AudioEngineTests(); });
 
         addTest("Box2D - Basic", []() { return new Box2DTests(); });
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if AX_ENABLE_EXT_IMGUI && defined(AX_PLATFORM_PC)
         addTest("Box2D - TestBed", []() { return new Box2DTestBedTests(); });
-#endif
-        addTest("Chipmunk2D - Basic", []() { return new ChipmunkTests(); });
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
-        addTest("Chipmunk2D - TestBed", []() { return new ChipmunkTestBedTests(); });
 #endif
         addTest("Bugs", []() { return new BugsTests(); });
         addTest("Click and Move", []() { return new ClickAndMoveTest(); });
@@ -94,7 +90,7 @@ public:
         addTest("Light", []() { return new LightTests(); });
         addTest("Menu", []() { return new MenuTests(); });
         addTest("MotionStreak", []() { return new MotionStreakTests(); });
-        addTest("Node", []() { return new CocosNodeTests(); });
+        addTest("Node", []() { return new NodeTests(); });
         addTest("Parallax", []() { return new ParallaxTests(); });
         addTest("Particles", []() { return new ParticleTests(); });
         addTest("Particle3D (PU)", []() { return new Particle3DTests(); });
@@ -137,6 +133,9 @@ public:
      AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
         addTest("Window Test", []() { return new WindowTests(); });  // TODO wrong effect
 #endif
+#ifdef AX_ENABLE_VR
+        addTest("VR Test", []() { return new VRTests(); });
+#endif
     }
 };
 
@@ -165,6 +164,15 @@ void TestController::startAutoTest()
 {
     if (_stopAutoTest)
     {
+        const char* const captureDir = std::getenv("AXMOL_AUTOTEST_CAPTURE_DIR");
+        if (captureDir)
+        {
+            _autoTestCaptureDirectory = captureDir;
+            _autoTestCaptureDirectory += '/';
+        }
+        else
+            _autoTestCaptureDirectory.clear();
+
         _stopAutoTest   = false;
         _logIndentation = "";
 
@@ -184,154 +192,166 @@ void TestController::stopAutoTest()
 
 Coroutine TestController::traverseTestList(TestList* testList)
 {
-     if (testList != _rootTestList)
-     {
-         _logIndentation += LOG_INDENTATION;
-     }
+    if (testList != _rootTestList)
+    {
+        _logIndentation += LOG_INDENTATION;
+    }
 
-     co_yield DelayTime::create(0.5);  
-     AXLOGD("{}{}Begin traverse TestList:{}", LOG_TAG, _logIndentation, testList->getTestName());
+    co_yield DelayTime::create(0.5);
+    AXLOGD("{}{}Begin traverse TestList:{}", LOG_TAG, _logIndentation, testList->getTestName());
 
-     auto scheduler = _director->getScheduler();
-     int testIndex  = 0;
-     for (auto&& callback : testList->_testCallbacks)
-     {
-         if (_stopAutoTest)
-             break;
-         while (_isRunInBackground)
-         {
-             AXLOGD("_director is paused");
-             co_yield DelayTime::create(0.5);  
-         }
-         if (callback)
-         {
-             auto test = callback();
-             test->setTestParent(testList);
-             test->setTestName(testList->_childTestNames[testIndex++]);
+    auto scheduler = _director->getScheduler();
+    int testIndex  = 0;
+    for (auto&& callback : testList->_testCallbacks)
+    {
+        if (_stopAutoTest)
+            break;
+        while (_isRunInBackground)
+        {
+            AXLOGD("_director is paused");
+            co_yield DelayTime::create(0.5);
+        }
+        if (callback)
+        {
+            auto test = callback();
+            test->setTestParent(testList);
+            test->setTestName(testList->_childTestNames[testIndex++]);
 
-             ActionCoroutine* subAction = nullptr;
-             if (test->isTestList())
-             {
-                 test->runThisTest();
+            ActionCoroutine* subAction = nullptr;
+            if (test->isTestList())
+            {
+                test->runThisTest();
 
-                 subAction =
-                     ActionCoroutine::create(std::bind(&TestController::traverseTestList, this, static_cast<TestList*>(test)));
-             }
-             else
-             {
-                 subAction =
-                     ActionCoroutine::create(std::bind(&TestController::traverseTestSuite, this, static_cast<TestSuite*>(test)));
-             }
-             co_yield subAction;  // co_yield _autoTestRunner->runAction(subAction);
-         }
-     }
+                subAction = ActionCoroutine::create(
+                    std::bind(&TestController::traverseTestList, this, static_cast<TestList*>(test)));
+            }
+            else
+            {
+                subAction = ActionCoroutine::create(
+                    std::bind(&TestController::traverseTestSuite, this, static_cast<TestSuite*>(test)));
+            }
+            co_yield subAction;  // co_yield _autoTestRunner->runAction(subAction);
+        }
+    }
 
-     if (testList == _rootTestList)
-     {
-         _stopAutoTest = true;
-         if (std::getenv("AXMOL_START_AUTOTEST"))
-             utils::killCurrentProcess();
-     }
-     else
-     {
-         if (!_stopAutoTest)
-         {
-             // Backs up one level and release TestList object.
-             testList->_parentTest->runThisTest();
-             testList->release();
-         }
+    if (testList == _rootTestList)
+    {
+        _stopAutoTest = true;
+        if (std::getenv("AXMOL_START_AUTOTEST"))
+            utils::killCurrentProcess();
+    }
+    else
+    {
+        if (!_stopAutoTest)
+        {
+            // Backs up one level and release TestList object.
+            testList->_parentTest->runThisTest();
 
-         _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
-     }
- }
+            testList->release();
+        }
 
- Coroutine TestController::traverseTestSuite(TestSuite* testSuite)
- {
-     auto scheduler         = _director->getScheduler();
-     int testIndex          = 0;
-     float testCaseDuration = 0.0f;
-     _logIndentation += LOG_INDENTATION;
-     AXLOGD("{}{}Begin traverse TestSuite:{}", LOG_TAG, _logIndentation.c_str(), testSuite->getTestName().c_str());
+        _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
+    }
+}
 
-     _logIndentation += LOG_INDENTATION;
-     testSuite->_currTestIndex = -1;
+Coroutine TestController::traverseTestSuite(TestSuite* testSuite)
+{
+    auto scheduler         = _director->getScheduler();
+    int testIndex          = 0;
+    float testCaseDuration = 0.0f;
+    _logIndentation += LOG_INDENTATION;
+    AXLOGD("{}{}Begin traverse TestSuite:{}", LOG_TAG, _logIndentation.c_str(), testSuite->getTestName().c_str());
 
-     auto logIndentation = _logIndentation;
-     for (auto&& callback : testSuite->_testCallbacks)
-     {
-         auto testName = testSuite->_childTestNames[testIndex++];
+    _logIndentation += LOG_INDENTATION;
+    testSuite->_currTestIndex = -1;
 
-         Scene* testScene                 = nullptr;
-         TestCase* testCase               = nullptr;
-         TransitionScene* transitionScene = nullptr;
+    auto logIndentation = _logIndentation;
+    for (auto&& callback : testSuite->_testCallbacks)
+    {
+        auto testName = testSuite->_childTestNames[testIndex++];
 
-         if (_stopAutoTest)
-             break;
+        Scene* testScene                 = nullptr;
+        TestCase* testCase               = nullptr;
+        TransitionScene* transitionScene = nullptr;
 
-         while (_isRunInBackground)
-         {
-             AXLOGD("_director is paused");
-             co_yield DelayTime::create(0.5);
-         }
-         if (_stopAutoTest)
-             break;
-         AXLOGD("{}{}Run test:{}.", LOG_TAG, logIndentation, testName);
+        if (_stopAutoTest)
+            break;
 
-         auto scene = callback();
-         if (_stopAutoTest)
-             break;
+        while (_isRunInBackground)
+        {
+            AXLOGD("_director is paused");
+            co_yield DelayTime::create(0.5);
+        }
+        if (_stopAutoTest)
+            break;
+        AXLOGD("{}{}Run test:{}.", LOG_TAG, logIndentation, testName);
 
-         if (scene)
-         {
-             transitionScene = dynamic_cast<TransitionScene*>(scene);
-             if (transitionScene)
-             {
-                 testCase         = (TestCase*)transitionScene->getInScene();
-                 testCaseDuration = transitionScene->getDuration() + 0.5f;
-                 
-             }
-             else
-             {
-                 testCase         = (TestCase*)scene;
-                 testCaseDuration = testCase->getDuration();
-             }
-             testSuite->_currTestIndex++;
-             testCase->setTestSuite(testSuite);
-             testCase->setTestCaseName(testName);
-             _director->replaceScene(scene);
+        auto scene = callback();
+        if (_stopAutoTest)
+            break;
 
-             testScene = scene;
+        if (scene)
+        {
+            transitionScene = dynamic_cast<TransitionScene*>(scene);
+            if (transitionScene)
+            {
+                testCase         = (TestCase*)transitionScene->getInScene();
+                testCaseDuration = transitionScene->getDuration() + 0.5f;
+            }
+            else
+            {
+                testCase         = (TestCase*)scene;
+                testCaseDuration = testCase->getDuration();
+            }
+            testSuite->_currTestIndex++;
+            testCase->setTestSuite(testSuite);
+            testCase->setTestCaseName(testName);
+            _director->replaceScene(scene);
 
-             co_yield DelayTime::create(testCaseDuration);
-         }
+            testScene = scene;
 
-         if (_stopAutoTest)
-             break;
+            CallFunc* capture;
+            if (_autoTestCaptureDirectory.empty())
+                capture = nullptr;
+            else
+                capture = CallFunc::create([this, testSuite, testCase]() -> void {
+                    ax::utils::captureScreen([this, testSuite, testCase](ax::RefPtr<ax::Image> image) -> void {
+                        std::string file_name = testSuite->getTestName() + '-' + testCase->getTestCaseName();
 
-         if (transitionScene == nullptr)
-         {
+                        image->saveToFile(_autoTestCaptureDirectory + file_name + ".png");
+                    });
+                });
 
-             if (!_stopAutoTest)
-             {
-                 // Check the result of test.
-                 checkTest(testCase);
-             }
-         }
-     }
+            co_yield Sequence::create(DelayTime::create(testCaseDuration), capture, nullptr);
+        }
 
-     if (!_stopAutoTest)
-     {
-         // Backs up one level and release TestSuite object.
-         auto parentTest = testSuite->_parentTest;
-         parentTest->runThisTest();
+        if (_stopAutoTest)
+            break;
 
-         co_yield DelayTime::create(1);
-         testSuite->release();
-     }
+        if (transitionScene == nullptr)
+        {
 
-     _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
-     _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
- }
+            if (!_stopAutoTest)
+            {
+                // Check the result of test.
+                checkTest(testCase);
+            }
+        }
+    }
+
+    if (!_stopAutoTest)
+    {
+        // Backs up one level and release TestSuite object.
+        auto parentTest = testSuite->_parentTest;
+        parentTest->runThisTest();
+
+        co_yield DelayTime::create(1);
+        testSuite->release();
+    }
+
+    _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
+    _logIndentation.erase(_logIndentation.rfind(LOG_INDENTATION));
+}
 
 bool TestController::checkTest(TestCase* testCase)
 {

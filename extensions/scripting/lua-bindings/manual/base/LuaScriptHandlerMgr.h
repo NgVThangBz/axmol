@@ -25,9 +25,9 @@
 #pragma once
 
 #include "tolua++.h"
-#include "base/Object.h"
-#include "base/Macros.h"
-#include "2d/ActionInstant.h"
+#include "axmol/base/Object.h"
+#include "axmol/base/Macros.h"
+#include "axmol/2d/ActionInstant.h"
 #include <vector>
 #include <map>
 
@@ -97,8 +97,8 @@ public:
      * @param func a function pointer for callback.
      */
     bool initWithFunction(const std::function<void(void* self, Node*)>& func);
-    virtual LuaCallFunc* clone() const override;
-    virtual void execute() override;
+    LuaCallFunc* clone() const override;
+    void execute() override;
 
 protected:
     std::function<void(void* self, Node*)> _functionLua;
@@ -108,8 +108,8 @@ protected:
  * In order to reduce the coupling of lua script engine and native c++ engine.
  * In the current mechanism, for the class derived from the Object, we construct a mapping relationship among c++ Object
  * object, HandlerType and the reference index corresponding to the pointer of Lua function. Then, using the
- * ScriptHandlerMgr to manager uniformly. By this mechanism, when native c++ Object object wants to call the Lua function,
- * we didn't insert the processing code in the native c++ class.
+ * ScriptHandlerMgr to manager uniformly. By this mechanism, when native c++ Object object wants to call the Lua
+ * function, we didn't insert the processing code in the native c++ class.
  */
 class ScriptHandlerMgr
 {
@@ -310,7 +310,7 @@ private:
     MapObjectHandlers _mapObjectHandlers;
 };
 
-}
+}  // namespace ax
 
 // end group
 /// @}
@@ -318,4 +318,3 @@ private:
 /// @cond
 TOLUA_API int tolua_script_handler_mgr_open(lua_State* tolua_S);
 /// @endcond
-

@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "cocos2d.h"
+#include "axmol/cocos2d.h"
 #include <Effekseer.h>
 #include <EffekseerRendererCommon/EffekseerRenderer.Renderer.h>
 
-//#ifdef AX_USE_METAL
+//#if AX_RENDER_API == AX_RENDER_API_MTL
 //#include <EffekseerRendererMetal.h>
 //#else
 //#include <EffekseerRendererGL.h>
@@ -77,7 +77,7 @@ private:
 
 	cocos2d::Vec3 targetPosition_;
 	float speed_ = 1.0f;
-	cocos2d::Color4B color_ = cocos2d::Color4B(255, 255, 255, 255);
+	cocos2d::Color32 color_ = cocos2d::Color32(255, 255, 255, 255);
 	std::array<float, 4> dynamicInputs_;
 
 	EffectManager* manager = nullptr;
@@ -240,7 +240,7 @@ public:
 		\~English	Set the color which affects whole particles.
 		\~Japanese	全てのパーティクルに影響する色を設定する。
 	*/
-	void setColor(cocos2d::Color4B color);
+	void setColor(cocos2d::Color32 color);
 
 	/**
 	@brief

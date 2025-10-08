@@ -3,16 +3,16 @@
 #include "WidgetReader.h"
 
 #include "cocostudio/CocoLoader.h"
-#include "ui/UIButton.h"
+#include "axmol/ui/UIButton.h"
 #include "cocostudio/ActionTimeline/ActionTimeline.h"
 #include "cocostudio/ComExtensionData.h"
 #include "cocostudio/CSParseBinary_generated.h"
 
 #include "flatbuffers/flatbuffers.h"
-#include "ui/UILayoutComponent.h"
+#include "axmol/ui/UILayoutComponent.h"
 #include "cocostudio/ActionTimeline/CSLoader.h"
-#include "base/Utils.h"
-#include "base/Director.h"
+#include "axmol/base/Utils.h"
+#include "axmol/base/Director.h"
 
 using namespace ax;
 using namespace ui;
@@ -95,7 +95,6 @@ WidgetReader::WidgetReader()
     , _positionPercentY(0.0f)
     , _width(0.0f)
     , _height(0.0f)
-    , _opacity(255)
     , _isAdaptScreen(false)
 {
     valueToInt = [](std::string_view str) -> int { return atoi(str.data()); };
@@ -156,7 +155,7 @@ void WidgetReader::setPropsFromJsonDictionary(Widget* widget, const rapidjson::V
         bool adaptScrenn = DICTOOL->getBooleanValue_json(options, P_AdaptScreen);
         if (adaptScrenn)
         {
-            Size screenSize = Director::getInstance()->getWinSize();
+            Size screenSize = Director::getInstance()->getCanvasSize();
             w               = screenSize.width;
             h               = screenSize.height;
         }
@@ -244,18 +243,15 @@ void WidgetReader::setPropsFromJsonDictionary(Widget* widget, const rapidjson::V
 
 void WidgetReader::setColorPropsFromJsonDictionary(Widget* widget, const rapidjson::Value& options)
 {
-    bool op = DICTOOL->checkObjectExist_json(options, P_Opacity);
-    if (op)
-    {
-        widget->setOpacity(DICTOOL->getIntValue_json(options, P_Opacity));
-    }
+    bool op    = DICTOOL->checkObjectExist_json(options, P_Opacity);
     bool cr    = DICTOOL->checkObjectExist_json(options, P_ColorR);
     bool cg    = DICTOOL->checkObjectExist_json(options, P_ColorG);
     bool cb    = DICTOOL->checkObjectExist_json(options, P_ColorB);
     int colorR = cr ? DICTOOL->getIntValue_json(options, P_ColorR) : 255;
     int colorG = cg ? DICTOOL->getIntValue_json(options, P_ColorG) : 255;
     int colorB = cb ? DICTOOL->getIntValue_json(options, P_ColorB) : 255;
-    widget->setColor(Color3B(colorR, colorG, colorB));
+    int colorA = op ? DICTOOL->getIntValue_json(options, P_Opacity) : 255;
+    widget->setColor(Color32(colorR, colorG, colorB, colorA));
 
     this->setAnchorPointForWidget(widget, options);
 
@@ -269,15 +265,15 @@ void WidgetReader::beginSetBasicProperties(ax::ui::Widget* widget)
 {
     _position = widget->getPosition();
     // set default color
-    _color = Color3B(255, 255, 255);
+    _color   = Color32::WHITE;
+    _color.a = widget->getOpacity();
     widget->setColor(_color);
-    _opacity             = widget->getOpacity();
     _originalAnchorPoint = widget->getAnchorPoint();
 }
 
 void WidgetReader::endSetBasicProperties(Widget* widget)
 {
-    Size screenSize = Director::getInstance()->getWinSize();
+    Size screenSize = Director::getInstance()->getCanvasSize();
 
     widget->setPositionPercent(Vec2(_positionPercentX, _positionPercentY));
     widget->setSizePercent(Vec2(_sizePercentX, _sizePercentY));
@@ -287,7 +283,6 @@ void WidgetReader::endSetBasicProperties(Widget* widget)
         _height = screenSize.height;
     }
     widget->setColor(_color);
-    widget->setOpacity(_opacity);
     // the setSize method will be conflict with scale9Width & scale9Height
     if (!widget->isIgnoreContentAdaptWithSize())
     {
@@ -417,7 +412,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
     Vec2 position;
     Vec2 scale(1.0f, 1.0f);
     Vec2 anchorPoint;
-    Color4B color(255, 255, 255, 255);
+    Color32 color(255, 255, 255, 255);
     Vec2 size;
     bool flipX        = false;
     bool flipY        = false;
@@ -594,7 +589,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -615,7 +610,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "ScaleX")
@@ -636,7 +631,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "ScaleX")
@@ -657,7 +652,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "A")
@@ -686,7 +681,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -707,7 +702,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -728,7 +723,7 @@ Offset<Table> WidgetReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                attriname         = attribute.name();
+                attriname              = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (attriname == "X")
@@ -833,11 +828,8 @@ void WidgetReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
     widget->setLocalZOrder(zOrder);
 
     auto f_color = options->color();
-    Color3B color(f_color->r(), f_color->g(), f_color->b());
+    Color32 color(f_color->r(), f_color->g(), f_color->b(), options->alpha());
     widget->setColor(color);
-
-    int alpha = options->alpha();
-    widget->setOpacity(alpha);
 
     auto f_anchorPoint = options->anchorPoint();
     Vec2 anchorPoint(f_anchorPoint->x(), f_anchorPoint->y());

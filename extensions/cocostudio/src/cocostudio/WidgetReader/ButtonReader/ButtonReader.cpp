@@ -2,10 +2,10 @@
 
 #include "ButtonReader.h"
 
-#include "ui/UIButton.h"
-#include "2d/SpriteFrameCache.h"
-#include "2d/Label.h"
-#include "platform/FileUtils.h"
+#include "axmol/ui/UIButton.h"
+#include "axmol/2d/SpriteFrameCache.h"
+#include "axmol/2d/Label.h"
+#include "axmol/platform/FileUtils.h"
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
 #include "cocostudio/FlatBuffersSerialize.h"
@@ -82,7 +82,10 @@ void ButtonReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* cocoLo
         // read all color related properties of widget
         AX_COLOR_PROPERTY_BINARY_READER
 
-        else if (key == P_Scale9Enable) { button->setScale9Enabled(valueToBool(value)); }
+        else if (key == P_Scale9Enable)
+        {
+            button->setScale9Enabled(valueToBool(value));
+        }
         else if (key == P_NormalData)
         {
 
@@ -120,17 +123,50 @@ void ButtonReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* cocoLo
 
             button->loadTextureDisabled(backgroundValue, imageFileNameType);
         }
-        else if (key == P_Text) { button->setTitleText(value); }
-        else if (key == P_CapInsetsX) { capsx = valueToFloat(value); }
-        else if (key == P_CapInsetsY) { capsy = valueToFloat(value); }
-        else if (key == P_CapInsetsWidth) { capsWidth = valueToFloat(value); }
-        else if (key == P_CapInsetsHeight) { capsHeight = valueToFloat(value); }
-        else if (key == P_Scale9Width) { scale9Width = valueToFloat(value); }
-        else if (key == P_Scale9Height) { scale9Height = valueToFloat(value); }
-        else if (key == P_TextColorR) { cri = valueToInt(value); }
-        else if (key == P_TextColorG) { cgi = valueToInt(value); }
-        else if (key == P_TextColorB) { cbi = valueToInt(value); }
-        else if (key == P_FontSize) { button->setTitleFontSize(valueToFloat(value)); }
+        else if (key == P_Text)
+        {
+            button->setTitleText(value);
+        }
+        else if (key == P_CapInsetsX)
+        {
+            capsx = valueToFloat(value);
+        }
+        else if (key == P_CapInsetsY)
+        {
+            capsy = valueToFloat(value);
+        }
+        else if (key == P_CapInsetsWidth)
+        {
+            capsWidth = valueToFloat(value);
+        }
+        else if (key == P_CapInsetsHeight)
+        {
+            capsHeight = valueToFloat(value);
+        }
+        else if (key == P_Scale9Width)
+        {
+            scale9Width = valueToFloat(value);
+        }
+        else if (key == P_Scale9Height)
+        {
+            scale9Height = valueToFloat(value);
+        }
+        else if (key == P_TextColorR)
+        {
+            cri = valueToInt(value);
+        }
+        else if (key == P_TextColorG)
+        {
+            cgi = valueToInt(value);
+        }
+        else if (key == P_TextColorB)
+        {
+            cbi = valueToInt(value);
+        }
+        else if (key == P_FontSize)
+        {
+            button->setTitleFontSize(valueToFloat(value));
+        }
         else if (key == P_FontName)
         {
             button->setTitleFontName(value);  // fonts
@@ -146,7 +182,7 @@ void ButtonReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* cocoLo
         button->setContentSize(Size(scale9Width, scale9Height));
     }
 
-    button->setTitleColor(Color3B(cri, cgi, cbi));
+    button->setTitleColor(Color32(cri, cgi, cbi, button->getTitleColor().a));
 }
 
 void ButtonReader::setPropsFromJsonDictionary(Widget* widget, const rapidjson::Value& options)
@@ -213,7 +249,7 @@ void ButtonReader::setPropsFromJsonDictionary(Widget* widget, const rapidjson::V
     int cri = DICTOOL->getIntValue_json(options, P_TextColorR, 255);
     int cgi = DICTOOL->getIntValue_json(options, P_TextColorG, 255);
     int cbi = DICTOOL->getIntValue_json(options, P_TextColorB, 255);
-    button->setTitleColor(Color3B(cri, cgi, cbi));
+    button->setTitleColor(Color32(cri, cgi, cbi, 255));
 
     button->setTitleFontSize(DICTOOL->getIntValue_json(options, P_FontSize, 14));
 
@@ -237,7 +273,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
     int fontSize     = 14;
     std::string fontName;
     ax::Size scale9Size;
-    Color4B textColor(255, 255, 255, 255);
+    Color32 textColor(255, 255, 255, 255);
 
     std::string normalPath;
     std::string normalPlistFile;
@@ -256,15 +292,15 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
     int fontResourceResourceType = 0;
 
     bool outlineEnabled  = false;
-    Color4B outlineColor = Color4B::BLACK;
+    Color32 outlineColor = Color32::BLACK;
     int outlineSize      = 1;
     bool shadowEnabled   = false;
-    Color4B shadowColor  = Color4B::BLACK;
+    Color32 shadowColor  = Color32::BLACK;
     Size shadowOffset    = Size(2, -2);
     int shadowBlurRadius = 0;
 
     bool glowEnabled  = false;
-    Color4B glowColor = Color4B::BLACK;
+    Color32 glowColor = Color32::BLACK;
 
     bool boldEnabled = false, underlineEnabled = false, italicsEnabled = false, strikethroughEnabled = false;
 
@@ -378,7 +414,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "X")
@@ -398,7 +434,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
             attribute = child.first_attribute();
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "R")
@@ -426,7 +462,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -461,7 +497,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -496,7 +532,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -528,7 +564,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")
@@ -553,7 +589,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -582,7 +618,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -611,7 +647,7 @@ Offset<Table> ButtonReader::createOptionsWithFlatBuffers(pugi::xml_node objectDa
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "A")
@@ -862,7 +898,7 @@ void ButtonReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
     }
 
     auto textColor = options->textColor();
-    Color3B titleColor(textColor->r(), textColor->g(), textColor->b());
+    Color32 titleColor(textColor->r(), textColor->g(), textColor->b(), textColor->a());
     button->setTitleColor(titleColor);
 
     std::string titleFontName = options->fontName()->c_str();
@@ -892,7 +928,7 @@ void ButtonReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
         auto f_outlineColor = options->outlineColor();
         if (f_outlineColor)
         {
-            Color4B outlineColor(f_outlineColor->r(), f_outlineColor->g(), f_outlineColor->b(), f_outlineColor->a());
+            Color32 outlineColor(f_outlineColor->r(), f_outlineColor->g(), f_outlineColor->b(), f_outlineColor->a());
             auto label = button->getTitleRenderer();
             label->enableOutline(outlineColor, options->outlineSize());
         }
@@ -904,7 +940,7 @@ void ButtonReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
         auto f_shadowColor = options->shadowColor();
         if (f_shadowColor)
         {
-            Color4B shadowColor(f_shadowColor->r(), f_shadowColor->g(), f_shadowColor->b(), f_shadowColor->a());
+            Color32 shadowColor(f_shadowColor->r(), f_shadowColor->g(), f_shadowColor->b(), f_shadowColor->a());
             auto label = button->getTitleRenderer();
             label->enableShadow(shadowColor, Size(options->shadowOffsetX(), options->shadowOffsetY()),
                                 options->shadowBlurRadius());
@@ -916,7 +952,7 @@ void ButtonReader::setPropsWithFlatBuffers(ax::Node* node, const flatbuffers::Ta
         auto f_glowColor = options->glowColor();
         if (f_glowColor)
         {
-            Color4B glowColor(f_glowColor->r(), f_glowColor->g(), f_glowColor->b(), f_glowColor->a());
+            Color32 glowColor(f_glowColor->r(), f_glowColor->g(), f_glowColor->b(), f_glowColor->a());
             auto label = button->getTitleRenderer();
             label->enableGlow(glowColor);
         }

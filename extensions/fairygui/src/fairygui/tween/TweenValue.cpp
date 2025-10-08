@@ -1,5 +1,5 @@
 #include "TweenValue.h"
-#include "base/format.h"
+#include "axmol/tlx/format.hpp"
 
 NS_FGUI_BEGIN
 using namespace ax;
@@ -44,12 +44,12 @@ void TweenValue::setVec4(const ax::Vec4 & value)
     w = value.w;
 }
 
-ax::Color4B TweenValue::getColor() const
+ax::Color32 TweenValue::getColor() const
 {
-    return ax::Color4B(x, y, z, w);
+    return ax::Color32(x, y, z, w);
 }
 
-void TweenValue::setColor(const ax::Color4B & value)
+void TweenValue::setColor(const ax::Color32 & value)
 {
     x = value.r;
     y = value.g;

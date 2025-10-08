@@ -24,14 +24,14 @@ THE SOFTWARE.
 
 #pragma once
 
-#include "base/Object.h"
-#include "base/Types.h"
-#include "base/Vector.h"
-#include "base/Map.h"
-#include "math/AffineTransform.h"
+#include "axmol/base/Object.h"
+#include "axmol/base/Types.h"
+#include "axmol/base/Vector.h"
+#include "axmol/base/Map.h"
+#include "axmol/math/AffineTransform.h"
 
 #include "ArmatureDefine.h"
-#include "2d/TweenFunction.h"
+#include "axmol/2d/TweenFunction.h"
 #include "CocosStudioExport.h"
 
 #define AX_CREATE_NO_PARAM_NO_INIT(varType) \
@@ -91,8 +91,8 @@ public:
      */
     virtual void subtract(BaseData* from, BaseData* to, bool limit);
 
-    virtual void setColor(const ax::Color4B& color);
-    virtual ax::Color4B getColor();
+    virtual void setColor(const ax::Color32& color);
+    virtual ax::Color32 getColor();
 
 public:
     float x;     //! position x attribute
@@ -166,7 +166,7 @@ public:
     /**
      * @lua NA
      */
-    virtual ~SpriteDisplayData(){};
+    virtual ~SpriteDisplayData() {};
 
     void copy(DisplayData* displayData);
 
@@ -205,7 +205,7 @@ public:
     /**
      * @lua NA
      */
-    virtual ~ParticleDisplayData(){};
+    virtual ~ParticleDisplayData() {};
 };
 
 /**
@@ -233,8 +233,8 @@ public:
     DisplayData* getDisplayData(int index);
 
 public:
-    std::string name;                               //! the bone's name
-    std::string parentName;                         //! the bone parent's name
+    std::string name;                          //! the bone's name
+    std::string parentName;                    //! the bone parent's name
     ax::Vector<DisplayData*> displayDataList;  //! save DisplayData informations for the Bone
     ax::AffineTransform boneDataTransform;
 };

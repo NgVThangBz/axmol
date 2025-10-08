@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright(c) Live2D Inc. All rights reserved.
  *
  * Use of this source code is governed by the Live2D Open Software license
@@ -7,7 +7,7 @@
 
 #include "CubismCommandBuffer_Cocos2dx.hpp"
 #include "CubismFramework.hpp"
-#include "renderer/backend/RenderTarget.h"
+#include "axmol/rhi/RenderTarget.h"
 
 //------------ LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
@@ -20,14 +20,9 @@ CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::DrawCommand::~DrawCommand()
 {
 }
 
-ax::backend::BlendDescriptor* CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::DrawCommand::GetBlendDescriptor()
+ax::rhi::BlendDesc* CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::DrawCommand::GetBlendDescriptor()
 {
-    return &_command.getPipelineDescriptor().blendDescriptor;
-}
-
-ax::PipelineDescriptor* CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::DrawCommand::GetPipelineDescriptor()
-{
-    return &_command.getPipelineDescriptor();
+    return &_command.blendDesc();
 }
 
 ax::CustomCommand* CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::DrawCommand::GetCommand()
@@ -58,7 +53,7 @@ void CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::CreateVertexBuffer(csmSize
 void CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::CreateIndexBuffer(csmSizeInt count)
 {
     _ibCount = count;
-    _drawCommandDraw.GetCommand()->createIndexBuffer(ax::backend::IndexFormat::U_SHORT, count, ax::CustomCommand::BufferUsage::DYNAMIC);
+    _drawCommandDraw.GetCommand()->createIndexBuffer(ax::rhi::IndexFormat::U_SHORT, count, ax::CustomCommand::BufferUsage::DYNAMIC);
 }
 
 void CubismCommandBuffer_Cocos2dx::DrawCommandBuffer::UpdateVertexBuffer(void* data, void* uvData, csmSizeInt count)
@@ -210,7 +205,7 @@ void CubismCommandBuffer_Cocos2dx::SetWindingMode(WindingType windingType)
 void CubismCommandBuffer_Cocos2dx::Clear(csmFloat32 r, csmFloat32 g, csmFloat32 b, csmFloat32 a)
 {
     // Add the callback command internally.
-    GetCocos2dRenderer()->clear(ax::ClearFlag::COLOR, ax::Color4F(r, g, b, a), 0.0f, 0, 0.0f);
+    GetCocos2dRenderer()->clear(ax::ClearFlag::COLOR, ax::Color(r, g, b, a), 0.0f, 0, 0.0f);
 }
 
 void CubismCommandBuffer_Cocos2dx::Viewport(csmFloat32 x, csmFloat32 y, csmFloat32 w, csmFloat32 h)
@@ -219,17 +214,17 @@ void CubismCommandBuffer_Cocos2dx::Viewport(csmFloat32 x, csmFloat32 y, csmFloat
     (
         [=] () -> void
         {
-            GetCocos2dRenderer()->setViewPort(x, y, w, h);
+            GetCocos2dRenderer()->setViewport(x, y, w, h);
         }
     );
 }
 
-void CubismCommandBuffer_Cocos2dx::SetColorBuffer(backend::TextureBackend* colorBuffer)
+void CubismCommandBuffer_Cocos2dx::SetColorBuffer(rhi::Texture* colorBuffer)
 {
     _currentColorBuffer = colorBuffer;
 
     AddCommand([=]() -> void {
-        backend::RenderTarget* rt = nullptr;
+        rhi::RenderTarget* rt = nullptr;
         if (colorBuffer)
         {
             rt = GetCocos2dRenderer()->getOffscreenRenderTarget();
@@ -244,7 +239,7 @@ void CubismCommandBuffer_Cocos2dx::SetColorBuffer(backend::TextureBackend* color
     });
 }
 
-backend::TextureBackend* CubismCommandBuffer_Cocos2dx::GetColorBuffer()
+rhi::Texture* CubismCommandBuffer_Cocos2dx::GetColorBuffer()
 {
     return _currentColorBuffer;
 }

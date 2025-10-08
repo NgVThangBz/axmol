@@ -24,8 +24,8 @@
  ****************************************************************************/
 #include "AssetsManagerEx.h"
 #include "EventListenerAssetsManagerEx.h"
-#include "base/UTF8.h"
-#include "base/Director.h"
+#include "axmol/base/text_utils.h"
+#include "axmol/base/Director.h"
 
 #include <stdio.h>
 
@@ -482,7 +482,7 @@ bool AssetsManagerEx::decompress(std::string_view zip)
             if (!fsOut)
             {
                 AXLOGD("AssetsManagerEx : can not create decompress destination file {} (errno: {})\n", fullPath,
-                      errno);
+                       errno);
                 unzCloseCurrentFile(zipfile);
                 unzClose(zipfile);
                 return false;
@@ -560,16 +560,14 @@ void AssetsManagerEx::decompressDownloadedZip(std::string_view customId, std::st
         delete dataInner;
     };
 
-    Director::getInstance()->getJobSystem()->enqueue(
-        [this, asyncData]() {
+    Director::getInstance()->getJobSystem()->enqueue([this, asyncData]() {
         // Decompress all compressed files
         if (decompress(asyncData->zipFile))
         {
             asyncData->succeed = true;
         }
         _fileUtils->removeFile(asyncData->zipFile);
-    },
-        [decompressFinished, asyncData]() { decompressFinished(asyncData); });
+    }, [decompressFinished, asyncData]() { decompressFinished(asyncData); });
 }
 
 void AssetsManagerEx::dispatchUpdateEvent(EventAssetsManagerEx::EventCode code,
@@ -764,8 +762,8 @@ void AssetsManagerEx::startUpdate()
         _totalWaitToDownload = _totalToDownload = (int)_downloadUnits.size();
         this->batchDownload();
 
-        std::string msg = fmt::format(
-            "Resuming from previous unfinished update, {} files remains to be finished.", _totalToDownload);
+        std::string msg =
+            fmt::format("Resuming from previous unfinished update, {} files remains to be finished.", _totalToDownload);
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::UPDATE_PROGRESSION, "", msg);
     }
     else
@@ -786,7 +784,7 @@ void AssetsManagerEx::startUpdate()
         _tempManifest = _remoteManifest;
 
         // Check difference between local manifest and remote manifest
-        hlookup::string_map<Manifest::AssetDiff> diff_map = _localManifest->genDiff(_remoteManifest);
+        axstd::string_map<Manifest::AssetDiff> diff_map = _localManifest->genDiff(_remoteManifest);
         if (diff_map.empty())
         {
             updateSucceed();

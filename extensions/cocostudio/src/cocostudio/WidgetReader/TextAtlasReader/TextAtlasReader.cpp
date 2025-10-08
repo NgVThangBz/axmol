@@ -2,8 +2,8 @@
 
 #include "TextAtlasReader.h"
 
-#include "ui/UITextAtlas.h"
-#include "platform/FileUtils.h"
+#include "axmol/ui/UITextAtlas.h"
+#include "axmol/platform/FileUtils.h"
 
 #include "cocostudio/CocoLoader.h"
 #include "cocostudio/CSParseBinary_generated.h"
@@ -71,7 +71,10 @@ void TextAtlasReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* coc
         // read all color related properties of widget
         AX_COLOR_PROPERTY_BINARY_READER
 
-        else if (key == P_StringValue) { stringValue = value; }
+        else if (key == P_StringValue)
+        {
+            stringValue = value;
+        }
         else if (key == P_CharMapFileData)
         {
             stExpCocoNode* backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
@@ -81,9 +84,18 @@ void TextAtlasReader::setPropsFromBinary(ax::ui::Widget* widget, CocoLoader* coc
 
             charMapFile = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
         }
-        else if (key == P_ItemWidth) { itemWidth = valueToFloat(value); }
-        else if (key == P_ItemHeight) { itemHeight = valueToFloat(value); }
-        else if (key == P_StartCharMap) { startCharMap = value; }
+        else if (key == P_ItemWidth)
+        {
+            itemWidth = valueToFloat(value);
+        }
+        else if (key == P_ItemHeight)
+        {
+            itemHeight = valueToFloat(value);
+        }
+        else if (key == P_StartCharMap)
+        {
+            startCharMap = value;
+        }
     }  // end of for loop
 
     if (resourceType == 0)
@@ -188,7 +200,7 @@ Offset<Table> TextAtlasReader::createOptionsWithFlatBuffers(pugi::xml_node objec
 
             while (attribute)
             {
-                name              = attribute.name();
+                name                   = attribute.name();
                 std::string_view value = attribute.value();
 
                 if (name == "Path")

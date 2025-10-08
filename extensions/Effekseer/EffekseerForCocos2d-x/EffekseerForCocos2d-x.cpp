@@ -1,9 +1,8 @@
 
 #include "EffekseerForCocos2d-x.h"
-#include "base/Utils.h"
 
-#ifdef AX_USE_METAL
-#include "renderer/backend/DriverBase.h"
+#if AX_RENDER_API == AX_RENDER_API_MTL
+#include "axmol/rhi/DriverBase.h"
 #endif
 
 namespace efk
@@ -198,30 +197,7 @@ Effekseer::TextureRef TextureLoader::Load(const EFK_CHAR* path, ::Effekseer::Tex
 
 		if (image != nullptr && texture != nullptr && image->initWithImageData((const uint8_t*)data_texture, size_texture))
 		{
-			if (texture->initWithImage(image))
-			{
-
-				if(texture->getPixelsWide() > 1 || texture->getPixelsHigh() > 1)
-				{
-#ifdef AX_USE_METAL
-					texture->generateMipmap();
-#else
-					if (texture->getPixelsWide() == ax::utils::nextPOT(texture->getPixelsWide()) &&
-						texture->getPixelsHigh() == ax::utils::nextPOT(texture->getPixelsHigh()))
-					{
-						texture->generateMipmap();
-					}
-					else
-					{
-						char path8[300];
-						::Effekseer::ConvertUtf16ToUtf8(path8, 300, path);
-						AXLOGW("{} : The texture is not shown on a mobile. The size is not power of two.", path8);
-					}
-#endif
-				}
-
-			}
-			else
+			if (!texture->initWithImage(image, ax::PixelFormat::NONE, true))
 			{
 				AX_SAFE_DELETE(texture);
 				AX_SAFE_DELETE(image);
@@ -598,7 +574,7 @@ bool EffectEmitter::getRemoveOnStop() { return removeOnStop; }
 
 void EffectEmitter::setRemoveOnStop(bool value) { removeOnStop = value; }
 
-void EffectEmitter::setColor(cocos2d::Color4B color)
+void EffectEmitter::setColor(cocos2d::Color32 color)
 {
 	color_ = color;
 	Effekseer::Color col;
@@ -700,17 +676,17 @@ void EffectEmitter::draw(cocos2d::Renderer* renderer, const cocos2d::Mat4& paren
     if (!manager->getInternalManager()->GetShown(handle) ||
         manager->getInternalManager()->GetTotalInstanceCount() < 1)
         return; // nothing to draw
-            
-#ifdef AX_USE_METAL
+
+#if AX_RENDER_API == AX_RENDER_API_MTL
     if (!manager->isDistorted)
     {
         // allow frame buffer texture to be copied for distortion
-        cocos2d::backend::DriverBase::getInstance()->setFrameBufferOnly(false);
+        cocos2d::rhi::DriverBase::getInstance()->setFrameBufferOnly(false);
     }
 #endif
 
     auto renderCommand = renderer->nextCallbackCommand();
-    
+
 	renderCommand->init(_globalZOrder);
 
 	auto renderer2d = manager->getInternalRenderer();
@@ -720,7 +696,7 @@ void EffectEmitter::draw(cocos2d::Renderer* renderer, const cocos2d::Mat4& paren
 		renderer2d->SetCameraMatrix(mCamera);
 		renderer2d->SetProjectionMatrix(mProj);
 
-#ifdef AX_USE_METAL
+#if AX_RENDER_API == AX_RENDER_API_MTL
         auto commandList = manager->getInternalCommandList();
         beforeRender(renderer2d, commandList);
 #endif
@@ -734,8 +710,8 @@ void EffectEmitter::draw(cocos2d::Renderer* renderer, const cocos2d::Mat4& paren
 		renderer->addDrawnVertices(renderer2d->GetDrawVertexCount());
 		renderer2d->ResetDrawCallCount();
 		renderer2d->ResetDrawVertexCount();
-        
-        #ifdef AX_USE_METAL
+
+        #if AX_RENDER_API == AX_RENDER_API_MTL
         afterRender(renderer2d, commandList);
         #endif
 
@@ -892,7 +868,7 @@ void EffectManager::begin(cocos2d::Renderer* renderer, float globalZOrder)
 		manager2d->Draw();
 
 	};
-	
+
 
 
 
