@@ -540,15 +540,28 @@ bool DriverImpl::checkForFeatureSupported(FeatureType feature)
 
     switch (feature)
     {
-    case FeatureType::DEPTH24:
     case FeatureType::VAO:
-    case FeatureType::PACKED_DEPTH_STENCIL:
-    case FeatureType::IMG_FORMAT_BGRA8888:
-    case FeatureType::S3TC:
     case FeatureType::VERTEX_ATTRIB_BINDING:
         return true;
+    case FeatureType::DEPTH24:
+    case FeatureType::PACKED_DEPTH_STENCIL:
+        return checkFormatSupport(DXGI_FORMAT_D24_UNORM_S8_UINT);
+    case FeatureType::IMG_FORMAT_BGRA8888:
+        return checkFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM);
+    case FeatureType::S3TC:
+        return checkFormatSupport(DXGI_FORMAT_BC2_UNORM);
+    case FeatureType::ASTC:
+#define DXGI_FORMAT_ASTC_4X4_UNORM DXGI_FORMAT(134)
+        return checkFormatSupport(DXGI_FORMAT_ASTC_4X4_UNORM);
     }
     return false;
+}
+
+bool DriverImpl::checkFormatSupport(DXGI_FORMAT format)
+{
+    UINT formatSupport = 0;
+    HRESULT hr         = _device->CheckFormatSupport(format, &formatSupport);
+    return SUCCEEDED(hr) && (formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D);
 }
 
 }  // namespace ax::rhi::d3d

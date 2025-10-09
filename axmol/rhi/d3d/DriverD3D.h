@@ -175,6 +175,8 @@ private:
     void initializeDevice();
     HRESULT createD3DDevice(int requestDriverType, int createFlags);
 
+    bool checkFormatSupport(DXGI_FORMAT format);
+
     ID3D11Device* _device         = nullptr;
     ID3D11DeviceContext* _context = nullptr;
 
