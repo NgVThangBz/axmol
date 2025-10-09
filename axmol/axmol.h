@@ -38,6 +38,7 @@ THE SOFTWARE.
 
 // base
 #include "axmol/base/AutoreleasePool.h"
+#include "axmol/base/AsyncTaskPool.h"
 #include "axmol/base/Configuration.h"
 #include "axmol/base/Logging.h"
 #include "axmol/base/Data.h"
