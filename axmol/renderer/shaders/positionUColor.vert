@@ -1,7 +1,6 @@
 #version 310 es
 
-
-layout(location = POSITION) in vec4 a_position;
+layout(location = POSITION) in vec2 a_position;
 
 layout(location = COLOR0) out vec4 v_color;
 
@@ -12,6 +11,6 @@ layout(std140) uniform vs_ub {
 
 void main()
 {
-    gl_Position = u_MVPMatrix * a_position;
+    gl_Position = u_MVPMatrix * vec4(a_position, 0.0, 1.0);
     v_color = u_color;
 }
