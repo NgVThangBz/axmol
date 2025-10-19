@@ -265,6 +265,7 @@ VertexLayout* VertexLayoutManager::acquireVertexLayout(VertexLayoutDesc&& desc)
     else
     {
         layout = axdrv->createVertexLayout(std::forward<VertexLayoutDesc>(desc));
+        _customVertexLayouts.emplace(key, layout);
     }
     AX_SAFE_RETAIN(layout);
     return layout;
