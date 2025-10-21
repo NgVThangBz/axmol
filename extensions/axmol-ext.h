@@ -26,8 +26,7 @@
 
 #include "ExtensionMacros.h"
 
-#include "GUI/src/GUI/ScrollView/ScrollView.h"
-#include "GUI/src/GUI/ScrollView/TableView.h"
+
 
 // Physics integration
 #include "physics-nodes/src/physics-nodes/PhysicsDebugNode.h"
@@ -38,8 +37,3 @@
 #include "assets-manager/src/assets-manager/EventAssetsManagerEx.h"
 #include "assets-manager/src/assets-manager/EventListenerAssetsManagerEx.h"
 #include "assets-manager/src/assets-manager/Manifest.h"
-
-// Particle System, include Particle Universe Particle System
-#include "Particle3D/src/Particle3D/Particle3DRender.h"
-#include "Particle3D/src/Particle3D/ParticleSystem3D.h"
-#include "Particle3D/src/Particle3D/PU/PUParticleSystem3D.h"
