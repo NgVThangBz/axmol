@@ -597,7 +597,19 @@ Texture2D* TextureCache::addImage(Image* image, std::string_view key, PixelForma
 
     return texture;
 }
-
+bool TextureCache::addTexture(Texture2D* texture, std::string_view name) {
+    auto it = _textures.find(name);
+    if (it != _textures.end())
+    {
+        texture = it->second;
+        return true;
+    }
+    if (texture)
+    {
+        _textures.emplace(name, texture);
+    }
+    return true;
+}
 Texture2D* TextureCache::addImage(const Data& imageData, std::string_view key)
 {
     AXASSERT(!imageData.isNull() && !key.empty(), "TextureCache: imageData MUST not be empty and key not empty");

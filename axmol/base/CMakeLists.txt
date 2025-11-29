@@ -67,6 +67,7 @@ set(_AX_BASE_HEADER
   base/EventMouse.h
   base/IMEDelegate.h
   base/AutoreleasePool.h
+  base/AsyncTaskPool.h
   base/StencilStateManager.h
   base/EventListenerTouch.h
   base/EventListenerAcceleration.h
@@ -83,6 +84,7 @@ set(_AX_BASE_SRC
   base/JobSystem.cpp
   base/AutoreleasePool.cpp
   base/Environment.cpp
+  base/AsyncTaskPool.cpp
   base/Logging.cpp
   base/Controller.cpp
   base/Data.cpp
