@@ -522,9 +522,6 @@ endif()
 add_subdirectory(${_AX_ROOT}/3rdparty ${ENGINE_BINARY_PATH}/3rdparty)
 target_link_libraries(${_AX_CORE_LIB} 3rdparty)
 
-# engine extensions
-add_subdirectory(${_AX_ROOT}/extensions ${ENGINE_BINARY_PATH}/extensions)
-
 if(MSVC)
   target_sources(${_AX_CORE_LIB} PRIVATE ./axmol.natvis)
   target_sources(${_AX_CORE_LIB} PRIVATE ../3rdparty/robin-map/tsl-robin-map.natvis)

@@ -217,6 +217,7 @@ public:
      * @since v3.10
      */
     void renameTextureWithKey(std::string_view srcName, std::string_view dstName);
+    bool addTexture(Texture2D* texture, std::string_view name);
 
 private:
     void addImageAsyncCallBack(float dt);
