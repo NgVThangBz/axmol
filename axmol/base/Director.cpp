@@ -1116,7 +1116,6 @@ void Director::reset()
     MeshMaterial::releaseBuiltInMaterial();
     MeshMaterial::releaseCachedMaterial();
 #endif
-    VertexLayoutManager::destroyInstance();
 
     rhi::SamplerCache::destroyInstance();
 }
@@ -1130,6 +1129,7 @@ void Director::cleanupDirector()
     AX_SAFE_DELETE(_renderer);
 
     ProgramManager::destroyInstance();
+    VertexLayoutManager::destroyInstance();
     rhi::DriverBase::destroyInstance();
 
     // OpenGL view

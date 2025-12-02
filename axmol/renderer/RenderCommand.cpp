@@ -33,7 +33,13 @@ namespace ax
 
 RenderCommand::RenderCommand() {}
 
-RenderCommand::~RenderCommand() {}
+RenderCommand::~RenderCommand()
+{
+    if (_ownsPSVL) [[unlikely]]
+    {
+        releasePSVL();
+    }
+}
 
 void RenderCommand::init(float globalZOrder, const ax::Mat4& transform, unsigned int flags)
 {
