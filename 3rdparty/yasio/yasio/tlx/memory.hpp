@@ -25,8 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#ifndef YASIO__MEMORY
-#define YASIO__MEMORY
+#pragma once
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -179,10 +178,6 @@ private:
   bool _released;
 };
 
-struct __value_init_tag { // tag to request value-initialization
-  explicit __value_init_tag() = default;
-};
-
 template <typename _Iter>
 using iter_ref_t = typename std::iterator_traits<_Iter>::reference;
 
@@ -202,13 +197,20 @@ inline constexpr bool bitcopy_assignable_v = std::is_trivially_copyable_v<typena
 template <typename _Ptr, typename _Alloc>
 _Ptr uninitialized_fill_n(_Ptr first, size_t count, const typename _Alloc::value_type& val, _Alloc& alloc)
 {
-  using T = typename _Alloc::value_type;
+  using value_type = typename _Alloc::value_type;
 
-  if constexpr (std::is_trivially_copyable_v<T>)
+  if constexpr (std::is_trivially_copyable_v<value_type>)
   {
-    for (size_t i = 0; i < count; ++i)
+    if constexpr (sizeof(value_type) == 1)
     {
-      first[i] = val;
+      ::memset(first, static_cast<unsigned char>(val), count);
+    }
+    else
+    {
+      for (size_t i = 0; i < count; ++i)
+      {
+        first[i] = val;
+      }
     }
     return first + count;
   }
@@ -449,10 +451,47 @@ constexpr _OutIt copy_n_unchecked4(_InIt first, _SizeTy count, _OutIt dest)
   return dest;
 }
 
+// Enumeration for fill policies with positive semantics
+enum class fill_policy
+{
+  always,          // Always perform value initialization
+  nontrivial_dtor, // Fill if destructor is non-trivial
+  nontrivial,      // Fill if either ctor or dtor is non-trivial
+};
+
+// Trait to determine whether filling is required under a given policy
+template <class _Ty, fill_policy policy>
+struct __allow_auto_fill {
+  static constexpr bool value = true; // Default: always fill
+};
+
+// Specialization: fill only if destructor is non-trivial
+template <class _Ty>
+struct __allow_auto_fill<_Ty, fill_policy::nontrivial_dtor> {
+  static constexpr bool value = !std::is_trivially_destructible_v<_Ty>;
+};
+
+// Specialization: fill if either ctor or dtor is non-trivial
+template <class _Ty>
+struct __allow_auto_fill<_Ty, fill_policy::nontrivial> {
+  static constexpr bool value = !(std::is_trivially_default_constructible_v<_Ty> && std::is_trivially_destructible_v<_Ty>);
+};
+
+template <typename _Ty, fill_policy policy>
+inline constexpr bool __allow_auto_fill_v = __allow_auto_fill<_Ty, policy>::value;
+
+struct __auto_value_init_t { // tag to request value-initialization
+  explicit __auto_value_init_t() = default;
+};
+
+struct value_init_t { // tag to request value-initialization
+  explicit value_init_t() = default;
+};
+
+inline constexpr value_init_t value_init = value_init_t{};
+
 } // namespace tlx
 
-#define _TLX_VERIFY(cond, mesg) assert(cond && mesg)
+#define _TLX_VERIFY(cond, mesg) assert(cond&& mesg)
 
 #define _TLX_INTERNAL_CHECK(cond) assert(cond)
-
-#endif

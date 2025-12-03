@@ -272,33 +272,7 @@ struct _Vector_val {
   pointer _Myend;
 };
 
-struct fill_policy {
-  enum enum_type
-  {
-    fill_always,
-    no_fill_trivial_ctor,
-    no_fill_trivial_dtor,
-    no_fill_trivial,
-  };
-
-  template <class _Ty>
-  static constexpr bool is_no_auto_fill(fill_policy::enum_type policy) noexcept
-  {
-    switch (policy)
-    {
-      case fill_policy::no_fill_trivial_ctor:
-        return std::is_trivially_default_constructible_v<_Ty>;
-      case fill_policy::no_fill_trivial_dtor:
-        return std::is_trivially_destructible_v<_Ty>;
-      case fill_policy::no_fill_trivial:
-        return std::is_trivially_default_constructible_v<_Ty> && std::is_trivially_destructible_v<_Ty>;
-      default: // fill_always
-        return false;
-    }
-  }
-};
-
-template <class _Ty, class _Alloc = std::allocator<_Ty>, fill_policy::enum_type _FillPolicy = fill_policy::fill_always>
+template <class _Ty, class _Alloc = std::allocator<_Ty>, fill_policy _FillPolicy = fill_policy::always>
 class vector { // varying size array of values
 private:
   template <class>
@@ -309,7 +283,7 @@ private:
   using _Alty_traits = std::allocator_traits<_Alty>;
 
 public:
-  static constexpr bool no_auto_fill = fill_policy::is_no_auto_fill<_Ty>(_FillPolicy);
+  static constexpr bool allow_auto_fill = __allow_auto_fill_v<_Ty, _FillPolicy>;
 
   static_assert(std::is_object_v<_Ty>, "The C++ Standard forbids containers of non-object types "
                                        "because of [container.requirements].");
@@ -594,6 +568,18 @@ public:
   {
     push_back(val);
     return *this;
+  }
+
+  template <class _U = value_type, typename = std::enable_if_t<std::is_pointer<_U>::value>>
+  constexpr void resize(const size_type _Newsize, std::nullptr_t)
+  {
+    _Resize(_Newsize, _TLX value_init);
+  }
+
+  constexpr void resize(const size_type _Newsize, value_init_t)
+  {
+    // trim or append value-initialized elements, provide strong guarantee
+    _Resize(_Newsize, _TLX value_init);
   }
 
   template <typename _Cont>
@@ -1076,12 +1062,15 @@ private:
     auto& _Appended_last = _Guard._Constructed_last;
 
     if constexpr (std::is_same_v<_Ty2, _Ty>)
-    {
+    { // Fill with user value: use memset for 1‑byte POD, construct otherwise
       _Appended_last = _TLX uninitialized_fill_n(_Appended_first, _Newsize - _Oldsize, _Val, _Al);
     }
-    else if constexpr (!no_auto_fill)
-    {
-      _Appended_last = _TLX uninitialized_value_construct_n(_Appended_first, _Newsize - _Oldsize, _Al);
+    else
+    { // Fill with value init: fast-pass
+      if constexpr ((std::is_same_v<_Ty2, __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, value_init_t>)
+        _Appended_last = _TLX uninitialized_value_construct_n(_Appended_first, _Newsize - _Oldsize, _Al);
+      else // No fill: blazing fast
+        _Appended_last = _Appended_first + (_Newsize - _Oldsize);
     }
 
     if constexpr (std::is_nothrow_move_constructible_v<_Ty> || !std::is_copy_constructible_v<_Ty>)
@@ -1123,13 +1112,19 @@ private:
         return;
       }
 
-      const pointer _Oldlast = _Mylast;
       if constexpr (std::is_same_v<_Ty2, _Ty>)
-        _Mylast = _TLX uninitialized_fill_n(_Oldlast, _Newsize - _Oldsize, _Val, _Al);
-      else if constexpr (!no_auto_fill)
-        _Mylast = _TLX uninitialized_value_construct_n(_Oldlast, _Newsize - _Oldsize, _Al);
+      { // Fill with user value: use memset for 1‑byte POD, construct otherwise
+        _Mylast = _TLX uninitialized_fill_n(_Mylast, _Newsize - _Oldsize, _Val, _Al);
+      }
+      else
+      {
+        // Fill with value init: fast-pass
+        if constexpr ((std::is_same_v<_Ty2, __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, value_init_t>)
+          _Mylast = _TLX uninitialized_value_construct_n(_Mylast, _Newsize - _Oldsize, _Al);
+        else // No fill: blazing fast
+          _Mylast = _Myfirst + _Newsize;
+      }
     }
-
     // if _Newsize == _Oldsize, do nothing; avoid invalidating iterators
   }
 
@@ -1137,7 +1132,7 @@ public:
   constexpr void resize(const size_type _Newsize)
   {
     // trim or append value-initialized elements, provide strong guarantee
-    _Resize(_Newsize, __value_init_tag{});
+    _Resize(_Newsize, __auto_value_init_t{});
   }
 
   constexpr void resize(const size_type _Newsize, const _Ty& _Val)
@@ -1616,7 +1611,7 @@ private:
 };
 
 #pragma region operator==
-template <typename T, typename Alloc, fill_policy::enum_type Policy>
+template <typename T, typename Alloc, fill_policy Policy>
 inline constexpr bool operator==(const tlx::vector<T, Alloc, Policy>& lhs, const tlx::vector<T, Alloc, Policy>& rhs)
 {
   if (lhs.size() != rhs.size())
@@ -1624,7 +1619,7 @@ inline constexpr bool operator==(const tlx::vector<T, Alloc, Policy>& lhs, const
   return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template <typename T, typename Alloc, fill_policy::enum_type Policy, typename OtherContainer,
+template <typename T, typename Alloc, fill_policy Policy, typename OtherContainer,
           typename = std::enable_if_t<std::is_same<T, typename OtherContainer::value_type>::value &&
                                       !std::is_same<OtherContainer, tlx::vector<T, Alloc, Policy>>::value>>
 inline constexpr bool operator==(const tlx::vector<T, Alloc, Policy>& lhs, const OtherContainer& rhs)
@@ -1634,7 +1629,7 @@ inline constexpr bool operator==(const tlx::vector<T, Alloc, Policy>& lhs, const
   return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template <typename T, typename Alloc, fill_policy::enum_type Policy, typename OtherContainer,
+template <typename T, typename Alloc, fill_policy Policy, typename OtherContainer,
           typename = std::enable_if_t<std::is_same<T, typename OtherContainer::value_type>::value &&
                                       !std::is_same<OtherContainer, tlx::vector<T, Alloc, Policy>>::value>>
 inline constexpr bool operator==(const OtherContainer& lhs, const tlx::vector<T, Alloc, Policy>& rhs)
@@ -1646,12 +1641,12 @@ inline constexpr bool operator==(const OtherContainer& lhs, const tlx::vector<T,
 #pragma endregion
 
 #pragma region c++20 like std::erase
-template <typename _Ty, typename _Alloc, fill_policy::enum_type _Policy>
+template <typename _Ty, typename _Alloc, fill_policy _Policy>
 void erase(vector<_Ty, _Alloc, _Policy>& cont, const _Ty& val)
 {
   cont.erase(std::remove(cont.begin(), cont.end(), val), cont.end());
 }
-template <typename _Ty, typename _Alloc, fill_policy::enum_type _Policy, typename _Pr>
+template <typename _Ty, typename _Alloc, fill_policy _Policy, typename _Pr>
 void erase_if(vector<_Ty, _Alloc, _Policy>& cont, _Pr pred)
 {
   cont.erase(std::remove_if(cont.begin(), cont.end(), pred), cont.end());
@@ -1693,4 +1688,3 @@ struct pointer_traits<_TLX sequence_iterator<_Myvec>> {
   static constexpr element_type* to_address(const pointer _Iter) noexcept { return std::to_address(_Iter._Ptr); }
 };
 } // namespace std
-

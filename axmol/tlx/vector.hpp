@@ -38,6 +38,6 @@ namespace tlx
 // should be used only with POD or standard-layout types.
 template <typename _Ty, typename _Alloc = tlx::crt_buffer_allocator<_Ty>>
 using pod_vector = typename std::enable_if<std::is_trivially_copyable<_Ty>::value,
-                                           ::tlx::vector<_Ty, _Alloc, fill_policy::no_fill_trivial_dtor>>::type;
+                                           ::tlx::vector<_Ty, _Alloc, fill_policy::nontrivial_dtor>>::type;
 
 }  // namespace tlx
