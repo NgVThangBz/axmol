@@ -127,17 +127,10 @@ cmake_dependent_option(AX_ENABLE_VLC_MEDIA "Enabling vlc media" OFF "(WIN32 AND 
 
 cmake_dependent_option(AX_ENABLE_WAYLAND "Enabling linux wayland" OFF "LINUX" OFF)
 
-option(AX_ENABLE_PHYSICS "Build Physics support" ON)
 cmake_dependent_option(AX_ENABLE_MEDIA "Build media support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
-option(AX_ENABLE_AUDIO "Build audio support" ON)
 option(AX_ENABLE_OPUS "Build with opus support" ON)
 option(AX_ENABLE_CONSOLE "Build axmol debug tool: console support" ON)
 
-option(AX_ENABLE_3D "Build 3D support" ON)
-cmake_dependent_option(AX_ENABLE_3D_PHYSICS "Build 3D Physics support" ON "AX_ENABLE_3D" OFF)
-cmake_dependent_option(AX_ENABLE_NAVMESH "Build NavMesh support" ON "AX_ENABLE_3D" OFF)
-
-option(AX_ENABLE_VR "Build VR support" OFF)
 
 option(AX_UPDATE_BUILD_VERSION "Update build version" ON)
 option(AX_DISABLE_GLES2 "Whether disable GLES2 support" OFF)
@@ -158,8 +151,6 @@ option(AX_ENABLE_EXT_FAIRYGUI "Build extension FairyGUI" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_LIVE2D "Build extension Live2D" OFF)
 option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" OFF)
 
-cmake_dependent_option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" ${AX_EXT_HINT} "AX_ENABLE_3D" OFF)
-cmake_dependent_option(AX_ENABLE_EXT_PHYSICS_NODE "Build extension physics-nodes" ${AX_EXT_HINT} "AX_ENABLE_PHYSICS" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_IMGUI "Build extension ImGui" ${AX_EXT_HINT} "NOT IOS AND NOT WINRT" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_INSPECTOR "Build extension Inspector" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_SDFGEN "Build extension SDFGen" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
@@ -216,25 +207,11 @@ configure_file(
 # "NOT (AX_GIT_BRANCH STREQUAL \"dev\")" OFF)
 include(2d/CMakeLists.txt)
 
-if(AX_ENABLE_3D)
-  include(3d/CMakeLists.txt)
-endif()
-
 include(platform/CMakeLists.txt)
 
-if(AX_ENABLE_PHYSICS)
-  include(physics/CMakeLists.txt)
-endif()
-
-if(AX_ENABLE_3D_PHYSICS)
-  include(physics3d/CMakeLists.txt)
-endif()
 
 include(math/CMakeLists.txt)
 
-if(AX_ENABLE_NAVMESH)
-  include(navmesh/CMakeLists.txt)
-endif()
 
 include(rhi/CMakeLists.txt)
 include(renderer/CMakeLists.txt)
@@ -243,26 +220,6 @@ include(base/CMakeLists.txt)
 include(ui/CMakeLists.txt)
 include(network/CMakeLists.txt)
 
-if(AX_ENABLE_AUDIO)
-  include(audio/CMakeLists.txt)
-endif()
-
-if(AX_ENABLE_MEDIA)
-  file(GLOB_RECURSE _AX_MEDIA_HEADER media/*.h)
-  file(GLOB_RECURSE _AX_MEDIA_SRC media/*.cpp)
-
-  if(APPLE)
-    list(APPEND _AX_MEDIA_SRC media/AvfMediaEngine.mm)
-    set_source_files_properties(media/MediaEngine.cpp PROPERTIES LANGUAGE OBJCXX)
-  endif()
-endif()
-
-if(AX_ENABLE_VR)
-    include(vr/CMakeLists.txt)
-    if (APPLE)
-        set_source_files_properties(vr/VRGenericHeadTracker.cpp PROPERTIES LANGUAGE OBJCXX)
-    endif()
-endif()
 
 set(_AX_HEADER axmol.h
   ${_AX_2D_HEADER}
@@ -286,41 +243,6 @@ set(_AX_SRC axmol.cpp
   ${_AX_UI_SRC}
   ${_AX_NETWORK_SRC}
 )
-
-if(AX_ENABLE_3D)
-  list(APPEND _AX_HEADER ${_AX_3D_HEADER})
-  list(APPEND _AX_SRC ${_AX_3D_SRC})
-endif()
-
-if(AX_ENABLE_PHYSICS)
-  list(APPEND _AX_HEADER ${_AX_PHYSICS_HEADER})
-  list(APPEND _AX_SRC ${_AX_PHYSICS_SRC})
-endif()
-
-if(AX_ENABLE_3D_PHYSICS)
-  list(APPEND _AX_HEADER ${_AX_PHYSICS3D_HEADER})
-  list(APPEND _AX_SRC ${_AX_PHYSICS3D_SRC})
-endif()
-
-if(AX_ENABLE_NAVMESH)
-  list(APPEND _AX_HEADER ${_AX_NAVMESH_HEADER})
-  list(APPEND _AX_SRC ${_AX_NAVMESH_SRC})
-endif()
-
-if(AX_ENABLE_MEDIA)
-  list(APPEND _AX_HEADER ${_AX_MEDIA_HEADER})
-  list(APPEND _AX_SRC ${_AX_MEDIA_SRC})
-endif()
-
-if(AX_ENABLE_AUDIO)
-  list(APPEND _AX_HEADER ${_AX_AUDIO_HEADER})
-  list(APPEND _AX_SRC ${_AX_AUDIO_SRC})
-endif()
-
-if(AX_ENABLE_VR)
-  list(APPEND _AX_HEADER ${_AX_VR_HEADER})
-  list(APPEND _AX_SRC ${_AX_VR_SRC})
-endif()
 
 list(APPEND _AX_SRC ${_AX_HEADER})
 
@@ -389,14 +311,7 @@ ax_add_shader_target_for(${_AX_CORE_LIB} FILES ${_builtin_shaders} BUILTIN)
 
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_MFMEDIA)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_MSEDGE_WEBVIEW2)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_PHYSICS)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_3D)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_3D_PHYSICS)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_NAVMESH)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_MEDIA)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_AUDIO)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_CONSOLE)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_VR)
 ax_config_pred(${_AX_CORE_LIB} AX_CORE_PROFILE)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_WAYLAND)
 
