@@ -50,9 +50,6 @@ endif()
 
 include(CMakeDependentOption)
 
-# set(AX_RENDER_API_GL  1 CACHE INTERNAL "" FORCE)
-# set(AX_RENDER_API_MTL 2 CACHE INTERNAL "" FORCE)
-# set(AX_RENDER_API_D3D 3 CACHE INTERNAL "" FORCE)
 set(AX_RENDER_API "auto" CACHE STRING "Specify axmol graphics render API")
 
 # Determine AX_RENDER_API
@@ -67,13 +64,17 @@ else()
     if(NOT APPLE) # non-apple platforms, invalid api specified, fallback to gl
       set(AX_RENDER_API "gl" CACHE STRING "" FORCE)
     endif()
-  elseif(AX_RENDER_API STREQUAL "d3d")
-    if(NOT WIN32)
-      if(APPLE)
+    elseif(AX_RENDER_API MATCHES "d3d")
+        if(NOT WIN32)
+        if(APPLE)
+            set(AX_RENDER_API "mtl" CACHE STRING "" FORCE)
+        else()
+            set(AX_RENDER_API "gl" CACHE STRING "" FORCE)
+        endif()
+        endif()
+    elseif(AX_RENDER_API STREQUAL "vk")
+        if(APPLE)
         set(AX_RENDER_API "mtl" CACHE STRING "" FORCE)
-      else()
-        set(AX_RENDER_API "gl" CACHE STRING "" FORCE)
-      endif()
     endif()
   endif()
 endif()
@@ -126,12 +127,6 @@ cmake_dependent_option(AX_ENABLE_VLC_MEDIA "Enabling vlc media" OFF "(WIN32 AND 
 
 cmake_dependent_option(AX_ENABLE_WAYLAND "Enabling linux wayland" OFF "LINUX" OFF)
 
-if(NOT APPLE AND(NOT EMSCRIPTEN))
-  set(AX_USE_ALSOFT ON CACHE BOOL "" FORCE)
-else()
-  option(AX_USE_ALSOFT "Use ALSOFT on apple" OFF)
-endif()
-
 option(AX_ENABLE_PHYSICS "Build Physics support" ON)
 cmake_dependent_option(AX_ENABLE_MEDIA "Build media support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
 option(AX_ENABLE_AUDIO "Build audio support" ON)
@@ -146,7 +141,7 @@ option(AX_ENABLE_VR "Build VR support" OFF)
 
 option(AX_UPDATE_BUILD_VERSION "Update build version" ON)
 option(AX_DISABLE_GLES2 "Whether disable GLES2 support" OFF)
-option(AX_CORE_PROFILE "Whether strip deprecated features" OFF)
+option(AX_CORE_PROFILE "Whether strip deprecated features" ON)
 
 # default value for axmol extensions modules to Build
 # total supported extensions count: 13
@@ -165,7 +160,7 @@ option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" OFF)
 
 cmake_dependent_option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" ${AX_EXT_HINT} "AX_ENABLE_3D" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_PHYSICS_NODE "Build extension physics-nodes" ${AX_EXT_HINT} "AX_ENABLE_PHYSICS" OFF)
-cmake_dependent_option(AX_ENABLE_EXT_IMGUI "Build extension ImGui" ${AX_EXT_HINT} "(WINDOWS AND NOT WINRT) OR MACOSX OR LINUX OR ANDROID OR WASM" OFF)
+cmake_dependent_option(AX_ENABLE_EXT_IMGUI "Build extension ImGui" ${AX_EXT_HINT} "NOT IOS AND NOT WINRT" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_INSPECTOR "Build extension Inspector" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_SDFGEN "Build extension SDFGen" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
 
@@ -521,6 +516,9 @@ endif()
 # 3rd libs
 add_subdirectory(${_AX_ROOT}/3rdparty ${ENGINE_BINARY_PATH}/3rdparty)
 target_link_libraries(${_AX_CORE_LIB} 3rdparty)
+
+# engine extensions
+add_subdirectory(${_AX_ROOT}/extensions ${ENGINE_BINARY_PATH}/extensions)
 
 if(MSVC)
   target_sources(${_AX_CORE_LIB} PRIVATE ./axmol.natvis)
