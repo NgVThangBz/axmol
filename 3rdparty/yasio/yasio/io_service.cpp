@@ -1372,7 +1372,7 @@ void io_service::ares_getaddrinfo_cb(void* data, int status, int /*timeouts*/, a
   auto __get_cprint = [&]() -> const print_fn2_t& { return current_service.options_.print_; };
   if (!ctx->remote_eps_.empty())
   {
-    ctx->query_success_time_ = highp_clock();
+    ctx->query_success_time_ = tlx::highp_clock();
 #  if defined(YASIO_ENABLE_ARES_PROFILER)
     YASIO_KLOGD("[index: %d] ares_getaddrinfo_cb: query %s succeed, cost:%g(ms)", ctx->index_, ctx->remote_host_.c_str(),
                 (ctx->query_success_time_ - ctx->query_start_time_) / 1000.0);
@@ -1386,7 +1386,7 @@ void io_service::ares_getaddrinfo_cb(void* data, int status, int /*timeouts*/, a
   }
   current_service.wakeup();
 }
-int io_service::ares_get_fds(socket_native_type* socks, highp_time_t& waitd_usec)
+int io_service::ares_get_fds(socket_native_type* socks, tlx::highp_time_t& waitd_usec)
 {
   int nfds = 0;
   if (ares_outstanding_work_)

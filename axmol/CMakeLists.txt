@@ -51,6 +51,7 @@ endif()
 include(CMakeDependentOption)
 
 set(AX_RENDER_API "auto" CACHE STRING "Specify axmol graphics render API")
+set_property(CACHE AX_RENDER_API PROPERTY STRINGS d3d11 d3d12 vk mtl gl)
 
 # Determine AX_RENDER_API
 if(AX_RENDER_API STREQUAL "auto")
@@ -77,6 +78,11 @@ else()
         set(AX_RENDER_API "mtl" CACHE STRING "" FORCE)
     endif()
   endif()
+endif()
+
+set(_ax_valid_apis gl vk d3d11 d3d12 mtl)
+if(NOT AX_RENDER_API IN_LIST _ax_valid_apis)
+    message(FATAL_ERROR "Invalid AX_RENDER_API=${AX_RENDER_API}. Valid values: gl vk d3d11 d3d12 mtl")
 endif()
 
 set(_RENDER_NOTICE "AX_RENDER_API=${AX_RENDER_API}")

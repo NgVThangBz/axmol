@@ -1175,7 +1175,7 @@ private:
   YASIO__DECL static void ares_sock_state_cb(void* data, socket_native_type socket_fd, int readable, int writable);
   YASIO__DECL void ares_work_started();
   YASIO__DECL void ares_work_finished();
-  YASIO__DECL int ares_get_fds(socket_native_type* socks, highp_time_t& waitd_usec);
+  YASIO__DECL int ares_get_fds(socket_native_type* socks, tlx::highp_time_t& waitd_usec);
   YASIO__DECL void do_ares_process_fds(socket_native_type* socks, int count);
   YASIO__DECL void recreate_ares_channel();
   YASIO__DECL void config_ares_name_servers();

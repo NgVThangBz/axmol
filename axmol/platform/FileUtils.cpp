@@ -52,6 +52,7 @@ THE SOFTWARE.
 
 #include "axmol/tlx/filesystem.hpp"
 #include "axmol/tlx/split.hpp"
+#include "yasio/tlx/string_view.hpp"
 
 #if defined(_WIN32)
 inline stdfs::path toFspath(const std::string_view& pathSV)
