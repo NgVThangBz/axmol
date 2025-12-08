@@ -231,7 +231,9 @@ void SDFGen::open(ax::Scene* scene)
 
 void SDFGen::close()
 {
-    ImGuiPresenter::getInstance()->removeRenderLoop("#sdfg");
+    auto presenter = ImGuiPresenter::getInstance();
+    if (presenter)
+        presenter->removeRenderLoop("#sdfg");
 
     delete _atlasParams;
     _atlasParams = nullptr;

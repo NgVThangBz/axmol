@@ -23,6 +23,8 @@
 #include "axmol/tlx/flat_set.hpp"
 #include "axmol/tlx/flat_map.hpp"
 
+#include "axmol/rhi/IndexArray.h"
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #    define __TRY     if (true)
@@ -239,7 +241,7 @@ TEST_SUITE("tlx/Containers")
             void* ptr;
         };
 
-        ax::setLogFmtFlag(ax::LogFmtFlag::Full);
+        ax::setLogFmtFlag(ax::LogFmtFlag::Level | ax::LogFmtFlag::TimeStamp);
 
         std::list<char> list0{'2', '3', '4', '5', 'b'};
         tlx::vector<char> arr0;
@@ -289,7 +291,7 @@ TEST_SUITE("tlx/Containers")
         }
         __CATCH
         {
-            AXLOGI("Access uninitialzed object member raise SIGILL (optimized build on Apple platforms)");
+            AXLOGI("Access uninitialzed object member raise SIGILL(4)/SIGTRAP(5) (optimized build on Apple platforms)");
         }
         __FINALLY
         {
@@ -365,5 +367,85 @@ TEST_SUITE("tlx/Containers")
     TEST_CASE("BenchmarkTest")
     {
         run_benchmark();
+    }
+
+    using namespace ax;
+
+    TEST_CASE("IndexArray default constructor uses U_SHORT")
+    {
+        IndexArray arr;
+        CHECK(arr.format() == rhi::IndexFormat::U_SHORT);
+        CHECK(arr.empty());
+        CHECK(arr.size() == 0);
+    }
+
+    TEST_CASE("IndexArray initializer list with uint16_t")
+    {
+        IndexArray arr{ilist_u16_t{1, 2, 3}};
+        CHECK(arr.format() == rhi::IndexFormat::U_SHORT);
+        CHECK(arr.size() == 3);
+        CHECK(arr.at<uint16_t>(0) == 1);
+        CHECK(arr.at<uint16_t>(1) == 2);
+        CHECK(arr.at<uint16_t>(2) == 3);
+    }
+
+    TEST_CASE("IndexArray initializer list with uint32_t")
+    {
+        IndexArray arr{ilist_u32_t{100, 200, 300}};
+        CHECK(arr.format() == rhi::IndexFormat::U_INT);
+        CHECK(arr.size() == 3);
+        CHECK(arr.at<uint32_t>(0) == 100);
+        CHECK(arr.at<uint32_t>(1) == 200);
+        CHECK(arr.at<uint32_t>(2) == 300);
+    }
+
+    TEST_CASE("IndexArray emplace_back and operator[]")
+    {
+        IndexArray arr(rhi::IndexFormat::U_SHORT);
+        arr.emplace_back<uint16_t>(42);
+        arr.emplace_back<uint16_t>(99);
+        CHECK(arr.size() == 2);
+        CHECK(arr[uint16_t(0)] == 42);
+        CHECK(arr[uint16_t(1)] == 99);
+
+        arr[uint16_t(1)] = 123;
+        CHECK(arr.at<uint16_t>(1) == 123);
+    }
+
+    TEST_CASE("IndexArray erase single element")
+    {
+        IndexArray arr{ilist_u16_t{10, 20, 30}};
+        auto* pos = arr.begin<uint16_t>() + 1;
+        arr.erase<uint16_t>(pos);
+        CHECK(arr.size() == 2);
+        CHECK(arr.at<uint16_t>(0) == 10);
+        CHECK(arr.at<uint16_t>(1) == 30);
+    }
+
+    TEST_CASE("IndexArray erase range")
+    {
+        IndexArray arr{ilist_u16_t{10, 20, 30, 40, 50, 60, 70, 80, 90, 100}};
+        auto* pos = arr.begin<uint16_t>() + 1;
+        arr.erase<uint16_t>(pos, pos + 5);
+        CHECK(arr.size() == 5);
+        CHECK(arr.at<uint16_t>(0) == 10);
+        CHECK(arr.at<uint16_t>(1) == 70);
+    }
+
+    TEST_CASE("IndexArray resize and clear")
+    {
+        IndexArray arr(rhi::IndexFormat::U_INT);
+        arr.resize(5);
+        CHECK(arr.size() == 5);
+        arr.clear();
+        CHECK(arr.empty());
+    }
+
+    TEST_CASE("IndexArray for_each callback")
+    {
+        IndexArray arr{ilist_u16_t{1, 2, 3}};
+        std::vector<uint32_t> values;
+        arr.for_each([&](uint32_t v) { values.push_back(v); });
+        CHECK(values == std::vector<uint32_t>{1, 2, 3});
     }
 }

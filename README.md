@@ -74,13 +74,16 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 * Lua
 
 **Renderer RHI**:
+
+* Vulkan for Windows, Linux, Android (since axmol-v3)
+* D3D12 for Windows and UWP (since axmol-v3)
+* D3D11 for Windows and UWP (since axmol-v3)
 * Metal for macOS, iOS and tvOS
-* OpenGL 3.3+ for Linux, macOS and Win32
+* OpenGL 3.3+ for Linux, macOS and Windows
 * OpenGL ES 2.0+ for Android
 * OpenGL ES 3.0+ for iOS and tvOS
-* ANGLE GLES 3.0+ for Win32 and UWP
+* ANGLE GLES 3.0+ for Windows and UWP
 * WebGL 2.0 (OpenGL ES 3.0): WASM
-* D3D11 for Win32 and UWP (since axmol-v3)
 
 **Architectures**:
 * iOS/tvOS (x64, arm64)
@@ -112,6 +115,8 @@ Axmol Engine has iterated and improved over the Cocos2d-x v4.0 base. Now is fast
 
 Some highlights:
 
+- Added **Vulkan** render support (axmol-v3)
+- Added **D3D12** render support (axmol-v3)
 - Added **D3D11** render support (axmol-v3)
 - **Add HiDPI support for Windows/Linux/WebAssembly desktop platforms** (axmol-v3)
 - **New MediaPlayer**: render video as texture2D using MediaEngine. [More info in our Wiki](https://github.com/axmolengine/axmol/wiki/Media-Player).

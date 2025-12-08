@@ -77,13 +77,15 @@ Axmol 引擎在 Cocos2d-x v4.0 的基础上进行迭代和改进。现在速度�
 
 **渲染后端**:
 
+* Vulkan: Windows, Linux, Android (axmol-v3 版本新增)
+* D3D12: Windows and UWP (axmol-v3 版本新增)
+* D3D11: Windows and UWP (axmol-v3 版本新增)
 * Metal： macOS、iOS、tvOS
 * OpenGL 3.3+： Linux、macOS、Win32
 * OpenGL ES 2.0+： Android
 * OpenGL ES 3.0+： iOS
 * ANGLE GLES 3.0+： Win32、 UWP
 * WebGL 2.0 (OpenGL ES 3.0): WASM
-* D3D11 for Win32 and UWP (axmol-v3 版本新增)
 
 **支持架构**:
 
@@ -119,6 +121,8 @@ Axmol 引擎在 Cocos2d-x v4.0 的基础上进行迭代和改进。现在速度�
 
 一些亮点:
 
+- **新增 Vulkan 渲染后端支持** (axmol-v3)
+- **新增 D3D12 渲染后端支持** (axmol-v3)
 - **新增 D3D11 渲染后端支持** (axmol-v3)
 - **新增桌面平台 Windows/Linux/WebAssembly 高分屏(HiDPI) 支持** (axmol-v3)
 - **图形驱动升级：GLES3.0、OpenGL3.3核心模式支持，3D模型实例化渲染支持，全新跨平台 Shader 工作流**。
