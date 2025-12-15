@@ -81,13 +81,13 @@ namespace enki
 }
 
 // thread_local not well supported yet by some older C++11 compilers.
-// For XCode before version 8 thread_local is not defined, so add to your compile defines: ENKI_THREAD_LOCAL __thread
+// For Xcode before version 8 thread_local is not defined, so add to your compile defines: ENKI_THREAD_LOCAL __thread
 #ifndef ENKI_THREAD_LOCAL
 #if defined(_MSC_VER) && _MSC_VER <= 1800
         #define ENKI_THREAD_LOCAL __declspec(thread)
-// Removed below as XCode supports thread_local since version 8
+// Removed below as Xcode supports thread_local since version 8
 // #elif __APPLE__
-//         // Apple thread_local currently not implemented in XCode before version 8 despite it being in Clang.
+//         // Apple thread_local currently not implemented in Xcode before version 8 despite it being in Clang.
 //         #define ENKI_THREAD_LOCAL __thread
 #else
         #define ENKI_THREAD_LOCAL thread_local

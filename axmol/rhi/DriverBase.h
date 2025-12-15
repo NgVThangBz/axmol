@@ -138,11 +138,11 @@ public:
 
     /**
      * Create an auto released Program.
-     * @param vertexShader Specifes this is a vertex shader source.
-     * @param fragmentShader Specifes this is a fragment shader source.
+     * @param vsData Specifes this is a vertex shader data.
+     * @param fsData Specifes this is a fragment shader data.
      * @return A Program instance.
      */
-    virtual Program* createProgram(std::string_view vsSource, std::string_view fsSource) = 0;
+    virtual Program* createProgram(Data vsData, Data fsData) = 0;
 
     virtual VertexLayout* createVertexLayout(VertexLayoutDesc&& desc);
 
@@ -218,10 +218,10 @@ protected:
     /**
      * New a shaderModule, not auto released.
      * @param stage Specifies whether is vertex shader or fragment shader.
-     * @param source Specifies shader source.
+     * @param chunk Specifies shader chunk.
      * @return A ShaderModule object.
      */
-    virtual ShaderModule* createShaderModule(ShaderStage stage, std::string_view source) = 0;
+    virtual ShaderModule* createShaderModule(ShaderStage stage, Data& chunk) = 0;
 
     virtual SamplerHandle createSampler(const SamplerDesc& desc) = 0;
     virtual void destroySampler(SamplerHandle&)                  = 0;

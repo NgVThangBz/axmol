@@ -40,7 +40,7 @@ Please [visit our Wiki](https://github.com/axmolengine/axmol/wiki) to know more 
 > Use the `dev` branch if you want to contribute to v3 development or test new features. For production deployment, please use the `release/2.x` branch.  
 >
 > ⚠️ **Do not submit PRs to the `release/2.x` branch that apply full-file `clang-format` or large-scale reformatting changes.**  
-> Such changes significantly increase merge conflicts and make code review unnecessarily difficult, consuming @halx99’s time.  
+> Such changes significantly increase merge conflicts and make code review unnecessarily difficult, consuming additional time.  
 > Any PRs violating this rule **will not be accepted**.
 
 ***

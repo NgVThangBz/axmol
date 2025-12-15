@@ -39,13 +39,17 @@ void ImGuiTest::onEnter()
 
 void ImGuiTest::onExit()
 {
-    ImGuiPresenter::getInstance()->removeRenderLoop("#test");
-    ImGuiPresenter::getInstance()->clearFonts();
+    auto presenter = ImGuiPresenter::getInstance();
+    if (presenter)
+    {
+        ImGuiPresenter::getInstance()->removeRenderLoop("#test");
+        ImGuiPresenter::getInstance()->clearFonts();
 
 #    if !defined(__ANDROID__)
-    SDFGen::getInstance()->close();
+        SDFGen::getInstance()->close();
 #    endif
-    ImGuiPresenter::destroyInstance();
+        ImGuiPresenter::destroyInstance();
+    }
 
     SpriteFrameCache::getInstance()->removeUnusedSpriteFrames();
 

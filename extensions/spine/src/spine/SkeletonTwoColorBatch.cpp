@@ -268,10 +268,6 @@ namespace spine {
 	TwoColorTrianglesCommand *SkeletonTwoColorBatch::addCommand(axmol::Renderer *renderer, float globalOrder, axmol::Texture2D *texture, rhi::ProgramState *programState, axmol::BlendFunc blendType, const TwoColorTriangles &triangles, const axmol::Mat4 &mv, uint32_t flags) {
         TwoColorTrianglesCommand *command = nextFreeCommand();
 
-        static int commandCount = 0;
-
-        if (++commandCount > 1)
-            return command;
         auto pipelinePS = command->unsafePS();
         if (programState != nullptr)
         {

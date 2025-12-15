@@ -347,6 +347,293 @@ int lua_register_ax_rhi_TextureCubeFace(lua_State* tolua_S)
     return 1;
 }
 
+int lua_ax_rhi_ShaderCache_removeAllShaders(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::ShaderCache* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::ShaderCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_ShaderCache_removeAllShaders'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_removeAllShaders'", nullptr);
+            return 0;
+        }
+        obj->removeAllShaders();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.ShaderCache:removeAllShaders",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_removeAllShaders'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_rhi_ShaderCache_acquireVertexShaderModule(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::ShaderCache* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::ShaderCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_ShaderCache_acquireVertexShaderModule'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1)
+    {
+        ax::Data arg0;
+
+        luaL_error(tolua_S, "ax::Data unsupported");;
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_acquireVertexShaderModule'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->acquireVertexShaderModule(arg0);
+        object_to_luaval<ax::rhi::ShaderModule>(tolua_S, "axrhi.ShaderModule",(ax::rhi::ShaderModule*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.ShaderCache:acquireVertexShaderModule",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_acquireVertexShaderModule'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_rhi_ShaderCache_acquireFragmentShaderModule(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::ShaderCache* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::ShaderCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_ShaderCache_acquireFragmentShaderModule'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 1)
+    {
+        ax::Data arg0;
+
+        luaL_error(tolua_S, "ax::Data unsupported");;
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_acquireFragmentShaderModule'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->acquireFragmentShaderModule(arg0);
+        object_to_luaval<ax::rhi::ShaderModule>(tolua_S, "axrhi.ShaderModule",(ax::rhi::ShaderModule*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.ShaderCache:acquireFragmentShaderModule",argc, 1);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_acquireFragmentShaderModule'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_rhi_ShaderCache_removeUnusedShader(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::ShaderCache* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::ShaderCache*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_ShaderCache_removeUnusedShader'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_removeUnusedShader'", nullptr);
+            return 0;
+        }
+        obj->removeUnusedShader();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.ShaderCache:removeUnusedShader",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_removeUnusedShader'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_rhi_ShaderCache_getInstance(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_getInstance'", nullptr);
+            return 0;
+        }
+        auto&& ret = ax::rhi::ShaderCache::getInstance();
+        object_to_luaval<ax::rhi::ShaderCache>(tolua_S, "axrhi.ShaderCache",(ax::rhi::ShaderCache*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "axrhi.ShaderCache:getInstance",argc, 0);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_getInstance'.",&tolua_err);
+#endif
+    return 0;
+}
+int lua_ax_rhi_ShaderCache_destroyInstance(lua_State* tolua_S)
+{
+    int argc = 0;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertable(tolua_S,1,"axrhi.ShaderCache",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    argc = lua_gettop(tolua_S) - 1;
+
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_ShaderCache_destroyInstance'", nullptr);
+            return 0;
+        }
+        ax::rhi::ShaderCache::destroyInstance();
+        lua_settop(tolua_S, 1);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d\n ", "axrhi.ShaderCache:destroyInstance",argc, 0);
+    return 0;
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_ShaderCache_destroyInstance'.",&tolua_err);
+#endif
+    return 0;
+}
+static int lua_ax_rhi_ShaderCache_finalize(lua_State* tolua_S)
+{
+    AXLOGV("luabindings: finalizing LUA object (ShaderCache)");
+    return 0;
+}
+
+int lua_register_ax_rhi_ShaderCache(lua_State* tolua_S)
+{
+    tolua_usertype(tolua_S,"axrhi.ShaderCache");
+    tolua_cclass(tolua_S,"ShaderCache","axrhi.ShaderCache","",nullptr);
+
+    tolua_beginmodule(tolua_S,"ShaderCache");
+        tolua_function(tolua_S,"removeAllShaders",lua_ax_rhi_ShaderCache_removeAllShaders);
+        tolua_function(tolua_S,"acquireVertexShaderModule",lua_ax_rhi_ShaderCache_acquireVertexShaderModule);
+        tolua_function(tolua_S,"acquireFragmentShaderModule",lua_ax_rhi_ShaderCache_acquireFragmentShaderModule);
+        tolua_function(tolua_S,"removeUnusedShader",lua_ax_rhi_ShaderCache_removeUnusedShader);
+        tolua_function(tolua_S,"getInstance", lua_ax_rhi_ShaderCache_getInstance);
+        tolua_function(tolua_S,"destroyInstance", lua_ax_rhi_ShaderCache_destroyInstance);
+    tolua_endmodule(tolua_S);
+    auto typeName = typeid(ax::rhi::ShaderCache).name(); // rtti is literal storage
+    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "axrhi.ShaderCache";
+    g_typeCast[typeName] = "axrhi.ShaderCache";
+    return 1;
+}
+
 int lua_ax_rhi_Program_getUniformLocation(lua_State* tolua_S)
 {
     int argc = 0;
@@ -402,6 +689,53 @@ int lua_ax_rhi_Program_getUniformLocation(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_rhi_Program_getUniformBufferSize(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::Program* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getUniformBufferSize'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getUniformBufferSize'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->getUniformBufferSize();
+        #pragma warning NO CONVERSION FROM NATIVE FOR ??;
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getUniformBufferSize",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getUniformBufferSize'.",&tolua_err);
+#endif
+
+    return 0;
+}
 int lua_ax_rhi_Program_getVertexInputDesc(lua_State* tolua_S)
 {
     int argc = 0;
@@ -453,194 +787,6 @@ int lua_ax_rhi_Program_getVertexInputDesc(lua_State* tolua_S)
 #if _AX_DEBUG >= 1
     tolua_lerror:
     tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getVertexInputDesc'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_rhi_Program_getMaxVertexLocation(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::rhi::Program* obj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!obj)
-    {
-        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getMaxVertexLocation'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getMaxVertexLocation'", nullptr);
-            return 0;
-        }
-        auto&& ret = obj->getMaxVertexLocation();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getMaxVertexLocation",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getMaxVertexLocation'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_rhi_Program_getMaxFragmentLocation(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::rhi::Program* obj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!obj)
-    {
-        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getMaxFragmentLocation'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getMaxFragmentLocation'", nullptr);
-            return 0;
-        }
-        auto&& ret = obj->getMaxFragmentLocation();
-        tolua_pushnumber(tolua_S,(lua_Number)ret);
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getMaxFragmentLocation",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getMaxFragmentLocation'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_rhi_Program_getVertexShaderSource(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::rhi::Program* obj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!obj)
-    {
-        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getVertexShaderSource'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getVertexShaderSource'", nullptr);
-            return 0;
-        }
-        auto&& ret = obj->getVertexShaderSource();
-        lua_pushlstring(tolua_S,ret.data(),ret.length());
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getVertexShaderSource",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getVertexShaderSource'.",&tolua_err);
-#endif
-
-    return 0;
-}
-int lua_ax_rhi_Program_getFragmentShaderSource(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::rhi::Program* obj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!obj)
-    {
-        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getFragmentShaderSource'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 0)
-    {
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getFragmentShaderSource'", nullptr);
-            return 0;
-        }
-        auto&& ret = obj->getFragmentShaderSource();
-        lua_pushlstring(tolua_S,ret.data(),ret.length());
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getFragmentShaderSource",argc, 0);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getFragmentShaderSource'.",&tolua_err);
 #endif
 
     return 0;
@@ -739,56 +885,6 @@ int lua_ax_rhi_Program_getProgramId(lua_State* tolua_S)
 
     return 0;
 }
-int lua_ax_rhi_Program_getUniformBufferSize(lua_State* tolua_S)
-{
-    int argc = 0;
-    ax::rhi::Program* obj = nullptr;
-    bool ok  = true;
-
-#if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
-#endif
-
-
-#if _AX_DEBUG >= 1
-    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
-#endif
-
-    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
-
-#if _AX_DEBUG >= 1
-    if (!obj)
-    {
-        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getUniformBufferSize'", nullptr);
-        return 0;
-    }
-#endif
-
-    argc = lua_gettop(tolua_S)-1;
-    if (argc == 1)
-    {
-        ax::rhi::ShaderStage arg0;
-
-        ok &= luaval_to_int(tolua_S, 2, &arg0, "axrhi.Program:getUniformBufferSize");
-        if(!ok)
-        {
-            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getUniformBufferSize'", nullptr);
-            return 0;
-        }
-        auto&& ret = obj->getUniformBufferSize(arg0);
-        #pragma warning NO CONVERSION FROM NATIVE FOR ??;
-        return 1;
-    }
-    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getUniformBufferSize",argc, 1);
-    return 0;
-
-#if _AX_DEBUG >= 1
-    tolua_lerror:
-    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getUniformBufferSize'.",&tolua_err);
-#endif
-
-    return 0;
-}
 int lua_ax_rhi_Program_getVertexLayout(lua_State* tolua_S)
 {
     int argc = 0;
@@ -836,6 +932,100 @@ int lua_ax_rhi_Program_getVertexLayout(lua_State* tolua_S)
 
     return 0;
 }
+int lua_ax_rhi_Program_getVSModule(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::Program* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getVSModule'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getVSModule'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->getVSModule();
+        object_to_luaval<ax::rhi::ShaderModule>(tolua_S, "axrhi.ShaderModule",(ax::rhi::ShaderModule*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getVSModule",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getVSModule'.",&tolua_err);
+#endif
+
+    return 0;
+}
+int lua_ax_rhi_Program_getFSModule(lua_State* tolua_S)
+{
+    int argc = 0;
+    ax::rhi::Program* obj = nullptr;
+    bool ok  = true;
+
+#if _AX_DEBUG >= 1
+    tolua_Error tolua_err;
+#endif
+
+
+#if _AX_DEBUG >= 1
+    if (!tolua_isusertype(tolua_S,1,"axrhi.Program",0,&tolua_err)) goto tolua_lerror;
+#endif
+
+    obj = (ax::rhi::Program*)tolua_tousertype(tolua_S,1,0);
+
+#if _AX_DEBUG >= 1
+    if (!obj)
+    {
+        tolua_error(tolua_S,"invalid 'obj' in function 'lua_ax_rhi_Program_getFSModule'", nullptr);
+        return 0;
+    }
+#endif
+
+    argc = lua_gettop(tolua_S)-1;
+    if (argc == 0)
+    {
+        if(!ok)
+        {
+            tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_Program_getFSModule'", nullptr);
+            return 0;
+        }
+        auto&& ret = obj->getFSModule();
+        object_to_luaval<ax::rhi::ShaderModule>(tolua_S, "axrhi.ShaderModule",(ax::rhi::ShaderModule*)ret);
+        return 1;
+    }
+    luaL_error(tolua_S, "%s has wrong number of arguments: %d, was expecting %d \n", "axrhi.Program:getFSModule",argc, 0);
+    return 0;
+
+#if _AX_DEBUG >= 1
+    tolua_lerror:
+    tolua_error(tolua_S,"#ferror in function 'lua_ax_rhi_Program_getFSModule'.",&tolua_err);
+#endif
+
+    return 0;
+}
 static int lua_ax_rhi_Program_finalize(lua_State* tolua_S)
 {
     AXLOGV("luabindings: finalizing LUA object (Program)");
@@ -849,15 +1039,13 @@ int lua_register_ax_rhi_Program(lua_State* tolua_S)
 
     tolua_beginmodule(tolua_S,"Program");
         tolua_function(tolua_S,"getUniformLocation",lua_ax_rhi_Program_getUniformLocation);
+        tolua_function(tolua_S,"getUniformBufferSize",lua_ax_rhi_Program_getUniformBufferSize);
         tolua_function(tolua_S,"getVertexInputDesc",lua_ax_rhi_Program_getVertexInputDesc);
-        tolua_function(tolua_S,"getMaxVertexLocation",lua_ax_rhi_Program_getMaxVertexLocation);
-        tolua_function(tolua_S,"getMaxFragmentLocation",lua_ax_rhi_Program_getMaxFragmentLocation);
-        tolua_function(tolua_S,"getVertexShaderSource",lua_ax_rhi_Program_getVertexShaderSource);
-        tolua_function(tolua_S,"getFragmentShaderSource",lua_ax_rhi_Program_getFragmentShaderSource);
         tolua_function(tolua_S,"getProgramType",lua_ax_rhi_Program_getProgramType);
         tolua_function(tolua_S,"getProgramId",lua_ax_rhi_Program_getProgramId);
-        tolua_function(tolua_S,"getUniformBufferSize",lua_ax_rhi_Program_getUniformBufferSize);
         tolua_function(tolua_S,"getVertexLayout",lua_ax_rhi_Program_getVertexLayout);
+        tolua_function(tolua_S,"getVSModule",lua_ax_rhi_Program_getVSModule);
+        tolua_function(tolua_S,"getFSModule",lua_ax_rhi_Program_getFSModule);
     tolua_endmodule(tolua_S);
     auto typeName = typeid(ax::rhi::Program).name(); // rtti is literal storage
     g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "axrhi.Program";
@@ -2361,12 +2549,12 @@ int lua_ax_rhi_DriverBase_createProgram(lua_State* tolua_S)
     argc = lua_gettop(tolua_S)-1;
     if (argc == 2)
     {
-        std::string_view arg0;
-        std::string_view arg1;
+        ax::Data arg0;
+        ax::Data arg1;
 
-        ok &= luaval_to_std_string_view(tolua_S, 2,&arg0, "axrhi.DriverBase:createProgram");
+        luaL_error(tolua_S, "ax::Data unsupported");;
 
-        ok &= luaval_to_std_string_view(tolua_S, 3,&arg1, "axrhi.DriverBase:createProgram");
+        luaL_error(tolua_S, "ax::Data unsupported");;
         if(!ok)
         {
             tolua_error(tolua_S,"invalid arguments in function 'lua_ax_rhi_DriverBase_createProgram'", nullptr);
@@ -3177,6 +3365,7 @@ TOLUA_API int register_all_ax_rhi(lua_State* tolua_S)
     lua_register_ax_rhi_SamplerAddressMode(tolua_S);
     lua_register_ax_rhi_SamplerFilter(tolua_S);
     lua_register_ax_rhi_TextureCubeFace(tolua_S);
+    lua_register_ax_rhi_ShaderCache(tolua_S);
     lua_register_ax_rhi_Program(tolua_S);
     lua_register_ax_rhi_VertexLayout(tolua_S);
     lua_register_ax_rhi_ProgramState(tolua_S);

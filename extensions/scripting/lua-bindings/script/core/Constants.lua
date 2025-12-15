@@ -612,7 +612,7 @@ ax.BillBoard_Mode =
     VIEW_PLANE_ORIENTED = 1,
 }
 
-ax.GLProgram_VERTEX_ATTRIB =
+ax.SHADER_PROG_VERTEX_ATTRIB =
 {
     POSITION = 0,
     COLOR = 1,

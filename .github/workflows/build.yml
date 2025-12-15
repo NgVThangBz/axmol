@@ -36,7 +36,7 @@ jobs:
   win32-ogl:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Build
       shell: pwsh
       run: |
@@ -48,7 +48,7 @@ jobs:
         ./setup.ps1
         axmol new HelloCpp
         axmol -d .\HelloCpp -xc '-DAX_PREBUILT_DIR=build' -O3
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: windows_ogl_x64
         path: |
@@ -56,7 +56,7 @@ jobs:
   win32-d3d11:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Build
       shell: pwsh
       run: |
@@ -67,7 +67,7 @@ jobs:
         ./setup.ps1
         axmol new HelloCpp
         axmol -d .\HelloCpp -xc '-DAX_PREBUILT_DIR=build' -O3
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: windows_d3d11_x64
         path: |
@@ -75,7 +75,7 @@ jobs:
   win32-d3d12:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Build
       shell: pwsh
       run: |
@@ -86,7 +86,7 @@ jobs:
         ./setup.ps1
         axmol new HelloCpp
         axmol -d .\HelloCpp -xc '-DAX_PREBUILT_DIR=build' -O3
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: windows_d3d12_x64
         path: |
@@ -94,7 +94,7 @@ jobs:
   win32-vk:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Build
       shell: pwsh
       run: |
@@ -105,7 +105,7 @@ jobs:
         ./setup.ps1
         axmol new HelloCpp
         axmol -d .\HelloCpp -xc '-DAX_PREBUILT_DIR=build' -O3
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: windows_vk_x64
         path: |
@@ -113,7 +113,7 @@ jobs:
   winuwp-ogl:
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v5
+        - uses: actions/checkout@v6
 
         - name: Build
           shell: pwsh
@@ -121,7 +121,7 @@ jobs:
   winuwp-d3d11:
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v5
+        - uses: actions/checkout@v6
 
         - name: Build
           shell: pwsh
@@ -129,7 +129,7 @@ jobs:
   win32-clang-ogl:
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v5
+        - uses: actions/checkout@v6
 
         - name: Build
           shell: pwsh
@@ -137,14 +137,14 @@ jobs:
   win32-dll-ogl:
         runs-on: windows-latest
         steps:
-        - uses: actions/checkout@v5
+        - uses: actions/checkout@v6
         - name: Build
           shell: pwsh
           run: .\tools\cmdline\axmol -p win32 -a x64 -dll
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install dependencies
       run: |
@@ -157,7 +157,7 @@ jobs:
   linux-vk:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install dependencies
       run: |
@@ -170,7 +170,7 @@ jobs:
   osx-arm64:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
@@ -178,7 +178,7 @@ jobs:
   osx-x64:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
@@ -195,14 +195,14 @@ jobs:
     env:
       BUILD_ARCH: ${{ matrix.arch }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
       run: |
         $AX_ROOT = $(Get-Location).Path
         ./tools/cmdline/axmol -p android -a $env:BUILD_ARCH
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: android_${{ matrix.arch }}
         path: |
@@ -211,14 +211,14 @@ jobs:
   android-vk:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
       run: |
         $AX_ROOT = $(Get-Location).Path
         ./tools/cmdline/axmol -p android -a arm64 -xc '-DAX_RENDER_API=vk'
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: android_arm64_vk
         path: |
@@ -234,7 +234,7 @@ jobs:
     env:
       TARGET_OS: ${{ matrix.target_os }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
@@ -249,7 +249,7 @@ jobs:
     env:
       TARGET_OS: ${{ matrix.target_os }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
@@ -258,12 +258,12 @@ jobs:
   wasm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh
       run: ./tools/cmdline/axmol -p wasm -O3 -xc '-DAX_ENABLE_EXT_EFFEKSEER=ON,-DAX_WASM_THREADS=8,-DAX_ENABLE_VR=ON' -j2 -t 'cpp-tests,fairygui-tests,lua-tests'
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: wasm
         path: build_wasm/bin/**/*
@@ -278,7 +278,7 @@ jobs:
   wasm64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Build
       shell: pwsh

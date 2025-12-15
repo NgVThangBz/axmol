@@ -460,6 +460,7 @@ void ImGuiPresenter::beginFrame()
         delete this;
         if (_instance == this)
             _instance = nullptr;
+        return;
     }
     if (!_renderLoops.empty())
     {

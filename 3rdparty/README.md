@@ -158,7 +158,7 @@
 - License: Apache-2.0
 
 ## oboe (Android only)
-- [![Upstream](https://img.shields.io/github/v/tag/google/oboe?label=Upstream)](https://github.com/google/oboe)
+- [![Upstream](https://img.shields.io/github/v/release/google/oboe?label=Upstream)](https://github.com/google/oboe)
 - Version: 1.10.0
 - License: Apache-2.0
 
@@ -188,7 +188,7 @@
 - License: LGPL-2.1
 
 ## OpenSSL
-- [![Upstream](https://img.shields.io/github/v/tag/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
+- [![Upstream](https://img.shields.io/github/v/release/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
 - Version: 3.0.18
 - License: Apache-2.0
 

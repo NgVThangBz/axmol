@@ -21,7 +21,7 @@ jobs:
   win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -34,7 +34,7 @@ jobs:
     # build uwp debug avoid github CI fail with memory issue
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -46,7 +46,7 @@ jobs:
   win32-clang:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -58,7 +58,7 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Install deps
@@ -72,7 +72,7 @@ jobs:
   osx-arm64:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -84,7 +84,7 @@ jobs:
   osx-x64:
     runs-on: macos-13
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -96,7 +96,7 @@ jobs:
   android:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -115,7 +115,7 @@ jobs:
     env:
       TARGET_OS: ${{ matrix.target_os }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build
@@ -127,7 +127,7 @@ jobs:
   wasm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: 'refs/pull/${{ inputs.pr_id }}/merge'
     - name: Build

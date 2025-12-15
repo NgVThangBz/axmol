@@ -40,7 +40,7 @@ function(ax_sync_target_res ax_target)
 endfunction()
 
 if(NOT COMMAND set_xcode_property)
-  # This little macro lets you set any XCode specific property, from ios.toolchain.cmake
+  # This little macro lets you set any Xcode specific property, from ios.toolchain.cmake
   function(set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
     set_property(TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY} ${XCODE_VALUE})
   endfunction(set_xcode_property)
@@ -695,6 +695,8 @@ macro(ax_setup_winrt_sources)
         ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll
         ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
       )
+    elseif(AX_RENDER_API STREQUAL "d3d12")
+      list(APPEND prebuilt_dlls "${_winsdk_bin_dir}/dxcompiler.dll")
     endif()
   endif()
 

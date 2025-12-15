@@ -225,9 +225,9 @@ Program* ProgramManager::loadProgram(std::string_view vsName,
     auto fileUtils  = FileUtils::getInstance();
     auto vertFile   = fileUtils->fullPathForFilename(vsName);
     auto fragFile   = fileUtils->fullPathForFilename(fsName);
-    auto vertSource = fileUtils->getStringFromFile(vertFile);
-    auto fragSource = fileUtils->getStringFromFile(fragFile);
-    auto program    = axdrv->createProgram(vertSource, fragSource);
+    auto vertSource = fileUtils->getDataFromFile(vertFile);
+    auto fragSource = fileUtils->getDataFromFile(fragFile);
+    auto program    = axdrv->createProgram(std::move(vertSource), std::move(fragSource));
 
     if (program)
     {

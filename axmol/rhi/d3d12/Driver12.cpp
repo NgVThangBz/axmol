@@ -325,8 +325,8 @@ void DriverImpl::init()
     createDescriptorAllocators();
 
     // check device feature level
-    D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_11_1,
-                                         D3D_FEATURE_LEVEL_11_0};
+    D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0,
+                                         D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
     D3D12_FEATURE_DATA_FEATURE_LEVELS featLevels = {};
     featLevels.NumFeatureLevels                  = _countof(featureLevels);
     featLevels.pFeatureLevelsRequested           = featureLevels;
@@ -337,6 +337,8 @@ void DriverImpl::init()
     {
         _featureLevel = featLevels.MaxSupportedFeatureLevel;
     }
+
+    AXLOGI("D3D12 Feature level: 0x{:04x}", static_cast<int>(_featureLevel));
 
     // adapter version
     LARGE_INTEGER version;
@@ -564,14 +566,14 @@ RenderPipeline* DriverImpl::createRenderPipeline()
     return new RenderPipelineImpl(this);
 }
 
-Program* DriverImpl::createProgram(std::string_view vertexShader, std::string_view fragmentShader)
+Program* DriverImpl::createProgram(Data vsData, Data fsData)
 {
-    return new ProgramImpl(vertexShader, fragmentShader);
+    return new ProgramImpl(vsData, fsData);
 }
 
-ShaderModule* DriverImpl::createShaderModule(ShaderStage stage, std::string_view source)
+ShaderModule* DriverImpl::createShaderModule(ShaderStage stage, Data& chunk)
 {
-    return new ShaderModuleImpl(this, stage, source);
+    return new ShaderModuleImpl(this, stage, chunk);
 }
 
 SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
@@ -849,20 +851,20 @@ void DriverImpl::queueDisposalInternal(DisposableResource&& disposal)
     _disposalQueue.emplace_back(std::move(disposal));
 }
 
-bool DriverImpl::compileShader(std::string_view shaderSource, ShaderStage stage, D3D12BlobHandle& outHandle)
+bool DriverImpl::compileShader(std::span<uint8_t> shaderCode, ShaderStage stage, D3D12BlobHandle& outHandle)
 {
     if (stage == ShaderStage::FRAGMENT)
     {
         _shaderCompileBuffer.clear();
-        _shaderCompileBuffer.reserve(shaderSource.size() + BuiltinSamplers.size());
+        _shaderCompileBuffer.reserve(shaderCode.size() + BuiltinSamplers.size());
         _shaderCompileBuffer += BuiltinSamplers;
-        _shaderCompileBuffer += shaderSource;
-        shaderSource = _shaderCompileBuffer;
+        _shaderCompileBuffer += shaderCode;
+        shaderCode = _shaderCompileBuffer;
     }
 #if _AX_USE_DXC
     ComPtr<IDxcBlobEncoding> sourceBlob;
-    _dxcLibrary->CreateBlobWithEncodingOnHeapCopy(shaderSource.data(), static_cast<UINT32>(shaderSource.size()),
-                                                  CP_UTF8, &sourceBlob);
+    _dxcLibrary->CreateBlobWithEncodingOnHeapCopy(shaderCode.data(), static_cast<UINT32>(shaderCode.size()), CP_UTF8,
+                                                  &sourceBlob);
 
     std::wstring_view entryPoint = L"main";
     std::wstring_view profile    = stageToProfile(stage);
@@ -911,7 +913,7 @@ bool DriverImpl::compileShader(std::string_view shaderSource, ShaderStage stage,
 #    if !defined(NDEBUG)
     flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #    endif
-    HRESULT hr = D3DCompile(shaderSource.data(), shaderSource.size(), nullptr, nullptr, nullptr, "main",
+    HRESULT hr = D3DCompile(shaderCode.data(), shaderCode.size(), nullptr, nullptr, nullptr, "main",
                             stageToProfile(stage), flags, 0, &blob, &errorBlob);
     if (SUCCEEDED(hr))
     {
@@ -1222,10 +1224,10 @@ void DriverImpl::ensureMipmapPipeline(bool isArray)
 
 D3D12BlobHandle DriverImpl::compileMipmapCS(bool isArray)
 {
-    std::string hlslSource;
+    tlx::byte_buffer hlslSource;
     if (isArray)
-        hlslSource = "#define USE_ARRAY 1\n";
-    hlslSource += std::string(kCSGenerateMipsHLSL);
+        hlslSource += "#define USE_ARRAY 1\n"sv;
+    hlslSource += kCSGenerateMipsHLSL;
     D3D12BlobHandle csBlob;
     bool ok = compileShader(hlslSource, ShaderStage::COMPUTE, csBlob);
     AXASSERT(ok, "Compute shader compile failed");
