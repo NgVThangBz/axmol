@@ -170,7 +170,7 @@ void VertexInputBinding::setVertexInputPointer(VertexLayoutDesc& desc,
     }
     else
     {
-        AXLOGI("VertexInputBinding: attribute: '{}' not present in shader", name);
+        ;  // AXLOGI("VertexInputBinding: attribute: '{}' not present in shader", name);
     }
 }
 

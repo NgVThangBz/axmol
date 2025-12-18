@@ -64,7 +64,6 @@ int ProgramManager::chooseSpriteProgramType(rhi::PixelFormat pixelFormat)
     case PixelFormat::RGBA8:
         return rhi::ProgramType::POSITION_TEXTURE_COLOR;
     default:
-        AXLOGW("Warning: chooseSpriteProgramType() unhandled pixel format {}", (int)pixelFormat);
         return rhi::ProgramType::POSITION_TEXTURE_COLOR;
     }
 }

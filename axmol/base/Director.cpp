@@ -97,6 +97,20 @@ std::string_view Director::EVENT_DESTROY               = "director_destroy"sv;
 std::string_view Director::EVENT_BEFORE_GFX_DROP       = "director_before_gfx_drop"sv;
 std::string_view Director::EVENT_AFTER_GFX_DROP        = "director_after_gfx_drop"sv;
 
+// clang-format off
+static constexpr std::string_view kWindowPlatformNameMap[] = {
+    "Unknown"sv,
+    "Win32"sv,
+    "CoreWindow"sv,
+    "Cocoa"sv,
+    "X11"sv,
+    "Wayland"sv,
+    "UIKit"sv,
+    "Android"sv,
+    "Web"sv,
+};
+// clang-format on
+
 Director* Director::getInstance()
 {
     if (!s_SharedDirector)
@@ -418,6 +432,8 @@ void Director::setRenderView(RenderView* renderView)
         // Environment. Gather GPU info
         auto env = Environment::getInstance();
         env->gatherGPUInfo();
+        auto windowPlatformName = kWindowPlatformNameMap[static_cast<int>(renderView->getWindowPlatform())];
+        env->setValue("window.platform", Value{windowPlatformName});
         AXLOGI("{}\n", env->getInfo());
 
         if (_renderView)
