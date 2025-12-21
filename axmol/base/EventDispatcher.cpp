@@ -854,7 +854,7 @@ void EventDispatcher::dispatchEventToListeners(EventListenerVector* listeners,
 
                 if (l->isEnabled() && !l->isPaused() && l->isRegistered() && onEvent(l))
                 {
-                    shouldStopPropagation = true;
+                    // shouldStopPropagation = true;
                     break;
                 }
             }
@@ -954,7 +954,7 @@ void EventDispatcher::dispatchTouchEventToListeners(EventListenerVector* listene
 
                 if (l->isEnabled() && !l->isPaused() && l->isRegistered() && onEvent(l))
                 {
-                    shouldStopPropagation = true;
+                    // shouldStopPropagation = true;
                     break;
                 }
             }

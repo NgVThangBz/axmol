@@ -538,8 +538,7 @@ int LuaEngine::handlerControlEvent(void* data)
 
     int controlEvents = *((int*)(basicScriptData->value));
 
-    int handler = 0;
-    int ret     = 0;
+    int ret = 0;
 
     for (int i = 0; i < kControlEventTotalNumber; i++)
     {
@@ -547,7 +546,8 @@ int LuaEngine::handlerControlEvent(void* data)
         {
             ScriptHandlerMgr::HandlerType controlHandler =
                 ScriptHandlerMgr::HandlerType((int)ScriptHandlerMgr::HandlerType::CONTROL_TOUCH_DOWN + i);
-            handler = ScriptHandlerMgr::getInstance()->getObjectHandler(basicScriptData->nativeObject, controlHandler);
+            const auto handler =
+                ScriptHandlerMgr::getInstance()->getObjectHandler(basicScriptData->nativeObject, controlHandler);
 
             if (0 != handler)
             {

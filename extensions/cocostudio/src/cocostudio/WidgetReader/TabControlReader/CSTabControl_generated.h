@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "cocostudio/CSParseBinary_generated.h"
@@ -62,7 +62,8 @@ struct TabControlOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::TabItemOption>> *tabItems() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::TabItemOption>> *>(VT_TABITEMS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -207,7 +208,8 @@ struct TabHeaderOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::ResourceData *crossDisableFile() const {
     return GetPointer<const flatbuffers::ResourceData *>(VT_CROSSDISABLEFILE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -341,7 +343,8 @@ struct TabItemOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::NodeTree *container() const {
     return GetPointer<const flatbuffers::NodeTree *>(VT_CONTAINER);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_HEADER) &&
            verifier.VerifyTable(header()) &&
@@ -390,14 +393,16 @@ inline const flatbuffers::TabControlOption *GetSizePrefixedTabControlOption(cons
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::TabControlOption>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyTabControlOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::TabControlOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::TabControlOption>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedTabControlOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::TabControlOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::TabControlOption>(nullptr);
 }
 
 inline void FinishTabControlOptionBuffer(

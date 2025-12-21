@@ -32,7 +32,7 @@
 # include_guard (GLOBAL)
 
 # The version number
-set(_AX_VERSION 2.8)
+set(_AX_VERSION 3.0)
 
 if(NOT DEFINED _AX_CORE_LIB)
   set(_AX_CORE_LIB axmol CACHE INTERNAL "The axmol engine lib name")

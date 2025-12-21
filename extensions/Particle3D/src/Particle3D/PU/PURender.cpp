@@ -718,7 +718,6 @@ void PUParticle3DBoxRender::render(Renderer* renderer, const Mat4& transform, Pa
     }
 
     unsigned int vertexindex = 0;
-    unsigned int index       = 0;
     Mat4 texRot;
     Vec3 val;
     for (auto&& iter : particlePool.getActiveDataList())
@@ -771,7 +770,6 @@ void PUParticle3DBoxRender::render(Renderer* renderer, const Mat4& transform, Pa
         _vertices[vertexindex + 7].texCoord.y = val.y;
 
         vertexindex += 8;
-        index += 36;
     }
 
     if (!_vertices.empty() && !_indices.empty())

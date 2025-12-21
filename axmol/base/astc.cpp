@@ -126,7 +126,7 @@ public:
 #    endif
         unsigned int xblocks = task->_xblocks;
         unsigned int yblocks = task->_yblocks;
-        unsigned int zblocks = 1;  // (image_out.dim_z + block_z - 1) / block_z;
+        // unsigned int zblocks = 1;  // (image_out.dim_z + block_z - 1) / block_z;
 
         int row_blocks   = xblocks;
         int plane_blocks = xblocks * yblocks;

@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace flatbuffers {
@@ -364,7 +364,8 @@ struct CSParseBinary FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::AnimationInfo>> *animationList() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::AnimationInfo>> *>(VT_ANIMATIONLIST);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_VERSION) &&
            verifier.VerifyString(version()) &&
@@ -478,7 +479,8 @@ struct NodeTree FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *customClassName() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CUSTOMCLASSNAME);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_CLASSNAME) &&
            verifier.VerifyString(classname()) &&
@@ -559,7 +561,8 @@ struct Options FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::WidgetOptions *data() const {
     return GetPointer<const flatbuffers::WidgetOptions *>(VT_DATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_DATA) &&
            verifier.VerifyTable(data()) &&
@@ -689,7 +692,8 @@ struct WidgetOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool cascadeOpacityEnabled() const {
     return GetField<uint8_t>(VT_CASCADEOPACITYENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -985,7 +989,8 @@ struct LayoutComponentTable FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   float bottomMargin() const {
     return GetField<float>(VT_BOTTOMMARGIN, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_POSITIONXPERCENTENABLED, 1) &&
            VerifyField<uint8_t>(verifier, VT_POSITIONYPERCENTENABLED, 1) &&
@@ -1158,7 +1163,8 @@ struct SingleNodeOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const flatbuffers::WidgetOptions *nodeOptions() const {
     return GetPointer<const flatbuffers::WidgetOptions *>(VT_NODEOPTIONS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1220,7 +1226,8 @@ struct SpriteOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::FVec3 *filter() const {
     return GetStruct<const flatbuffers::FVec3 *>(VT_FILTER);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1301,7 +1308,8 @@ struct ParticleSystemOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Ta
   const flatbuffers::BlendFunc *blendFunc() const {
     return GetStruct<const flatbuffers::BlendFunc *>(VT_BLENDFUNC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1380,7 +1388,8 @@ struct SpineSkeletonOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   float timeScale() const {
     return GetField<float>(VT_TIMESCALE, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1510,7 +1519,8 @@ struct ControlSwitchOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   bool enabled() const {
     return GetField<uint8_t>(VT_ENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1592,7 +1602,8 @@ struct LayerColorOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const flatbuffers::WidgetOptions *nodeOptions() const {
     return GetPointer<const flatbuffers::WidgetOptions *>(VT_NODEOPTIONS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1638,7 +1649,8 @@ struct GameMapOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::ResourceData *fileNameData() const {
     return GetPointer<const flatbuffers::ResourceData *>(VT_FILENAMEDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -1795,7 +1807,8 @@ struct ButtonOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool strikethroughEnabled() const {
     return GetField<uint8_t>(VT_STRIKETHROUGHENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2097,7 +2110,8 @@ struct CheckBoxOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool displaystate() const {
     return GetField<uint8_t>(VT_DISPLAYSTATE, 1) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2214,7 +2228,8 @@ struct RadioButtonOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   bool displaystate() const {
     return GetField<uint8_t>(VT_DISPLAYSTATE, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2307,7 +2322,8 @@ struct RadioButtonGroupOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   bool allowedNoSelection() const {
     return GetField<uint8_t>(VT_ALLOWEDNOSELECTION, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2371,7 +2387,8 @@ struct ImageViewOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool scale9Enabled() const {
     return GetField<uint8_t>(VT_SCALE9ENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2458,7 +2475,8 @@ struct TextAtlasOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t itemHeight() const {
     return GetField<int32_t>(VT_ITEMHEIGHT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2565,7 +2583,8 @@ struct TextBMFontOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   bool isLocalized() const {
     return GetField<uint8_t>(VT_ISLOCALIZED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -2742,7 +2761,8 @@ struct TextOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool strikethroughEnabled() const {
     return GetField<uint8_t>(VT_STRIKETHROUGHENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3001,7 +3021,8 @@ struct RichTextOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *xmlDefinition() const {
     return GetPointer<const ::flatbuffers::String *>(VT_XMLDEFINITION);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3113,7 +3134,8 @@ struct TextFieldOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool isLocalized() const {
     return GetField<uint8_t>(VT_ISLOCALIZED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3288,7 +3310,8 @@ struct LoadingBarOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   int32_t direction() const {
     return GetField<int32_t>(VT_DIRECTION, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3377,7 +3400,8 @@ struct SliderOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool displaystate() const {
     return GetField<uint8_t>(VT_DISPLAYSTATE, 1) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3510,7 +3534,8 @@ struct PanelOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool backGroundScale9Enabled() const {
     return GetField<uint8_t>(VT_BACKGROUNDSCALE9ENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3687,7 +3712,8 @@ struct ScrollViewOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   float scrollbarAutoHideTime() const {
     return GetField<float>(VT_SCROLLBARAUTOHIDETIME, 0.2f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -3876,7 +3902,8 @@ struct PageViewOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool backGroundScale9Enabled() const {
     return GetField<uint8_t>(VT_BACKGROUNDSCALE9ENABLED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -4057,7 +4084,8 @@ struct ListViewOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *verticalType() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VERTICALTYPE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_WIDGETOPTIONS) &&
            verifier.VerifyTable(widgetOptions()) &&
@@ -4314,7 +4342,8 @@ struct TextFieldExOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   bool isLocalized() const {
     return GetField<uint8_t>(VT_ISLOCALIZED, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -4493,7 +4522,8 @@ struct ProjectNodeOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   float innerActionSpeed() const {
     return GetField<float>(VT_INNERACTIONSPEED, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -4569,7 +4599,8 @@ struct ComponentOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::ComAudioOptions *comAudioOptions() const {
     return GetPointer<const flatbuffers::ComAudioOptions *>(VT_COMAUDIOOPTIONS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -4658,7 +4689,8 @@ struct ComAudioOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::ResourceData *fileNameData() const {
     return GetPointer<const flatbuffers::ResourceData *>(VT_FILENAMEDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -4759,7 +4791,8 @@ struct AnimationInfo FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t endIndex() const {
     return GetField<int32_t>(VT_ENDINDEX, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -4838,7 +4871,8 @@ struct NodeAction FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *currentAnimationName() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CURRENTANIMATIONNAME);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_DURATION, 4) &&
            VerifyField<float>(verifier, VT_SPEED, 4) &&
@@ -4924,7 +4958,8 @@ struct TimeLine FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::Frame>> *frames() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::Frame>> *>(VT_FRAMES);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_PROPERTY) &&
            verifier.VerifyString(property()) &&
@@ -5026,7 +5061,8 @@ struct Frame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::BlendFrame *blendFrame() const {
     return GetPointer<const flatbuffers::BlendFrame *>(VT_BLENDFRAME);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_POINTFRAME) &&
            verifier.VerifyTable(pointFrame()) &&
@@ -5136,7 +5172,8 @@ struct PointFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5208,7 +5245,8 @@ struct ScaleFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5280,7 +5318,8 @@ struct ColorFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5352,7 +5391,8 @@ struct TextureFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5425,7 +5465,8 @@ struct EventFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5513,7 +5554,8 @@ struct IntFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5585,7 +5627,8 @@ struct BoolFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5665,7 +5708,8 @@ struct InnerActionFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5761,7 +5805,8 @@ struct EasingData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<const flatbuffers::FVec2 *> *points() const {
     return GetPointer<const ::flatbuffers::Vector<const flatbuffers::FVec2 *> *>(VT_POINTS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TYPE, 4) &&
            VerifyOffset(verifier, VT_POINTS) &&
@@ -5828,7 +5873,8 @@ struct ResourceData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t resourceType() const {
     return GetField<int32_t>(VT_RESOURCETYPE, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_PATH) &&
            verifier.VerifyString(path()) &&
@@ -5909,7 +5955,8 @@ struct BlendFrame FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::EasingData *easingData() const {
     return GetPointer<const flatbuffers::EasingData *>(VT_EASINGDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_FRAMEINDEX, 4) &&
            VerifyField<uint8_t>(verifier, VT_TWEEN, 1) &&
@@ -5969,14 +6016,16 @@ inline const flatbuffers::CSParseBinary *GetSizePrefixedCSParseBinary(const void
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::CSParseBinary>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyCSParseBinaryBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::CSParseBinary>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::CSParseBinary>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedCSParseBinaryBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::CSParseBinary>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::CSParseBinary>(nullptr);
 }
 
 inline void FinishCSParseBinaryBuffer(

@@ -241,10 +241,6 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
         float positionX    = 0;
         float positionY    = 0;
         float scaleX       = 1;
-        float scaleY       = 1;
-        float rotation     = 0;
-        int opacity        = 255;
-        int colorR         = -1;
         int colorG         = -1;
         int colorB         = -1;
         std::vector<float> frameTweenParameter;
@@ -271,7 +267,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
                 stExpCocoNode* tweenParameterArray = innerFrameNode[j].GetChildArray(cocoLoader);
                 for (int k = 0; k < tweenParameterCount; ++k)
                 {
-                    std::string t_key   = tweenParameterArray[j].GetName(cocoLoader);
+                    // std::string t_key   = tweenParameterArray[j].GetName(cocoLoader);
                     std::string t_value = tweenParameterArray[j].GetValue(cocoLoader);
                     frameTweenParameter.emplace_back(valueToFloat(t_value));
                 }
@@ -298,7 +294,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
             }
             else if (key == "scaley")
             {
-                scaleY                        = valueToFloat(value);
+                auto scaleY                   = valueToFloat(value);
                 ActionScaleFrame* actionFrame = new ActionScaleFrame();
                 actionFrame->autorelease();
                 actionFrame->setEasingType(frameTweenType);
@@ -311,7 +307,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
             }
             else if (key == "rotation")
             {
-                rotation                         = valueToFloat(value);
+                auto rotation                    = valueToFloat(value);
                 ActionRotationFrame* actionFrame = new ActionRotationFrame();
                 actionFrame->autorelease();
                 actionFrame->setEasingType(frameTweenType);
@@ -323,7 +319,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
             }
             else if (key == "opacity")
             {
-                opacity                      = valueToInt(value);
+                auto opacity                 = valueToInt(value);
                 ActionFadeFrame* actionFrame = new ActionFadeFrame();
                 actionFrame->autorelease();
                 actionFrame->setEasingType(frameTweenType);
@@ -343,7 +339,7 @@ void ActionNode::initWithBinary(CocoLoader* cocoLoader, stExpCocoNode* cocoNode,
             }
             else if (key == "colorr")
             {
-                colorR = valueToInt(value);
+                auto colorR = valueToInt(value);
 
                 ActionTintFrame* actionFrame = new ActionTintFrame();
                 actionFrame->autorelease();

@@ -10,7 +10,7 @@ param( [switch]$updateAdt                    #\
 # Bash Start ------------------------------------------------------------
 scriptdir="`dirname "${BASH_SOURCE[0]}"`"
 if ! command -v pwsh > /dev/null; then
-    $scriptdir/1k/install-pwsh.sh
+    $scriptdir/1k/pwshi.sh
 fi
 pwsh $scriptdir/setup.ps1 "$@"
 # Bash End --------------------------------------------------------------
@@ -319,7 +319,7 @@ else {
             }
         }
 
-        Write-Host "Are you continue install linux dependencies for axmol? (y/N) " -NoNewline
+        Write-Host "Install Axmol Linux dependencies (one-time)? (y/N) " -NoNewline
         $answer = Read-Host
         if ($answer -like 'y*') {
             if ($LinuxDistro -eq 'Debian') {
@@ -334,7 +334,7 @@ else {
                     $webkit2gtk_dev = 'libwebkit2gtk-4.0-dev'
                 }
 
-                sudo apt update
+                sudo apt-get update
                 # for vm, libxxf86vm-dev also required
 
                 $DEPENDS = @()
@@ -362,9 +362,14 @@ else {
                 $DEPENDS += 'libwayland-dev', 'wayland-protocols', 'libwayland-cursor0', 'libwayland-egl1', 'libwayland-egl-backend-dev', 'libegl1-mesa-dev', 'libgl1-mesa-dev'
 
                 # if vlc encouter codec error, install
-                # sudo apt install ubuntu-restricted-extras
+                # sudo apt-get install ubuntu-restricted-extras
                 println "Install packages: $DEPENDS ..."
-                sudo apt install --allow-unauthenticated --yes $DEPENDS > /dev/null
+                if ("$env:GITHUB_ACTIONS" -eq 'true') {
+                    sudo apt-get install --allow-unauthenticated --yes $DEPENDS > /dev/null
+                }
+                else {
+                    sudo apt-get install --allow-unauthenticated --yes $DEPENDS
+                }
             }
             elseif ($LinuxDistro -eq 'Arch') {
                 $mirror_list = [System.IO.File]::ReadAllText('/etc/pacman.d/mirrorlist')

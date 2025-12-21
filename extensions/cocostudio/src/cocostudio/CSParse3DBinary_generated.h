@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "CSParseBinary_generated.h"
@@ -59,7 +59,8 @@ struct Node3DOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t cameramask() const {
     return GetField<int32_t>(VT_CAMERAMASK, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -141,7 +142,8 @@ struct Sprite3DOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t lightFlag() const {
     return GetField<int32_t>(VT_LIGHTFLAG, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE3DOPTION) &&
            verifier.VerifyTable(node3DOption()) &&
@@ -212,7 +214,8 @@ struct Particle3DOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const flatbuffers::ResourceData *fileData() const {
     return GetPointer<const flatbuffers::ResourceData *>(VT_FILEDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE3DOPTION) &&
            verifier.VerifyTable(node3DOption()) &&
@@ -305,7 +308,8 @@ struct UserCameraOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const flatbuffers::ResourceData *backFileData() const {
     return GetPointer<const flatbuffers::ResourceData *>(VT_BACKFILEDATA);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE3DOPTION) &&
            verifier.VerifyTable(node3DOption()) &&
@@ -463,7 +467,8 @@ struct GameNode3DOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   bool useDefaultLight() const {
     return GetField<uint8_t>(VT_USEDEFAULTLIGHT, 0) != 0;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
@@ -636,7 +641,8 @@ struct Light3DOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   float outerAngle() const {
     return GetField<float>(VT_OUTERANGLE, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODE3DOPTION) &&
            verifier.VerifyTable(node3DOption()) &&
@@ -714,14 +720,16 @@ inline const flatbuffers::Node3DOption *GetSizePrefixedNode3DOption(const void *
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::Node3DOption>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyNode3DOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::Node3DOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::Node3DOption>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedNode3DOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::Node3DOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::Node3DOption>(nullptr);
 }
 
 inline void FinishNode3DOptionBuffer(

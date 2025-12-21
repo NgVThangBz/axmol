@@ -40,20 +40,15 @@
 
 #include "ntcvt/ntcvt.hpp"
 
-#include <algorithm>
+#include <d3dcompiler.h>
 
-// Note: d3dcompiler_47.dll also works well in HLSL shader model 5.1
-// DXC requires shader model 6.0
-#define _AX_USE_DXC 1
+#include <algorithm>
 
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d12.lib")
 
-#if _AX_USE_DXC
-#    pragma comment(lib, "dxcompiler.lib")
-#else
-#    pragma comment(lib, "d3dcompiler.lib")
-#endif
+#pragma comment(lib, "dxcompiler.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 namespace ax::rhi
 {
@@ -140,7 +135,7 @@ void main(uint3 tid : SV_DispatchThreadID)
 }
 )";
 
-static inline bool CheckHR(HRESULT hr, const char* msg = nullptr)
+static inline bool checkHR(HRESULT hr, const char* msg = nullptr)
 {
     if (FAILED(hr))
     {
@@ -175,8 +170,7 @@ static int evalulateMaxMsaaSamples(ID3D12Device* device, DXGI_FORMAT format)
     return static_cast<int>(best);
 }
 
-#if _AX_USE_DXC
-static inline std::wstring_view stageToProfile(ShaderStage s)
+static inline std::wstring_view stageToProfileDXC(ShaderStage s)
 {
     switch (s)
     {
@@ -190,8 +184,8 @@ static inline std::wstring_view stageToProfile(ShaderStage s)
         return L"vs_6_0"sv;
     }
 }
-#else
-static inline const char* stageToProfile(ShaderStage s)
+
+static inline const char* stageToProfileFXC(ShaderStage s)
 {
     switch (s)
     {
@@ -205,7 +199,6 @@ static inline const char* stageToProfile(ShaderStage s)
         return "vs_5_1";
     }
 }
-#endif
 
 static constexpr auto kUploadQueueType = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
@@ -291,6 +284,7 @@ DriverImpl::~DriverImpl()
 
     _dxcLibrary.Reset();
     _dxcCompiler.Reset();
+    _dxcArguments.clear();
 
     _isolateSubmission.release();
 
@@ -312,8 +306,6 @@ DriverImpl::~DriverImpl()
         CloseHandle(_idleEvent);
         _idleEvent = nullptr;
     }
-
-    _dxcArguments.clear();
 
     if (debugDevice)
         debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL);
@@ -372,19 +364,19 @@ void DriverImpl::init()
     _device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_idleFence));
     AXASSERT(_idleEvent && _idleFence, "Create sync objects failed");
 
-#if _AX_USE_DXC
     // init DXC instances once
     DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&_dxcLibrary));
     DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&_dxcCompiler));
 
-#    if defined(NDEBUG)
+#if defined(NDEBUG)
     // Release build arguments
     _dxcArguments = {L"-O2", L"-Qstrip_debug"};
-#    else
+#else
     // Debug build arguments
     _dxcArguments = {L"-Zi", L"-Od"};
-#    endif
 #endif
+
+    _dxcAvailable = detectDXCAvailability();
 }
 
 void DriverImpl::initializeDevice()
@@ -621,7 +613,7 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
         else
             sd.Filter = D3D12_FILTER_ANISOTROPIC;
 
-        sd.MaxAnisotropy = desc.anisotropy ? desc.anisotropy : 1;
+        sd.MaxAnisotropy = std::clamp(desc.anisotropy + 1u, 1u, 16u);
     }
     else
     {
@@ -753,21 +745,18 @@ std::string DriverImpl::getVersion() const
 std::string DriverImpl::getRenderer() const
 {
     auto desc = ntcvt::from_chars(_adapterDesc.Description);
-
-#if _AX_USE_DXC
-    return fmt::format("{} D3D12 DXC SM6.0", desc);
-#else
-    return fmt::format("{} D3D12 vs_5_1 ps_5_1", desc);
-#endif
+    if (_dxcAvailable)
+        return fmt::format("{} D3D12 DXC SM6.0", desc);
+    else
+        return fmt::format("{} D3D12 vs_5_1 ps_5_1", desc);
 }
 
 std::string DriverImpl::getShaderVersion() const
 {
-#if _AX_USE_DXC
-    return "HLSL Shader Model 6.0 (DXC)"s;
-#else
-    return "D3D12 HLSL vs_5_1 ps_5_1"s;
-#endif
+    if (_dxcAvailable)
+        return "HLSL Shader Model 6.0 (DXC)"s;
+    else
+        return "D3D12 HLSL vs_5_1 ps_5_1"s;
 }
 
 IsolateSubmission& DriverImpl::startIsolateSubmission()
@@ -861,75 +850,78 @@ bool DriverImpl::compileShader(std::span<uint8_t> shaderCode, ShaderStage stage,
         _shaderCompileBuffer += shaderCode;
         shaderCode = _shaderCompileBuffer;
     }
-#if _AX_USE_DXC
-    ComPtr<IDxcBlobEncoding> sourceBlob;
-    _dxcLibrary->CreateBlobWithEncodingOnHeapCopy(shaderCode.data(), static_cast<UINT32>(shaderCode.size()), CP_UTF8,
-                                                  &sourceBlob);
-
-    std::wstring_view entryPoint = L"main";
-    std::wstring_view profile    = stageToProfile(stage);
-
-    ComPtr<IDxcOperationResult> result;
-    HRESULT hr = _dxcCompiler->Compile(sourceBlob.Get(),
-                                       nullptr,            // source file name
-                                       entryPoint.data(),  // entry point
-                                       profile.data(),     // target profile
-                                       _dxcArguments.data(), (UINT)_dxcArguments.size(), nullptr, 0,  // defines
-                                       nullptr,                                                       // include handler
-                                       &result);
-
-    if (FAILED(hr))
+    if (_dxcAvailable)
     {
-        AXLOGE("axmol:ERROR: DXC compile failed, hr:{}", hr);
-        AXASSERT(false, "Shader compile failed!");
-        return false;
-    }
+        ComPtr<IDxcBlobEncoding> sourceBlob;
+        _dxcLibrary->CreateBlobWithEncodingOnHeapCopy(shaderCode.data(), static_cast<UINT32>(shaderCode.size()),
+                                                      CP_UTF8, &sourceBlob);
 
-    HRESULT status;
-    result->GetStatus(&status);
-    if (FAILED(status))
-    {
-        ComPtr<IDxcBlobEncoding> errors;
-        result->GetErrorBuffer(&errors);
-        std::string_view errorDetail =
-            errors ? std::string_view((const char*)errors->GetBufferPointer(), errors->GetBufferSize())
-                   : "Unknown compile error"sv;
-        AXLOGE("axmol:ERROR: Failed to compile shader, hr:{},{}", status, errorDetail);
-        AXASSERT(false, "Shader compile failed!");
-        return false;
-    }
+        std::wstring_view entryPoint = L"main";
+        std::wstring_view profile    = stageToProfileDXC(stage);
 
-    ComPtr<IDxcBlob> blob;
-    result->GetResult(&blob);
+        ComPtr<IDxcOperationResult> result;
+        HRESULT hr = _dxcCompiler->Compile(sourceBlob.Get(),
+                                           nullptr,            // source file name
+                                           entryPoint.data(),  // entry point
+                                           profile.data(),     // target profile
+                                           _dxcArguments.data(), (UINT)_dxcArguments.size(), nullptr, 0,  // defines
+                                           nullptr,  // include handler
+                                           &result);
 
-    outHandle.blob = blob;
-    outHandle.view = std::span<uint8_t>((uint8_t*)blob->GetBufferPointer(), blob->GetBufferSize());
+        if (FAILED(hr))
+        {
+            AXLOGE("axmol:ERROR: DXC compile failed, hr:{}", hr);
+            AXASSERT(false, "Shader compile failed!");
+            return false;
+        }
 
-    return true;
-#else
-    ComPtr<ID3DBlob> blob;
-    ComPtr<ID3DBlob> errorBlob;
-    UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL2 | D3DCOMPILE_ENABLE_STRICTNESS;
-#    if !defined(NDEBUG)
-    flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#    endif
-    HRESULT hr = D3DCompile(shaderCode.data(), shaderCode.size(), nullptr, nullptr, nullptr, "main",
-                            stageToProfile(stage), flags, 0, &blob, &errorBlob);
-    if (SUCCEEDED(hr))
-    {
+        HRESULT status;
+        result->GetStatus(&status);
+        if (FAILED(status))
+        {
+            ComPtr<IDxcBlobEncoding> errors;
+            result->GetErrorBuffer(&errors);
+            std::string_view errorDetail =
+                errors ? std::string_view((const char*)errors->GetBufferPointer(), errors->GetBufferSize())
+                       : "Unknown compile error"sv;
+            AXLOGE("axmol:ERROR: Failed to compile shader, hr:{},{}", status, errorDetail);
+            AXASSERT(false, "Shader compile failed!");
+            return false;
+        }
+
+        ComPtr<IDxcBlob> blob;
+        result->GetResult(&blob);
+
         outHandle.blob = blob;
         outHandle.view = std::span<uint8_t>((uint8_t*)blob->GetBufferPointer(), blob->GetBufferSize());
+
         return true;
     }
-
-    std::string_view errorDetail =
-        errorBlob ? std::string_view((const char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize())
-                  : "Unknown compile error"sv;
-    AXLOGE("axmol:ERROR: Failed to compile shader, hr:{},{}", hr, errorDetail);
-    AXASSERT(false, "Shader compile failed!");
-
-    return false;
+    else
+    {
+        ComPtr<ID3DBlob> blob;
+        ComPtr<ID3DBlob> errorBlob;
+        UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL2 | D3DCOMPILE_ENABLE_STRICTNESS;
+#if !defined(NDEBUG)
+        flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
+        HRESULT hr = D3DCompile(shaderCode.data(), shaderCode.size(), nullptr, nullptr, nullptr, "main",
+                                stageToProfileFXC(stage), flags, 0, &blob, &errorBlob);
+        if (SUCCEEDED(hr))
+        {
+            outHandle.blob = blob;
+            outHandle.view = std::span<uint8_t>((uint8_t*)blob->GetBufferPointer(), blob->GetBufferSize());
+            return true;
+        }
+
+        std::string_view errorDetail =
+            errorBlob ? std::string_view((const char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize())
+                      : "Unknown compile error"sv;
+        AXLOGE("axmol:ERROR: Failed to compile shader, hr:{},{}", hr, errorDetail);
+        AXASSERT(false, "Shader compile failed!");
+
+        return false;
+    }
 }
 
 bool DriverImpl::generateMipmaps(ID3D12GraphicsCommandList* cmd, ID3D12Resource* texture)
@@ -1055,7 +1047,7 @@ bool DriverImpl::generateMipmaps(ID3D12GraphicsCommandList* cmd, ID3D12Resource*
     {
         CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
         auto bufDesc = CD3DX12_RESOURCE_DESC::Buffer(totalConstSize);
-        if (!CheckHR(_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc,
+        if (!checkHR(_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufDesc,
                                                       D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                       IID_PPV_ARGS(&constUpload)),
                      "Create constant upload buffer"))
@@ -1186,8 +1178,8 @@ void DriverImpl::ensureMipmapPipeline(bool isArray)
         rsDesc.Init(_countof(params), params, 1, &staticSampler, D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
         ComPtr<ID3DBlob> rsBlob, rsErr;
-        CheckHR(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &rsBlob, &rsErr));
-        CheckHR(getDevice()->CreateRootSignature(0, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(),
+        checkHR(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &rsBlob, &rsErr));
+        checkHR(getDevice()->CreateRootSignature(0, rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(),
                                                  IID_PPV_ARGS(&_mipmapRootSig)));
     }
 
@@ -1199,7 +1191,7 @@ void DriverImpl::ensureMipmapPipeline(bool isArray)
         psoDesc.pRootSignature     = _mipmapRootSig.Get();
         psoDesc.CS.pShaderBytecode = csBlob.view.data();
         psoDesc.CS.BytecodeLength  = csBlob.view.size();
-        CheckHR(getDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&targetPSO)));
+        checkHR(getDevice()->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&targetPSO)));
     }
 
     // Create (or ensure) a shader-visible SRV/UAV heap that we can copy CPU-only descriptors into.
@@ -1288,6 +1280,95 @@ bool DriverImpl::checkFormatSupport(DXGI_FORMAT format)
     D3D12_FEATURE_DATA_FORMAT_SUPPORT support = {format};
     HRESULT hr = _device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &support, sizeof(support));
     return SUCCEEDED(hr) && (support.Support1 & D3D12_FORMAT_SUPPORT1_TEXTURE2D) != 0;
+}
+
+bool DriverImpl::detectDXCAvailability()
+{
+    if (!_device || !_dxcLibrary || !_dxcCompiler)
+    {
+        AXLOGW("DXC unavailable: missing compiler or library.");
+        return false;
+    }
+
+    // --- 1. Minimal compute shader ---
+    static constexpr std::string_view kCS = R"(
+        [numthreads(1,1,1)]
+        void main() {}
+    )"sv;
+
+    // --- 2. Compile CS via DXC ---
+    ComPtr<IDxcBlobEncoding> srcBlob;
+    HRESULT hr = _dxcLibrary->CreateBlobWithEncodingOnHeapCopy(kCS.data(), (UINT)kCS.size(), CP_UTF8, &srcBlob);
+
+    if (FAILED(hr))
+    {
+        AXLOGW("DXC unavailable: failed to create source blob.");
+        return false;
+    }
+
+    ComPtr<IDxcOperationResult> result;
+    hr = _dxcCompiler->Compile(srcBlob.Get(), nullptr, L"main", L"cs_6_0", _dxcArguments.data(),
+                               (UINT)_dxcArguments.size(), nullptr, 0, nullptr, &result);
+
+    if (FAILED(hr))
+    {
+        AXLOGW("DXC unavailable: compile invocation failed.");
+        return false;
+    }
+
+    HRESULT status = E_FAIL;
+    result->GetStatus(&status);
+    if (FAILED(status))
+    {
+        AXLOGW("DXC unavailable: compile failed.");
+        return false;
+    }
+
+    ComPtr<IDxcBlob> csBlob;
+    result->GetResult(&csBlob);
+    if (!csBlob)
+    {
+        AXLOGW("DXC unavailable: no DXIL blob returned.");
+        return false;
+    }
+
+    // --- 3. Create minimal root signature (empty) ---
+    D3D12_ROOT_SIGNATURE_DESC rsDesc{};
+    rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+
+    ComPtr<ID3DBlob> sigBlob, errBlob;
+    hr = D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sigBlob, &errBlob);
+    if (FAILED(hr))
+    {
+        AXLOGW("DXC unavailable: root signature serialization failed.");
+        return false;
+    }
+
+    ComPtr<ID3D12RootSignature> rootSig;
+    hr = _device->CreateRootSignature(0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSig));
+
+    if (FAILED(hr))
+    {
+        AXLOGW("DXC unavailable: root signature creation failed.");
+        return false;
+    }
+
+    // --- 4. Build minimal compute PSO ---
+    D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+    psoDesc.pRootSignature = rootSig.Get();
+    psoDesc.CS             = {csBlob->GetBufferPointer(), csBlob->GetBufferSize()};
+
+    ComPtr<ID3D12PipelineState> pso;
+    hr = _device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+
+    if (FAILED(hr))
+    {
+        AXLOGW("DXC unavailable: driver rejected DXIL, hr=0x{:08x}", (unsigned)hr);
+        return false;
+    }
+
+    AXLOGI("DXC is available and DXIL is accepted by driver.");
+    return true;
 }
 
 }  // namespace ax::rhi::d3d12

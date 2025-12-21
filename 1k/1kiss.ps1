@@ -1177,7 +1177,7 @@ function setup_nasm() {
         }
         elseif ($IsLinux) {
             if ($(which dpkg)) {
-                sudo apt install nasm
+                sudo apt-get install -y nasm
             }
         }
         elseif ($IsMacOS) {
@@ -1226,7 +1226,7 @@ function setup_unzip() {
     if (!$unzip_cmd_info) {
         if ($IsLinux) {
             if ($(which dpkg)) {
-                sudo apt install unzip
+                sudo apt-get install -y unzip
             }
             elseif($(which pacman)) {
                 sudo pacman -S --needed --noconfirm unzip
@@ -1259,7 +1259,7 @@ function setup_7z() {
             $1k.addpath($7z_bin)
         }
         elseif ($IsLinux) {
-            if ($(which dpkg)) { sudo apt install p7zip-full }
+            if ($(which dpkg)) { sudo apt-get install -y p7zip-full }
         }
         elseif ($IsMacOS) {
             brew install p7zip

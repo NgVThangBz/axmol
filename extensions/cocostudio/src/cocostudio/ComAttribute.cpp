@@ -160,7 +160,6 @@ bool ComAttribute::serialize(void* r)
         const char* comName       = nullptr;
         const char* file          = nullptr;
         std::string filePath;
-        int resType = 0;
         if (v != nullptr)
         {
             className = DICTOOL->getStringValue_json(*v, "classname");
@@ -170,7 +169,7 @@ bool ComAttribute::serialize(void* r)
             AX_BREAK_IF(!DICTOOL->checkObjectExist_json(fileData));
             file = DICTOOL->getStringValue_json(fileData, "path");
             AX_BREAK_IF(file == nullptr);
-            resType = DICTOOL->getIntValue_json(fileData, "resourceType", -1);
+            auto resType = DICTOOL->getIntValue_json(fileData, "resourceType", -1);
             AX_BREAK_IF(resType != 0);
         }
         else if (cocoNode != nullptr)
@@ -182,7 +181,7 @@ bool ComAttribute::serialize(void* r)
             AX_BREAK_IF(!fileData);
             file = fileData[0].GetValue(cocoLoader);
             AX_BREAK_IF(file == nullptr);
-            resType = atoi(fileData[2].GetValue(cocoLoader));
+            auto resType = atoi(fileData[2].GetValue(cocoLoader));
             AX_BREAK_IF(resType != 0);
         }
         if (comName != nullptr)

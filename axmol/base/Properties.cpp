@@ -144,14 +144,18 @@ Properties* Properties::createNonRefCounted(std::string_view url)
 
 static bool isVariable(const char* str, char* outName, size_t outSize)
 {
+    if (!str || !outName || outSize == 0)
+        return false;
+
     size_t len = strlen(str);
     if (len > 3 && str[0] == '$' && str[1] == '{' && str[len - 1] == '}')
     {
-        size_t size = len - 3;
-        if (size > (outSize - 1))
-            size = outSize - 1;
-        strncpy(outName, str + 2, len - 3);
-        outName[len - 3] = 0;
+        size_t copyLen = len - 3;
+        if (copyLen >= outSize)
+            copyLen = outSize - 1;
+
+        memcpy(outName, str + 2, copyLen);
+        outName[copyLen] = '\0';
         return true;
     }
 

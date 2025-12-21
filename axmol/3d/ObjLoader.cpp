@@ -414,7 +414,7 @@ static bool exportFaceGroupToShape(shape_t& shape,
         const std::vector<vertex_index>& face = faceGroup[i];
 
         vertex_index i0 = face[0];
-        vertex_index i1(-1);
+        vertex_index i1;
         vertex_index i2 = face[1];
 
         size_t npolys = face.size();

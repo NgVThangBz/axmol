@@ -1053,86 +1053,114 @@ void Label::updateLabelLetters()
     }
 }
 
-bool Label::alignText()
+void Label::alignText()
 {
     if (_fontAtlas == nullptr || _utf32Text.empty())
     {
         setContentSize(Vec2::ZERO);
-        return true;
+        return;
     }
 
-    bool ret = true;
-    do
+    _fontAtlas->prepareLetterDefinitions(_utf32Text);
+
+    float currentFontSize = getRenderingFontSize();
+
+    if (!tryTextPlacement(currentFontSize))
     {
-        _fontAtlas->prepareLetterDefinitions(_utf32Text);
-        auto& textures = _fontAtlas->getTextures();
-        auto size      = textures.size();
-        if (size > static_cast<size_t>(_batchNodes.size()))
+        int maxFontSize            = currentFontSize - 1;
+        int minFontSize            = 1;
+        int lastSuccessfulFontSize = minFontSize;
+
+        while (minFontSize <= maxFontSize)
         {
-            for (auto index = static_cast<unsigned int>(_batchNodes.size()); index < size; ++index)
+            currentFontSize = minFontSize + (maxFontSize - minFontSize) / 2;
+            scaleFontSize(currentFontSize);
+
+            _fontAtlas->prepareLetterDefinitions(_utf32Text);
+
+            if (tryTextPlacement(currentFontSize))
             {
-                auto batchNode = SpriteBatchNode::createWithTexture(textures.at(index));
-                if (batchNode)
-                {
-                    _isOpacityModifyRGB = batchNode->getTexture()->hasPremultipliedAlpha();
-                    _blendFunc          = batchNode->getBlendFunc();
-                    batchNode->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
-                    batchNode->setPosition(Vec2::ZERO);
-                    _batchNodes.pushBack(batchNode);
-                }
+                lastSuccessfulFontSize = currentFontSize;
+                minFontSize            = lastSuccessfulFontSize + 1;
             }
-        }
-        if (_batchNodes.empty())
-        {
-            return true;
-        }
-        // optimize for one-texture-only scenario
-        // if multiple textures, then we should count how many chars
-        // are per texture
-        if (_batchNodes.size() == 1)
-            _batchNodes.at(0)->reserveCapacity(_utf32Text.size());
-
-        _reusedLetter->setBatchNode(_batchNodes.at(0));
-
-        _lengthOfString    = 0;
-        _textDesiredHeight = 0.f;
-        _linesWidth.clear();
-
-        const auto currentFontSize = getRenderingFontSize();
-
-        const auto atMinimumFontSizeLimit = currentFontSize <= 1.f;
-
-        bool redoProcess;
-        if (_maxLineWidth > 0.f && !_lineBreakWithoutSpaces)
-        {
-            redoProcess = !multilineTextWrapByWord(atMinimumFontSizeLimit);
-        }
-        else
-        {
-            redoProcess = !multilineTextWrapByChar(atMinimumFontSizeLimit);
-        }
-
-        if (!redoProcess && _overflow == Overflow::SHRINK && !atMinimumFontSizeLimit)
-        {
-            if (isVerticalClamp() || isHorizontalClamp())
+            else
             {
-                redoProcess = true;
+                maxFontSize = currentFontSize - 1;
             }
         }
 
-        if (redoProcess)
+        if (currentFontSize != lastSuccessfulFontSize)
         {
-            auto newFontSize = currentFontSize - 1;
-            if (newFontSize >= 1)
+            scaleFontSize(lastSuccessfulFontSize);
+            _fontAtlas->prepareLetterDefinitions(_utf32Text);
+            tryTextPlacement(lastSuccessfulFontSize);
+        }
+    }
+
+    updateBatchNode();
+}
+
+bool Label::tryTextPlacement(float fontSize)
+{
+    _lengthOfString    = 0;
+    _textDesiredHeight = 0.f;
+    _linesWidth.clear();
+
+    const bool atMinimumFontSizeLimit = fontSize <= 1.f;
+
+    bool redoProcess;
+    if (_maxLineWidth > 0.f && !_lineBreakWithoutSpaces)
+    {
+        redoProcess = !multilineTextWrapByWord(atMinimumFontSizeLimit);
+    }
+    else
+    {
+        redoProcess = !multilineTextWrapByChar(atMinimumFontSizeLimit);
+    }
+
+    if ((!redoProcess && _overflow == Overflow::SHRINK && !atMinimumFontSizeLimit) &&
+        (isVerticalClamp() || isHorizontalClamp()))
+    {
+        redoProcess = true;
+    }
+
+    return !redoProcess;
+}
+
+void Label::updateBatchNode()
+{
+    const std::unordered_map<unsigned int, Texture2D*>& textures = _fontAtlas->getTextures();
+    const size_t textureCount                                    = textures.size();
+    const size_t nodeCount                                       = _batchNodes.size();
+
+    if (textureCount > nodeCount)
+    {
+        _batchNodes.reserve(textureCount);
+
+        for (size_t index = nodeCount; index < textureCount; ++index)
+        {
+            SpriteBatchNode* const batchNode = SpriteBatchNode::createWithTexture(textures.at(index));
+            if (batchNode)
             {
-                scaleFontSize(newFontSize);
-                continue;
+                _isOpacityModifyRGB = batchNode->getTexture()->hasPremultipliedAlpha();
+                _blendFunc          = batchNode->getBlendFunc();
+                batchNode->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+                batchNode->setPosition(Vec2::ZERO);
+                _batchNodes.pushBack(batchNode);
             }
         }
+    }
+    if (_batchNodes.empty())
+    {
+        return;
+    }
 
-        break;
+    // optimize for one-texture-only scenario if multiple textures, then we
+    // should count how many chars are per texture
+    if (textureCount == 1)
+        _batchNodes.at(0)->reserveCapacity(_utf32Text.size());
 
-    } while (true);
+    _reusedLetter->setBatchNode(_batchNodes.at(0));
 
     computeAlignmentOffset();
 
@@ -1141,8 +1169,6 @@ bool Label::alignText()
     updateLabelLetters();
 
     updateColor();
-
-    return ret;
 }
 
 bool Label::computeHorizontalKernings(const std::u32string& stringToRender)
@@ -1724,11 +1750,10 @@ void Label::clearTextures()
 void Label::updateContent()
 {
     clearTextures();
-    bool updateFinished = true;
 
     if (_fontAtlas)
     {
-        updateFinished = alignText();
+        alignText();
     }
     else
     {
@@ -1830,10 +1855,7 @@ void Label::updateContent()
         }
     }
 
-    if (updateFinished)
-    {
-        _contentDirty = false;
-    }
+    _contentDirty = false;
 
 #if AX_LABEL_DEBUG_DRAW
     _debugDrawNode->clear();
@@ -2051,15 +2073,15 @@ void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
         return;
     }
     // Don't do calculate the culling if the transform was not updated
-    bool transformUpdated = flags & FLAGS_TRANSFORM_DIRTY;
 #if AX_USE_CULLING
     auto visitingCamera = Camera::getVisitingCamera();
     auto defaultCamera  = Camera::getDefaultCamera();
     if (visitingCamera == defaultCamera)
     {
-        _insideBounds = (transformUpdated || visitingCamera->isViewProjectionUpdated())
-                            ? renderer->checkVisibility(transform, _contentSize)
-                            : _insideBounds;
+        const auto transformUpdated = flags & FLAGS_TRANSFORM_DIRTY;
+        _insideBounds               = (transformUpdated || visitingCamera->isViewProjectionUpdated())
+                                          ? renderer->checkVisibility(transform, _contentSize)
+                                          : _insideBounds;
     }
     else
     {

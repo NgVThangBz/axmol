@@ -298,8 +298,6 @@ ssize_t ZipUtils::inflateMemory(unsigned char* in, ssize_t inLength, unsigned ch
 int ZipUtils::inflateGZipFile(const char* path, unsigned char** out)
 {
     int len;
-    unsigned int offset = 0;
-
     AXASSERT(out, "out can't be nullptr.");
     AXASSERT(&*out, "&*out can't be nullptr.");
 
@@ -915,6 +913,7 @@ int ZipFile::vread(ZipEntryInfo* entry, void* buf, unsigned int size)
         AX_BREAK_IF(UNZ_OK != nRet);
 
         nRet = unzOpenCurrentFile(_data->zipFile);
+        AX_BREAK_IF(UNZ_OK != nRet);
         unzSeek64(_data->zipFile, entry->offset, SEEK_SET);
         n = unzReadCurrentFile(_data->zipFile, buf, size);
         if (n > 0)

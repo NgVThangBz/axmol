@@ -243,7 +243,9 @@ void Box2DTestBed::onEnter()
 }
 void Box2DTestBed::onExit()
 {
-    ImGuiPresenter::getInstance()->removeRenderLoop("#bv3t");
+    auto presenter = ImGuiPresenter::getInstance();
+    if (presenter)
+        presenter->removeRenderLoop("#bv3t");
     Scene::onExit();
 }
 

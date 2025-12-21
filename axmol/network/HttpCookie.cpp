@@ -269,7 +269,6 @@ void HttpCookie::writeFile()
 
     std::string line;
 
-    char expires[32] = {0};  // LONGLONG_STRING_SIZE=20
     for (auto&& cookie : _cookies)
     {
         line.clear();

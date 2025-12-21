@@ -46,7 +46,7 @@ namespace ax
 
 FT_Library FontFreeType::_FTlibrary;
 bool FontFreeType::_FTInitialized           = false;
-bool FontFreeType::_streamParsingEnabled    = true;
+bool FontFreeType::_streamParsingEnabled    = false;
 bool FontFreeType::_doNativeBytecodeHinting = true;
 bool FontFreeType::_globalSDFEnabled        = false;
 const int FontFreeType::DistanceMapSpread   = 6;
@@ -427,8 +427,6 @@ unsigned char* FontFreeType::getGlyphBitmap(char32_t charCode,
                                             const GlyphResolution*& outFallbackRes,
                                             bool& sharedBitmapData)
 {
-    unsigned char* ret = nullptr;
-
     // @remark: glyphIndex=0 means charactor is mssing on current font face
     auto glyphIndex = FT_Get_Char_Index(_fontFace, static_cast<FT_ULong>(charCode));
     if (glyphIndex == 0)

@@ -10,10 +10,10 @@ axslcc=3.3.1+
 
 # The cmake, @gradle @axmol-cmdline
 # as latest as possible
-cmake=4.2.0+
+cmake=4.2.0~4.2.1+
 
 # The ninja
-ninja=1.10.0~1.13.1+
+ninja=1.10.0~1.13.2+
 
 # --- endregion
 
@@ -34,7 +34,7 @@ llvm=21.1.5
 # region platform:android
 
 # The microsoft openjdk, @axmol-cmdline
-jdk=17.0.10~17.0.15+
+jdk=17.0.10~17.0.17+
 
 # The android cmdline-tools aka sdkmanager, as stable as possible
 cmdlinetools=19.0
@@ -88,6 +88,6 @@ guava=33.3.1
 # - since emsdk-4.0.0+ can't be debugging via chrome properly on windows (macos and linux no this issue)
 # - axmol can build with emsdk-3.1.73+
 # - please use emsdk-3.1.73 if you want debug axmol wasm app properly
-emsdk=3.1.73~4.0.19+
+emsdk=3.1.73~4.0.22+
 
 # --- endregion

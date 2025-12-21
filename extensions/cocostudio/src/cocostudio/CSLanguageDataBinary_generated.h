@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 namespace flatbuffers {
@@ -33,7 +33,8 @@ struct LanguageItem FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *value() const {
     return GetPointer<const ::flatbuffers::String *>(VT_VALUE);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_KEY) &&
            verifier.VerifyString(key()) &&
@@ -94,7 +95,8 @@ struct LanguageSet FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::LanguageItem>> *languageItems() const {
     return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<flatbuffers::LanguageItem>> *>(VT_LANGUAGEITEMS);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_LANGUAGEITEMS) &&
            verifier.VerifyVector(languageItems()) &&
@@ -146,14 +148,16 @@ inline const flatbuffers::LanguageSet *GetSizePrefixedLanguageSet(const void *bu
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::LanguageSet>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyLanguageSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::LanguageSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::LanguageSet>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedLanguageSetBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::LanguageSet>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::LanguageSet>(nullptr);
 }
 
 inline void FinishLanguageSetBuffer(

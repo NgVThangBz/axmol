@@ -227,16 +227,12 @@ int64_t FileUtilsAndroid::getFileSize(std::string_view filepath) const
 
     if (FileUtilsAndroid::assetmanager)
     {
-        std::string_view path;
-        std::string relativePath;
         if (tlx::starts_with(filepath, _defaultResRootPath))
         {
-            path = relativePath = filepath.substr(_defaultResRootPath.size());
+            filepath = filepath.substr(_defaultResRootPath.size());
         }
-        else
-            path = filepath;
 
-        AAsset* asset = AAssetManager_open(FileUtilsAndroid::assetmanager, path.data(), AASSET_MODE_UNKNOWN);
+        AAsset* asset = AAssetManager_open(FileUtilsAndroid::assetmanager, filepath.data(), AASSET_MODE_UNKNOWN);
         if (asset)
         {
             size = AAsset_getLength(asset);

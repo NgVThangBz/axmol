@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "cocostudio/CSParseBinary_generated.h"
@@ -36,7 +36,8 @@ struct BoneOptions FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const flatbuffers::BlendFunc *blendFunc() const {
     return GetStruct<const flatbuffers::BlendFunc *>(VT_BLENDFUNC);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -90,14 +91,16 @@ inline const flatbuffers::BoneOptions *GetSizePrefixedBoneOptions(const void *bu
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::BoneOptions>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyBoneOptionsBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::BoneOptions>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::BoneOptions>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedBoneOptionsBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::BoneOptions>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::BoneOptions>(nullptr);
 }
 
 inline void FinishBoneOptionsBuffer(

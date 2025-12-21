@@ -814,7 +814,7 @@ bool Renderer::checkVisibility(const Mat4& transform, const Vec2& size)
 
     // If draw to Rendertexture, return true directly.
     //  only cull the default camera. The culling algorithm is valid for default camera.
-    if (!scene || (scene && scene->_defaultCamera != Camera::getVisitingCamera()))
+    if (!scene || (scene->_defaultCamera != Camera::getVisitingCamera()))
         return true;
 
     Rect visibleRect(director->getVisibleOrigin(), director->getVisibleSize());

@@ -230,12 +230,6 @@ void PURibbonTrailRender::prepare()
     if (!_childNode)
     {
         // Create a childnode if not created earlier
-        std::stringstream ss;
-        ss << this;
-        std::string childNodeNodeName = "ParticleUniverse" + ss.str();
-        //_childNode =
-        // mParentTechnique->getParentSystem()->getParentSceneNode()->createChildSceneNode(childNodeNodeName);
-        //_childNode->setInheritOrientation(false);
         auto parent = _particleSystem->getParent();
         if (parent)
         {

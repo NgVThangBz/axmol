@@ -48,6 +48,8 @@ SOFTWARE.
 
 #include "yasio/tlx/string.hpp"
 
+#include "yasio/tlx/file_io.hpp"
+
 #if defined(YASIO_ENABLE_KCP)
 struct yasio_kcp_options {
   int kcp_conv_ = 0;
@@ -1435,7 +1437,7 @@ void io_service::recreate_ares_channel()
   options.sock_state_cb      = io_service::ares_sock_state_cb;
   options.sock_state_cb_data = this;
 #  if defined(__linux__) && !defined(__ANDROID__)
-  if (yasio::is_regular_file(YASIO_SYSTEMD_RESOLV_PATH))
+  if (tlx::is_regular_file(YASIO_SYSTEMD_RESOLV_PATH))
   {
     options.resolvconf_path = strndup(YASIO_SYSTEMD_RESOLV_PATH, YASIO_SYSTEMD_RESOLV_PATH_LEN);
     optmask |= ARES_OPT_RESOLVCONF;

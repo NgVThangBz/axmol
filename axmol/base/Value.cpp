@@ -730,7 +730,6 @@ std::string Value::asString() const
     constexpr auto NUMBER_MAX_DIGITS = 63;
 
     std::string ret;
-    size_t n = 0;
     switch (_type)
     {
     case Type::INT_I32:

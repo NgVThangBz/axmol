@@ -894,8 +894,7 @@ FrameData* DataReaderHelper::decodeFrame(pugi::xml_node& frameXML,
                                          BoneData* /*boneData*/,
                                          DataInfo* dataInfo)
 {
-    float x = 0, y = 0, scale_x = 0, scale_y = 0, skew_x = 0, skew_y = 0, tweenRotate = 0;
-    int duration = 0, displayIndex = 0, zOrder = 0, tweenEasing = 0, blendType = 0;
+    int blendType = 0;
 
     FrameData* frameData = new FrameData();
 
@@ -1004,7 +1003,7 @@ FrameData* DataReaderHelper::decodeFrame(pugi::xml_node& frameXML,
     {
         if (strcmp(_easing, FL_NAN) != 0)
         {
-            tweenEasing = atoi(_easing);
+            auto tweenEasing = atoi(_easing);
             frameData->tweenEasing =
                 tweenEasing == 2 ? ax::tweenfunc::Sine_EaseInOut : (ax::tweenfunc::TweenType)tweenEasing;
         }

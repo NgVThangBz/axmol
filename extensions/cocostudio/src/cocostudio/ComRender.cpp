@@ -258,7 +258,7 @@ bool ComRender::serialize(void* r)
                                     stExpCocoNode* armature_data = armature_dataArray[0].GetChildArray(&tCocoLoader);
                                     for (int j = 0; j < length; ++j)
                                     {
-                                        std::string key1 = armature_data[j].GetName(&tCocoLoader);
+                                        // std::string key1 = armature_data[j].GetName(&tCocoLoader);
                                         const char* str1 = armature_data[j].GetValue(&tCocoLoader);
                                         if (key.compare("name") == 0)
                                         {

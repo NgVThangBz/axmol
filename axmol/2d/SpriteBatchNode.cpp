@@ -327,7 +327,7 @@ void SpriteBatchNode::updateAtlasIndex(Sprite* sprite, ssize_t* curIndex)
     auto& array = sprite->getChildren();
     auto count  = array.size();
 
-    ssize_t oldIndex = 0;
+    ssize_t oldIndex;
 
     if (count == 0)
     {

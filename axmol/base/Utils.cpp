@@ -709,7 +709,7 @@ std::string bin2hex(std::string_view binary /*charstring also regard as binary i
     char high;
     size_t len = binary.length();
 
-    bool delim_needed = delim != -1 || delim == ' ';
+    bool delim_needed = delim != -1;
 
     std::string result;
     result.reserve((len << 1) + (delim_needed ? len : 0) + (prefix ? (len << 1) : 0));

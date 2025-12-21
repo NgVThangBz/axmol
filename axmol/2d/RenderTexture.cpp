@@ -551,13 +551,6 @@ void RenderTexture::newImage(std::function<void(RefPtr<Image>)> imageCallback, b
     if ((nullptr == _colorTexture))
         return;
 
-    const Vec2& s = _colorTexture->getContentSizeInPixels();
-
-    // to get the image size to save
-    //        if the saving image domain exceeds the buffer texture domain,
-    //        it should be cut
-    int savedBufferWidth       = (int)s.width;
-    int savedBufferHeight      = (int)s.height;
     bool hasPremultipliedAlpha = _colorTexture->hasPremultipliedAlpha();
 
     auto callback = [hasPremultipliedAlpha, imageCallback](const rhi::PixelBufferDesc& pbd) {

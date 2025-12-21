@@ -828,7 +828,7 @@ void PhysicsWorld::update(float delta, bool userCall /* = false*/)
         {
             if (++_updateRateCount >= _updateRate)
             {
-                const float dt = _updateTime * _speed / _substeps;
+                // const float dt = _updateTime * _speed / _substeps;
                 b2World_Step(_b2World, 1 / 60.f, _substeps);
                 _updateRateCount = 0;
                 _updateTime      = 0.0f;

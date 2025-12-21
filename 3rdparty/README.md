@@ -22,12 +22,12 @@
 
 ## c-ares
 - [![Upstream](https://img.shields.io/github/v/release/c-ares/c-ares?label=Upstream)](https://github.com/c-ares/c-ares)
-- Version: 1.34.5
+- Version: 1.34.6
 - License: MIT
 
 ## Clipper2
 - [![Upstream](https://img.shields.io/github/v/tag/AngusJohnson/Clipper2?label=Upstream)](https://github.com/AngusJohnson/Clipper2)
-- Version: 1.5.4
+- Version: 2.0.1
 - License: BSL-1.0
 
 ## ConcurrentQueue
@@ -98,7 +98,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.1.2
+- Version: 3.1.3
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -124,7 +124,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-68354f4
+  - Version: 2.1-7152e15
   - License: MIT
 
 - tolua

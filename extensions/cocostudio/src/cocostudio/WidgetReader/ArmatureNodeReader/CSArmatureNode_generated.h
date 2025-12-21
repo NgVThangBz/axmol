@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 9 &&
-              FLATBUFFERS_VERSION_REVISION == 23,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 #include "cocostudio/CSParseBinary_generated.h"
@@ -59,7 +59,8 @@ struct CSArmatureNodeOption FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   float armatureScale() const {
     return GetField<float>(VT_ARMATURESCALE, 0.0f);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NODEOPTIONS) &&
            verifier.VerifyTable(nodeOptions()) &&
@@ -174,7 +175,8 @@ struct ResourceItemData FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *path() const {
     return GetPointer<const ::flatbuffers::String *>(VT_PATH);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_TYPE, 4) &&
            VerifyOffset(verifier, VT_PATH) &&
@@ -233,14 +235,16 @@ inline const flatbuffers::CSArmatureNodeOption *GetSizePrefixedCSArmatureNodeOpt
   return ::flatbuffers::GetSizePrefixedRoot<flatbuffers::CSArmatureNodeOption>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyCSArmatureNodeOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::CSArmatureNodeOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<flatbuffers::CSArmatureNodeOption>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedCSArmatureNodeOptionBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<flatbuffers::CSArmatureNodeOption>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<flatbuffers::CSArmatureNodeOption>(nullptr);
 }
 
 inline void FinishCSArmatureNodeOptionBuffer(
