@@ -57,12 +57,12 @@
 
 ## fast_float
 - [![Upstream](https://img.shields.io/github/v/release/fastfloat/fast_float?label=Upstream)](https://github.com/fastfloat/fast_float)
-- Version: 8.1.0
+- Version: 8.2.2
 - License: MIT
 
 ## flatbuffers
 - [![Upstream](https://img.shields.io/github/v/release/google/flatbuffers?label=Upstream)](https://github.com/google/flatbuffers)
-- Version: 25.9.23
+- Version: 25.12.19
 - License: Apache-2.0
 
 ## {fmt}
@@ -114,7 +114,7 @@
 ## lua
 - plainlua
   - [![Upstream](https://img.shields.io/github/v/release/lua/lua?label=Upstream)](https://github.com/lua/lua) http://www.lua.org/
-  - Version: 5.5.0-beta
+  - Version: 5.5.0
   - License: MIT (http://www.lua.org/license.html)
   
 - sol2
@@ -179,12 +179,13 @@
   - License: BSD-3-Clause
 
 ## OpenAL Soft
-- [![Upstream](https://img.shields.io/github/v/tag/kcat/openal-soft?label=Upstream)](https://github.com/kcat/openal-soft)
-- Version: 1.24.3
+- [![Upstream](https://img.shields.io/github/v/release/kcat/openal-soft?label=Upstream)](https://github.com/kcat/openal-soft)
+- Version: 1.25.0-94259df
 - Modifications: 
   - Remove `-Werror=undef`
   - Linking `fmt::fmt` instead `alsoft::fmt`
   - Exclude target `alsoft::excommon`
+  - Fix `al::char_as_u8/al::u8_as_char` with compiler flag: `-fno-char8_t` or `/Zc:char8_t-`
 - License: LGPL-2.1
 
 ## OpenSSL

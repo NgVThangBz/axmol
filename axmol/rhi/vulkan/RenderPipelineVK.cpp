@@ -27,9 +27,11 @@
 #include "axmol/rhi/vulkan/VertexLayoutVK.h"
 #include "axmol/rhi/vulkan/ProgramVK.h"
 #include "axmol/rhi/vulkan/ShaderModuleVK.h"
-#include "axmol/rhi/ProgramState.h"
+#include "axmol/rhi/vulkan/DriverVK.h"
+#include "axmol/rhi/vulkan/UtilsVK.h"
 #include "axmol/tlx/hlookup.hpp"
 #include "axmol/tlx/hash.hpp"
+#include "axmol/tlx/inlined_vector.hpp"
 #include <glad/vulkan.h>
 
 namespace ax::rhi::vk
@@ -119,23 +121,28 @@ static inline VkColorComponentFlags toVkColorMask(ColorWriteMask mask)
 //
 // This design minimizes redundant PSOs while ensuring that any change in these critical states
 // correctly triggers pipeline re-creation.
-static inline uintptr_t makePipelineKey(const rhi::BlendDesc& blendDesc,
-                                        const DepthStencilStateImpl* dsState,
-                                        void* program,
-                                        uint32_t vlHash,
-                                        void* renderPass)
+static inline uintptr_t makePipelineId(const rhi::BlendDesc& blendDesc,
+                                       const DepthStencilStateImpl* dsState,
+                                       uint64_t programId,
+                                       VkRenderPass renderPass,
+                                       uint32_t vlHash,
+                                       uint32_t extendedDynState)
 {
     struct HashMe
     {
         rhi::BlendDesc blend{};
         uintptr_t dsHash;
-        void* prog;
-        void* pass;
+        uint64_t progId;
+        uint64_t pass;
         uint32_t vlHash;
-        uint32_t padding{0};
+        uint32_t extendedDynState;
     };
-    HashMe hashMe{
-        .blend = blendDesc, .dsHash = dsState->getHash(), .prog = program, .pass = renderPass, .vlHash = vlHash};
+    HashMe hashMe{.blend            = blendDesc,
+                  .dsHash           = dsState->getHash(),
+                  .progId           = programId,
+                  .pass             = reinterpret_cast<uint64_t>(renderPass),
+                  .vlHash           = vlHash,
+                  .extendedDynState = extendedDynState};
 
     return tlx::hash_bytes(&hashMe, sizeof(hashMe), 0);
 }
@@ -155,9 +162,9 @@ static inline VkPipelineColorBlendAttachmentState makeVkBlendAttachment(const Bl
     return att;
 }
 
-RenderPipelineImpl::RenderPipelineImpl(VkDevice device) : _device(device)
+RenderPipelineImpl::RenderPipelineImpl(DriverImpl* driver) : _driver(driver), _device(driver->getDevice())
 {
-    initializePipelineDefaults();
+    initializePipelineDefaults(driver);
 }
 
 RenderPipelineImpl::~RenderPipelineImpl()
@@ -193,12 +200,12 @@ RenderPipelineImpl::~RenderPipelineImpl()
     _pipelineCache.clear();
 }
 
-void RenderPipelineImpl::initializePipelineDefaults()
+void RenderPipelineImpl::initializePipelineDefaults(DriverImpl* driver)
 {
     // Input Assembly
-    _iaState                        = {};
-    _iaState.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    _iaState.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    _iaState          = {};
+    _iaState.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    _iaState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;  // need baked when extended dynamic state not supported
     _iaState.primitiveRestartEnable = VK_FALSE;
 
     // Viewport/Scissor
@@ -213,9 +220,9 @@ void RenderPipelineImpl::initializePipelineDefaults()
     _rasterState.depthClampEnable        = VK_FALSE;
     _rasterState.rasterizerDiscardEnable = VK_FALSE;
     _rasterState.polygonMode             = VK_POLYGON_MODE_FILL;
-    _rasterState.cullMode                = VK_CULL_MODE_BACK_BIT;
-    _rasterState.frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    _rasterState.lineWidth               = 1.0f;
+    _rasterState.cullMode  = VK_CULL_MODE_BACK_BIT;            // need baked when extended dynamic state not supported
+    _rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // need baked when extended dynamic state not supported
+    _rasterState.lineWidth = 1.0f;
 
     // Multisample
     _msState                      = {};
@@ -224,20 +231,28 @@ void RenderPipelineImpl::initializePipelineDefaults()
     _msState.sampleShadingEnable  = VK_FALSE;
 
     // Dynamic States
-    static VkDynamicState dynamics[] = {VK_DYNAMIC_STATE_VIEWPORT,          VK_DYNAMIC_STATE_SCISSOR,
-                                        VK_DYNAMIC_STATE_STENCIL_REFERENCE, VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-                                        VK_DYNAMIC_STATE_DEPTH_BIAS,        VK_DYNAMIC_STATE_CULL_MODE_EXT,
-                                        VK_DYNAMIC_STATE_FRONT_FACE_EXT,    VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT};
-    _dynState                        = {};
-    _dynState.sType                  = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    _dynState.dynamicStateCount      = static_cast<uint32_t>(std::size(dynamics));
-    _dynState.pDynamicStates         = dynamics;
+    static constexpr size_t MAX_DYNAMIC_STATES                                = 8;
+    static tlx::inlined_vector<VkDynamicState, MAX_DYNAMIC_STATES> s_dynamics = {
+        VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+        VK_DYNAMIC_STATE_BLEND_CONSTANTS, VK_DYNAMIC_STATE_DEPTH_BIAS};
+
+    if (s_dynamics.size() < MAX_DYNAMIC_STATES && driver->isExtendedDynamicStateSupported())
+    {
+        s_dynamics.push_back(VK_DYNAMIC_STATE_CULL_MODE_EXT);
+        s_dynamics.push_back(VK_DYNAMIC_STATE_FRONT_FACE_EXT);
+        s_dynamics.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT);
+    }
+
+    _dynState                   = {};
+    _dynState.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    _dynState.dynamicStateCount = static_cast<uint32_t>(s_dynamics.size());
+    _dynState.pDynamicStates    = &s_dynamics[0];
 
     // preallocate 1 descriptor pool
     allocateDescriptorPool();
 }
 
-void RenderPipelineImpl::update(const RenderTarget* rt, const PipelineDesc& desc)
+void RenderPipelineImpl::update(const RenderTarget* rt, const PipelineDesc& desc, const ExtendedDynamicState& state)
 {
     // Validate inputs
     if (!rt || !desc.programState || !desc.vertexLayout)
@@ -257,7 +272,7 @@ void RenderPipelineImpl::update(const RenderTarget* rt, const PipelineDesc& desc
     updateBlendState(desc.blendDesc);
     updateDescriptorSetLayouts(program);
     updatePipelineLayout(program);
-    updateGraphicsPipeline(desc, renderPass, program);
+    updateGraphicsPipeline(desc, state, renderPass, program);
 }
 
 void RenderPipelineImpl::updateBlendState(const BlendDesc& blendDesc)
@@ -273,8 +288,8 @@ void RenderPipelineImpl::updateBlendState(const BlendDesc& blendDesc)
 
 void RenderPipelineImpl::updateDescriptorSetLayouts(ProgramImpl* program)
 {
-    uintptr_t progKey = (uintptr_t)program;
-    auto it           = _descriptorLayoutCache.find(progKey);
+    auto progId = program->getProgramId();
+    auto it     = _descriptorLayoutCache.find(progId);
     if (it != _descriptorLayoutCache.end())
     {
         _activeDSL = &it->second;
@@ -334,13 +349,13 @@ void RenderPipelineImpl::updateDescriptorSetLayouts(ProgramImpl* program)
         ++dslState.descriptorSetLayoutCount;
     }
 
-    _activeDSL = &_descriptorLayoutCache.emplace(progKey, dslState).first->second;
+    _activeDSL = &_descriptorLayoutCache.emplace(progId, dslState).first->second;
 }
 
 void RenderPipelineImpl::updatePipelineLayout(ProgramImpl* program)
 {
-    uintptr_t progKey = (uintptr_t)program;
-    auto it           = _pipelineLayoutCache.find(progKey);
+    auto progId = program->getProgramId();
+    auto it     = _pipelineLayoutCache.find(progId);
     if (it != _pipelineLayoutCache.end())
     {
         _activePipelineLayout = it->second;
@@ -356,22 +371,38 @@ void RenderPipelineImpl::updatePipelineLayout(ProgramImpl* program)
     plc.pPushConstantRanges    = nullptr;
 
     VkResult result = vkCreatePipelineLayout(_device, &plc, nullptr, &pipelineLayout);
-    if (result == VK_SUCCESS)
-    {
-        _pipelineLayoutCache.emplace(progKey, pipelineLayout);
-        _activePipelineLayout = pipelineLayout;
-    }
-    else
-    {
-        AXLOGE("vkCreatePipelineLayout fail: {}", (int)result);
-    }
+    VK_REQUIRE(result, "vkCreatePipelineLayout fail");
+    _pipelineLayoutCache.emplace(progId, pipelineLayout);
+    _activePipelineLayout = pipelineLayout;
 }
 
-void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc, VkRenderPass renderPass, ProgramImpl* program)
+void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc,
+                                                const ExtendedDynamicState& state,
+                                                VkRenderPass renderPass,
+                                                ProgramImpl* program)
 {
-    const uintptr_t pipelineKey =
-        makePipelineKey(desc.blendDesc, _dsState, program, desc.vertexLayout->getHash(), renderPass);
-    auto it = _pipelineCache.find(pipelineKey);
+    static_assert(sizeof(state) == 4, "ExtendedDynamicState size must be 4 bytes");
+
+    uint32_t extendedDynState;
+    if (!_driver->isExtendedDynamicStateSupported())
+    {  // bake all
+        _rasterState.cullMode  = state.cullMode;
+        _rasterState.frontFace = state.frontFace;
+        _iaState.topology      = state.primitiveTopology;
+        extendedDynState       = std::bit_cast<uint32_t>(state);
+    }
+    else if (!_driver->isDynamicPrimitiveTopologyUnrestricted())
+    {
+        // bake topology only
+        _iaState.topology = state.primitiveTopology;
+        extendedDynState  = state.primitiveTopology;
+    }
+    else
+        extendedDynState = 0;  // all dynamic
+
+    const uintptr_t pipelineId = makePipelineId(desc.blendDesc, _dsState, program->getProgramId(), renderPass,
+                                                desc.vertexLayout->getHash(), extendedDynState);
+    auto it                    = _pipelineCache.find(pipelineId);
     if (it != _pipelineCache.end())
     {
         _activePipeline = it->second;
@@ -415,17 +446,10 @@ void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc, VkRend
 
     VkPipeline pipeline = VK_NULL_HANDLE;
     VkResult res        = vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &gp, nullptr, &pipeline);
-    if (res == VK_SUCCESS)
-    {
-        _renderPassToPipelineMap.emplace(renderPass, pipelineKey);
-        _pipelineCache.emplace(pipelineKey, pipeline);
-        _activePipeline = pipeline;
-    }
-    else
-    {
-        _activePipeline = nullptr;
-        AXLOGE("vkCreateGraphicsPipelines fail: {}", (int)res);
-    }
+    VK_REQUIRE(res, "vkCreateGraphicsPipelines fail");
+    _renderPassToPipelineMap.emplace(renderPass, pipelineId);
+    _pipelineCache.emplace(pipelineId, pipeline);
+    _activePipeline = pipeline;
 }
 
 bool RenderPipelineImpl::acquireDescriptorState(DescriptorState& state, int frameIndex)
@@ -482,8 +506,8 @@ void RenderPipelineImpl::recycleDescriptorState(DescriptorState& state)
     auto it = _descriptorCache.find(state.ownerLayout);
     if (it == _descriptorCache.end())
     {
-        AXLOGD("DescriptorSetCache miss: no pool found for pipelineLayout={}, creating new pool",
-               fmt::ptr(state.ownerLayout));
+        AXLOGD("DescriptorSetCache miss: no pool found for pipelineLayout=0x{:016x}, creating new pool",
+               reinterpret_cast<uint64_t>(state.ownerLayout));
         it = _descriptorCache.emplace(state.ownerLayout, DescriptorPool()).first;
     }
 
@@ -511,16 +535,16 @@ VkDescriptorPool RenderPipelineImpl::allocateDescriptorPool()
 
     VkDescriptorPool pool = VK_NULL_HANDLE;
     VkResult vr           = vkCreateDescriptorPool(_device, &pci, nullptr, &pool);
-    AXASSERT(vr == VK_SUCCESS, "Failed to create descriptor pool");
+    VK_REQUIRE(vr, "Failed to create descriptor pool");
 
     _descriptorPools.push_back(pool);
 
     return pool;
 }
 
-void RenderPipelineImpl::removeCachedPipelines(VkRenderPass rp)
+void RenderPipelineImpl::removeCachedObjects(VkRenderPass key)
 {
-    auto range = _renderPassToPipelineMap.equal_range(rp);
+    auto range = _renderPassToPipelineMap.equal_range(key);
 
     if (range.first != range.second)
     {
@@ -536,6 +560,47 @@ void RenderPipelineImpl::removeCachedPipelines(VkRenderPass rp)
         }
         _renderPassToPipelineMap.erase(range.first, range.second);
     }
+}
+
+void RenderPipelineImpl::removeCachedObjects(Program* key)
+{
+    auto progId = key->getProgramId();
+
+    _driver->waitForGPU();
+
+    // remove descriptor set layouts
+    auto dslIt = _descriptorLayoutCache.find(progId);
+    if (dslIt != _descriptorLayoutCache.end())
+    {
+        auto& res = dslIt->second.descriptorSetLayouts;
+        if (res[SET_INDEX_UBO])
+            vkDestroyDescriptorSetLayout(_device, res[SET_INDEX_UBO], nullptr);
+        if (res[SET_INDEX_SAMPLER])
+            vkDestroyDescriptorSetLayout(_device, res[SET_INDEX_SAMPLER], nullptr);
+        _descriptorLayoutCache.erase(dslIt);
+    }
+
+    // remove pipeline layout
+    auto plIt = _pipelineLayoutCache.find(progId);
+    if (plIt != _pipelineLayoutCache.end())
+    {
+        vkDestroyPipelineLayout(_device, plIt->second, nullptr);
+        _pipelineLayoutCache.erase(plIt);
+    }
+
+    // remove pipeline(s)
+    auto range = _programToPipelineMap.equal_range(progId);
+    for (auto it = range.first; it != range.second; ++it)
+    {
+        auto pipelineKey = it->second;
+        auto pipelineIt  = _pipelineCache.find(pipelineKey);
+        if (pipelineIt != _pipelineCache.end())
+        {
+            vkDestroyPipeline(_device, pipelineIt->second, nullptr);
+            _pipelineCache.erase(pipelineIt);
+        }
+    }
+    _programToPipelineMap.erase(range.first, range.second);
 }
 
 /**

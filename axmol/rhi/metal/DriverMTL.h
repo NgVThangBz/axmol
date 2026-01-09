@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
 
@@ -96,12 +96,15 @@ public:
     DriverImpl();
     ~DriverImpl();
 
+    bool init() override;
+    DriverType type() override { return DriverType::Metal; }
+
     /// @name Setters & Getters
     /**
      * New a RenderContext object.
      * @return A RenderContext object.
      */
-    RenderContext* createRenderContext(void*) override;
+    RenderContext* createRenderContext(SurfaceHandle) override;
 
     /**
      * New a Buffer object.
@@ -165,6 +168,8 @@ public:
      * @return FeatureSet name.
      */
     std::string getVersion() const override;
+
+    std::string getShaderVersion() const override;
 
     /**
      * Check if feature supported by Metal.

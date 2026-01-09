@@ -29,6 +29,15 @@
 namespace ax::rhi
 {
 using namespace ::axslc;
+
+static bool matchLang(int currentLang, int currentProfile, int lang, int profile)
+{
+    if (currentLang == ShaderLang::SHADER_LANG_HLSL)
+        return currentLang == lang && currentProfile == profile;
+
+    return currentLang == lang;
+}
+
 ShaderStage ShaderModule::getShaderStage() const
 {
     return _stage;
@@ -55,14 +64,39 @@ void ShaderModule::parseShaderCode(void)
     auto sc_size = ibs.read<uint32_t>();
     struct sc_chunk chunk;
     ibs.read_bytes(&chunk, static_cast<int>(sizeof(chunk)));
-    if (chunk.major < 3 || chunk.minor < 3)
+    if (chunk.major < 3 || chunk.minor < 4)
     {
         AXLOGE(
-            "The axslcc shader chunk version too old: found {}.{}, required >= 3.3, "
+            "The axslcc shader chunk version too old: found {}.{}, required >= 3.4, "
             "Please update/recompile the shader.",
             chunk.major, chunk.minor);
         assert(false && "axmol: Shader version too old");
     }
+
+    // find target entry
+    const auto driverType        = DriverContext::currentDriverType();
+    const auto currentShaderLang = DriverContext::currentShaderLang();
+    const auto currentProfileVer = DriverContext::currentShaderProfile();
+
+    for (int i = 0; i < chunk.num_targets; ++i)
+    {
+        auto lang        = ibs.read<int>();
+        auto profile_ver = ibs.read<int>();
+        if (matchLang(currentShaderLang, currentProfileVer, lang, profile_ver))
+        {
+            _stageOffset = ibs.read<uint32_t>();
+            break;
+        }
+        else
+            ibs.advance(static_cast<ptrdiff_t>(sizeof(uint32_t)));
+    }
+    if (!_stageOffset)
+    {
+        AXLOGE("Can't find stag chunk, lang={}, profile_ver={}", currentShaderLang, currentProfileVer);
+        assert(false && "axmol: Can't find stag chunk");
+    }
+
+    ibs.seek(_stageOffset, SEEK_SET);
 
     fourccId = ibs.read<uint32_t>();
     if (fourccId != SC_CHUNK_STAG)

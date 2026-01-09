@@ -47,7 +47,7 @@ class Program;
 class VertexLayout;
 
 class SamplerCache;
-
+class DriverContext;
 struct VertexLayoutDesc;
 
 enum class FeatureType : uint32_t
@@ -85,26 +85,26 @@ struct DriverCaps
  */
 class AX_DLL DriverBase
 {
-public:
-    struct Caps
-    {};
     friend class ShaderCache;
     friend class SamplerCache;
+    friend class DriverContext;
 
-    /**
-     * Returns a shared instance of the DriverBase.
-     */
-    static DriverBase* getInstance();
-    static void destroyInstance();
+protected:
+    virtual bool init()       = 0;
+    virtual DriverType type() = 0;
 
+public:
     virtual ~DriverBase() = default;
 
     /**
-     * New a Render Context object, not auto released.
-     * @param surfaceContext, current is win32 HWND or IUnkown*(swapChainPanel)
-     * @return A RenderContext object.
+     * Create a RenderContext (not auto‑released).
+     * @param surfaceHandle Platform-specific surface:
+     *        - Win32: HWND
+     *        - UWP: IUnknown* (SwapChainPanel)
+     *        - Vulkan: VkSurfaceKHR
+     * @return RenderContext instance
      */
-    virtual RenderContext* createRenderContext(void* surfaceContext) = 0;
+    virtual RenderContext* createRenderContext(SurfaceHandle surface) = 0;
 
     /**
      * New a Buffer object, not auto released.
@@ -210,7 +210,7 @@ public:
      */
     inline int getMaxSamplesAllowed() const { return _caps.maxSamplesAllowed; }
 
-    virtual void cleanPendingResources() {}
+    virtual void destroyStaleResources() {}
 
     virtual void waitForGPU() {};
 
@@ -227,13 +227,8 @@ protected:
     virtual void destroySampler(SamplerHandle&)                  = 0;
 
     DriverCaps _caps;
-
-private:
-    static DriverBase* _instance;
 };
 
 // end of _rhi group
 /// @}
 }  // namespace ax::rhi
-
-#define axdrv ax::rhi::DriverBase::getInstance()

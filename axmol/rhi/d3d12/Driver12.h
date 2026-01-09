@@ -23,11 +23,12 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/rhi/d3d12/DescriptorHeapAllocator12.h"
 #include "axmol/rhi/d3d12/UploadBufferAllocator12.h"
 #include "axmol/rhi/d3d12/ShaderModule12.h"
 #include "axmol/rhi/DXUtils.h"
+#include "axmol/rhi/DriverFactory.h"
 #include "axmol/tlx/byte_buffer.hpp"
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -116,9 +117,10 @@ public:
     DriverImpl();
     ~DriverImpl();
 
-    void init();
+    bool init() override;
+    DriverType type() override { return DriverType::D3D12; }
 
-    RenderContext* createRenderContext(void* surfaceContext) override;
+    RenderContext* createRenderContext(SurfaceHandle surface) override;
     Buffer* createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial) override;
     Texture* createTexture(const TextureDesc& descriptor) override;
     RenderTarget* createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment) override;
@@ -138,7 +140,7 @@ public:
 
     bool checkForFeatureSupported(FeatureType feature) override;
 
-    void cleanPendingResources() override;
+    void destroyStaleResources() override;
 
     ID3D12Device* getDevice() const { return _device.Get(); }
     ID3D12CommandQueue* getGraphicsQueue() const { return _gfxQueue.Get(); }
@@ -179,6 +181,11 @@ public:
     void processDisposalQueue(uint64_t completeFence);
 
     void waitForGPU() override;
+
+    void setFrameIndex(int index) { _frameIndex = index; }
+    int getFrameIndex() const { return _frameIndex; }
+
+    void removeCachedPipelineObjects(Program* key);
 
 protected:
     void queueDisposalInternal(DisposableResource&& res);
@@ -241,6 +248,8 @@ private:
     ComPtr<ID3D12PipelineState> _mipmapPSO2D;
     ComPtr<ID3D12PipelineState> _mipmapPSOArray;
     ComPtr<ID3D12DescriptorHeap> _mipmapSrvHeap;
+
+    int _frameIndex{0};
 };
 
 }  // namespace ax::rhi::d3d12

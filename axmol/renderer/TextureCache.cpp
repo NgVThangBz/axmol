@@ -42,7 +42,7 @@ THE SOFTWARE.
 #include "axmol/platform/FileUtils.h"
 #include "axmol/base/Utils.h"
 #include "axmol/base/NinePatchImageParser.h"
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 
 using namespace std;
 
@@ -782,17 +782,17 @@ Texture2D* TextureCache::getTextureForKey(std::string_view textureKeyName) const
     return nullptr;
 }
 
-std::string TextureCache::getTextureFilePath(ax::Texture2D* texture) const
+const std::string& TextureCache::getTextureFilePath(ax::Texture2D* texture) const
 {
+    static const std::string emptyString{};
     for (auto&& item : _textures)
     {
         if (item.second == texture)
         {
             return item.first;
-            break;
         }
     }
-    return "";
+    return emptyString;
 }
 
 void TextureCache::waitForQuit()

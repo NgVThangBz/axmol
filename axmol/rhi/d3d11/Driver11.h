@@ -23,9 +23,9 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/rhi/DXUtils.h"
-
+#include "axmol/rhi/DriverFactory.h"
 #include <d3d11.h>
 #include <optional>
 
@@ -53,14 +53,15 @@ public:
     DriverImpl();
     ~DriverImpl();
 
-    void init();
+    bool init() override;
+    DriverType type() override { return DriverType::D3D11; }
 
     /// @name Setters & Getters
     /**
      * Create a RenderContext object.
      * @return A RenderContext object.
      */
-    RenderContext* createRenderContext(void* surfaceContext) override;
+    RenderContext* createRenderContext(SurfaceHandle surface) override;
 
     /**
      * Create a Buffer object.

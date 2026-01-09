@@ -139,15 +139,15 @@ static MTLCullMode toMTLCullMode(CullMode mode)
 
 }  // namespace
 
-RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
+RenderContextImpl::RenderContextImpl(DriverImpl* driver, SurfaceHandle surface)
 {
-    _frameBoundarySemaphore = dispatch_semaphore_create(MAX_INFLIGHT_BUFFER);
+    _frameBoundarySemaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
     auto mtlDevice          = driver->getMTLDevice();
     _mtlCmdQueue            = driver->getMTLCmdQueue();
     auto& contextAttrs      = Application::getContextAttrs();
 #if AX_TARGET_PLATFORM == AX_PLATFORM_MAC
     CGSize fbSize;
-    NSView* contentView = (id)surfaceContext;
+    NSView* contentView = static_cast<NSView*>(surface);
     @autoreleasepool
     {
         const NSRect contentRect = [contentView frame];
@@ -165,7 +165,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
     _mtlLayer.displaySyncEnabled = contextAttrs.vsync;
     [contentView setLayer:_mtlLayer];
 #else
-    UIView* view              = (id)surfaceContext;
+    UIView* view              = static_cast<UIView*>(surface);
     _mtlLayer                 = (CAMetalLayer*)[view layer];
     _mtlLayer.device          = mtlDevice;
     _mtlLayer.pixelFormat     = MTLPixelFormatBGRA8Unorm;
@@ -197,7 +197,7 @@ RenderContextImpl::~RenderContextImpl()
     dispatch_semaphore_signal(_frameBoundarySemaphore);
 }
 
-bool RenderContextImpl::updateSurface(void* /*surface*/, uint32_t width, uint32_t height)
+bool RenderContextImpl::updateSurface(SurfaceHandle /*surface*/, uint32_t width, uint32_t height)
 {
     [_mtlLayer setDrawableSize:CGSizeMake(width, height)];
     _screenRT->rebuildSwapchainAttachments();
@@ -259,7 +259,7 @@ void RenderContextImpl::beginRenderPass(RenderTarget* renderTarget, const Render
     }
 
     MTLRenderPassDescriptor* mtlDesc = [MTLRenderPassDescriptor renderPassDescriptor];
-    auto rtMTL                       = static_cast<const RenderTargetImpl*>(_currentRT);
+    auto rtMTL                       = static_cast<RenderTargetImpl*>(_currentRT);
     rtMTL->applyRenderPassAttachments(renderPassDesc, mtlDesc);
 
     _renderTargetWidth  = (unsigned int)mtlDesc.colorAttachments[0].texture.width;
@@ -276,9 +276,10 @@ void RenderContextImpl::updateDepthStencilState(const DepthStencilDesc& desc)
 
 void RenderContextImpl::updatePipelineState(const RenderTarget* rt,
                                             const PipelineDesc& desc,
-                                            PrimitiveGroup primitiveGroup)
+                                            PrimitiveType primitiveType)
 {
-    RenderContext::updatePipelineState(rt, desc, primitiveGroup);
+    _primitiveType = toMTLPrimitive(primitiveType);
+    RenderContext::updatePipelineState(rt, desc, primitiveType);
     _renderPipeline->update(rt, desc);
     [_mtlRenderEncoder setRenderPipelineState:_renderPipeline->getMTLRenderPipelineState()];
 }
@@ -332,51 +333,39 @@ void RenderContextImpl::setIndexBuffer(Buffer* buffer)
     [_mtlIndexBuffer retain];
 }
 
-void RenderContextImpl::drawArrays(PrimitiveType primitiveType,
-                                   std::size_t start,
-                                   std::size_t count,
-                                   bool wireframe /* unused */)
+void RenderContextImpl::drawArrays(std::size_t start, std::size_t count, bool wireframe /* unused */)
 {
     prepareDrawing();
-    [_mtlRenderEncoder drawPrimitives:toMTLPrimitive(primitiveType) vertexStart:start vertexCount:count];
+    [_mtlRenderEncoder drawPrimitives:_primitiveType vertexStart:start vertexCount:count];
 }
 
-void RenderContextImpl::drawArraysInstanced(PrimitiveType primitiveType,
-                                            std::size_t start,
+void RenderContextImpl::drawArraysInstanced(std::size_t start,
                                             std::size_t count,
                                             int instanceCount,
                                             bool wireframe /* unused */)
 {
     prepareDrawing();
-    [_mtlRenderEncoder drawPrimitives:toMTLPrimitive(primitiveType)
-                          vertexStart:start
-                          vertexCount:count
-                        instanceCount:instanceCount];
+    [_mtlRenderEncoder drawPrimitives:_primitiveType vertexStart:start vertexCount:count instanceCount:instanceCount];
 }
 
-void RenderContextImpl::drawElements(PrimitiveType primitiveType,
-                                     IndexFormat indexType,
-                                     std::size_t count,
-                                     std::size_t offset,
-                                     bool /* wireframe */)
+void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool /* wireframe */)
 {
     prepareDrawing();
-    [_mtlRenderEncoder drawIndexedPrimitives:toMTLPrimitive(primitiveType)
+    [_mtlRenderEncoder drawIndexedPrimitives:_primitiveType
                                   indexCount:count
                                    indexType:toMTLIndexType(indexType)
                                  indexBuffer:_mtlIndexBuffer
                            indexBufferOffset:offset];
 }
 
-void RenderContextImpl::drawElementsInstanced(PrimitiveType primitiveType,
-                                              IndexFormat indexType,
+void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
                                               std::size_t count,
                                               std::size_t offset,
                                               int instanceCount,
                                               bool /* wireframe */)
 {
     prepareDrawing();
-    [_mtlRenderEncoder drawIndexedPrimitives:toMTLPrimitive(primitiveType)
+    [_mtlRenderEncoder drawIndexedPrimitives:_primitiveType
                                   indexCount:count
                                    indexType:toMTLIndexType(indexType)
                                  indexBuffer:_mtlIndexBuffer
@@ -607,7 +596,7 @@ void RenderContextImpl::readPixels(id<MTLTexture> texture,
                                                                                            width:texWidth
                                                                                           height:texHeight
                                                                                        mipmapped:NO];
-    id<MTLDevice> device              = static_cast<DriverImpl*>(DriverBase::getInstance())->getMTLDevice();
+    id<MTLDevice> device              = static_cast<DriverImpl*>(axdrv)->getMTLDevice();
     id<MTLTexture> readPixelsTexture  = [device newTextureWithDescriptor:textureDesc];
 
     auto oneOffBuffer = [_mtlCmdQueue commandBuffer];

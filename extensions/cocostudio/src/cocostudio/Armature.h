@@ -205,31 +205,32 @@ protected:
     Bone* createBone(std::string_view boneName);
 
 protected:
-    ArmatureData* _armatureData;
+    ArmatureData* _armatureData{nullptr};
 
-    BatchNode* _batchNode;
+    BatchNode* _batchNode{nullptr};
 
-    Bone* _parentBone;
-    float _version;
+    Bone* _parentBone{nullptr};
+    float _version{0.0f};
 
-    mutable bool _armatureTransformDirty;
+    mutable bool _armatureTransformDirty{true};
 
-    ax::StringMap<Bone*> _boneDic;  //! The dictionary of the bones, include all bones in the armature, no matter it is
-                                    //! the direct bone or the indirect bone. It is different from m_pChindren.
+    ax::StringMap<Bone*> _boneDic{};  //! The dictionary of the bones, include all bones in the armature, no matter it
+                                      //! is
+                                      //! the direct bone or the indirect bone. It is different from m_pChindren.
 
-    ax::Vector<Bone*> _topBoneList;
+    ax::Vector<Bone*> _topBoneList{};
 
-    ax::BlendFunc _blendFunc;  //! It's required for CCTextureProtocol inheritance
+    ax::BlendFunc _blendFunc{};  //! It's required for CCTextureProtocol inheritance
 
-    ax::Vec2 _offsetPoint;
-    ax::Vec2 _realAnchorPointInPoints;
+    ax::Vec2 _offsetPoint{};
+    ax::Vec2 _realAnchorPointInPoints{};
 
-    ArmatureAnimation* _animation;
+    ArmatureAnimation* _animation{nullptr};
 
 #if ENABLE_PHYSICS_BOX2D_DETECT
-    b2Body* _body;
+    b2Body* _body{nullptr};
 #elif ENABLE_PHYSICS_CHIPMUNK_DETECT
-    cpBody* _body;
+    cpBody* _body{nullptr};
 #endif
 };
 

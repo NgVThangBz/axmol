@@ -41,21 +41,9 @@
 
 namespace ax::rhi
 {
-
-DriverBase* DriverBase::getInstance()
+std::unique_ptr<DriverBase> D3D11DriverFactory::create()
 {
-    if (!_instance)
-    {
-        _instance = new d3d11::DriverImpl();
-        static_cast<d3d11::DriverImpl*>(_instance)->init();
-    }
-
-    return _instance;
-}
-
-void DriverBase::destroyInstance()
-{
-    AX_SAFE_DELETE(_instance);
+    return std::make_unique<d3d11::DriverImpl>();
 }
 }  // namespace ax::rhi
 
@@ -101,7 +89,7 @@ static uint32_t FindMaxMsaaSamples(ID3D11Device* device, DXGI_FORMAT format)
 
 DriverImpl::DriverImpl() {}
 
-void DriverImpl::init()
+bool DriverImpl::init()
 {
     initializeAdapter();
     initializeDevice();
@@ -139,6 +127,8 @@ void DriverImpl::init()
     _caps.maxTextureSize = EstimateMaxTexSize(_device->GetFeatureLevel());
 
     _caps.maxSamplesAllowed = static_cast<int32_t>(FindMaxMsaaSamples(_device, DXGI_FORMAT_R8G8B8A8_UNORM));
+
+    return true;
 }
 
 DriverImpl::~DriverImpl()
@@ -277,9 +267,9 @@ HRESULT DriverImpl::createD3DDevice(int requestDriverType, int createFlags)
                                &_context);
 }
 
-RenderContext* DriverImpl::createRenderContext(void* surfaceContext)
+RenderContext* DriverImpl::createRenderContext(SurfaceHandle surface)
 {
-    return new RenderContextImpl(this, surfaceContext);
+    return new RenderContextImpl(this, surface);
 }
 
 Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial)
@@ -299,10 +289,9 @@ Texture* DriverImpl::createTexture(const TextureDesc& descriptor)
 
 RenderTarget* DriverImpl::createRenderTarget(Texture* colorAttachment, Texture* depthAttachment)
 {
-    auto renderTarget = new RenderTargetImpl(_device, false);
-    RenderTarget::ColorAttachment colors{{colorAttachment, 0}};
-    renderTarget->setColorAttachment(colors);
-    renderTarget->setDepthStencilAttachment(depthAttachment);
+    auto renderTarget = new RenderTargetImpl(this, false);
+    renderTarget->setColorTexture(colorAttachment);
+    renderTarget->setDepthStencilTexture(depthAttachment);
     return renderTarget;
 }
 
@@ -387,12 +376,14 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
 
     ID3D11SamplerState* sampler{nullptr};
     _device->CreateSamplerState(&sd, &sampler);
-    return sampler;
+    return SamplerHandle(sampler);
 }
 
 void DriverImpl::destroySampler(SamplerHandle& h)
 {
-    SafeRelease(reinterpret_cast<ID3D11SamplerState*&>(h));
+    auto samplerState = static_cast<ID3D11SamplerState*>(h);
+    SafeRelease(samplerState);
+    h = nullptr;
 }
 
 VertexLayout* DriverImpl::createVertexLayout(VertexLayoutDesc&& desc)

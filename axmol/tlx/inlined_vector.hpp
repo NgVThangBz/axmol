@@ -33,17 +33,15 @@ class inlined_vector
 
     struct _Vec_val
     {
-        _Vec_val()
-        {
-            reset_uninitialized();
-            ::memset(_Mybuf, 0, sizeof(_Mybuf));
-        }
+        _Vec_val() { reset(); }
 
-        void reset_uninitialized()
+        void reset()
         {
             _Myfirst = reinterpret_cast<_Ty*>(_Mybuf);
             _Mylast  = _Myfirst;
             _Myend   = _Myfirst + _Initial;
+
+            ::memset(_Mybuf, 0, sizeof(_Mybuf));
         }
 
         _Ty* inlined_data() { return reinterpret_cast<_Ty*>(_Mybuf); }
@@ -69,13 +67,21 @@ public:
     using iterator        = pointer;
     using const_iterator  = const_pointer;
 
-    inlined_vector() noexcept : _Mypair(_TLX __zero_then_variadic_args_t{}) {}
+    constexpr inlined_vector() noexcept : _Mypair(_TLX __zero_then_variadic_args_t{}) {}
 
-    inlined_vector(const inlined_vector& other) : _Mypair(_TLX __zero_then_variadic_args_t{}) { _Assign(other); }
+    constexpr inlined_vector(const inlined_vector& other) : _Mypair(_TLX __zero_then_variadic_args_t{})
+    {
+        _Assign(other);
+    }
 
-    inlined_vector(inlined_vector&& other) : _Mypair(_TLX __zero_then_variadic_args_t{})
+    constexpr inlined_vector(inlined_vector&& other) : _Mypair(_TLX __zero_then_variadic_args_t{})
     {
         _Assign_rv(std::move(other));
+    }
+
+    constexpr inlined_vector(std::initializer_list<_Ty> ilist) : _Mypair(_TLX __zero_then_variadic_args_t{})
+    {
+        _Assign_ilist(ilist);
     }
 
     ~inlined_vector() noexcept
@@ -110,6 +116,20 @@ public:
     {
         auto& _My_data = _Mypair._Myval2;
         return _My_data._Myfirst == _My_data._Mylast;
+    }
+
+    constexpr pointer data() noexcept /* strengthened */
+    {
+        auto& _My_data = _Mypair._Myval2;
+        _TLX_VERIFY(_My_data._Myfirst != _My_data._Mylast, "data() called on empty inlined_vector");
+        return _My_data._Myfirst;
+    }
+
+    constexpr const_pointer data() const noexcept /* strengthened */
+    {
+        auto& _My_data = _Mypair._Myval2;
+        _TLX_VERIFY(_My_data._Myfirst != _My_data._Mylast, "data() called on empty inlined_vector");
+        return _My_data._Myfirst;
     }
 
     constexpr size_type size() const noexcept
@@ -218,8 +238,22 @@ public:
     template <typename... _Valty>
     _Ty& emplace_back(_Valty&&... vals)
     {
-        _Resize_uninitialized(size() + 1);
+        _Resize(size() + 1, _TLX no_init);
         return *tlx::construct_at(_Mypair._Myval2._Mylast - 1, std::forward<_Valty>(vals)...);
+    }
+
+    constexpr void resize(size_t _Newsize) { _Resize(_Newsize, _TLX value_init); }
+    constexpr void resize(size_t _Newsize, const value_type& _Val) { _Resize(_Newsize, _Val); }
+
+    void pop_back()
+    {
+        auto& _My_data   = _Mypair._Myval2;
+        pointer& _Mylast = _My_data._Mylast;
+
+        _TLX_VERIFY(_My_data._Myfirst != _Mylast, "pop_back() called on empty vector");
+
+        _Alty_traits::destroy(_Getal(), std::to_address(_Mylast - 1));
+        --_Mylast;
     }
 
     void swap(inlined_vector& other)
@@ -408,12 +442,12 @@ private:
     // ------------------------------------------------------------
     // helper: move from other
     // ------------------------------------------------------------
-    void _Assign_rv(inlined_vector&& other) { this->swap(other); }
+    constexpr void _Assign_rv(inlined_vector&& other) { this->swap(other); }
 
     // ------------------------------------------------------------
     // helper: deep copy from other
     // ------------------------------------------------------------
-    void _Assign(const inlined_vector& other)
+    constexpr void _Assign(const inlined_vector& other)
     {
         auto& dst         = _Mypair._Myval2;
         const auto& src   = other._Mypair._Myval2;
@@ -487,78 +521,170 @@ private:
         }
     }
 
-    constexpr void _Resize_uninitialized(const size_type _Newsize)
+    // helper: deep copy from initializer_list
+    constexpr void _Assign_ilist(std::initializer_list<_Ty> init)
     {
-        if (_Newsize > max_size())
-        {
-            _Xlength();
-        }
+        auto& dst         = _Mypair._Myval2;
+        const size_type n = init.size();
 
-        auto& _My_data = _Mypair._Myval2;
-        if (_Newsize <= capacity())
+        if (n <= _Initial)
         {
-            const auto _Newlast = _My_data._Myfirst + _Newsize;
-            if constexpr (!std::is_trivially_destructible_v<_Ty>)
+            // inline copy
+            dst._Myfirst = reinterpret_cast<_Ty*>(dst._Mybuf);
+            dst._Myend   = dst._Myfirst + _Initial;
+            dst._Mylast  = dst._Myfirst;
+
+            if constexpr (std::is_trivially_copyable_v<_Ty>)
             {
-                if (_Newlast < _My_data._Mylast)
-                {
-                    for (pointer p = _My_data._Mylast - 1; p >= _Newlast;)
-                        tlx::invoke_dtor(--p);
-                }
+                ::memcpy(dst._Myfirst, init.begin(), n * sizeof(_Ty));
             }
-            _My_data._Mylast = _Newlast;
-        }
-        else
-        {
-            size_type _Oldsize = size();
-            size_type _Newcap  = _Calculate_growth(_Newsize);
-
-            _Ty* _Newvec  = _Getal().allocate(_Newcap);
-            _Ty* _Newlast = _Newvec;
-
-            // move or copy old elements into new storage
-            if constexpr (!std::is_trivially_copyable_v<_Ty>)
+            else
             {
                 size_type i = 0;
                 try
                 {
-                    for (; i < _Oldsize; ++i)
-                        tlx::construct_at(_Newvec + i, std::move(_My_data._Myfirst[i]));
+                    for (auto it = init.begin(); it != init.end(); ++it, ++i)
+                        tlx::construct_at(dst._Myfirst + i, *it);
                 }
                 catch (...)
                 {
                     if constexpr (!std::is_trivially_destructible_v<_Ty>)
                     {
                         for (size_type j = 0; j < i; ++j)
-                            tlx::invoke_dtor(_Newvec + j);
+                            tlx::invoke_dtor(dst._Myfirst + j);
                     }
-                    _Getal().deallocate(_Newvec, _Newcap);
                     throw;
                 }
             }
+            dst._Mylast = dst._Myfirst + n;
+        }
+        else
+        {
+            // heap copy
+            _Ty* new_first = _Getal().allocate(n);
+            _Ty* new_last  = new_first;
+
+            if constexpr (std::is_trivially_copyable_v<_Ty>)
+            {
+                ::memcpy(new_first, init.begin(), n * sizeof(_Ty));
+                new_last = new_first + n;
+            }
             else
             {
-                ::memcpy(_Newvec, _My_data._Myfirst, _Oldsize * sizeof(_Ty));
+                size_type i = 0;
+                try
+                {
+                    for (auto it = init.begin(); it != init.end(); ++it, ++i, ++new_last)
+                        tlx::construct_at(new_first + i, *it);
+                }
+                catch (...)
+                {
+                    if constexpr (!std::is_trivially_destructible_v<_Ty>)
+                    {
+                        for (size_type j = 0; j < i; ++j)
+                            tlx::invoke_dtor(new_first + j);
+                    }
+                    _Getal().deallocate(new_first, n);
+                    throw;
+                }
             }
 
-            // destroy old elements in old storage
-            if constexpr (!std::is_trivially_destructible_v<_Ty>)
-            {
-                for (size_type i = 0; i < _Oldsize; ++i)
-                    tlx::invoke_dtor(_My_data._Myfirst + i);
-            }
-
-            // free old storage if it was heap
-            if (!_My_data.is_inlined())
-            {
-                _Getal().deallocate(_My_data._Myfirst, static_cast<size_type>(_My_data._Myend - _My_data._Myfirst));
-            }
-
-            // install new storage
-            _My_data._Myfirst = _Newvec;
-            _My_data._Mylast  = _Newvec + _Newsize;
-            _My_data._Myend   = _Newvec + _Newcap;
+            dst._Myfirst = new_first;
+            dst._Mylast  = new_last;
+            dst._Myend   = new_first + n;
         }
+    }
+
+    template <typename _Ty2>
+    constexpr void _Resize(const size_type _Newsize, const _Ty2& _Val)
+    {
+        if (_Newsize > max_size())
+        {
+            _Xlength();
+        }
+
+        auto& _Al          = _Getal();
+        auto& _My_data     = _Mypair._Myval2;
+        auto& _Myfirst     = _My_data._Myfirst;
+        auto& _Mylast      = _My_data._Mylast;
+        auto& _Myend       = _My_data._Myend;
+        size_type _Oldsize = static_cast<size_type>(_Mylast - _Myfirst);
+        if (_Newsize < _Oldsize)
+        {
+            // trim
+            const pointer _Newlast = _Myfirst + _Newsize;
+            _TLX destroy_range(_Newlast, _Mylast, _Al);
+            _Mylast = _Newlast;
+            return;
+        }
+
+        if (_Newsize > _Oldsize)
+        {
+            const auto _Oldcap = static_cast<size_type>(_Myend - _Myfirst);
+            size_type _Newcap  = _Newsize > _Oldcap ? _Calculate_growth(_Newsize) : _Oldcap;
+
+            if (_Newcap > _Oldcap)
+            {
+                auto _Newvec = _Getal().allocate(_Newcap);
+
+                // move or copy old elements into new storage
+                if constexpr (!std::is_trivially_copyable_v<_Ty>)
+                {
+                    size_type i = 0;
+                    try
+                    {
+                        for (; i < _Oldsize; ++i)
+                            tlx::construct_at(_Newvec + i, std::move(_Myfirst[i]));
+                    }
+                    catch (...)
+                    {
+                        if constexpr (!std::is_trivially_destructible_v<_Ty>)
+                        {
+                            for (size_type j = 0; j < i; ++j)
+                                tlx::invoke_dtor(_Newvec + j);
+                        }
+                        _Getal().deallocate(_Newvec, _Newcap);
+                        throw;
+                    }
+                }
+                else
+                {
+                    ::memcpy(_Newvec, _Myfirst, _Oldsize * sizeof(_Ty));
+                }
+
+                // destroy old elements in old storage
+                if constexpr (!std::is_trivially_destructible_v<_Ty>)
+                {
+                    for (size_type i = 0; i < _Oldsize; ++i)
+                        tlx::invoke_dtor(_Myfirst + i);
+                }
+
+                // free old storage if it was heap
+                if (!_My_data.is_inlined())
+                {
+                    _Getal().deallocate(_Myfirst, _Oldcap);
+                }
+
+                // install new storage
+                _Myfirst = _Newvec;
+                _Mylast  = _Newvec + _Oldsize;
+                _Myend   = _Newvec + _Newcap;
+            }
+
+            if constexpr (std::is_same_v<_Ty2, _Ty>)
+            {  // Fill with user value: use memset for 1‑byte POD, construct otherwise
+                _Mylast = _TLX uninitialized_fill_n(_Mylast, _Newsize - _Oldsize, _Val, _Al);
+            }
+            else if constexpr (std::is_same_v<_Ty2, _TLX value_init_t>)
+            {  // Fill with value init: fast-pass
+                _Mylast = _TLX uninitialized_value_construct_n(_Mylast, _Newsize - _Oldsize, _Al);
+            }
+            else
+            {  // No fill: blazing fast
+                _Mylast = _Myfirst + _Newsize;
+            }
+        }
+        // if _Newsize == _Oldsize, do nothing
     }
 
     constexpr size_type _Calculate_growth(const size_type _Newsize) const
@@ -587,7 +713,7 @@ private:
         auto& _My_data = _Mypair._Myval2;
         if (!_My_data.is_inlined())
             _Getal().deallocate(_My_data._Myfirst, static_cast<size_type>(_My_data._Myend - _My_data._Myfirst));
-        _My_data.reset_uninitialized();
+        _My_data.reset();
     }
 
     static void _Xlength() { _TLX __xlength_error("vector too long"); }

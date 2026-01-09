@@ -52,19 +52,9 @@
 
 namespace ax::rhi
 {
-DriverBase* DriverBase::getInstance()
+std::unique_ptr<DriverBase> D3D12DriverFactory::create()
 {
-    if (!_instance)
-    {
-        _instance = new d3d12::DriverImpl();
-        static_cast<d3d12::DriverImpl*>(_instance)->init();
-    }
-    return _instance;
-}
-
-void DriverBase::destroyInstance()
-{
-    AX_SAFE_DELETE(_instance);
+    return std::make_unique<d3d12::DriverImpl>();
 }
 }  // namespace ax::rhi
 
@@ -270,7 +260,7 @@ DriverImpl::~DriverImpl()
 {
     AX_SAFE_RELEASE_NULL(_currentRenderContext);
 
-    cleanPendingResources();
+    destroyStaleResources();
 
     _srvAllocator.reset();
     _rtvAllocator.reset();
@@ -311,7 +301,7 @@ DriverImpl::~DriverImpl()
         debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL);
 }
 
-void DriverImpl::init()
+bool DriverImpl::init()
 {
     initializeDevice();
     createDescriptorAllocators();
@@ -377,6 +367,8 @@ void DriverImpl::init()
 #endif
 
     _dxcAvailable = detectDXCAvailability();
+
+    return true;
 }
 
 void DriverImpl::initializeDevice()
@@ -522,11 +514,17 @@ void DriverImpl::createDescriptorAllocators()
     _samplerAllocator->setAllowGrow(false);
 }
 
-RenderContext* DriverImpl::createRenderContext(void* surfaceContext)
+RenderContext* DriverImpl::createRenderContext(SurfaceHandle surface)
 {
-    auto context = new RenderContextImpl(this, surfaceContext);
+    auto context = new RenderContextImpl(this, surface);
     Object::assign(_currentRenderContext, context);
     return context;
+}
+
+void DriverImpl::removeCachedPipelineObjects(Program* key)
+{
+    if (_currentRenderContext)
+        _currentRenderContext->removeCachedPipelineObjects(key);
 }
 
 Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial)
@@ -542,9 +540,8 @@ Texture* DriverImpl::createTexture(const TextureDesc& descriptor)
 RenderTarget* DriverImpl::createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment)
 {
     auto rt = new RenderTargetImpl(this, false);
-    RenderTarget::ColorAttachment colors{{colorAttachment, 0}};
-    rt->setColorAttachment(colors);
-    rt->setDepthStencilAttachment(depthStencilAttachment);
+    rt->setColorTexture(colorAttachment);
+    rt->setDepthStencilTexture(depthStencilAttachment);
     return rt;
 }
 
@@ -647,12 +644,13 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
     auto handle = allocateDescriptor(DisposableResource::Type::SamplerView);
     _device->CreateSampler(&sd, handle->cpu);
 
-    return reinterpret_cast<SamplerHandle>(handle);
+    return SamplerHandle(handle);
 }
 
 void DriverImpl::destroySampler(SamplerHandle& h)
 {
-    deallocateDescriptor(reinterpret_cast<DescriptorHandle*>(h), DisposableResource::Type::SamplerView);
+    deallocateDescriptor(static_cast<DescriptorHandle*>(h), DisposableResource::Type::SamplerView);
+    h = nullptr;
 }
 
 DescriptorHandle* DriverImpl::createSRV(ID3D12Resource* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* desc)
@@ -828,7 +826,7 @@ void DriverImpl::processDisposalQueue(uint64_t completeFence)
     }
 }
 
-void DriverImpl::cleanPendingResources()
+void DriverImpl::destroyStaleResources()
 {
     waitForGPU();
     processDisposalQueue(UINT64_MAX);

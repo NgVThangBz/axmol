@@ -30,7 +30,7 @@
 #include "axmol/base/EventListenerCustom.h"
 #include "axmol/platform/GL.h"
 #include "axmol/rhi/Program.h"
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 
 #include <string>
 #include <vector>
@@ -47,8 +47,6 @@ class ShaderModuleImpl;
  * @addtogroup _opengl
  * @{
  */
-
-#define MAX_UNIFORM_NAME_LENGTH 256
 
 /**
  * An OpenGL program.

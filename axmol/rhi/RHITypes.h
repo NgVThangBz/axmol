@@ -28,17 +28,37 @@
 #include <stdint.h>
 #include <assert.h>
 #include <string>
+#include <bit>
 #include "axmol/tlx/bitmask.hpp"
 
-#define MAX_COLOR_ATTCHMENT 4
-
-#define MAX_INFLIGHT_BUFFER 3
-
-#define AX_ARRAYSIZE(A)     (sizeof(A) / sizeof((A)[0]))
+#define AX_ARRAYSIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 namespace ax::rhi
 {
 using namespace std::string_view_literals;
+
+inline constexpr int MAX_FRAMES_IN_FLIGHT = 3;
+
+enum class DriverType
+{
+    Auto = -1,
+    OpenGL,  // GL or GLES
+    D3D11,
+    D3D12,
+    Vulkan,
+    Metal,
+    Count
+};
+
+struct DefaultDriverPriority
+{
+    static constexpr int Null   = 0;
+    static constexpr int OpenGL = 70;
+    static constexpr int D3D11  = 80;
+    static constexpr int Vulkan = 90;
+    static constexpr int D3D12  = 100;
+    static constexpr int Metal  = 100;
+};
 
 enum class BufferUsage : uint32_t
 {
@@ -261,25 +281,27 @@ AX_ENABLE_BITSHIFT_OPS(ColorWriteMask)
 /**
  * Bitmask for selecting render buffers
  */
-enum class TargetBufferFlags : uint8_t
+enum class TargetBufferFlags : uint32_t
 {
-    NONE              = 0x0u,    //!< No buffer selected.
-    COLOR0            = 0x1u,    //!< Color buffer selected.
-    COLOR1            = 0x2u,    //!< Color buffer selected.
-    COLOR2            = 0x4u,    //!< Color buffer selected.
-    COLOR3            = 0x8u,    //!< Color buffer selected.
-    COLOR             = COLOR0,  //!< \deprecated
-    COLOR_ALL         = COLOR0 | COLOR1 | COLOR2 | COLOR3,
-    DEPTH             = 0x10u,                       //!< Depth buffer selected.
-    STENCIL           = 0x20u,                       //!< Stencil buffer selected.
+    NONE              = 0x0u,     //!< No buffer selected.
+    COLOR0            = 1u,       //!< Color buffer selected.
+    COLOR1            = 1u << 1,  //!< Color buffer selected.
+    COLOR2            = 1u << 2,  //!< Color buffer selected.
+    COLOR3            = 1u << 3,  //!< Color buffer selected.
+    COLOR             = COLOR0,   //!< \deprecated
+    COLOR_ALL         = 0x3FFFFFFFu,
+    DEPTH             = 1u << 30,                    //!< Depth buffer selected.
+    STENCIL           = 1u << 31,                    //!< Stencil buffer selected.
     DEPTH_AND_STENCIL = DEPTH | STENCIL,             //!< depth and stencil buffer selected.
     ALL               = COLOR_ALL | DEPTH | STENCIL  //!< Color, depth and stencil buffer selected.
 };
 AX_ENABLE_BITMASK_OPS(TargetBufferFlags)
 
+inline constexpr uint32_t MAX_COLOR_COUNT = std::popcount((uint32_t)TargetBufferFlags::COLOR_ALL);
+
 inline TargetBufferFlags getMRTColorFlag(size_t index) noexcept
 {
-    assert(index < 4);
+    assert(index < 30);
     return TargetBufferFlags(1u << index);
 }
 
@@ -428,7 +450,61 @@ struct SamplerIndex
     };
 };
 
-using SamplerHandle = void*;
+union Handle64
+{
+    void* ptr;
+    uint64_t u64;
+
+    constexpr Handle64() : u64(0) {}
+    constexpr Handle64(std::nullptr_t) : u64(0) {}
+    constexpr Handle64(void* p) : ptr(p) {}
+    constexpr Handle64(uint64_t v) : u64(v) {}
+    constexpr Handle64(const Handle64&) = default;
+    constexpr Handle64(Handle64&&)      = default;
+
+    Handle64& operator=(std::nullptr_t)
+    {
+        reset();
+        return *this;
+    }
+    Handle64& operator=(void* p)
+    {
+        ptr = p;
+        return *this;
+    }
+    Handle64& operator=(uint64_t v)
+    {
+        u64 = v;
+        return *this;
+    }
+    Handle64& operator=(const Handle64&) = default;
+    Handle64& operator=(Handle64&&)      = default;
+
+    template <typename _Ty>
+    constexpr explicit operator _Ty() const
+    {
+        using _Uty = std::remove_cv_t<std::remove_reference_t<_Ty>>;
+        if constexpr (std::is_pointer_v<_Uty>)
+            return static_cast<_Ty>(ptr);
+        else
+            return static_cast<_Ty>(u64);
+    }
+
+    template <typename _Ty>
+    constexpr bool operator==(_Ty&& rhs) const
+    {
+        using _Uty = std::remove_cv_t<std::remove_reference_t<_Ty>>;
+        if constexpr (std::is_pointer_v<_Uty>)
+            return static_cast<_Uty>(ptr) == rhs;
+        else
+            return static_cast<_Uty>(u64) == rhs;
+    }
+
+    constexpr void reset() { u64 = 0; }
+};
+
+using SurfaceHandle = Handle64;
+using SamplerHandle = Handle64;
 
 /**
  * Store texture description.
@@ -485,9 +561,9 @@ struct UniformInfo
     // Represents the logical shader type (float, vec4, mat4, sampler2D, ...).
     uint16_t varType = 0;
 
-    // Size in bytes of a single element (not array total size).
+    // Size in bytes
     // Always <= 65535.
-    uint16_t elementSize = 0;
+    uint16_t sizeBytes = 0;
 
     // Number of array elements (1 for non-array uniforms).
     uint16_t count = 0;

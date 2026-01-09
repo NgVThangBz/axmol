@@ -23,13 +23,14 @@
  ****************************************************************************/
 #include "axmol/rhi/d3d11/Program11.h"
 #include "axmol/rhi/d3d11/Buffer11.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/rhi/ShaderCache.h"
 
 namespace ax::rhi::d3d11
 {
 ProgramImpl::ProgramImpl(Data& vsData, Data& fsData) : Program(vsData, fsData)
 {
-    auto driver = DriverBase::getInstance();
+    auto driver = axdrv;
     for (auto& uboInfo : _activeUniformBlockInfos)
     {
         _uniformBuffers.push_back(driver->createBuffer(uboInfo.sizeBytes, BufferType::UNIFORM, BufferUsage::DYNAMIC));

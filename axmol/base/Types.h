@@ -484,6 +484,8 @@ enum class RenderScaleMode
     Physical  // Use logical pixels multiplied by the DPI scale factor
 };
 
+using DriverPreference = rhi::DriverType;
+
 /** @struct ContextAttrs
  *
  * The axmol Engine attributes.
@@ -504,6 +506,7 @@ struct ContextAttrs
     void* windowParent{nullptr};  // win32-spec
     PowerPreference powerPreference{PowerPreference::Auto};
     RenderScaleMode renderScaleMode{RenderScaleMode::Default};
+    DriverPreference driverPreference{DriverPreference::Auto};
 
     // The uploadBuffer size, current used by d3d12 RHI
     uint32_t uploadBufferSize{16 * 1024 * 1024};

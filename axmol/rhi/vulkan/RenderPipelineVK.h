@@ -33,6 +33,15 @@ namespace ax::rhi::vk
 class DepthStencilStateImpl;
 class VertexLayoutImpl;
 class ProgramImpl;
+class DriverImpl;
+
+struct ExtendedDynamicState
+{
+    VkCullModeFlags cullMode : 4              = VK_CULL_MODE_NONE;
+    VkFrontFace frontFace : 4                 = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    VkPrimitiveTopology primitiveTopology : 8 = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    uint32_t reserved : 16                    = 0;
+};
 
 /**
  * @brief Vulkan-based RenderPipeline implementation
@@ -46,8 +55,6 @@ class ProgramImpl;
 class RenderPipelineImpl : public RenderPipeline
 {
 public:
-    static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
     static constexpr int MAX_DESCRIPTOR_SETS = 2;
     static constexpr int SET_INDEX_UBO       = 0;
     static constexpr int SET_INDEX_SAMPLER   = 1;
@@ -75,12 +82,12 @@ public:
 
     using DescriptorPool = std::array<tlx::pod_vector<DescriptorState>, MAX_FRAMES_IN_FLIGHT>;
 
-    explicit RenderPipelineImpl(VkDevice device);
+    explicit RenderPipelineImpl(DriverImpl* driver);
     ~RenderPipelineImpl();
 
     void prepareUpdate(DepthStencilStateImpl* ds) { _dsState = ds; }
 
-    void update(const RenderTarget*, const PipelineDesc& desc) override;
+    void update(const RenderTarget*, const PipelineDesc& desc, const ExtendedDynamicState& state);
 
     VkPipeline getVkPipeline() const { return _activePipeline; }
     VkPipelineLayout getVkPipelineLayout() const { return _activePipelineLayout; }
@@ -103,19 +110,24 @@ public:
      */
     // void updateInputAssemblyState(PrimitiveType primitiveType);
 
-    void removeCachedPipelines(VkRenderPass rp);
+    void removeCachedObjects(VkRenderPass key);
+    void removeCachedObjects(Program* key);
 
 private:
-    void initializePipelineDefaults();
+    void initializePipelineDefaults(DriverImpl* driver);
 
     void updateBlendState(const BlendDesc& blendDesc);
     void updateDescriptorSetLayouts(ProgramImpl* program);
     void updatePipelineLayout(ProgramImpl* program);
-    void updateGraphicsPipeline(const PipelineDesc& desc, VkRenderPass renderPass, ProgramImpl* program);
+    void updateGraphicsPipeline(const PipelineDesc& desc,
+                                const ExtendedDynamicState& states,
+                                VkRenderPass renderPass,
+                                ProgramImpl* program);
 
     VkDescriptorPool allocateDescriptorPool();
 
 private:
+    DriverImpl* _driver{nullptr};
     VkDevice _device{VK_NULL_HANDLE};
 
     const DepthStencilStateImpl* _dsState{nullptr};
@@ -132,20 +144,19 @@ private:
     VkPipelineColorBlendAttachmentState _activeAttachment{};
     VkPipelineColorBlendStateCreateInfo _activeBlendState{};
 
-    VkPipelineLayout _activePipelineLayout{nullptr};
+    VkPipelineLayout _activePipelineLayout{VK_NULL_HANDLE};
     DescriptorSetLayoutState* _activeDSL{nullptr};
 
     VkPipeline _activePipeline{VK_NULL_HANDLE};
 
     tlx::pod_vector<VkDescriptorPool> _descriptorPools;
 
-    tlx::hash_map<uintptr_t, DescriptorSetLayoutState> _descriptorLayoutCache;
-    tlx::hash_map<uintptr_t, VkPipelineLayout> _pipelineLayoutCache;
-    tlx::hash_map<uintptr_t, VkPipeline> _pipelineCache;  // PSO cache
+    tlx::hash_map<uint64_t, DescriptorSetLayoutState> _descriptorLayoutCache;  // progId -> dsSet
+    tlx::hash_map<uint64_t, VkPipelineLayout> _pipelineLayoutCache;            // progId -> pipelineLayout
+    tlx::hash_map<uintptr_t, VkPipeline> _pipelineCache;                       // PSO cache
     tlx::hash_map<VkPipelineLayout, DescriptorPool> _descriptorCache;
 
-    // TODO:
-    std::multimap<ProgramImpl*, uintptr_t> _programToPipelineMap;
-    std::multimap<VkRenderPass, uintptr_t> _renderPassToPipelineMap;
+    std::multimap<uint64_t, uintptr_t> _programToPipelineMap;         // progId -> PSO id
+    std::multimap<VkRenderPass, uintptr_t> _renderPassToPipelineMap;  // renderPass -> PSO id
 };
 }  // namespace ax::rhi::vk

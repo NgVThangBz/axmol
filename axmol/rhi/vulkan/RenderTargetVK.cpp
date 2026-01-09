@@ -33,47 +33,18 @@
 namespace ax::rhi::vk
 {
 
-// Build a robust framebuffer cache key including:
-// - RenderPass handle (value)
-// - Ordered image view handles (contiguous color attachments, optional depth)
-// - Attachment count
-// - Framebuffer width/height
-static uintptr_t makeFramebufferKeyHash(VkRenderPass rp,
-                                        const tlx::pod_vector<VkImageView>& views,
-                                        uint32_t width,
-                                        uint32_t height)
-{
-    // Pack a small POD blob to hash deterministically.
-    struct Header
-    {
-        uintptr_t rp;
-        uint32_t count;
-        uint32_t width;
-        uint32_t height;
-    } hdr{reinterpret_cast<uintptr_t>(rp), static_cast<uint32_t>(views.size()), width, height};
-
-    // Hash header first, then hash the views array in order.
-    uintptr_t h = tlx::hash_bytes(&hdr, sizeof(hdr), 0);
-    if (!views.empty())
-        h = tlx::hash_bytes(views.data(), views.size_bytes(), h);
-    return h;
-}
-
 RenderTargetImpl::RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget)
     : RenderTarget(defaultRenderTarget), _driver(driver)
 {
-    _clearValues.reserve(MAX_COLOR_ATTCHMENT + 1);
+    _clearValues.reserve(_color.size() + 1);
 }
 
 RenderTargetImpl::~RenderTargetImpl()
 {
     _driver->waitForGPU();
-
-    invalidate();
-    // We do not destroy cached renderpasses/framebuffers here to allow reuse across RT instances
 }
 
-void RenderTargetImpl::invalidate()
+void RenderTargetImpl::cleanupResources()
 {
     // Conservative: wait idle before destroying caches to avoid "in use" errors.
     for (auto& [_, pass] : _renderPassCache)
@@ -85,37 +56,41 @@ void RenderTargetImpl::invalidate()
     _renderPass  = VK_NULL_HANDLE;
     _framebuffer = VK_NULL_HANDLE;
 
-    _attachmentViews.fill(nullptr);
-
-    _renderHashSeeds.fill(0);
+    _attachmentViews.clear();
+    _renderHashSeeds.clear();
     _activeHashSeed = 0;
 
-    _dirtyFlags = TargetBufferFlags::ALL;
+    RenderTarget::cleanupResources();
+
+    for (auto imageView : _swapchainImageViews)
+    {
+        if (imageView != VK_NULL_HANDLE)
+            _driver->disposeImageView(imageView, 0);
+    }
+    _swapchainImageViews.clear();
+}
+
+void RenderTargetImpl::setColorTexture(Texture* texture, int level, int index)
+{
+    RenderTarget::setColorTexture(texture, level, index);
+    _attachmentViews.resize(_color.size() + 1);
 }
 
 void RenderTargetImpl::rebuildSwapchainAttachments(const tlx::pod_vector<VkImage>& images,
-                                                   const tlx::pod_vector<VkImageView>& imageViews,
                                                    const VkExtent2D& extent,
-                                                   PixelFormat imagePF)
+                                                   PixelFormat imagePF,
+                                                   VkFormat surfaceFormat)
 {
-    if (images.empty() || imageViews.empty())
-        return;
+    VK_REQUIRE_EXPR(!images.empty() && images.size() <= MAX_COLOR_COUNT, "Too many swapchain images");
 
     _dirtyFlags = TargetBufferFlags::DEPTH_AND_STENCIL;
 
-    // destroy old attachments
-    // colors
-    for (auto tex : _color)
-    {
-        if (tex)
-            AX_SAFE_RELEASE_NULL(tex.texture);
-    }
-
-    // depth-stencil
-    if (_depthStencil)
-        AX_SAFE_RELEASE_NULL(_depthStencil.texture);
+    _swapchainImageViews.resize(images.size());
 
     /// create new attachments
+    _color.resize(images.size());
+    _renderHashSeeds.resize(images.size());
+    _attachmentViews.resize(images.size() + 1);
 
     // colors
     TextureDesc colorDesc{};
@@ -127,13 +102,32 @@ void RenderTargetImpl::rebuildSwapchainAttachments(const tlx::pod_vector<VkImage
     colorDesc.pixelFormat  = imagePF;
     colorDesc.textureUsage = TextureUsage::RENDER_TARGET;
 
+    auto device = _driver->getDevice();
     for (auto i = 0; i < images.size(); ++i)
     {
-        VkImage swapchainImage = images[i];
-        VkImageView imageView  = imageViews[i];
+        VkImageView imageView{VK_NULL_HANDLE};
+
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image                           = images[i];
+        viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format                          = surfaceFormat;
+        viewInfo.components                      = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                                                    VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+        viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel   = 0;
+        viewInfo.subresourceRange.levelCount     = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount     = 1;
+
+        auto vr = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
+        AXASSERT(vr == VK_SUCCESS, "vkCreateImageView failed");
+
+        _swapchainImageViews[i] = imageView;
+
         // Wrap the swapchain VkImage as TextureImpl (color attachment)
         // Important: TextureImpl(VkImage) does not own the image memory; it should create a VkImageView for sampling.
-        auto colorTex = new TextureImpl(_driver, swapchainImage, imageView);
+        auto colorTex = new TextureImpl(_driver, images[i], imageView);
         // Update descriptor (sampler, mip info, etc.). The TextureImpl should create view if missing.
         colorTex->updateTextureDesc(colorDesc);
         _color[i].texture = colorTex;
@@ -164,17 +158,18 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
 {
     // 1) Collect attachment views and impl pointers
 
+    const auto colorCount = _color.size();
+
     if (_defaultRenderTarget)
     {
-        AXASSERT(imageIndex < MAX_COLOR_ATTCHMENT, "image index out of range");
+        AXASSERT(imageIndex < colorCount, "image index out of range");
 
         auto oldDirtyFlags = _dirtyFlags;
         if (bitmask::any(_dirtyFlags, TargetBufferFlags::DEPTH_AND_STENCIL))
         {
             _dirtyFlags &= ~TargetBufferFlags::DEPTH_AND_STENCIL;
             if (_depthStencil)
-                _attachmentViews[DepthViewIndex] =
-                    static_cast<TextureImpl*>(_depthStencil.texture)->internalHandle().view;
+                _attachmentViews.back() = static_cast<TextureImpl*>(_depthStencil.texture)->internalHandle().view;
             else
                 AXASSERT(false, "swapchain depth-stencil can't be null");
         }
@@ -197,8 +192,8 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
         else
         {
             _activeHashSeed = _renderHashSeeds[imageIndex] =
-                tlx::hash_bytes(&_attachmentViews[imageIndex], sizeof(VkImageView),
-                                reinterpret_cast<uintptr_t>(_attachmentViews[DepthViewIndex]));
+                tlx::hash64_bytes(&_attachmentViews[imageIndex], sizeof(VkImageView),
+                                  reinterpret_cast<uint64_t>(_attachmentViews.back()));
         }
     }
     else
@@ -206,7 +201,7 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
         if (_dirtyFlags != TargetBufferFlags::NONE) [[unlikely]]
         {
             // Unconditionally collect attachments for contiguous MRT from index 0
-            for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+            for (size_t i = 0; i < colorCount; ++i)
             {
                 if (!bitmask::any(_dirtyFlags, getMRTColorFlag(i)))
                     continue;
@@ -225,16 +220,16 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
             {
                 if (_depthStencil.texture)
                 {
-                    auto* texImpl                    = static_cast<TextureImpl*>(_depthStencil.texture);
-                    _attachmentViews[DepthViewIndex] = texImpl->internalHandle().view;
+                    auto* texImpl           = static_cast<TextureImpl*>(_depthStencil.texture);
+                    _attachmentViews.back() = texImpl->internalHandle().view;
                 }
                 else
                 {
-                    _attachmentViews[DepthViewIndex] = VK_NULL_HANDLE;
+                    _attachmentViews.back() = VK_NULL_HANDLE;
                 }
             }
 
-            _activeHashSeed = XXH64(&_attachmentViews[0], sizeof(_attachmentViews), 0);
+            _activeHashSeed = tlx::hash64_bytes(&_attachmentViews[0], sizeof(_attachmentViews));
 
             _dirtyFlags = TargetBufferFlags::NONE;
         }
@@ -260,7 +255,7 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
     }
     else
     {
-        for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+        for (size_t i = 0; i < colorCount; ++i)
         {
             if (_attachmentViews[i] != VK_NULL_HANDLE)
             {
@@ -282,7 +277,7 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
         }
     }
 
-    if (_attachmentViews[DepthViewIndex] != VK_NULL_HANDLE)
+    if (_attachmentViews.back() != VK_NULL_HANDLE)
     {
         VkClearValue& dsv = _clearValues.emplace_back();
         if (bitmask::any(renderPassDesc.flags.clear, TargetBufferFlags::DEPTH_AND_STENCIL))
@@ -320,11 +315,11 @@ void RenderTargetImpl::endRenderPass(VkCommandBuffer cmd)
 
     if (!_defaultRenderTarget)
     {
-        for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+        for (auto& rb : _color)
         {
-            if (!_color[i])
+            if (!rb)
                 break;
-            static_cast<TextureImpl*>(_color[i].texture)->setKnownLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            static_cast<TextureImpl*>(rb.texture)->setKnownLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
         if (_depthStencil)
         {
@@ -338,16 +333,17 @@ void RenderTargetImpl::updateFramebuffer(VkCommandBuffer /*cmd*/, uint32_t image
 {
     AXASSERT(_renderPass, "updateFramebuffer: RenderPass must set");
 
-    auto key = tlx::hash_bytes(&_renderPass, sizeof(_renderPass), _activeHashSeed);
+    auto key = tlx::hash64_bytes(&_renderPass, sizeof(_renderPass), _activeHashSeed);
     if (auto it = _framebufferCache.find(key); it != _framebufferCache.end())
     {
         _framebuffer = it->second;
     }
     else
     {
+        const auto colorCount = _color.size();
         // Build ordered views vector (contiguous colors + optional depth)
         tlx::pod_vector<VkImageView> views;
-        views.reserve(MAX_COLOR_ATTCHMENT + 1);
+        views.reserve(colorCount + 1);
         if (_defaultRenderTarget)
         {
             AXASSERT(_attachmentViews[imageIndex], "swapchain color attachment view can't be null");
@@ -355,7 +351,7 @@ void RenderTargetImpl::updateFramebuffer(VkCommandBuffer /*cmd*/, uint32_t image
         }
         else
         {
-            for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+            for (size_t i = 0; i < colorCount; ++i)
             {
                 if (_attachmentViews[i] != VK_NULL_HANDLE)
                     views.push_back(_attachmentViews[i]);
@@ -363,15 +359,15 @@ void RenderTargetImpl::updateFramebuffer(VkCommandBuffer /*cmd*/, uint32_t image
                     break;  // contiguous color attachments assumption
             }
         }
-        if (_attachmentViews[DepthViewIndex] != VK_NULL_HANDLE)
-            views.push_back(_attachmentViews[DepthViewIndex]);
+        if (_attachmentViews.back() != VK_NULL_HANDLE)
+            views.push_back(_attachmentViews.back());
 
         // Derive framebuffer extent from color0 or depth if color0 absent (depth-only)
         const auto color0 = getColorAttachment(0);
         auto& colorDesc   = color0->getDesc();
         uint32_t fbWidth  = colorDesc.width;
         uint32_t fbHeight = colorDesc.height;
-        if ((fbWidth == 0 || fbHeight == 0) && _attachmentViews[DepthViewIndex] != VK_NULL_HANDLE)
+        if ((fbWidth == 0 || fbHeight == 0) && _attachmentViews.back() != VK_NULL_HANDLE)
         {
             const auto& dsDesc = getDepthStencilAttachment()->getDesc();
             fbWidth            = dsDesc.width;
@@ -396,7 +392,7 @@ void RenderTargetImpl::updateFramebuffer(VkCommandBuffer /*cmd*/, uint32_t image
 
 void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t imageIndex)
 {
-    const auto key = tlx::hash_bytes(&desc, sizeof(desc), _activeHashSeed);
+    const auto key = tlx::hash64_bytes(&desc, sizeof(desc), _activeHashSeed);
 
     if (auto it = _renderPassCache.find(key); it != _renderPassCache.end())
     {
@@ -408,8 +404,8 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
         tlx::pod_vector<VkAttachmentDescription> attachments;
         tlx::pod_vector<VkAttachmentReference> colorRefs;
         VkAttachmentReference depthRef{};
-        attachments.reserve(MAX_COLOR_ATTCHMENT + 1);
-        colorRefs.reserve(MAX_COLOR_ATTCHMENT);
+        attachments.reserve(_color.size() + 1);
+        colorRefs.reserve(_color.size());
 
         const bool isDefaultRT = _defaultRenderTarget;
 
@@ -458,7 +454,8 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
         }
         else
         {
-            for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+            const auto colorCount = _color.size();
+            for (size_t i = 0; i < colorCount; ++i)
             {
                 if (_attachmentViews[i] == VK_NULL_HANDLE)
                     break;
@@ -468,7 +465,7 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
         }
 
         // Depth/stencil attachment
-        const bool hasDepth = (_attachmentViews[DepthViewIndex] != VK_NULL_HANDLE);
+        const bool hasDepth = (_attachmentViews.back() != VK_NULL_HANDLE);
         if (hasDepth)
         {
             auto attachment    = getDepthStencilAttachment();
@@ -568,11 +565,11 @@ void RenderTargetImpl::prepareAttachmentsForRendering(VkCommandBuffer cmd)
         return;
 
     // Color -> ATTACHMENT_OPTIMAL (contiguous indices starting at 0)
-    for (size_t i = 0; i < MAX_COLOR_ATTCHMENT; ++i)
+    for (auto& color : _color)
     {
-        if (!_color[i])
+        if (!color)
             break;
-        static_cast<TextureImpl*>(_color[i].texture)->transitionLayout(cmd, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        static_cast<TextureImpl*>(color.texture)->transitionLayout(cmd, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
     // Depth -> ATTACHMENT_OPTIMAL

@@ -69,7 +69,7 @@ void TextureBindingSet::assign(const TextureBindingSet& other)
 {
     if (this != &other)
     {
-        setTextureArray(this->runtimeLocation, other.slots, other.texs);
+        setTextureArray(other.runtimeLocation, other.slots, other.texs);
     }
 }
 

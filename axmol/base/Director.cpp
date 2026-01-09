@@ -68,6 +68,7 @@ THE SOFTWARE.
 #endif
 
 #include "axmol/rhi/SamplerCache.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/renderer/VertexLayoutManager.h"
 
 #if defined(AX_ENABLE_3D)
@@ -1157,7 +1158,7 @@ void Director::cleanupDirector()
 
     ProgramManager::destroyInstance();
     VertexLayoutManager::destroyInstance();
-    rhi::DriverBase::destroyInstance();
+    rhi::DriverContext::destroyCurrentDriver();
 
     // OpenGL view
     if (_renderView)
@@ -1398,8 +1399,7 @@ void Director::createStatsLabel()
     bool isOK    = image->initWithImageData(data, dataLength, false);
     if (!isOK)
     {
-        if (image)
-            delete image;
+        delete image;
         AXLOGE("{}", "Fails: init fps_images");
         return;
     }

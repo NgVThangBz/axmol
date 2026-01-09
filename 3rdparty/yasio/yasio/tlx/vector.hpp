@@ -1067,7 +1067,7 @@ private:
     }
     else
     { // Fill with value init: fast-pass
-      if constexpr ((std::is_same_v<_Ty2, __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, value_init_t>)
+      if constexpr ((std::is_same_v<_Ty2, _TLX __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, _TLX value_init_t>)
         _Appended_last = _TLX uninitialized_value_construct_n(_Appended_first, _Newsize - _Oldsize, _Al);
       else // No fill: blazing fast
         _Appended_last = _Appended_first + (_Newsize - _Oldsize);
@@ -1116,16 +1116,16 @@ private:
       { // Fill with user value: use memset for 1‑byte POD, construct otherwise
         _Mylast = _TLX uninitialized_fill_n(_Mylast, _Newsize - _Oldsize, _Val, _Al);
       }
+      else if constexpr ((std::is_same_v<_Ty2, _TLX __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, _TLX value_init_t>)
+      { // Fill with value init: fast-pass
+        _Mylast = _TLX uninitialized_value_construct_n(_Mylast, _Newsize - _Oldsize, _Al);
+      }
       else
-      {
-        // Fill with value init: fast-pass
-        if constexpr ((std::is_same_v<_Ty2, __auto_value_init_t> && allow_auto_fill) || std::is_same_v<_Ty2, value_init_t>)
-          _Mylast = _TLX uninitialized_value_construct_n(_Mylast, _Newsize - _Oldsize, _Al);
-        else // No fill: blazing fast
-          _Mylast = _Myfirst + _Newsize;
+      { // No fill: blazing fast
+        _Mylast = _Myfirst + _Newsize;
       }
     }
-    // if _Newsize == _Oldsize, do nothing; avoid invalidating iterators
+    // if _Newsize == _Oldsize, do nothing
   }
 
 public:
@@ -1250,6 +1250,8 @@ public:
   {
     auto& _My_data   = _Mypair._Myval2;
     pointer& _Mylast = _My_data._Mylast;
+
+    _TLX_VERIFY(_My_data._Myfirst != _Mylast, "pop_back() called on empty vector");
 
     _Alty_traits::destroy(_Getal(), std::to_address(_Mylast - 1));
     --_Mylast;

@@ -32,7 +32,7 @@
 #include "axmol/rhi/vulkan/UtilsVK.h"
 #include "axmol/rhi/vulkan/DriverVK.h"
 #include "axmol/rhi/vulkan/SemaphorePoolVK.h"
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/base/Logging.h"
 
 #include <glad/vulkan.h>
@@ -41,6 +41,8 @@
 
 namespace ax::rhi::vk
 {
+
+static constexpr uint32_t kPreferredSwapchainImageCount = 3;
 
 /*
  * Helper: map PrimitiveType to VkPrimitiveTopology
@@ -58,26 +60,23 @@ namespace ax::rhi::vk
  * By default, Axmol relies on TRIANGLE_LIST and other common topologies,
  * which cover the majority of rendering scenarios.
  */
+
+static constexpr VkPrimitiveTopology kPrimitiveTopologyMap[] = {
+    VK_PRIMITIVE_TOPOLOGY_POINT_LIST,     // POINT
+    VK_PRIMITIVE_TOPOLOGY_LINE_LIST,      // LINE
+    VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,     // LINE_LOOP (Not present in Vulkan, LINE_STRIP)
+    VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,     // LINE_STRIP
+    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,  // TRIANGLE
+    VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP  // TRIANGLE_STRIP
+};
+
 static VkPrimitiveTopology toVkPrimitiveTopology(PrimitiveType type)
 {
-    switch (type)
+    if (type == PrimitiveType::LINE_LOOP) [[unlikely]]
     {
-    case PrimitiveType::POINT:
-        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-    case PrimitiveType::LINE:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    case PrimitiveType::LINE_LOOP:
         AXLOGE("axmol-vulkan RHI doesn't support LINE_LOOP");
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;  // Vulkan has no LINE_LOOP
-    case PrimitiveType::LINE_STRIP:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-    case PrimitiveType::TRIANGLE:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    case PrimitiveType::TRIANGLE_STRIP:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    default:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     }
+    return kPrimitiveTopologyMap[(size_t)type];
 }
 
 // Helper: map IndexFormat to VkIndexType
@@ -122,10 +121,10 @@ static void destroySemphores(tlx::pod_vector<VkSemaphore>& semaphores, VkDevice 
 // NOTE: This implementation assumes the existence of a Vulkan driver context that owns device, queues,
 // swapchain, render pass, and descriptor management. Adapt integration points to your driver as needed.
 
-RenderContextImpl::RenderContextImpl(DriverImpl* driver, VkSurfaceKHR surface)
+RenderContextImpl::RenderContextImpl(DriverImpl* driver, SurfaceHandle surface)
 {
     _driver        = driver;
-    _surface       = surface;
+    _surface       = static_cast<VkSurfaceKHR>(surface);
     _graphicsQueue = driver->getGraphicsQueue();
     _presentQueue  = driver->getPresentQueue();
     _device        = driver->getDevice();
@@ -167,20 +166,22 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, VkSurfaceKHR surface)
     _descriptorImageInfosPerFrame.reserve(16);
 
     // Create per-frame uniform ring buffers (capacity can be tuned)
-    createUniformRingBuffers(1 * 1024 * 1024);  // 1 MB per frame
+    createUniformRingBuffers(2 * 1024 * 1024);  // 2 MB per frame
 }
 
 RenderContextImpl::~RenderContextImpl()
 {
     vkDeviceWaitIdle(_device);
+    vkQueueWaitIdle(_presentQueue);
 
     AX_SAFE_RELEASE_NULL(_screenRT);
+    _driver->destroyStaleResources();
     AX_SAFE_RELEASE_NULL(_renderPipeline);
 
     destroyUniformRingBuffers();
 
     destroySemphores(_renderFinishedSemaphores, _device);
-    destroySemphores(_acquireCompleteSemaphores, _device);
+    destroySemphores(_presentCompleteSemaphores, _device);
 
     for (auto fence : _inFlightFences)
         vkDestroyFence(_device, fence, nullptr);
@@ -199,13 +200,9 @@ RenderContextImpl::~RenderContextImpl()
         _commandPool = VK_NULL_HANDLE;
     }
 
-    for (auto view : _swapchainImageViews)
-        vkDestroyImageView(_device, view, nullptr);
-
     if (_swapchain != VK_NULL_HANDLE)
         vkDestroySwapchainKHR(_device, _swapchain, nullptr);
 
-    _swapchainImageViews.clear();
     _swapchainImages.clear();
 }
 
@@ -291,14 +288,14 @@ void RenderContextImpl::destroyUniformRingBuffers()
 // Reset current frame ring buffer write head after its fence is signaled
 void RenderContextImpl::resetUniformRingForCurrentFrame()
 {
-    UniformRingBuffer& ring = _uniformRings[_currentFrame];
+    UniformRingBuffer& ring = _uniformRings[_frameIndex];
     ring.writeHead          = 0;
 }
 
 // Allocate aligned slice from current frame's ring buffer
 RenderContextImpl::UniformSlice RenderContextImpl::allocateUniformSlice(std::size_t size)
 {
-    UniformRingBuffer& ring = _uniformRings[_currentFrame];
+    UniformRingBuffer& ring = _uniformRings[_frameIndex];
 
     // Align allocation size to device requirement
     std::size_t aligned = (size + ring.align - 1) & ~(ring.align - 1);
@@ -328,6 +325,7 @@ void RenderContextImpl::createCommandBuffers()
 }
 
 #if !_AX_USE_DESCRIPTOR_CACHE
+
 void RenderContextImpl::createDescriptorPool()
 {
     // Define the descriptor types and counts supported by the pool
@@ -354,12 +352,12 @@ void RenderContextImpl::createDescriptorPool()
 }
 #endif
 
-bool RenderContextImpl::updateSurface(void* surface, uint32_t width, uint32_t height)
+bool RenderContextImpl::updateSurface(SurfaceHandle surface, uint32_t width, uint32_t height)
 {
-    if (width == _screenWidth && height == _screenHeight && _surface == surface)
+    if (width == _screenWidth && height == _screenHeight && surface == _surface)
         return true;
 
-    _surface        = (VkSurfaceKHR)surface;
+    _surface        = static_cast<VkSurfaceKHR>(surface);
     _screenWidth    = width;
     _screenHeight   = height;
     _swapchainDirty = true;
@@ -460,23 +458,36 @@ void RenderContextImpl::recreateSwapchain()
         AXLOGE("axmol: Failed to create swapchain: extent width/height is 0");
     }
 
-    uint32_t imageCount = caps.minImageCount + 1;
-    if (caps.maxImageCount > 0 && imageCount > caps.maxImageCount)
-        imageCount = caps.maxImageCount;
+    const auto maxImageCount = caps.maxImageCount == 0 ? (std::numeric_limits<uint32_t>::max)() : caps.maxImageCount;
+    auto preferredImageCount = std::clamp(kPreferredSwapchainImageCount, caps.minImageCount, maxImageCount);
+    AXLOGI("Creating swapchain: {}x{}, format={}, presentMode={}, preferredImageCount={}", extent.width, extent.height,
+           static_cast<int>(surfaceFormat.format), static_cast<int>(chosenPresentMode), preferredImageCount);
 
     // Destroy old swapchain and swapchain images if exists
     if (_swapchain != VK_NULL_HANDLE)
     {
-        for (auto view : _swapchainImageViews)
-            vkDestroyImageView(_device, view, nullptr);
+        vkQueueWaitIdle(_presentQueue);
+
+        // destroy semaphores
+        if (!_renderFinishedSemaphores.empty())
+            destroySemphores(_renderFinishedSemaphores, _device);
+        if (!_presentCompleteSemaphores.empty())
+            destroySemphores(_presentCompleteSemaphores, _device);
+
+        // destroy imageviews, pipelines and other resources
+        _screenRT->cleanupResources();
+        _driver->destroyStaleResources();
+
+        // destroy swapchain
         vkDestroySwapchainKHR(_device, _swapchain, nullptr);
+        _swapchain = VK_NULL_HANDLE;
     }
 
     // Create new swapchain
     VkSwapchainCreateInfoKHR scInfo{};
     scInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     scInfo.surface          = _surface;
-    scInfo.minImageCount    = imageCount;
+    scInfo.minImageCount    = preferredImageCount;
     scInfo.imageFormat      = surfaceFormat.format;
     scInfo.imageColorSpace  = surfaceFormat.colorSpace;
     scInfo.imageExtent      = extent;
@@ -497,47 +508,27 @@ void RenderContextImpl::recreateSwapchain()
     // Retrieve swapchain images
     uint32_t swapImageCount{1};
     vkGetSwapchainImagesKHR(_device, _swapchain, &swapImageCount, nullptr);
-    swapImageCount = std::clamp(swapImageCount, 1u, static_cast<uint32_t>(MAX_COLOR_ATTCHMENT));
+    AXLOGI("vkGetSwapchainImagesKHR returned {} images", swapImageCount);
+
     _swapchainImages.resize(swapImageCount);
     vkGetSwapchainImagesKHR(_device, _swapchain, &swapImageCount, _swapchainImages.data());
 
-    // Create image views
-    _swapchainImageViews.resize(swapImageCount);
-    for (size_t i = 0; i < _swapchainImages.size(); ++i)
-    {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image                           = _swapchainImages[i];
-        viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format                          = surfaceFormat.format;
-        viewInfo.components                      = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
-                                                    VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
-        viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel   = 0;
-        viewInfo.subresourceRange.levelCount     = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount     = 1;
+    _screenRT->rebuildSwapchainAttachments(_swapchainImages, extent, pixelFormat, surfaceFormat.format);
 
-        vr = vkCreateImageView(_device, &viewInfo, nullptr, &_swapchainImageViews[i]);
-        AXASSERT(vr == VK_SUCCESS, "vkCreateImageView failed");
-    }
+    VkSemaphoreCreateInfo sci{};
+    sci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    _screenRT->rebuildSwapchainAttachments(_swapchainImages, _swapchainImageViews, extent, pixelFormat);
-
-    // re-create render finished semaphores
-    if (!_renderFinishedSemaphores.empty())
-        destroySemphores(_renderFinishedSemaphores, _device);
-    if (!_acquireCompleteSemaphores.empty())
-        destroySemphores(_acquireCompleteSemaphores, _device);
-
-    VkSemaphoreCreateInfo sci{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     _renderFinishedSemaphores.resize(swapImageCount, VK_NULL_HANDLE);
-    _acquireCompleteSemaphores.resize(swapImageCount, VK_NULL_HANDLE);
     for (uint32_t i = 0; i < swapImageCount; ++i)
     {
         VkResult r = vkCreateSemaphore(_device, &sci, nullptr, &_renderFinishedSemaphores[i]);
         AXASSERT(r == VK_SUCCESS, "vkCreateSemaphore failed");
-        r = vkCreateSemaphore(_device, &sci, nullptr, &_acquireCompleteSemaphores[i]);
+    }
+
+    _presentCompleteSemaphores.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        auto r = vkCreateSemaphore(_device, &sci, nullptr, &_presentCompleteSemaphores[i]);
         AXASSERT(r == VK_SUCCESS, "vkCreateSemaphore failed");
     }
 
@@ -549,11 +540,10 @@ void RenderContextImpl::recreateSwapchain()
     }
 
     // Resets some state
-    _currentFrame      = 0;
-    _currentImageIndex = 0;
-    _lastError         = 0;
-    _suboptimal        = false;
-    _semaphoreIndex    = _acquireCompleteSemaphores.size() - 1;
+    _frameIndex = 0;
+    _imageIndex = 0;
+    _lastError  = 0;
+    _suboptimal = false;
 }
 
 void RenderContextImpl::setDepthStencilState(DepthStencilState* depthStencilState)
@@ -577,7 +567,6 @@ bool RenderContextImpl::beginFrame()
     {
         vkDeviceWaitIdle(_device);
         recreateSwapchain();
-        static_cast<RenderTargetImpl*>(_screenRT)->invalidate();
         _swapchainDirty = false;
     }
 
@@ -585,7 +574,7 @@ bool RenderContextImpl::beginFrame()
         return false;  // if error not cleared, skip frame
 
     // wait for previous frame to finish
-    auto& currentFence = _inFlightFences[_currentFrame];
+    auto& currentFence = _inFlightFences[_frameIndex];
     vkWaitForFences(_device, 1, &currentFence, VK_TRUE, UINT64_MAX);
     vkResetFences(_device, 1, &currentFence);
 
@@ -597,30 +586,27 @@ bool RenderContextImpl::beginFrame()
     // Reset uniform ring write head for this frame
     resetUniformRingForCurrentFrame();
 
-    const uint32_t prevSemaphoreIndex = _semaphoreIndex;
-    _semaphoreIndex                   = (_semaphoreIndex + 1) % _acquireCompleteSemaphores.size();
-    const auto maxImageIndex          = static_cast<uint32_t>(_swapchainImages.size());
+    const auto maxImageIndex = static_cast<uint32_t>(_swapchainImages.size());
 
-    VkResult result =
-        vkAcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _acquireCompleteSemaphores[_semaphoreIndex],
-                              VK_NULL_HANDLE, &_currentImageIndex);
-    if (!handleSwapchainResult(result, SwapchainOp::Acquire, prevSemaphoreIndex))
+    VkResult result = vkAcquireNextImageKHR(_device, _swapchain, UINT64_MAX, _presentCompleteSemaphores[_frameIndex],
+                                            VK_NULL_HANDLE, &_imageIndex);
+    if (!handleSwapchainResult(result, SwapchainOp::Acquire, _frameIndex))
         return false;
 
-    AXASSERT(_currentImageIndex < maxImageIndex, "swapchain image index out of range!");
+    AXASSERT(_imageIndex < maxImageIndex, "swapchain image index out of range!");
 
     _inFrame = true;
 
-    _currentCmdBuffer = _commandBuffers[_currentFrame];
+    _currentCmdBuffer = _commandBuffers[_frameIndex];
     vkResetCommandBuffer(_currentCmdBuffer, 0);
 
 #if _AX_USE_DESCRIPTOR_CACHE
-    auto& descriptorStates = _inFlightDescriptorStates[_currentFrame];
+    auto& descriptorStates = _inFlightDescriptorStates[_frameIndex];
     for (auto& state : descriptorStates)
         _renderPipeline->recycleDescriptorState(state);
     descriptorStates.clear();
 #else
-    auto descriptorPool = _descriptorPools[_currentFrame];
+    auto descriptorPool = _descriptorPools[_frameIndex];
     vkResetDescriptorPool(_device, descriptorPool, 0);  // safe: only reset current frame pool
 #endif
 
@@ -647,8 +633,7 @@ void RenderContextImpl::beginRenderPass(RenderTarget* renderTarget, const Render
     _renderTargetHeight  = colorAttachment->getDesc().height;
 
     // Delegate to RenderTargetImplVK: it will select/create VkRenderPass and VkFramebuffer
-    rtImpl->beginRenderPass(_currentCmdBuffer, renderPassDesc, _renderTargetWidth, _renderTargetHeight,
-                            _currentImageIndex);
+    rtImpl->beginRenderPass(_currentCmdBuffer, renderPassDesc, _renderTargetWidth, _renderTargetHeight, _imageIndex);
 }
 
 void RenderContextImpl::endRenderPass()
@@ -659,7 +644,7 @@ void RenderContextImpl::endRenderPass()
     // Reset state cache
     _programState  = nullptr;
     _vertexLayout  = nullptr;
-    _boundPipeline = nullptr;
+    _boundPipeline = VK_NULL_HANDLE;
 
     AX_SAFE_RELEASE_NULL(_indexBuffer);
     AX_SAFE_RELEASE_NULL(_vertexBuffer);
@@ -673,7 +658,7 @@ void RenderContextImpl::endFrame()
 
     // If non-coherent, flush written uniform range before submit (optional)
     {
-        UniformRingBuffer& ring = _uniformRings[_currentFrame];
+        UniformRingBuffer& ring = _uniformRings[_frameIndex];
         if (!ring.isCoherent && ring.writeHead > 0)
         {
             VkMappedMemoryRange range{VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE};
@@ -684,23 +669,22 @@ void RenderContextImpl::endFrame()
         }
     }
 
-    const VkSemaphore waitSemaphores[]               = {_acquireCompleteSemaphores[_semaphoreIndex]};
-    const VkPipelineStageFlags waitSemaphoreStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    const VkPipelineStageFlags waitDestinationStageMask{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
     // New render-finished semaphore from pool
-    VkSemaphore submissionSemaphore = _renderFinishedSemaphores[_currentImageIndex];
+    VkSemaphore submissionSemaphore = _renderFinishedSemaphores[_imageIndex];
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount   = 1;
     submitInfo.pCommandBuffers      = &_currentCmdBuffer;
     submitInfo.waitSemaphoreCount   = 1;
-    submitInfo.pWaitSemaphores      = waitSemaphores;
-    submitInfo.pWaitDstStageMask    = waitSemaphoreStages;
+    submitInfo.pWaitSemaphores      = &_presentCompleteSemaphores[_frameIndex];
+    submitInfo.pWaitDstStageMask    = &waitDestinationStageMask;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores    = &submissionSemaphore;
 
-    vr = vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[_currentFrame]);
+    vr = vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[_frameIndex]);
 
     AXASSERT(vr == VK_SUCCESS, "vkQueueSubmit failed");
 
@@ -711,12 +695,11 @@ void RenderContextImpl::endFrame()
     presentInfo.pWaitSemaphores    = &submissionSemaphore;
     presentInfo.swapchainCount     = 1;
     presentInfo.pSwapchains        = &_swapchain;
-    presentInfo.pImageIndices      = &_currentImageIndex;
+    presentInfo.pImageIndices      = &_imageIndex;
 
-    vr           = vkQueuePresentKHR(_presentQueue, &presentInfo);
-    bool succeed = handleSwapchainResult(vr, SwapchainOp::Present, 0);
+    vr = vkQueuePresentKHR(_presentQueue, &presentInfo);
+    handleSwapchainResult(vr, SwapchainOp::Present, 0);
 
-    if (!_postFrameOps.empty())
     {
         for (auto& op : _postFrameOps)
             op();
@@ -725,13 +708,14 @@ void RenderContextImpl::endFrame()
     }
 
     // Advance frame index for multi-frame-in-flight
-    if (succeed)
-        _currentFrame = (_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    _frameIndex = (_frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+
+    _driver->setFrameIndex(_frameIndex);
 
     _inFrame = false;
 }
 
-bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, uint32_t prevSemaphoreIndex)
+bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, uint32_t frameIndex)
 {
     if (result == VK_SUCCESS)
         return true;
@@ -757,7 +741,7 @@ bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, u
         else
         {
             AXLOGI("vkAcquireNextImageKHR: swapchain out of date");
-            _semaphoreIndex = prevSemaphoreIndex;  // revert
+            //_currentImageReadyIndex = prevSemaphoreIndex;  // revert
         }
         break;
 
@@ -769,7 +753,7 @@ bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, u
         else
         {
             AXLOGI("vkAcquireNextImageKHR: surface lost");
-            _semaphoreIndex = prevSemaphoreIndex;  // revert
+            //_currentImageReadyIndex = prevSemaphoreIndex;  // revert
         }
         break;
 
@@ -851,6 +835,15 @@ void RenderContextImpl::setScissorRect(bool isEnabled, float x, float y, float w
     }
 }
 
+void RenderContextImpl::setStencilReferenceValue(uint32_t value)
+{
+    if (value != _stencilReferenceValue)
+    {
+        RenderContext::setStencilReferenceValue(value);
+        markDynamicStateDirty(DynamicStateBits::StencilRef);
+    }
+}
+
 void RenderContextImpl::setCullMode(CullMode mode)
 {
     VkCullModeFlags nativeMode{0};
@@ -867,10 +860,10 @@ void RenderContextImpl::setCullMode(CullMode mode)
         break;
     }
 
-    if (_cachedCullMode != nativeMode)
+    if (_extendedDynamicState.cullMode != nativeMode)
     {
-        _cachedCullMode = nativeMode;
-        markDynamicStateDirty(DynamicStateBits::CullMode);
+        _extendedDynamicState.cullMode = nativeMode;
+        markExtendedDynamicStateDirty(ExtendedDynamicStateBits::CullMode);
     }
 }
 
@@ -887,19 +880,21 @@ void RenderContextImpl::setWinding(Winding winding)
         break;
     }
 
-    if (frontFace != _cachedFrontFace)
+    if (_extendedDynamicState.frontFace != frontFace)
     {
-        _cachedFrontFace = frontFace;
-        markDynamicStateDirty(DynamicStateBits::FrontFace);
+        _extendedDynamicState.frontFace = frontFace;
+        markExtendedDynamicStateDirty(ExtendedDynamicStateBits::FrontFace);
     }
 }
 
-void RenderContextImpl::setStencilReferenceValue(uint32_t value)
+void RenderContextImpl::markExtendedDynamicStateDirty(ExtendedDynamicStateBits bits) noexcept
 {
-    if (value != _stencilReferenceValue)
+    if (_driver->isExtendedDynamicStateSupported())
     {
-        RenderContext::setStencilReferenceValue(value);
-        markDynamicStateDirty(DynamicStateBits::StencilRef);
+        auto&& apply = [this, bits]<std::size_t... _Idx>(std::index_sequence<_Idx...>) {
+            (bitmask::set(_inFlightExtendedDynamicDirtyBits[_Idx], bits), ...);
+        };
+        apply(std::make_index_sequence<MAX_FRAMES_IN_FLIGHT>{});
     }
 }
 
@@ -932,12 +927,19 @@ void RenderContextImpl::setInstanceBuffer(Buffer* buffer)
 
 void RenderContextImpl::updatePipelineState(const RenderTarget* rt,
                                             const PipelineDesc& desc,
-                                            PrimitiveGroup primitiveGroup)
+                                            PrimitiveType primitiveType)
 {
-    RenderContext::updatePipelineState(rt, desc, primitiveGroup);
+    auto primitiveTopology = toVkPrimitiveTopology(primitiveType);
+    if (_extendedDynamicState.primitiveTopology != primitiveTopology)
+    {
+        _extendedDynamicState.primitiveTopology = primitiveTopology;
+        markExtendedDynamicStateDirty(ExtendedDynamicStateBits::PrimitiveTopology);
+    }
+
+    RenderContext::updatePipelineState(rt, desc, primitiveType);
     AXASSERT(_renderPipeline, "RenderPipelineImpl not set");
     _renderPipeline->prepareUpdate(_depthStencilState);
-    _renderPipeline->update(rt, desc);
+    _renderPipeline->update(rt, desc, _extendedDynamicState);
 
     // Bind pipeline
     auto pipeline = _renderPipeline->getVkPipeline();
@@ -945,50 +947,68 @@ void RenderContextImpl::updatePipelineState(const RenderTarget* rt,
     {
         vkCmdBindPipeline(_currentCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         _boundPipeline = pipeline;
-        bitmask::set(_inFlightDynamicDirtyBits[_currentFrame], PIPELINE_REQUIRED_DYNAMIC_BITS);
+        bitmask::set(_inFlightDynamicDirtyBits[_frameIndex], PIPELINE_ALL_DYNAMIC_BITS);
+
+        if (_driver->isExtendedDynamicStateSupported())
+            bitmask::set(_inFlightExtendedDynamicDirtyBits[_frameIndex], PIPELINE_ALL_EXTENDED_DYNAMIC_BITS);
     }
 }
 
 void RenderContextImpl::applyPendingDynamicStates()
 {
     // Viewport
-    if (bitmask::any(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::Viewport))
+    if (bitmask::any(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::Viewport))
     {
         vkCmdSetViewport(_currentCmdBuffer, 0, 1, &_cachedViewport);
-        bitmask::clear(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::Viewport);
+        bitmask::clear(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::Viewport);
     }
 
     // Scissor
-    if (bitmask::any(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::Scissor))
+    if (bitmask::any(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::Scissor))
     {
         vkCmdSetScissor(_currentCmdBuffer, 0, 1, &_cachedScissor);
-        bitmask::clear(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::Scissor);
+        bitmask::clear(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::Scissor);
     }
 
     // Stencil reference if used
-    if (bitmask::any(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::StencilRef))
+    if (bitmask::any(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::StencilRef))
     {
         vkCmdSetStencilReference(_currentCmdBuffer, VK_STENCIL_FRONT_AND_BACK, _stencilReferenceValue);
-        bitmask::clear(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::StencilRef);
+        bitmask::clear(_inFlightDynamicDirtyBits[_frameIndex], DynamicStateBits::StencilRef);
     }
 
-    // CullMode and FrontFace via EXT dynamic state if available
-    if (bitmask::any(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::CullMode))
+    if (_driver->isExtendedDynamicStateSupported())
     {
-        vkCmdSetCullModeEXT(_currentCmdBuffer, _cachedCullMode);
-        bitmask::clear(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::CullMode);
-    }
-    if (bitmask::any(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::FrontFace))
-    {
-        vkCmdSetFrontFaceEXT(_currentCmdBuffer, _cachedFrontFace);
-        bitmask::clear(_inFlightDynamicDirtyBits[_currentFrame], DynamicStateBits::FrontFace);
+        // CullMode and FrontFace via EXT dynamic state if available
+        if (bitmask::any(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::CullMode))
+        {
+            vkCmdSetCullModeEXT(_currentCmdBuffer, _extendedDynamicState.cullMode);
+            bitmask::clear(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::CullMode);
+        }
+        if (bitmask::any(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::FrontFace))
+        {
+            vkCmdSetFrontFaceEXT(_currentCmdBuffer, _extendedDynamicState.frontFace);
+            bitmask::clear(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::FrontFace);
+        }
+
+        if (bitmask::any(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::PrimitiveTopology))
+        {
+            vkCmdSetPrimitiveTopologyEXT(_currentCmdBuffer, _extendedDynamicState.primitiveTopology);
+            bitmask::clear(_inFlightExtendedDynamicDirtyBits[_frameIndex], ExtendedDynamicStateBits::PrimitiveTopology);
+        }
     }
 }
 
-void RenderContextImpl::removeCachedPipelines(VkRenderPass rp)
+void RenderContextImpl::removeCachedPipelineObjects(VkRenderPass key)
 {
     if (_renderPipeline)
-        _renderPipeline->removeCachedPipelines(rp);
+        _renderPipeline->removeCachedObjects(key);
+}
+
+void RenderContextImpl::removeCachedPipelineObjects(Program* key)
+{
+    if (_renderPipeline)
+        _renderPipeline->removeCachedObjects(key);
 }
 
 void RenderContextImpl::prepareDrawing()
@@ -1008,14 +1028,14 @@ void RenderContextImpl::prepareDrawing()
     const auto dslState             = _renderPipeline->getDescriptorSetLayoutState();
 
 #if _AX_USE_DESCRIPTOR_CACHE
-    auto& descriptorState = _inFlightDescriptorStates[_currentFrame].emplace_back();
-    bool ok               = _renderPipeline->acquireDescriptorState(descriptorState, _currentFrame);
+    auto& descriptorState = _inFlightDescriptorStates[_frameIndex].emplace_back();
+    bool ok               = _renderPipeline->acquireDescriptorState(descriptorState, _frameIndex);
     AXASSERT(ok, "Failed to acquire descriptor sets");
     auto& descriptorSets = descriptorState.sets;
 #else
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType               = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool      = _descriptorPools[_currentFrame];
+    allocInfo.descriptorPool      = _descriptorPools[_frameIndex];
     auto descriptorSetLayoutState = _renderPipeline->getDescriptorSetLayoutState();
     allocInfo.descriptorSetCount  = descriptorSetLayoutState->descriptorSetLayoutCount;
     allocInfo.pSetLayouts         = descriptorSetLayoutState->descriptorSetLayouts.data();
@@ -1046,7 +1066,7 @@ void RenderContextImpl::prepareDrawing()
             VkWriteDescriptorSet& write        = writes.emplace_back();
             VkDescriptorBufferInfo& bufferInfo = _descriptorBufferInfos.emplace_back();
 
-            bufferInfo.buffer = _uniformRings[_currentFrame].buffer;
+            bufferInfo.buffer = _uniformRings[_frameIndex].buffer;
             bufferInfo.offset = static_cast<VkDeviceSize>(s.offset);
             bufferInfo.range  = static_cast<VkDeviceSize>(uboInfo.sizeBytes);
 
@@ -1133,33 +1153,20 @@ void RenderContextImpl::prepareDrawing()
     }
 }
 
-void RenderContextImpl::drawArrays(PrimitiveType primitiveType,
-                                   std::size_t start,
-                                   std::size_t count,
-                                   bool /*wireframe*/)
+void RenderContextImpl::drawArrays(std::size_t start, std::size_t count, bool /*wireframe*/)
 {
     prepareDrawing();
-    vkCmdSetPrimitiveTopologyEXT(_currentCmdBuffer, toVkPrimitiveTopology(primitiveType));
     vkCmdDraw(_currentCmdBuffer, static_cast<uint32_t>(count), 1, static_cast<uint32_t>(start), 0);
 }
 
-void RenderContextImpl::drawArraysInstanced(PrimitiveType primitiveType,
-                                            std::size_t start,
-                                            std::size_t count,
-                                            int instanceCount,
-                                            bool /*wireframe*/)
+void RenderContextImpl::drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool /*wireframe*/)
 {
     prepareDrawing();
-    vkCmdSetPrimitiveTopologyEXT(_currentCmdBuffer, toVkPrimitiveTopology(primitiveType));
     vkCmdDraw(_currentCmdBuffer, static_cast<uint32_t>(count), static_cast<uint32_t>(instanceCount),
               static_cast<uint32_t>(start), 0);
 }
 
-void RenderContextImpl::drawElements(PrimitiveType primitiveType,
-                                     IndexFormat indexType,
-                                     std::size_t count,
-                                     std::size_t offset,
-                                     bool /*wireframe*/)
+void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool /*wireframe*/)
 {
     prepareDrawing();
 
@@ -1167,14 +1174,11 @@ void RenderContextImpl::drawElements(PrimitiveType primitiveType,
     _indexBuffer->setLastFenceValue(_frameFenceValue);
     VkIndexType vkIndexType = toVkIndexType(indexType);
     vkCmdBindIndexBuffer(_currentCmdBuffer, _indexBuffer->internalHandle(), 0, vkIndexType);
-
-    vkCmdSetPrimitiveTopologyEXT(_currentCmdBuffer, toVkPrimitiveTopology(primitiveType));
     vkCmdDrawIndexed(_currentCmdBuffer, static_cast<uint32_t>(count), 1,
                      static_cast<uint32_t>(offset / (indexType == IndexFormat::U_SHORT ? 2u : 4u)), 0, 0);
 }
 
-void RenderContextImpl::drawElementsInstanced(PrimitiveType primitiveType,
-                                              IndexFormat indexType,
+void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
                                               std::size_t count,
                                               std::size_t offset,
                                               int instanceCount,
@@ -1186,8 +1190,6 @@ void RenderContextImpl::drawElementsInstanced(PrimitiveType primitiveType,
     _indexBuffer->setLastFenceValue(_frameFenceValue);
     VkIndexType vkIndexType = toVkIndexType(indexType);
     vkCmdBindIndexBuffer(_currentCmdBuffer, _indexBuffer->internalHandle(), 0, vkIndexType);
-
-    vkCmdSetPrimitiveTopologyEXT(_currentCmdBuffer, toVkPrimitiveTopology(primitiveType));
     vkCmdDrawIndexed(_currentCmdBuffer, static_cast<uint32_t>(count), static_cast<uint32_t>(instanceCount),
                      static_cast<uint32_t>(offset / (indexType == IndexFormat::U_SHORT ? 2u : 4u)), 0, 0);
 }
@@ -1224,7 +1226,7 @@ void RenderContextImpl::readPixelsInternal(RenderTarget* rt,
     }
 
     // ensure last rendering commands submission finished
-    vkWaitForFences(_device, 1, &_inFlightFences[_currentFrame], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(_device, 1, &_inFlightFences[_frameIndex], VK_TRUE, UINT64_MAX);
 
     auto& colorDesc = colorAttachment->getDesc();
 

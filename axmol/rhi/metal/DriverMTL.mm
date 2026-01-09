@@ -33,22 +33,14 @@
 #include "axmol/rhi/metal/ProgramMTL.h"
 #include "axmol/rhi/metal/RenderTargetMTL.h"
 #include "axmol/rhi/metal/UtilsMTL.h"
+#include "axmol/rhi/DriverFactory.h"
 #include "axmol/base/Macros.h"
 
 namespace ax::rhi
 {
-DriverBase* DriverBase::getInstance()
+std::unique_ptr<DriverBase> MetalDriverFactory::create()
 {
-    if (!_instance)
-        _instance = new mtl::DriverImpl();
-
-    return _instance;
-}
-
-void DriverBase::destroyInstance()
-{
-    if (_instance)
-        delete _instance;
+    return std::make_unique<mtl::DriverImpl>();
 }
 }  // namespace ax::rhi
 
@@ -402,7 +394,11 @@ bool supportS3TC(FeatureSet featureSet)
 
 bool DriverImpl::_isDepth24Stencil8PixelFormatSupported = false;
 
-DriverImpl::DriverImpl()
+DriverImpl::DriverImpl() {}
+
+DriverImpl::~DriverImpl() {}
+
+bool DriverImpl::init()
 {
     _mtlDevice   = MTLCreateSystemDefaultDevice();
     _mtlCmdQueue = [_mtlDevice newCommandQueue];
@@ -433,13 +429,13 @@ DriverImpl::DriverImpl()
     _caps.maxSamplesAllowed = getMaxSamplerEntries(_featureSet);
     _caps.maxTextureUnits   = getMaxTextureEntries(_featureSet);
     _caps.maxTextureSize    = getMaxTextureWidthHeight(_featureSet);
+
+    return true;
 }
 
-DriverImpl::~DriverImpl() {}
-
-RenderContext* DriverImpl::createRenderContext(void* surfaceContext)
+RenderContext* DriverImpl::createRenderContext(SurfaceHandle surface)
 {
-    return new RenderContextImpl(this, surfaceContext);
+    return new RenderContextImpl(this, surface);
 }
 
 Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial)
@@ -455,9 +451,8 @@ Texture* DriverImpl::createTexture(const TextureDesc& descriptor)
 RenderTarget* DriverImpl::createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment)
 {
     auto rtMTL = new RenderTargetImpl();
-    RenderTarget::ColorAttachment colors{{colorAttachment, 0}};
-    rtMTL->setColorAttachment(colors);
-    rtMTL->setDepthStencilAttachment(depthStencilAttachment);
+    rtMTL->setColorTexture(colorAttachment);
+    rtMTL->setDepthStencilTexture(depthStencilAttachment);
     return rtMTL;
 }
 
@@ -574,14 +569,14 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
     id<MTLSamplerState> sampler = [_mtlDevice newSamplerStateWithDescriptor:samplerDesc];
     [samplerDesc release];
 
-    return (__bridge SamplerHandle)sampler;
+    return SamplerHandle{(__bridge void*)sampler};
 }
 
 void DriverImpl::destroySampler(SamplerHandle& sampler)
 {
     if (sampler)
     {
-        [reinterpret_cast<id<MTLSamplerState>>(sampler) release];
+        [static_cast<id<MTLSamplerState>>(sampler) release];
         sampler = nullptr;
     }
 }
@@ -593,12 +588,17 @@ std::string DriverImpl::getVendor() const
 
 std::string DriverImpl::getRenderer() const
 {
-    return _deviceName.c_str();
+    return _deviceName;
 }
 
 std::string DriverImpl::getVersion() const
 {
     return std::string{featureSetToString(_featureSet)};
+}
+
+std::string DriverImpl::getShaderVersion() const
+{
+    return "MSL 2.0"s;
 }
 
 bool DriverImpl::checkForFeatureSupported(FeatureType feature)

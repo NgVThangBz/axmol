@@ -23,12 +23,13 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverBase.h"
+#include "axmol/rhi/DriverContext.h"
 #include <glad/vulkan.h>
 #include <optional>
 #include <string>
 #include <mutex>
 #include <deque>
+#include "axmol/tlx/flat_set.hpp"
 
 namespace ax::rhi::vk
 {
@@ -77,6 +78,13 @@ struct SurfaceCreateInfo
     CreateSurfaceFunc createFunc{};
 };
 
+struct DriverCapImpl
+{
+    bool extendedDynamicStateSupported{false};
+    bool dynamicPrimitiveTopologyUnrestricted{false};
+    bool samplerAnisotropySupported{false};
+};
+
 class DriverImpl : public DriverBase
 {
     friend class RenderContextImpl;
@@ -90,14 +98,16 @@ public:
     DriverImpl();
     ~DriverImpl();
 
-    void init();
+    bool init() override;
+
+    DriverType type() override { return DriverType::Vulkan; }
 
     bool recreateSurface(const SurfaceCreateInfo& info);
     VkSurfaceKHR getSurface() const { return _surface; }
 
     const VkExtent2D& getSurfaceInitialExtent() const { return _surfaceInitalExtent; }
 
-    RenderContext* createRenderContext(void* surfaceContext) override;
+    RenderContext* createRenderContext(SurfaceHandle surface) override;
     Buffer* createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial) override;
     Texture* createTexture(const TextureDesc& descriptor) override;
     RenderTarget* createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment) override;
@@ -113,7 +123,7 @@ public:
 
     bool checkForFeatureSupported(FeatureType feature) override;
 
-    void cleanPendingResources() override;
+    void destroyStaleResources() override;
 
     VkPhysicalDevice getPhysical() const { return _physical; }
     VkDevice getDevice() const { return _device; }
@@ -151,16 +161,26 @@ public:
 
     void destroyFramebuffer(VkFramebuffer);
     void destroyRenderPass(VkRenderPass);
+    void removeCachedPipelineObjects(Program* key);
 
-    void queueDisposal(VkImage image, uint64_t fenceValue);
-    void queueDisposal(VkImageView view, uint64_t fenceValue);
-    void queueDisposal(VkBuffer buffer, uint64_t fenceValue);
-    void queueDisposal(VkDeviceMemory memory, uint64_t fenceValue);
-    void queueDisposal(VkSampler sampler, uint64_t fenceValue);
+    void disposeImage(VkImage image, uint64_t fenceValue);
+    void disposeImageView(VkImageView view, uint64_t fenceValue);
+    void disposeBuffer(VkBuffer buffer, uint64_t fenceValue);
+    void disposeMemory(VkDeviceMemory memory, uint64_t fenceValue);
+    void disposeSampler(VkSampler sampler, uint64_t fenceValue);
 
     void processDisposalQueue(uint64_t completedFenceValue);
 
     void waitForGPU() override { vkDeviceWaitIdle(_device); }
+
+    bool hasExtension(std::string_view extName) const override;
+
+    bool isExtendedDynamicStateSupported() const { return _vkCaps.extendedDynamicStateSupported; }
+    bool isDynamicPrimitiveTopologyUnrestricted() const { return _vkCaps.dynamicPrimitiveTopologyUnrestricted; }
+    bool isSamplerAnisotropySupported() const { return _vkCaps.samplerAnisotropySupported; }
+
+    void setFrameIndex(int index) { _frameIndex = index; }
+    int getFrameIndex() const { return _frameIndex; }
 
 protected:
     void queueDisposalInternal(DisposableResource&& res);
@@ -169,8 +189,12 @@ protected:
     void destroySampler(SamplerHandle& h) override;
 
 private:
-    void initializeFactory();
-    void initializeDevice();
+    bool initializeFactory();
+    bool initializeDevice();
+
+    tlx::flat_set<uint32_t> _supportedExtensions;
+
+    DriverCapImpl _vkCaps;
 
     RenderContextImpl* _currentRenderContext{nullptr};
 
@@ -194,6 +218,8 @@ private:
 
     uint32_t _graphicsQueueFamily{0};
     uint32_t _presentQueueFamily{0};
+
+    int _frameIndex{0};
 
     std::string _vendor;
     std::string _renderer;

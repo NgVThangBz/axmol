@@ -85,7 +85,7 @@ static inline D3D12_BLEND toD3DBlendFactorAlpha(BlendFactor f)
 
 static inline uintptr_t makePSOKey(const rhi::BlendDesc& blendDesc,
                                    const DepthStencilStateImpl* dsState,
-                                   void* program,
+                                   uint64_t programId,
                                    uint32_t vlHash,
                                    D3D12_RASTERIZER_DESC& rs,
                                    PrimitiveGroup primitiveGroup)
@@ -96,9 +96,9 @@ static inline uintptr_t makePSOKey(const rhi::BlendDesc& blendDesc,
         {
             rhi::BlendDesc blend{};
             uintptr_t dsHash;
-            void* prog;
+            uint64_t progId;
         };
-        HashMe hashMe{.blend = blendDesc, .dsHash = dsState->getHash(), .prog = program};
+        HashMe hashMe{.blend = blendDesc, .dsHash = dsState->getHash(), .progId = programId};
         const auto rasterComp =
             ((uint32_t)primitiveGroup << 16) | (rs.CullMode << 8) | (rs.FrontCounterClockwise ? 1 : 0);
         const auto seed = (uint64_t)vlHash << 32 | (uint64_t)rasterComp;
@@ -111,10 +111,10 @@ static inline uintptr_t makePSOKey(const rhi::BlendDesc& blendDesc,
         {
             rhi::BlendDesc blend{};
             uintptr_t dsHash;
-            void* prog;
+            uint64_t progId;
             uint32_t vlHash;
         };
-        HashMe hashMe{.blend = blendDesc, .dsHash = dsState->getHash(), .prog = program, .vlHash = vlHash};
+        HashMe hashMe{.blend = blendDesc, .dsHash = dsState->getHash(), .progId = programId, .vlHash = vlHash};
         const auto rasterComp =
             ((uint32_t)primitiveGroup << 16) | (rs.CullMode << 8) | (rs.FrontCounterClockwise ? 1 : 0);
 
@@ -195,8 +195,8 @@ void RenderPipelineImpl::updateBlendState(const BlendDesc& blendDesc)
 
 void RenderPipelineImpl::updateRootSignature(ProgramImpl* program)
 {
-    uintptr_t progKey = reinterpret_cast<uintptr_t>(program);
-    if (auto it = _rootSigCache.find(progKey); it != _rootSigCache.end())
+    auto progId = program->getProgramId();
+    if (auto it = _rootSigCache.find(progId); it != _rootSigCache.end())
     {
         _activeRootSignature = &it->second;
         return;
@@ -289,14 +289,14 @@ void RenderPipelineImpl::updateRootSignature(ProgramImpl* program)
     AXASSERT(SUCCEEDED(hr), "Failed to create root signature");
 
     entry.rootSig        = std::move(rootSig);
-    _activeRootSignature = &_rootSigCache.emplace(progKey, std::move(entry)).first->second;
+    _activeRootSignature = &_rootSigCache.emplace(progId, std::move(entry)).first->second;
 }
 
 void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc, ProgramImpl* program)
 {
-    uintptr_t key =
-        makePSOKey(desc.blendDesc, _dsState, program, desc.vertexLayout->getHash(), _rasterDesc, _primitiveGroup);
-    auto it = _psoCache.find(key);
+    const auto progId = program->getProgramId();
+    auto key = makePSOKey(desc.blendDesc, _dsState, progId, desc.vertexLayout->getHash(), _rasterDesc, _primitiveGroup);
+    auto it  = _psoCache.find(key);
     if (it != _psoCache.end())
     {
         _activePSO = it->second;
@@ -306,9 +306,8 @@ void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc, Progra
     static constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE kPrimitiveTopologyTypes[] = {D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT,
                                                                                 D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE,
                                                                                 D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE};
-
-    auto vsBlob = program->getVSBlob();
-    auto psBlob = program->getPSBlob();
+    auto vsBlob                                                              = program->getVSBlob();
+    auto psBlob                                                              = program->getPSBlob();
 
     auto& vi = static_cast<VertexLayoutImpl*>(desc.vertexLayout)->getD3D12InputLayout();
 
@@ -337,6 +336,29 @@ void RenderPipelineImpl::updateGraphicsPipeline(const PipelineDesc& desc, Progra
 
     _activePSO = pso;
     _psoCache.emplace(key, pso);
+    _programToPSOMap.emplace(progId, key);
+}
+
+void RenderPipelineImpl::removeCachedObjects(Program* key)
+{
+    auto progId = key->getProgramId();
+    if (auto it = _rootSigCache.find(progId); it != _rootSigCache.end())
+        _rootSigCache.erase(it);
+
+    auto range = _programToPSOMap.equal_range(progId);
+    if (range.first != range.second)
+    {
+        for (auto it = range.first; it != range.second; ++it)
+        {
+            auto pipelineKey = it->second;
+            auto pipelineIt  = _psoCache.find(pipelineKey);
+            if (pipelineIt != _psoCache.end())
+            {
+                _psoCache.erase(pipelineIt);
+            }
+        }
+        _programToPSOMap.erase(range.first, range.second);
+    }
 }
 
 }  // namespace ax::rhi::d3d12

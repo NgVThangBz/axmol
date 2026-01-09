@@ -272,7 +272,7 @@ public:
 
     /** Copy constructor
      */
-    PUDynamicAttributeOscillate(const PUDynamicAttributeOscillate& dynamicAttributeOscillate);
+    PUDynamicAttributeOscillate(const PUDynamicAttributeOscillate&) = delete;
 
     /** Destructor
      */
@@ -312,10 +312,10 @@ public:
 
 protected:
     OscillationType _oscillationType;
-    float _frequency;
-    float _phase;
-    float _base;
-    float _amplitude;
+    float _frequency{1.0f};
+    float _phase{0.0f};
+    float _base{0.0f};
+    float _amplitude{1.0f};
 };
 
 /* Helper class to do some generic calculation.

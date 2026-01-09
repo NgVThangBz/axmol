@@ -26,6 +26,7 @@
 #include "axmol/rhi/Program.h"
 #include "axmol/renderer/VertexLayoutManager.h"
 #include "axmol/rhi/axslc-spec.h"
+#include "axmol/rhi/DriverContext.h"
 #include "axmol/tlx/hash.hpp"
 #include "yasio/ibstream.hpp"
 
@@ -44,11 +45,6 @@ static inline std::string_view _sc_read_name(yasio::fast_ibstream_view* ibs)
     assert(len != std::string::npos);  // name must not empty
     name.remove_suffix(name.length() - len - 1);
     return name;
-}
-
-static uint64_t _make_reflected_id(const UniformInfo& info)
-{
-    return tlx::hash64_bytes(&info.location, sizeof(info.location), static_cast<uint32_t>(info.offset));
 }
 
 }  // namespace
@@ -73,13 +69,11 @@ Program::Program(Data& vsData, Data& fsData)
 
     resolveBuiltinBindings();
 
-#if AX_RENDER_API == AX_RENDER_API_D3D12
-    if (_activeUniformBlockInfos.size() > 1)
+    if (rhi::DriverContext::isD3D12() && _activeUniformBlockInfos.size() > 1)
     {
         std::sort(_activeUniformBlockInfos.begin(), _activeUniformBlockInfos.end(),
                   [](auto& a, auto& b) { return a.binding < b.binding; });
     }
-#endif
 }
 
 Program::~Program()
@@ -158,7 +152,7 @@ void Program::getUniformLocations(std::string_view name, UniformLocationVector& 
     }
 }
 
-const UniformInfo* Program::getFirstUniformInfo(std::string_view name)
+const UniformInfo* Program::getFirstUniformInfo(std::string_view name) const
 {
     auto it = _shortNameToIds.find(name);
     if (it != _shortNameToIds.end())
@@ -169,6 +163,11 @@ const UniformInfo* Program::getFirstUniformInfo(std::string_view name)
     return nullptr;
 }
 
+UniformInfo& Program::getUniformInfo(uint64_t id)
+{
+    return _activeUniformInfos.at(id);
+}
+
 std::size_t Program::getUniformBufferSize() const
 {
     return _uniformBufferSize;
@@ -176,16 +175,13 @@ std::size_t Program::getUniformBufferSize() const
 
 void Program::parseStageReflection(ShaderStage stage, SLCReflectContext* context)
 {
-    const auto& shaderData = stage == ShaderStage::VERTEX ? _vsModule->getChunkData() : _fsModule->getChunkData();
+    auto shaderModule      = stage == ShaderStage::VERTEX ? _vsModule : _fsModule;
+    const auto& shaderData = shaderModule->getChunkData();
     yasio::fast_ibstream_view ibs(shaderData.data(), shaderData.size());
     context->ibs   = &ibs;
     context->stage = stage;
-    // shader module already verify shader source, just advance
-    ibs.advance(sizeof(uint32_t));  // skip fourcc
-    // since 3.3.0, it should be match the whole shader data size
-    ibs.advance(sizeof(uint32_t));  // skip sc_size
-    struct sc_chunk chunk;
-    ibs.advance(sizeof(sc_chunk));  // skip header
+
+    ibs.seek(shaderModule->getStageOffset(), SEEK_SET);
 
     auto fourccId = ibs.read<uint32_t>();
     if (fourccId != SC_CHUNK_STAG)
@@ -273,12 +269,14 @@ void Program::parseStageReflection(ShaderStage stage, SLCReflectContext* context
         }
     }
 
-    assert(ibs.eof());
+    // assert(ibs.eof());
 }
 
 void Program::reflectVertexInputs(SLCReflectContext* context)
 {
     auto ibs = context->ibs;
+
+    const bool isD3D = rhi::DriverContext::isD3D11() || rhi::DriverContext::isD3D12();
 
     for (int i = 0; i < context->refl->num_inputs; ++i)
     {
@@ -290,12 +288,8 @@ void Program::reflectVertexInputs(SLCReflectContext* context)
 
         VertexInputDesc desc;
         desc.semantic = semantic;
-#if AX_RENDER_API == AX_RENDER_API_D3D11 || AX_RENDER_API == AX_RENDER_API_D3D12
-        desc.location = semantic_index;
-#else
-        desc.location = location;
-#endif
-        desc.varType = var_type;
+        desc.location = isD3D ? semantic_index : location;
+        desc.varType  = var_type;
         _activeVertexInputs.emplace(name, desc);
     }
 }
@@ -303,46 +297,54 @@ void Program::reflectVertexInputs(SLCReflectContext* context)
 void Program::reflectUniforms(SLCReflectContext* context)
 {
     auto ibs = context->ibs;
+    char nameBuffer[UNIFORM_NAME_BUFFER_SIZE];
     for (int i = 0; i < context->refl->num_uniform_buffers; ++i)
     {
-        auto ub_name       = _sc_read_name(ibs);
-        auto ub_binding    = ibs->read<int32_t>();  // descriptor set/binding index
-        auto ub_size_bytes = ibs->read<uint32_t>();
+        auto ubName      = _sc_read_name(ibs);
+        auto ubBinding   = ibs->read<int32_t>();  // descriptor set/binding index
+        auto ubSizeBytes = ibs->read<uint32_t>();
         ibs->advance(sizeof(sc_refl_ub::array_size));
-        auto ub_num_members = ibs->read<uint16_t>();
+        auto ubNumOfMembers = ibs->read<uint16_t>();
 
         const auto cpuOffset = context->_cpuOffset;
-        context->_cpuOffset += ub_size_bytes;
-        _activeUniformBlockInfos.push_back(UniformBlockInfo{.binding    = ub_binding,
+        context->_cpuOffset += ubSizeBytes;
+        _activeUniformBlockInfos.push_back(UniformBlockInfo{.binding    = ubBinding,
                                                             .cpuOffset  = cpuOffset,
-                                                            .sizeBytes  = ub_size_bytes,
-                                                            .numMembers = ub_num_members,
+                                                            .sizeBytes  = ubSizeBytes,
+                                                            .numMembers = ubNumOfMembers,
                                                             .stage      = context->stage,
-                                                            .name       = ub_name.data()});
-        for (int k = 0; k < ub_num_members; ++k)
+                                                            .name       = ubName.data()});
+
+        size_t ubNameLen      = tlx::strlcpy(nameBuffer, sizeof(nameBuffer), ubName);
+        nameBuffer[ubNameLen] = '.';
+        for (int k = 0; k < ubNumOfMembers; ++k)
         {
             UniformInfo uniform;
-            auto name       = _sc_read_name(ibs);
-            auto offset     = ibs->read<int32_t>();
-            auto size_bytes = static_cast<uint16_t>(ibs->read<uint32_t>());
-            auto array_size = ibs->read<uint16_t>();
-            auto var_type   = ibs->read<uint16_t>();
+            auto name = _sc_read_name(ibs);
 
-            uniform.count           = array_size;
-            uniform.location        = ub_binding;
-            uniform.runtimeLocation = ub_binding;
-            uniform.elementSize     = size_bytes;
+            auto shortNameLen = tlx::strlcpy(nameBuffer + ubNameLen + 1, sizeof(nameBuffer) - (ubNameLen + 1), name);
+
+            const std::string_view uniformFullName(nameBuffer, ubNameLen + shortNameLen + 1);
+            auto offset    = ibs->read<int32_t>();
+            auto sizeBytes = static_cast<uint16_t>(ibs->read<uint32_t>());
+            auto arraySize = ibs->read<uint16_t>();
+            auto varType   = ibs->read<uint16_t>();
+
+            uniform.count           = arraySize;
+            uniform.location        = ubBinding;
+            uniform.runtimeLocation = ubBinding;
+            uniform.sizeBytes       = sizeBytes;
             uniform.offset          = offset;
             uniform.cpuOffset       = cpuOffset;
-            uniform.varType         = var_type;
+            uniform.varType         = varType;
 
-            const auto reflectedId = _make_reflected_id(uniform);
+            const auto reflectedId = makeUniformNameKey(uniformFullName);
             auto ret               = _activeUniformInfos.emplace(reflectedId, uniform);
             assert(ret.second);
 
             addShortNameMapping(name, reflectedId);
         }
-        _uniformBufferSize += ub_size_bytes;
+        _uniformBufferSize += ubSizeBytes;
     }
 }
 
@@ -366,15 +368,15 @@ void Program::reflectSamplers(SLCReflectContext* context)
         uniform.count       = (std::max)(1, static_cast<int>(ibs->read<uint8_t>()));
         uniform.samplerSlot = ibs->read<uint8_t>();
 
-        const auto reflectedId = _make_reflected_id(uniform);
+        const auto reflectedId = makeTextureNameKey(name);
         auto ret               = _activeUniformInfos.emplace(reflectedId, uniform);
         assert(ret.second);
         addShortNameMapping(name, reflectedId);
 
         _activeTextureInfos.emplace_back(name, &ret.first->second);
     }
-#if AX_RENDER_API == AX_RENDER_API_D3D12
-    if (_activeTextureInfos.size() > 1)
+
+    if (rhi::DriverContext::isD3D12() && _activeTextureInfos.size() > 1)
     {
         // Important:
         // In D3D11/D3D12, the order in which descriptor ranges are declared
@@ -389,7 +391,6 @@ void Program::reflectSamplers(SLCReflectContext* context)
         std::sort(_activeTextureInfos.begin(), _activeTextureInfos.end(),
                   [](auto& a, auto& b) { return a.second->location < b.second->location; });
     }
-#endif
 }
 
 void Program::resolveBuiltinBindings()
@@ -452,6 +453,16 @@ void Program::addShortNameMapping(std::string_view shortName, uint64_t reflected
     {
         it->second.push_back(reflectedId);
     }
+}
+
+uint64_t Program::makeUniformNameKey(std::string_view name)
+{
+    return tlx::hash64_str(name, 0);
+}
+
+uint64_t Program::makeTextureNameKey(std::string_view name)
+{
+    return tlx::hash64_str(name, 1);
 }
 
 }  // namespace ax::rhi

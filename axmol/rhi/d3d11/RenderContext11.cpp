@@ -29,6 +29,7 @@
 #include "axmol/rhi/d3d11/Program11.h"
 #include "axmol/rhi/d3d11/VertexLayout11.h"
 #include "axmol/rhi/d3d11/Texture11.h"
+#include "axmol/rhi/DriverContext.h"
 #include <dxgi1_2.h>
 #include <dxgi1_3.h>
 #include <dxgi1_5.h>
@@ -47,7 +48,7 @@
 
 namespace ax::rhi::d3d11
 {
-static D3D11_PRIMITIVE_TOPOLOGY toD3DPrimitiveTopology(PrimitiveType type, bool wireframe)
+static D3D11_PRIMITIVE_TOPOLOGY toD3DPrimitiveTopology(PrimitiveType type)
 {
     switch (type)
     {
@@ -191,11 +192,9 @@ static HRESULT runOnUIThread(const ComPtr<ICoreDispatcher>& dispatcher, _Fty&& f
 }
 #endif
 
-static constexpr DXGI_FORMAT _AX_SWAPCHAIN_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
+RenderContextImpl::RenderContextImpl(DriverImpl* driver, SurfaceHandle surface)
 {
-    _driverImpl   = driver;
+    _driver       = driver;
     _d3d11Context = driver->getContext();
 
     auto& contextAttrs = Application::getContextAttrs();
@@ -233,7 +232,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
     HRESULT hr = factory->QueryInterface(IID_PPV_ARGS(&factory2));
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
     RECT clientRect;
-    auto hwnd = (HWND)surfaceContext;
+    auto hwnd = static_cast<HWND>(surface);
     GetClientRect(hwnd, &clientRect);
     _screenWidth  = clientRect.right - clientRect.left;
     _screenHeight = clientRect.bottom - clientRect.top;
@@ -244,7 +243,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
         DXGI_SWAP_CHAIN_DESC1 desc1 = {};
         desc1.Width                 = _screenWidth;
         desc1.Height                = _screenHeight;
-        desc1.Format                = _AX_SWAPCHAIN_FORMAT;
+        desc1.Format                = DEFAULT_SWAPCHAIN_FORMAT;
         desc1.SampleDesc.Count      = 1;  // Flip not support MSAA
         desc1.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         desc1.BufferCount           = 2;
@@ -279,7 +278,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
         scDesc.BufferCount                        = 1;
         scDesc.BufferDesc.Width                   = _screenWidth;
         scDesc.BufferDesc.Height                  = _screenHeight;
-        scDesc.BufferDesc.Format                  = _AX_SWAPCHAIN_FORMAT;
+        scDesc.BufferDesc.Format                  = DEFAULT_SWAPCHAIN_FORMAT;
         scDesc.BufferDesc.RefreshRate.Numerator   = 60;
         scDesc.BufferDesc.RefreshRate.Denominator = 1;
         scDesc.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -298,7 +297,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
         do
         {
             // ISwapChainPanel
-            ComPtr<IUnknown> surfaceHold = reinterpret_cast<IUnknown*>(surfaceContext);
+            ComPtr<IUnknown> surfaceHold{static_cast<IUnknown*>(surface)};
             ComPtr<ISwapChainPanel> swapChainPanel;
             hr = surfaceHold.As(&swapChainPanel);
             AX_BREAK_IF(FAILED(hr));
@@ -347,7 +346,7 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
                 desc1.Width  = static_cast<UINT>(panelSize.Width);
                 desc1.Height = static_cast<UINT>(panelSize.Height);
             }
-            desc1.Format           = _AX_SWAPCHAIN_FORMAT;
+            desc1.Format           = DEFAULT_SWAPCHAIN_FORMAT;
             desc1.SampleDesc.Count = 1;  // Flip not support MSAA
             desc1.BufferUsage      = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             desc1.BufferCount      = 2;
@@ -397,9 +396,9 @@ RenderContextImpl::RenderContextImpl(DriverImpl* driver, void* surfaceContext)
 
     _swapChain = swapChain.Detach();
 
-    _screenRT = new RenderTargetImpl(device, true);
+    _screenRT = new RenderTargetImpl(_driver, true);
 
-    _screenRT->rebuildAttachmentsForSwapchain(_swapChain, _screenWidth, _screenHeight);
+    _screenRT->rebuildSwapchainBuffers(_swapChain, _screenWidth, _screenHeight);
 
     _nullSRVs.reserve(8);
 }
@@ -418,9 +417,9 @@ RenderContextImpl::~RenderContextImpl()
         _rasterState.Reset();
 }
 
-bool RenderContextImpl::updateSurface(void* /*surface*/, uint32_t width, uint32_t height)
+bool RenderContextImpl::updateSurface(SurfaceHandle /*surface*/, uint32_t width, uint32_t height)
 {
-    if (!_swapChain || !_driverImpl || !_screenRT)
+    if (!_swapChain || !_driver || !_screenRT)
         return false;
 
     // Since the window size can be zero when minimized, delay rebuilding until it returns to normal state
@@ -433,16 +432,8 @@ bool RenderContextImpl::updateSurface(void* /*surface*/, uint32_t width, uint32_
         return true;
 
     // Resize swapchain buffers
-    _screenRT->invalidate();
-
-    HRESULT hr = _swapChain->ResizeBuffers(0, width, height, _AX_SWAPCHAIN_FORMAT, _swapChainFlags);
-    if (FAILED(hr))
-    {
-        AXLOGW("D3D11: swapchain ResizeBuffers failed: {}", hr);
+    if (!_screenRT->rebuildSwapchainBuffers(_swapChain, width, height, _swapChainFlags))
         return false;
-    }
-
-    _screenRT->rebuildAttachmentsForSwapchain(_swapChain, width, height);
 
     _screenWidth  = width;
     _screenHeight = height;
@@ -505,10 +496,12 @@ void RenderContextImpl::updateDepthStencilState(const DepthStencilDesc& desc)
 
 void RenderContextImpl::updatePipelineState(const RenderTarget* rt,
                                             const PipelineDesc& desc,
-                                            PrimitiveGroup primitiveGroup)
+                                            PrimitiveType primitiveType)
 {
-    RenderContext::updatePipelineState(rt, desc, primitiveGroup);
+    RenderContext::updatePipelineState(rt, desc, primitiveType);
     _renderPipeline->update(rt, desc);
+
+    _d3d11Context->IASetPrimitiveTopology(toD3DPrimitiveTopology(primitiveType));
 }
 
 void RenderContextImpl::setViewport(int x, int y, unsigned int w, unsigned int h)
@@ -521,7 +514,7 @@ void RenderContextImpl::setViewport(int x, int y, unsigned int w, unsigned int h
     viewport.MinDepth       = 0.0f;
     viewport.MaxDepth       = 1.0f;
 
-    _driverImpl->getContext()->RSSetViewports(1, &viewport);
+    _driver->getContext()->RSSetViewports(1, &viewport);
 }
 
 void RenderContextImpl::setCullMode(CullMode mode)
@@ -609,7 +602,7 @@ void RenderContextImpl::updateRasterizerState()
     desc.DepthClipEnable = TRUE;
     desc.ScissorEnable   = _rasterDesc.scissorEnable ? TRUE : FALSE;
 
-    _AXASSERT_HR(_driverImpl->getDevice()->CreateRasterizerState(&desc, _rasterState.ReleaseAndGetAddressOf()));
+    _AXASSERT_HR(_driver->getDevice()->CreateRasterizerState(&desc, _rasterState.ReleaseAndGetAddressOf()));
     _d3d11Context->RSSetState(_rasterState.Get());
     _rasterDesc.dirtyFlags = 0;
 }
@@ -647,30 +640,20 @@ void RenderContextImpl::setInstanceBuffer(Buffer* buffer)
     _instanceBuffer = static_cast<BufferImpl*>(buffer);
 }
 
-void RenderContextImpl::drawArrays(PrimitiveType primitiveType, std::size_t start, std::size_t count, bool wireframe)
+void RenderContextImpl::drawArrays(std::size_t start, std::size_t count, bool /*wireframe*/)
 {
     prepareDrawing();
-    _d3d11Context->IASetPrimitiveTopology(toD3DPrimitiveTopology(primitiveType, wireframe));
     _d3d11Context->Draw(static_cast<UINT>(count), static_cast<UINT>(start));
 }
 
-void RenderContextImpl::drawArraysInstanced(PrimitiveType primitiveType,
-                                            std::size_t start,
-                                            std::size_t count,
-                                            int instanceCount,
-                                            bool wireframe)
+void RenderContextImpl::drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool /*wireframe*/)
 {
     prepareDrawing();
-    _d3d11Context->IASetPrimitiveTopology(toD3DPrimitiveTopology(primitiveType, wireframe));
     _d3d11Context->DrawInstanced(static_cast<UINT>(count), static_cast<UINT>(instanceCount), static_cast<UINT>(start),
                                  0);
 }
 
-void RenderContextImpl::drawElements(PrimitiveType primitiveType,
-                                     IndexFormat indexType,
-                                     std::size_t count,
-                                     std::size_t offset,
-                                     bool wireframe)
+void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool /*wireframe*/)
 {
     prepareDrawing();
 
@@ -683,16 +666,14 @@ void RenderContextImpl::drawElements(PrimitiveType primitiveType,
     const UINT indexCount = static_cast<UINT>(count);
 
     _d3d11Context->IASetIndexBuffer(_indexBuffer->internalHandle(), dxgiFmt, 0);
-    _d3d11Context->IASetPrimitiveTopology(toD3DPrimitiveTopology(primitiveType, wireframe));
     _d3d11Context->DrawIndexed(indexCount, startIndex, 0);
 }
 
-void RenderContextImpl::drawElementsInstanced(PrimitiveType primitiveType,
-                                              IndexFormat indexType,
+void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
                                               std::size_t count,
                                               std::size_t offset,
                                               int instanceCount,
-                                              bool wireframe)
+                                              bool /*wireframe*/)
 {
     prepareDrawing();
 
@@ -705,8 +686,6 @@ void RenderContextImpl::drawElementsInstanced(PrimitiveType primitiveType,
     const UINT indexCount = static_cast<UINT>(count);
 
     _d3d11Context->IASetIndexBuffer(_indexBuffer->internalHandle(), dxgiFmt, 0);
-
-    _d3d11Context->IASetPrimitiveTopology(toD3DPrimitiveTopology(primitiveType, wireframe));
     _d3d11Context->DrawIndexedInstanced(static_cast<UINT>(count), static_cast<UINT>(instanceCount), startIndex, 0, 0);
 }
 
@@ -733,7 +712,7 @@ void RenderContextImpl::prepareDrawing()
     assert(_programState);
     updateRasterizerState();
 
-    auto context = _driverImpl->getContext();
+    auto context = _driver->getContext();
 
     auto& callbackUniforms = _programState->getCallbackUniforms();
     for (auto& cb : callbackUniforms)
@@ -800,7 +779,7 @@ void RenderContextImpl::endFrame()
     {
         if (hr == DXGI_ERROR_DEVICE_REMOVED)
         {
-            auto device    = static_cast<DriverImpl*>(DriverBase::getInstance())->getDevice();
+            auto device    = static_cast<DriverImpl*>(axdrv)->getDevice();
             HRESULT reason = device->GetDeviceRemovedReason();
             AXLOGD("D3D11 Device remove reason: {}", reason);
         }
@@ -849,7 +828,7 @@ void RenderContextImpl::readPixels(RenderTarget* rt, UINT x, UINT y, UINT width,
     auto tex = static_cast<RenderTargetImpl*>(rt)->getColorAttachment(0).texure;
     assert(tex);
 
-    ID3D11Device* device = _driverImpl->getDevice();
+    ID3D11Device* device = _driver->getDevice();
 
     // D3D11_CPU_ACCESS_READ not allow as render target color attachment
     // so we need create a staging texture for CPU read

@@ -20,6 +20,7 @@ Please [visit our Wiki](https://github.com/axmolengine/axmol/wiki) to know more 
 ![issues](https://img.shields.io/github/issues/axmolengine/axmol?style=plastic)
 ![forks](https://img.shields.io/github/forks/axmolengine/axmol?style=plastic)
 ![stars](https://img.shields.io/github/stars/axmolengine/axmol?style=plastic)
+![G-Star](https://atomgit.com/axmol/axmol/star/badge.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/axmolengine/axmol?style=plastic)  
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/axmolengine/axmol/pulls)
@@ -47,7 +48,7 @@ Please [visit our Wiki](https://github.com/axmolengine/axmol/wiki) to know more 
 
 ## ⚡️Building
 
-* Download it: [Latest Release](https://github.com/axmolengine/axmol/releases) / [SourceForge Mirror](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee Mirror](https://gitee.com/simdsoft/axmol) 
+* Download it: [Latest Release](https://github.com/axmolengine/axmol/releases) / [AtomGit Mirror](https://atomgit.com/axmol/axmol) / [SourceForge Mirror](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee Mirror](https://gitee.com/simdsoft/axmol)
 * [How to install](docs/DevSetup.md)
 
 If you have a Cocos2d-x project, migrating to Axmol Engine is easy. We have prepared a [Migration Guide](https://github.com/axmolengine/axmol/wiki/Cocos2d%E2%80%90x-migration-guide).

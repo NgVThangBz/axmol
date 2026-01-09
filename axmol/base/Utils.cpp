@@ -47,6 +47,7 @@ THE SOFTWARE.
 #include "axmol/renderer/TextureCache.h"
 #include "axmol/renderer/RenderState.h"
 #include "axmol/rhi/PixelBufferDesc.h"
+#include "axmol/rhi/DriverContext.h"
 
 #include "axmol/platform/Image.h"
 #include "axmol/platform/FileUtils.h"
@@ -106,13 +107,9 @@ void captureScreen(std::function<void(RefPtr<Image>)> imageCallback)
     auto eventDispatcher = director->getEventDispatcher();
 
     // !!!Metal: needs setFrameBufferOnly before draw
-#if AX_RENDER_API == AX_RENDER_API_MTL
-    s_captureScreenListener =
-        eventDispatcher->addCustomEventListener(Director::EVENT_BEFORE_DRAW, [=](EventCustom* /*event*/) {
-#else
-    s_captureScreenListener =
-        eventDispatcher->addCustomEventListener(Director::EVENT_AFTER_DRAW, [=](EventCustom* /*event*/) {
-#endif
+    const auto eventName = rhi::DriverContext::isMetal() ? Director::EVENT_BEFORE_DRAW : Director::EVENT_AFTER_DRAW;
+
+    s_captureScreenListener = eventDispatcher->addCustomEventListener(eventName, [=](EventCustom* /*event*/) {
         eventDispatcher->removeEventListener(s_captureScreenListener);
         s_captureScreenListener = nullptr;
         // !!!GL: AFTER_DRAW and BEFORE_END_FRAME
@@ -296,14 +293,15 @@ Rect getCascadeBoundingBox(Node* node)
     return cbb;
 }
 
-Sprite* createSpriteFromBase64Cached(const char* base64String, const char* key)
+Sprite* createSpriteFromBase64Cached(std::string_view base64String, std::string_view key)
 {
     Texture2D* texture = Director::getInstance()->getTextureCache()->getTextureForKey(key);
 
     if (texture == nullptr)
     {
         unsigned char* decoded;
-        int length = base64Decode((const unsigned char*)base64String, (unsigned int)strlen(base64String), &decoded);
+        int length =
+            base64Decode((const unsigned char*)base64String.data(), (unsigned int)base64String.size(), &decoded);
 
         Image* image     = new Image();
         bool imageResult = image->initWithImageData(decoded, length, true);
@@ -324,10 +322,10 @@ Sprite* createSpriteFromBase64Cached(const char* base64String, const char* key)
     return sprite;
 }
 
-Sprite* createSpriteFromBase64(const char* base64String)
+Sprite* createSpriteFromBase64(std::string_view base64String)
 {
     unsigned char* decoded;
-    int length = base64Decode((const unsigned char*)base64String, (unsigned int)strlen(base64String), &decoded);
+    int length = base64Decode((const unsigned char*)base64String.data(), (unsigned int)base64String.size(), &decoded);
 
     Image* image     = new Image();
     bool imageResult = image->initWithImageData(decoded, length, decoded);

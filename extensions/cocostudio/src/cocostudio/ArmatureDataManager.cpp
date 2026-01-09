@@ -261,7 +261,8 @@ void ArmatureDataManager::addRelativeData(std::string_view configFilePath)
 
 RelativeData* ArmatureDataManager::getRelativeData(std::string_view configFilePath)
 {
-    return &_relativeDatas[configFilePath];
+    auto it = _relativeDatas.find(configFilePath);
+    return it != _relativeDatas.end() ? &it->second : nullptr;
 }
 
 }  // namespace cocostudio

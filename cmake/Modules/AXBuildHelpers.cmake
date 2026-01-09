@@ -211,10 +211,10 @@ function(ax_sync_target_dlls ax_target)
     )
   endif()
 
-  if(AX_GLES_PROFILE OR AX_RENDER_API MATCHES "d3d")
+  if(AX_GLES_PROFILE OR AX_ENABLE_D3D12 OR AX_ENABLE_D3D11)
     find_windows_sdk_bin(_winsdk_bin_dir ${ARCH_ALIAS})
     list(APPEND all_depend_dlls "${_winsdk_bin_dir}/d3dcompiler_47.dll")
-    if(AX_RENDER_API STREQUAL "d3d12")
+    if(AX_ENABLE_D3D12)
       list(APPEND all_depend_dlls "${_winsdk_bin_dir}/dxcompiler.dll")
     endif()
   endif()
@@ -493,6 +493,16 @@ function(ax_setup_app_config app_name)
     # output macOS/iOS .app
     set_target_properties(${app_name} PROPERTIES MACOSX_BUNDLE 1)
 
+    set_target_properties(${app_name} PROPERTIES
+      XCODE_ATTRIBUTE_SKIP_INSTALL "NO"
+      XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+      XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
+      XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING "YES"
+      XCODE_ATTRIBUTE_ENABLE_STDEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+      # XCODE_ATTRIBUTE_STRIP_STYLE "debugging"
+      XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)"
+    )
+
     # set codesign
     if(IOS AND(NOT("${CMAKE_OSX_SYSROOT}" MATCHES ".*simulator.*")))
       set_xcode_property(${app_name} CODE_SIGNING_REQUIRED "YES")
@@ -709,12 +719,13 @@ macro(ax_setup_winrt_sources)
     )
 
     # GLES on ANGLE
-    if(AX_RENDER_API STREQUAL "gl")
+    if(AX_ENABLE_GL)
       list(APPEND prebuilt_dlls
         ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libGLESv2.dll
         ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
       )
-    elseif(AX_RENDER_API STREQUAL "d3d12")
+    endif()
+    if(AX_ENABLE_D3D12)
       list(APPEND prebuilt_dlls "${_winsdk_bin_dir}/dxcompiler.dll")
     endif()
   endif()
@@ -735,7 +746,7 @@ macro(ax_setup_winrt_sources)
     ${_AX_ROOT}/axmol/platform/winrt/xaml/AxmolRenderer.cpp
   )
 
-  if(AX_RENDER_API STREQUAL "gl")
+  if(AX_ENABLE_GL)
     list(APPEND PLATFORM_SOURCES
       ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.h
       ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.cpp
@@ -919,6 +930,14 @@ endfunction()
 macro(ax_config_pred target_name pred)
   if(${pred})
     target_compile_definitions(${target_name} PUBLIC ${pred}=1)
+  endif()
+endmacro()
+
+macro(ax_config_pred1 target_name pred)
+  if(${pred})
+    target_compile_definitions(${target_name} PUBLIC ${pred}=1)
+  else()
+    target_compile_definitions(${target_name} PUBLIC ${pred}=0)
   endif()
 endmacro()
 

@@ -20,6 +20,7 @@
 ![issues](https://img.shields.io/github/issues/axmolengine/axmol?style=plastic)
 ![forks](https://img.shields.io/github/forks/axmolengine/axmol?style=plastic)
 ![stars](https://img.shields.io/github/stars/axmolengine/axmol?style=plastic)
+![G-Star](https://atomgit.com/axmol/axmol/star/badge.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/axmolengine/axmol?style=plastic)  
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](https://github.com/axmolengine/axmol/pulls)
@@ -47,7 +48,7 @@
 
 ## ⚡️构建
 
-* 下载: [官方最新发布](https://github.com/axmolengine/axmol/releases) / [SourceForge 镜像](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee 镜像仓库](https://gitee.com/simdsoft/axmol)
+* 下载: [官方最新发布](https://github.com/axmolengine/axmol/releases) / [AtomGit 镜像仓库](https://atomgit.com/axmol/axmol) / [SourceForge 镜像](https://sourceforge.net/projects/axmol-engine.mirror) / [Gitee 镜像仓库](https://gitee.com/simdsoft/axmol)
 * [如何安装](docs/DevSetup.md)
 
 如果你有一个 Cocos2d-x 项目, 可以很容易迁移到 Axmol。 我们准备了 [迁移指导](https://github.com/axmolengine/axmol/wiki/Cocos2d%E2%80%90x-migration-guide)。

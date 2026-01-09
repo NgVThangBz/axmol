@@ -24,8 +24,9 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverBase.h"
 #include "axmol/platform/GL.h"
+#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/DriverFactory.h"
 #include "axmol/rhi/opengl/OpenGLState.h"
 #include "axmol/tlx/hlookup.hpp"
 
@@ -53,6 +54,10 @@ public:
     DriverImpl();
     ~DriverImpl();
 
+    bool init() override;
+
+    DriverType type() override { return DriverType::OpenGL; }
+
     /* The vertex data buffers binding index start, the axslcc(SPIRV-Cross)
      */
     static constexpr uint32_t VBO_BINDING_INDEX = 0;
@@ -68,7 +73,7 @@ public:
      * Create a RenderContext object, not auto released.
      * @return A RenderContext object.
      */
-    RenderContext* createRenderContext(void*) override;
+    RenderContext* createRenderContext(SurfaceHandle) override;
 
     /**
      * New a Buffer object, not auto released.
