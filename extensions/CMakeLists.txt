@@ -137,6 +137,10 @@ if(AX_ENABLE_EXT_JSONDEFAULT)
   add_subdirectory(JSONDefault)
 endif()
 
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/local.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/local.cmake")
+endif()
+
 # Disable -fPIC flag for other libs...
 if(BUILD_SHARED_LIBS AND UNIX AND NOT ANDROID)
   set(CMAKE_POSITION_INDEPENDENT_CODE OFF)

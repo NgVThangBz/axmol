@@ -168,9 +168,11 @@ tests/lua-tests/project/proj.tizen/res/
 
 /extensions/Live2D/Core/
 
+# Ignore extensions/local.cmake
+extensions/local.cmake
+
 # Ignore x-studio folder
 .xs
-extensions/x-studio.cmake
 
 # Ignore vscode folder
 .vscode/

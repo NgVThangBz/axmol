@@ -77,9 +77,6 @@ public class AxmolSurfaceViewVK extends SurfaceView implements AxmolRenderHost, 
         setFocusableInTouchMode(true);
         // Set surface holder callback
         getHolder().addCallback(this);
-        // Optionally set Z-order if needed
-        setZOrderOnTop(true);
-        setKeepScreenOn(true);
 
         // Start render thread eagerly (GLSurfaceView starts thread when setRenderer is called;
         // here we start a render thread to accept events)

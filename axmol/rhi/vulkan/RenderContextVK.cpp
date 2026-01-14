@@ -481,6 +481,8 @@ void RenderContextImpl::recreateSwapchain()
         // destroy swapchain
         vkDestroySwapchainKHR(_device, _swapchain, nullptr);
         _swapchain = VK_NULL_HANDLE;
+
+        _swapchainImages.clear();
     }
 
     // Create new swapchain
@@ -501,9 +503,13 @@ void RenderContextImpl::recreateSwapchain()
     scInfo.oldSwapchain     = VK_NULL_HANDLE;
 
     VkResult vr = vkCreateSwapchainKHR(_device, &scInfo, nullptr, &_swapchain);
-    if (vr == VK_ERROR_SURFACE_LOST_KHR)
+    if (vr != VK_SUCCESS)
+    {
+        AXLOGE("Failed to create swapchain: {}", (unsigned)vr);
+        _swapchain = VK_NULL_HANDLE;
+        _lastError = vr;
         return;
-    AXASSERT(vr == VK_SUCCESS, "vkCreateSwapchainKHR failed");
+    }
 
     // Retrieve swapchain images
     uint32_t swapImageCount{1};
@@ -522,14 +528,14 @@ void RenderContextImpl::recreateSwapchain()
     for (uint32_t i = 0; i < swapImageCount; ++i)
     {
         VkResult r = vkCreateSemaphore(_device, &sci, nullptr, &_renderFinishedSemaphores[i]);
-        AXASSERT(r == VK_SUCCESS, "vkCreateSemaphore failed");
+        VK_REQUIRE(r, "vkCreateSemaphore failed");
     }
 
     _presentCompleteSemaphores.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         auto r = vkCreateSemaphore(_device, &sci, nullptr, &_presentCompleteSemaphores[i]);
-        AXASSERT(r == VK_SUCCESS, "vkCreateSemaphore failed");
+        VK_REQUIRE(VK_SUCCESS, "vkCreateSemaphore failed");
     }
 
     // Sync screen size
@@ -540,10 +546,11 @@ void RenderContextImpl::recreateSwapchain()
     }
 
     // Resets some state
-    _frameIndex = 0;
-    _imageIndex = 0;
-    _lastError  = 0;
-    _suboptimal = false;
+    _frameIndex     = 0;
+    _imageIndex     = 0;
+    _lastError      = VK_SUCCESS;
+    _suboptimal     = false;
+    _swapchainDirty = false;
 }
 
 void RenderContextImpl::setDepthStencilState(DepthStencilState* depthStencilState)
@@ -567,7 +574,6 @@ bool RenderContextImpl::beginFrame()
     {
         vkDeviceWaitIdle(_device);
         recreateSwapchain();
-        _swapchainDirty = false;
     }
 
     if (_lastError)
@@ -741,8 +747,8 @@ bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, u
         else
         {
             AXLOGI("vkAcquireNextImageKHR: swapchain out of date");
-            //_currentImageReadyIndex = prevSemaphoreIndex;  // revert
         }
+        _swapchainDirty = true;
         break;
 
     case VK_ERROR_SURFACE_LOST_KHR:
@@ -753,8 +759,8 @@ bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, u
         else
         {
             AXLOGI("vkAcquireNextImageKHR: surface lost");
-            //_currentImageReadyIndex = prevSemaphoreIndex;  // revert
         }
+        _swapchainDirty = true;
         break;
 
     default:

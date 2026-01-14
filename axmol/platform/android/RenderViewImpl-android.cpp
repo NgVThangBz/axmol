@@ -130,6 +130,16 @@ void RenderViewImpl::recreateVkSurface(bool needUpdateRenderSurface)
                                                 .width      = static_cast<int>(_windowSize.width),
                                                 .height     = static_cast<int>(_windowSize.height),
                                                 .createFunc = _createSurface};
+    if (!createInfo.window)
+    {
+        AXLOGE("recreateVkSurface: ANativeWindow is null, skip");
+        return;
+    }
+    if (createInfo.width == 0 || createInfo.height == 0)
+    {
+        AXLOGW("recreateVkSurface: window size is 0, skip");
+        return;
+    }
     auto driver = static_cast<ax::rhi::vk::DriverImpl*>(axdrv);
     bool ok     = driver->recreateSurface(createInfo);
     if (!ok)

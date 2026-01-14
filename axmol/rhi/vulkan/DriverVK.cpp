@@ -288,7 +288,7 @@ bool DriverImpl::initializeFactory()
     else
     {
         AXLOGE("Unsupported window platform: neither WAYLAND_DISPLAY nor DISPLAY found");
-        assert(false);
+        return false;
     }
 #endif
 

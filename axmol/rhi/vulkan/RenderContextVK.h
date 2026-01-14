@@ -273,6 +273,6 @@ private:
     bool _inFrame{false};
     bool _suboptimal{false};
 
-    uint32_t _lastError{0};
+    VkResult _lastError{VK_SUCCESS};
 };
 }  // namespace ax::rhi::vk
