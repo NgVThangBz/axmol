@@ -90,7 +90,7 @@ function ccs.TriggerObj.extend(target)
         t = {}
         tolua.setpeer(target, t)
     end
-    setmetatable(t, TriggerObj)
+    setmetatable(t, ccs.TriggerObj)
     return target
 end
 
@@ -285,7 +285,7 @@ function ccs.TriggerMng:add(event,triggerObj)
 
     local exist = false
     for i = 1, #eventTriggers do
-        if eventTriggers[i] == triggers then
+        if eventTriggers[i] == triggerObj then
             exist = true
             break
         end
@@ -325,7 +325,7 @@ function ccs.TriggerMng:remove(event, obj)
     end
 
     for i = 1, #triObjects do
-        local triObject = triggers[i]
+        local triObject = triObjects[i]
         if nil ~= triObject then
             triObject:remvoeAll()
         end
@@ -372,7 +372,7 @@ function ccs.TriggerMng:removeTriggerObj(id)
 end
 
 function ccs.TriggerMng:isEmpty()
-    return (not (nil == self._eventTriggers)) or #self._eventTriggers <= 0
+    return (self._eventTriggers ~= nil) or #self._eventTriggers <= 0
 end
 
 function __onParseConfig(configType,jasonStr)
