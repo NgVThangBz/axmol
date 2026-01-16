@@ -365,6 +365,10 @@ Sprite::~Sprite()
 // MARK: texture
 void Sprite::setTexture(std::string_view filename)
 {
+    if (_renderMode == RenderMode::POLYGON)
+        _polyInfo.setFilename(""sv);
+
+    _renderMode        = RenderMode::QUAD;
     Texture2D* texture = _director->getTextureCache()->addImage(filename);
     setTexture(texture);
     _unflippedOffsetPositionFromCenter = Vec2::ZERO;

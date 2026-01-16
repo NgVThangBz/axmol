@@ -117,8 +117,9 @@ bool DriverImpl::init()
 
     // check OpenGL version at first
     constexpr int REQUIRED_GLES_MAJOR = (AX_GLES_PROFILE / AX_GLES_PROFILE_DEN);
+    constexpr int REQUIRED_GLES_MINOR = (AX_GLES_PROFILE % AX_GLES_PROFILE_DEN) / 10;
     if ((!_verInfo.es && (_verInfo.major < 3 || (_verInfo.major == 3 && _verInfo.minor < 3))) ||
-        (_verInfo.es && _verInfo.major < REQUIRED_GLES_MAJOR))
+        (_verInfo.es && (_verInfo.major < REQUIRED_GLES_MAJOR || _verInfo.minor < REQUIRED_GLES_MINOR)))
     {
 #if AX_GLES_PROFILE == 0
         auto msg = fmt::format(
@@ -127,7 +128,7 @@ bool DriverImpl::init()
 #else
         auto msg = fmt::format(
             "OpeGL ES {}.{}+ is required. Current version:{} incompatible (update driver or make current context).",
-            REQUIRED_GLES_MAJOR, AX_GLES_PROFILE % AX_GLES_PROFILE, _version);
+            REQUIRED_GLES_MAJOR, REQUIRED_GLES_MINOR, _version);
 #endif
         AXLOGE("{}", msg);
         showAlert(msg, "OpenGL init failed, version too old", AlertStyle::RequireSync);
