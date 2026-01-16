@@ -56,7 +56,6 @@ struct UploadSpan
 
 // A simple fence-backed ring-buffer allocator for D3D12 UPLOAD memory.
 // - Persistent ring heap (mapped once).
-// - 256-byte alignment by default for texture row pitch compatibility.
 // - Fallback to one-off staging buffer for large allocations.
 // - Track in-flight ranges with a completion serial (typically a fence value).
 class UploadBufferAllocator

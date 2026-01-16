@@ -805,6 +805,8 @@ void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, s
 
     prepareDrawing(_currentCmdList);
 
+    _indexBuffer->setLastFenceValue(_frameFenceValue);
+
     // IB
     D3D12_INDEX_BUFFER_VIEW ibv{};
     ibv.BufferLocation = _indexBuffer->internalResource()->GetGPUVirtualAddress() + static_cast<UINT64>(offset);
@@ -824,6 +826,8 @@ void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
     AXASSERT(_renderPipeline && _vertexBuffer && _indexBuffer, "Pipeline, vertex and index buffers must be set");
 
     prepareDrawing(_currentCmdList);
+
+    _indexBuffer->setLastFenceValue(_frameFenceValue);
 
     // IB
     D3D12_INDEX_BUFFER_VIEW ibv{};
