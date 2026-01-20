@@ -35,13 +35,11 @@ RenderTargetImpl::RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget)
         _dirtyFlags = TargetBufferFlags::ALL;
 }
 
-RenderTargetImpl::~RenderTargetImpl()
-{
-    _driver->waitForGPU();
-}
+RenderTargetImpl::~RenderTargetImpl() {}
 
 void RenderTargetImpl::cleanupResources()
 {
+    _driver->waitForGPU();
     // RTVs
     for (auto i = 0; i < _rtvsDescriptors.size(); ++i)
     {

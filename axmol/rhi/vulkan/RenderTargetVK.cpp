@@ -39,13 +39,12 @@ RenderTargetImpl::RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget)
     _clearValues.reserve(_color.size() + 1);
 }
 
-RenderTargetImpl::~RenderTargetImpl()
-{
-    _driver->waitForGPU();
-}
+RenderTargetImpl::~RenderTargetImpl() {}
 
 void RenderTargetImpl::cleanupResources()
 {
+    _driver->waitForGPU();
+
     // Conservative: wait idle before destroying caches to avoid "in use" errors.
     for (auto& [_, pass] : _renderPassCache)
         _driver->destroyRenderPass(pass);
