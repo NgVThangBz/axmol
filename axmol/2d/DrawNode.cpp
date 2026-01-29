@@ -857,7 +857,12 @@ void DrawNode::_drawPolygon(const Vec2* verts,
             p2points.emplace_back(&p2pointsStorage.emplace_back((float)_vertices[i].x, (float)_vertices[i].y));
         }
         p2t::CDT cdt(p2points);
-        cdt.Triangulate();
+        try {
+            cdt.Triangulate();
+        } catch (...) {
+            AXLOGD("Triangulate crash");
+        }
+        
         std::vector<p2t::Triangle*> tris = cdt.GetTriangles();
 
         vertex_count += tris.size();
