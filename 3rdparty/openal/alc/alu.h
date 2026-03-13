@@ -14,7 +14,7 @@ struct Context;
 struct Device;
 } // namespace al
 
-constexpr float GainMixMax{1000.0f}; /* +60dB */
+constexpr inline auto GainMixMax = 1000.0f; /* +60dB */
 
 
 enum CompatFlags : std::uint8_t {
@@ -26,7 +26,7 @@ enum CompatFlags : std::uint8_t {
 };
 using CompatFlagBitset = std::bitset<CompatFlags::Count>;
 
-void aluInit(CompatFlagBitset flags, const float nfcscale);
+void aluInit(CompatFlagBitset flags, float nfcscale);
 
 /* aluInitRenderer
  *

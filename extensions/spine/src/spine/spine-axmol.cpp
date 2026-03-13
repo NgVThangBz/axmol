@@ -94,6 +94,7 @@ static constexpr int TEXTURE_LOADER_DTOR_PRIORITY  = 1;
 static constexpr int SPINE_EXTENSION_DTOR_PRIORITY = 2;
 
 static AxmolTextureLoader* s_textureLoader;
+static ax::EventListener* s_textureLoaderEvent = nullptr;
 
 AxmolTextureLoader* AxmolTextureLoader::getInstance()
 {
@@ -102,14 +103,19 @@ AxmolTextureLoader* AxmolTextureLoader::getInstance()
         s_textureLoader = new AxmolTextureLoader();
 
         auto callback = [](ax::EventCustom*) { AxmolTextureLoader::destroyInstance(); };
-        ax::Director::getInstance()->getEventDispatcher()->addCustomEventListener(ax::Director::EVENT_DESTROY, callback,
-                                                                                  TEXTURE_LOADER_DTOR_PRIORITY);
+        s_textureLoaderEvent = ax::Director::getInstance()->getEventDispatcher()->addCustomEventListener(
+            ax::Director::EVENT_DESTROY, callback, TEXTURE_LOADER_DTOR_PRIORITY);
     }
     return s_textureLoader;
 }
 
 void AxmolTextureLoader::destroyInstance()
 {
+    if (s_textureLoaderEvent)
+    {
+        ax::Director::getInstance()->getEventDispatcher()->removeEventListener(s_textureLoaderEvent);
+        s_textureLoaderEvent = nullptr;
+    }
     AX_SAFE_DELETE(s_textureLoader);
 }
 
@@ -117,7 +123,7 @@ AxmolTextureLoader::AxmolTextureLoader() : TextureLoader() {}
 AxmolTextureLoader::~AxmolTextureLoader() {}
 
 void AxmolTextureLoader::load(AtlasPage &page, const spine::String &path) {
-	Texture2D *texture = Director::getInstance()->getTextureCache()->addImage(path.buffer());
+	Texture2D *texture = Director::getInstance()->getTextureCache()->addImage(std::string_view(path.buffer(), path.length()));
 	AXASSERT(texture != nullptr, "Invalid image");
 	if (texture) {
 		texture->retain();
@@ -137,6 +143,7 @@ void AxmolTextureLoader::unload(void *texture) {
 }
 
 static AxmolExtension* s_axmolSpineExtension;
+static ax::EventListener* s_axmolSpineExtensionEvent = nullptr;
 
 AxmolExtension* AxmolExtension::getInstance()
 {
@@ -145,7 +152,8 @@ AxmolExtension* AxmolExtension::getInstance()
         s_axmolSpineExtension = new AxmolExtension();
 
         auto callback = [](ax::EventCustom*) { AxmolExtension::destroyInstance(); };
-        ax::Director::getInstance()->getEventDispatcher()->addCustomEventListener(ax::Director::EVENT_DESTROY, callback,
+        s_axmolSpineExtensionEvent = ax::Director::getInstance()->getEventDispatcher()->addCustomEventListener(
+            ax::Director::EVENT_DESTROY, callback,
                                                                                   SPINE_EXTENSION_DTOR_PRIORITY);
     }
     return s_axmolSpineExtension;
@@ -153,6 +161,11 @@ AxmolExtension* AxmolExtension::getInstance()
 
 void AxmolExtension::destroyInstance()
 {
+    if (s_axmolSpineExtensionEvent)
+    {
+        ax::Director::getInstance()->getEventDispatcher()->removeEventListener(s_axmolSpineExtensionEvent);
+        s_axmolSpineExtensionEvent = nullptr;
+    }
     AX_SAFE_DELETE(s_axmolSpineExtension);
 }
 
@@ -161,7 +174,7 @@ AxmolExtension::AxmolExtension() : DefaultSpineExtension() {}
 AxmolExtension::~AxmolExtension() {}
 
 char *AxmolExtension::_readFile(const spine::String &path, int *length) {
-	Data data = FileUtils::getInstance()->getDataFromFile(path.buffer());
+	Data data = FileUtils::getInstance()->getDataFromFile(std::string_view(path.buffer(), path.length()));
 	if (data.isNull()) return nullptr;
 
 		// avoid buffer overflow (int is shorter than ssize_t in certain platforms)

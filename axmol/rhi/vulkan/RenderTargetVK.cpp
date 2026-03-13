@@ -39,13 +39,12 @@ RenderTargetImpl::RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget)
     _clearValues.reserve(_color.size() + 1);
 }
 
-RenderTargetImpl::~RenderTargetImpl()
-{
-    _driver->waitForGPU();
-}
+RenderTargetImpl::~RenderTargetImpl() {}
 
 void RenderTargetImpl::cleanupResources()
 {
+    _driver->waitForGPU();
+
     // Conservative: wait idle before destroying caches to avoid "in use" errors.
     for (auto& [_, pass] : _renderPassCache)
         _driver->destroyRenderPass(pass);
@@ -195,6 +194,8 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
                 tlx::hash64_bytes(&_attachmentViews[imageIndex], sizeof(VkImageView),
                                   reinterpret_cast<uint64_t>(_attachmentViews.back()));
         }
+
+        _numMRT = 1;
     }
     else
     {  // Offscreen RenderTarget, update all attachment one-time
@@ -230,6 +231,8 @@ void RenderTargetImpl::beginRenderPass(VkCommandBuffer cmd,
             }
 
             _activeHashSeed = tlx::hash64_bytes(&_attachmentViews[0], sizeof(_attachmentViews));
+
+            _numMRT = static_cast<uint32_t>(_color.size());
 
             _dirtyFlags = TargetBufferFlags::NONE;
         }
@@ -319,12 +322,17 @@ void RenderTargetImpl::endRenderPass(VkCommandBuffer cmd)
         {
             if (!rb)
                 break;
-            static_cast<TextureImpl*>(rb.texture)->setKnownLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            // transitionLayout to SHADER_READ_ONLY_OPTIMAL for sampling explicitly to fix vkCmdDrawIndexed():
+            // READ_AFTER_WRITE hazard detected. Shader stage VK_SHADER_STAGE_FRAGMENT_BIT reads
+            // VkImageView which was previously written during an image layout transition initiated by
+            // vkCmdEndRenderPass
+            auto texImpl = static_cast<TextureImpl*>(rb.texture);
+            texImpl->transitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
         if (_depthStencil)
         {
-            static_cast<TextureImpl*>(_depthStencil.texture)
-                ->setKnownLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            auto texImpl = static_cast<TextureImpl*>(_depthStencil.texture);
+            texImpl->setKnownLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
         }
     }
 }
@@ -423,13 +431,13 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
             const VkAttachmentStoreOp storeOp =
                 discardEnd ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
 
-            VkAttachmentDescription ad{};
-            ad.format         = UtilsVK::toVKFormat(attDesc.pixelFormat);
-            ad.samples        = VK_SAMPLE_COUNT_1_BIT;
-            ad.loadOp         = loadOp;
-            ad.storeOp        = storeOp;
-            ad.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            ad.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            VkAttachmentDescription& ad = attachments.emplace_back();
+            ad.format                   = UtilsVK::toVKFormat(attDesc.pixelFormat);
+            ad.samples                  = VK_SAMPLE_COUNT_1_BIT;
+            ad.loadOp                   = loadOp;
+            ad.storeOp                  = storeOp;
+            ad.stencilLoadOp            = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            ad.stencilStoreOp           = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
             // Use UNDEFINED when not loading to minimize mismatch risk
             ad.initialLayout =
@@ -437,9 +445,7 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
                     ? (isDefaultRT ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
                     : VK_IMAGE_LAYOUT_UNDEFINED;
 
-            ad.finalLayout = isDefaultRT ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-            attachments.push_back(ad);
+            ad.finalLayout = isDefaultRT ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
             VkAttachmentReference ref{};
             ref.attachment = static_cast<uint32_t>(colorRefs.size());
@@ -490,13 +496,13 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
             const VkAttachmentStoreOp stencilStore =
                 discardS1 ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
 
-            VkAttachmentDescription ad{};
-            ad.format         = UtilsVK::toVKFormat(dsDesc.pixelFormat);
-            ad.samples        = VK_SAMPLE_COUNT_1_BIT;
-            ad.loadOp         = depthLoad;
-            ad.storeOp        = depthStore;
-            ad.stencilLoadOp  = stencilLoad;
-            ad.stencilStoreOp = stencilStore;
+            VkAttachmentDescription& ad = attachments.emplace_back();
+            ad.format                   = UtilsVK::toVKFormat(dsDesc.pixelFormat);
+            ad.samples                  = VK_SAMPLE_COUNT_1_BIT;
+            ad.loadOp                   = depthLoad;
+            ad.storeOp                  = depthStore;
+            ad.stencilLoadOp            = stencilLoad;
+            ad.stencilStoreOp           = stencilStore;
 
             const bool needLoadInitial =
                 (depthLoad == VK_ATTACHMENT_LOAD_OP_LOAD) || (stencilLoad == VK_ATTACHMENT_LOAD_OP_LOAD);
@@ -505,8 +511,6 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
                 needLoadInitial ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 
             ad.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-            attachments.push_back(ad);
 
             depthRef.attachment = static_cast<uint32_t>(attachments.size() - 1);
             depthRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -551,10 +555,7 @@ void RenderTargetImpl::updateRenderPass(const RenderPassDesc& desc, uint32_t ima
         rpci.pDependencies   = deps;
 
         VkResult vr = vkCreateRenderPass(_driver->getDevice(), &rpci, nullptr, &_renderPass);
-        AXASSERT(vr == VK_SUCCESS, "Failed to create VkRenderPass");
-
-        // AXLOGI("vkCreateRenderPass: renderPass: {}, cache id:{}", fmt::ptr(_renderPass), key);
-
+        VK_REQUIRE(vr, "Failed to create VkRenderPass");
         _renderPassCache.emplace(key, _renderPass);
     }
 }

@@ -255,7 +255,7 @@ void BufferImpl::copyFromUploadBuffer(const void* data, std::size_t offset, std:
 
     // Allocate upload memory from allocator
     auto allocator = _driver->getUploadBufferAllocator();  // raw pointer
-    auto span      = allocator->allocBytes(size);          // 256 alignment for safety
+    auto span      = allocator->allocBytes(size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
     // Copy data into upload memory
     std::memcpy(span.cpuPtr, data, size);

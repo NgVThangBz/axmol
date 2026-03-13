@@ -33,7 +33,7 @@ inline constexpr auto SpeedOfSoundMetersPerSec = 343.3f;
 
 inline constexpr auto AirAbsorbGainHF = 0.99426f; /* -0.05dB */
 
-enum class DistanceModel : u8 {
+enum class DistanceModel : u8::value_t {
     Disable,
     Inverse, InverseClamped,
     Linear, LinearClamped,
@@ -44,19 +44,19 @@ enum class DistanceModel : u8 {
 
 
 struct ContextProps {
-    std::array<f32, 3> Position;
-    std::array<f32, 3> Velocity;
-    std::array<f32, 3> OrientAt;
-    std::array<f32, 3> OrientUp;
-    f32 Gain;
-    f32 MetersPerUnit;
-    f32 AirAbsorptionGainHF;
+    std::array<float, 3> Position;
+    std::array<float, 3> Velocity;
+    std::array<float, 3> OrientAt;
+    std::array<float, 3> OrientUp;
+    float Gain;
+    float MetersPerUnit;
+    float AirAbsorptionGainHF;
 
-    f32 DopplerFactor;
-    f32 DopplerVelocity;
-    f32 SpeedOfSound;
+    float DopplerFactor;
+    float DopplerVelocity;
+    float SpeedOfSound;
 #if ALSOFT_EAX
-    f32 DistanceFactor;
+    float DistanceFactor;
 #endif
     bool SourceDistanceModel;
     DistanceModel mDistanceModel;
@@ -72,12 +72,12 @@ struct ContextParams {
     al::Matrix Matrix{al::Matrix::Identity()};
     al::Vector Velocity;
 
-    f32 Gain{1.0f};
-    f32 MetersPerUnit{1.0f};
-    f32 AirAbsorptionGainHF{AirAbsorbGainHF};
+    float Gain{1.0f};
+    float MetersPerUnit{1.0f};
+    float AirAbsorptionGainHF{AirAbsorbGainHF};
 
-    f32 DopplerFactor{1.0f};
-    f32 SpeedOfSound{SpeedOfSoundMetersPerSec}; /* in units per sec! */
+    float DopplerFactor{1.0f};
+    float SpeedOfSound{SpeedOfSoundMetersPerSec}; /* in units per sec! */
 
     bool SourceDistanceModel{false};
     DistanceModel mDistanceModel{};
@@ -89,11 +89,11 @@ struct ContextBase {
     /* Counter for the pre-mixing updates, in 31.1 fixed point (lowest bit
      * indicates if updates are currently happening).
      */
-    std::atomic<u32> mUpdateCount{0_u32};
+    std::atomic<unsigned> mUpdateCount{0u};
     std::atomic<bool> mHoldUpdates{false};
     std::atomic<bool> mStopVoicesOnDisconnect{true};
 
-    f32 mGainBoost{1.0f};
+    float mGainBoost{1.0f};
 
     /* Linked lists of unused property containers, free to use for future
      * updates.
@@ -143,8 +143,8 @@ struct ContextBase {
 
     std::thread mEventThread;
     FifoBufferPtr<AsyncEvent> mAsyncEvents;
-    /* u32 to work with macOS wait/notify wrappers, but really just a bool. */
-    std::atomic<u32> mEventsPending;
+    /* uint32 to work with macOS wait/notify wrappers, but really just a bool. */
+    std::atomic<std::uint32_t> mEventsPending;
     using AsyncEventBitset = std::bitset<al::to_underlying(AsyncEnableBits::Count)>;
     std::atomic<AsyncEventBitset> mEnabledEvts{0u};
 

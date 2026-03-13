@@ -24,14 +24,12 @@ THE SOFTWARE.
 
 #include "ImGuiPresenter.h"
 #include <assert.h>
-#if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-#    include "backends/imgui_impl_android.h"
-#else
+#if defined(AX_PLATFORM_PC)
 #    include "backends/imgui_impl_glfw.h"
+#else
+#    include "backends/imgui_impl_axmol_sw.h"
 #endif
-
 #include "backends/imgui_impl_axmol.h"
-
 #include "imgui_internal.h"
 #include "misc/freetype/imgui_freetype.h"
 
@@ -165,7 +163,7 @@ class ImGuiSceneEventTracker : public ImGuiEventTracker
 public:
     bool initWithScene(Scene* scene)
     {
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if defined(AX_PLATFORM_PC)
         _trackLayer = utils::newInstance<Node>(&Node::initLayer);
 
         // note: when at the first click to focus the window, this will not take effect
@@ -206,7 +204,7 @@ public:
 
     ~ImGuiSceneEventTracker() override
     {
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if defined(AX_PLATFORM_PC)
         if (_trackLayer)
         {
             if (_trackLayer->getParent())
@@ -227,7 +225,7 @@ class ImGuiGlobalEventTracker : public ImGuiEventTracker
 public:
     bool init()
     {
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if defined(AX_PLATFORM_PC)
         // note: when at the first click to focus the window, this will not take effect
 
         auto eventDispatcher = Director::getInstance()->getEventDispatcher();
@@ -252,7 +250,7 @@ public:
 
     ~ImGuiGlobalEventTracker() override
     {
-#if defined(AX_PLATFORM_PC) || defined(__EMSCRIPTEN__)
+#if defined(AX_PLATFORM_PC)
         auto eventDispatcher = Director::getInstance()->getEventDispatcher();
         eventDispatcher->removeEventListener(_mouseListener);
         eventDispatcher->removeEventListener(_touchListener);
@@ -278,6 +276,7 @@ ImGuiPresenter* ImGuiPresenter::getInstance()
 
     _instance = new ImGuiPresenter();
     _instance->init();
+
     return _instance;
 }
 
@@ -293,7 +292,7 @@ void ImGuiPresenter::init()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io;
+
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
@@ -324,11 +323,11 @@ void ImGuiPresenter::init()
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-#if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-    ImGui_ImplAndroid_InitForAxmol(Director::getInstance()->getRenderView(), true);
-#else
+#if defined(AX_PLATFORM_PC)
     auto window = static_cast<RenderViewImpl*>(Director::getInstance()->getRenderView())->getWindow();
     ImGui_ImplGlfw_InitForAxmol(window, true);
+#else
+    ImGui_ImplAxmolSW_Init(Director::getInstance()->getRenderView(), true);
 #endif
     ImGui_ImplAxmol_Init();
 
@@ -337,22 +336,32 @@ void ImGuiPresenter::init()
     ImGui::StyleColorsClassic();
 
     auto eventDispatcher = Director::getInstance()->getEventDispatcher();
-    eventDispatcher->addCustomEventListener(Director::EVENT_BEFORE_DRAW, [this](EventCustom*) { beginFrame(); });
-    eventDispatcher->addCustomEventListener(Director::EVENT_AFTER_VISIT, [this](EventCustom*) { endFrame(); });
+    _event1 =
+        eventDispatcher->addCustomEventListener(Director::EVENT_BEFORE_DRAW, [this](EventCustom*) { beginFrame(); });
+    _event2 =
+        eventDispatcher->addCustomEventListener(Director::EVENT_AFTER_VISIT, [this](EventCustom*) { endFrame(); });
+    _event3 = eventDispatcher->addCustomEventListener(Director::EVENT_BEFORE_GFX_DROP, [](EventCustom*) {
+        if (_instance)
+        {
+            _instance->cleanup();
+            AX_SAFE_DELETE(_instance);
+        }
+    });
 }
 
 void ImGuiPresenter::cleanup()
 {
     auto eventDispatcher = Director::getInstance()->getEventDispatcher();
-    eventDispatcher->removeCustomEventListeners(Director::EVENT_AFTER_VISIT);
-    eventDispatcher->removeCustomEventListeners(Director::EVENT_BEFORE_DRAW);
+    eventDispatcher->removeEventListener(_event1);
+    eventDispatcher->removeEventListener(_event2);
+    eventDispatcher->removeEventListener(_event3);
 
     ImGui_ImplAxmol_SetUpdateFontsFunc(nullptr, nullptr);
     ImGui_ImplAxmol_Shutdown();
-#if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-    ImGui_ImplAndroid_Shutdown();
-#else
+#if defined(AX_PLATFORM_PC)
     ImGui_ImplGlfw_Shutdown();
+#else
+    ImGui_ImplAxmolSW_Shutdown();
 #endif
 
     ImGui::DestroyContext();
@@ -365,6 +374,9 @@ void ImGuiPresenter::cleanup()
         }
         _renderLoops.clear();
     }
+
+    _usedObjs.clear();
+    _objsRefIdMap.clear();
 }
 
 void ImGuiPresenter::updateFonts(void* ud)
@@ -467,10 +479,10 @@ void ImGuiPresenter::beginFrame()
     {
         // create frame
         ImGui_ImplAxmol_NewFrame();
-#if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
-        ImGui_ImplAndroid_NewFrame();
-#else
+#if defined(AX_PLATFORM_PC)
         ImGui_ImplGlfw_NewFrame();
+#else
+        ImGui_ImplAxmolSW_NewFrame();
 #endif
         ImGui::NewFrame();
 

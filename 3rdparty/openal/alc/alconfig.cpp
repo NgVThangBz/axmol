@@ -539,7 +539,7 @@ auto ConfigValueStr(const std::string_view devName, const std::string_view block
 }
 
 auto ConfigValueI32(std::string_view const devName, std::string_view const blockName,
-    std::string_view const keyName) -> std::optional<i32>
+    std::string_view const keyName) -> std::optional<int>
 {
     if(auto&& val = GetConfigValue(devName, blockName, keyName); !val.empty()) try {
         return std::stoi(val, nullptr, 0);
@@ -555,10 +555,10 @@ auto ConfigValueI32(std::string_view const devName, std::string_view const block
 }
 
 auto ConfigValueU32(std::string_view const devName, std::string_view const blockName,
-    std::string_view const keyName) -> std::optional<u32>
+    std::string_view const keyName) -> std::optional<unsigned>
 {
     if(auto&& val = GetConfigValue(devName, blockName, keyName); !val.empty()) try {
-        return gsl::narrow<u32>(std::stoul(val, nullptr, 0));
+        return gsl::narrow<unsigned>(std::stoul(val, nullptr, 0));
     }
     catch(std::out_of_range&) {
         WARN("Option is out of range of u32: {} = {}", keyName, val);
@@ -573,7 +573,7 @@ auto ConfigValueU32(std::string_view const devName, std::string_view const block
 }
 
 auto ConfigValueF32(std::string_view const devName, std::string_view const blockName,
-    std::string_view const keyName) -> std::optional<f32>
+    std::string_view const keyName) -> std::optional<float>
 {
     if(auto&& val = GetConfigValue(devName, blockName, keyName); !val.empty()) try {
         return std::stof(val);

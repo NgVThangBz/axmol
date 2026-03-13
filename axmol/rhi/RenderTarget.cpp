@@ -27,7 +27,9 @@ THE SOFTWARE.
 namespace ax::rhi
 {
 
-RenderTarget::~RenderTarget()
+RenderTarget::~RenderTarget() {}
+
+void RenderTarget::dispose()
 {
     cleanupResources();
 }

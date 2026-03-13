@@ -10,10 +10,9 @@
 #include <stdexcept>
 #include <tuple>
 
+#include "altypes.hpp"
 #include "gsl/gsl"
 
-
-using uint = unsigned int;
 
 namespace {
 
@@ -96,12 +95,12 @@ auto Kaiser(const double beta, const double k, const double besseli_0_beta) -> d
  *       { ceil(5.79 / 2 pi f_t),                r <= 21.
  *
  */
-constexpr auto CalcKaiserOrder(const double rejection, const double transition) -> uint
+constexpr auto CalcKaiserOrder(const double rejection, const double transition) -> unsigned
 {
     const auto w_t = 2.0 * std::numbers::pi * transition;
     if(rejection > 21.0) [[likely]]
-        return gsl::narrow_cast<uint>(std::ceil((rejection - 7.95) / (2.285 * w_t)));
-    return gsl::narrow_cast<uint>(std::ceil(5.79 / w_t));
+        return gsl::narrow_cast<unsigned>(std::ceil((rejection - 7.95) / (2.285 * w_t)));
+    return gsl::narrow_cast<unsigned>(std::ceil(5.79 / w_t));
 }
 
 // Calculates the beta value of the Kaiser window.  Rejection is in dB.
@@ -127,10 +126,10 @@ constexpr auto CalcKaiserBeta(const double rejection) -> double
  *   p    -- gain compensation factor when sampling
  *   f_t  -- normalized center frequency (or cutoff; 0.5 is nyquist)
  */
-auto SincFilter(const uint l, const double beta, const double besseli_0_beta, const double gain,
-    const double cutoff, const uint i) -> double
+auto SincFilter(unsigned const l, double const beta, double const besseli_0_beta,
+    double const gain, double const cutoff, unsigned const i) -> double
 {
-    const auto x = gsl::narrow_cast<double>(i) - l;
+    auto const x = gsl::narrow_cast<double>(i) - l;
     return Kaiser(beta, x/l, besseli_0_beta) * 2.0 * gain * cutoff * Sinc(2.0 * cutoff * x);
 }
 
@@ -138,7 +137,7 @@ auto SincFilter(const uint l, const double beta, const double besseli_0_beta, co
 
 // Calculate the resampling metrics and build the Kaiser-windowed sinc filter
 // that's used to cut frequencies above the destination nyquist.
-void PPhaseResampler::init(const uint srcRate, const uint dstRate)
+void PPhaseResampler::init(unsigned const srcRate, unsigned const dstRate)
 {
     const auto gcd = std::gcd(srcRate, dstRate);
     mP = dstRate / gcd;
@@ -159,7 +158,7 @@ void PPhaseResampler::init(const uint srcRate, const uint dstRate)
     mM = l*2u + 1u;
     mL = l;
     mF.resize(mM);
-    std::ranges::transform(std::views::iota(0u, mM), mF.begin(), [this,cutoff](const uint i)
+    std::ranges::transform(std::views::iota(0u, mM), mF.begin(), [this,cutoff](unsigned const i)
     { return SincFilter(mL, beta, besseli_0_beta, mP, cutoff, i); });
 }
 

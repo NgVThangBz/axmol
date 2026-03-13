@@ -45,6 +45,9 @@ static constexpr uint32_t INITIAL_COLOR_CAPACITY = 4;
  */
 class RenderTarget : public ax::Object
 {
+protected:
+    void dispose() override;
+
 public:
     struct RenderBuffer
     {

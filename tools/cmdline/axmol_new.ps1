@@ -200,7 +200,6 @@ if ($isolated) {
         'cmake'
         'axmol'
         'extensions'
-        'manifest.json'
     )
     foreach ($path in $_ax_source_folders) {
         $source_path = Join-Path $env:AX_ROOT $path

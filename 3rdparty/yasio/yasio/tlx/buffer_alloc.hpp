@@ -31,6 +31,7 @@ SOFTWARE.
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdexcept>
 #include <utility>
 #include "yasio/compiler/feature_test.hpp"

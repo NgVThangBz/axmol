@@ -35,14 +35,6 @@ class DrawNodeBaseTest : public TestCase
 {
 
 protected:
-    enum sliderType
-    {
-        AngleStart = 0,
-        AngleEnd,
-        Rotation,
-        Thickness,
-        sliderTypeLast
-    };
     enum drawMethodes
     {
         Line = 0,
@@ -94,22 +86,26 @@ protected:
 public:
     DrawNodeBaseTest();
 
-    void onChangedRadioButtonSelect(ax::ui::RadioButton* radioButton, ax::ui::RadioButton::EventType type);
-    void listviewCallback(ax::Object* sender, ax::ui::ListView::EventType type);
-    void setDrawOrder(Object* sender);
-    void setTransform(Object* sender);
-
     void update(float dt) override;
+    void onDrawImGui();
+    void onExit() override;
+    void onEnter() override;
 
     virtual std::string title() const override;
     void drawDirection(const ax::Vec2* vec, const int size, ax::Vec2 offset);
 
-    void initSliders();
-
-    void changeStartAngle(ax::Object* pSender, ax::ui::Slider::EventType type);
-    void changeEndAngle(ax::Object* pSender, ax::ui::Slider::EventType type);
-    void changeRotation(ax::Object* pSender, ax::ui::Slider::EventType type);
-    void changeThickness(ax::Object* pSender, ax::ui::Slider::EventType type);
+    float ns;     // drawNode->getScale;
+    ax::Vec2 po;  // drawNode->_localPosition
+    ax::Vec2 ps;  // drawNode->_localScale
+    float pf;     // drawNode->_thicknessScale
+    float thickness;
+    float pa;  // drawNode->_localRotation
+    float as;  // angle start
+    float ae;  // angle end
+    bool drawOrder;
+    bool transform;
+    int flagGUI        = -1;
+    ax::Scene* _target = nullptr;
 
     // using from https://github.com/intmainreturn00/AwesomeNode/
     void generateDataPoints();
@@ -125,19 +121,6 @@ public:
 
 protected:
     int _currentSeletedItemIndex = 0;
-
-    // UI stuff
-    ax::ui::Slider* slider[sliderType::sliderTypeLast];
-    ax::Label* sliderLabel[sliderType::sliderTypeLast];
-    float sliderValue[sliderType::sliderTypeLast];
-
-    ax::ui::RadioButtonGroup* _radioButtonGroup;
-    ax::Layer* _uiLayer;
-    ax::ui::Layout* _widget;
-    int selectedRadioButton;
-
-    ax::MenuItemFont* menuItemDrawOrder;
-    ax::MenuItemFont* menuItemTransform;
 
     // DrawNode stuff
     ax::DrawNode* drawNode = nullptr;
@@ -256,12 +239,6 @@ public:
 
     void update(float dt) override;
     void onEnter() override;
-
-private:
-    // ax::Label* _lineWidthLabel;
-    // float lineWidth = 0;
-    ax::Label* _thicknessLabel;
-    float thickness = 1.0f;
 };
 
 class DrawNodeVersionsTest : public DrawNodeBaseTest
@@ -307,6 +284,7 @@ public:
 
 class DrawNodeMethodsTest : public DrawNodeBaseTest
 {
+
 public:
     CREATE_FUNC(DrawNodeMethodsTest);
 
@@ -406,7 +384,7 @@ public:
     virtual std::string subtitle() const override;
 
     void update(float dt) override;
-    void onEnter() override;
+    //  void onEnter() override;
 
     void changeThreshold(Object* pSender, ax::ui::Slider::EventType type);
     void changeLineWidth(Object* pSender, ax::ui::Slider::EventType type);
@@ -442,6 +420,35 @@ public:
     virtual std::string subtitle() const override;
 };
 
+class DrawNodeSolidCircleTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeSolidCircleTest);
+
+    DrawNodeSolidCircleTest();
+    void showCircles();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+private:
+    bool fast;
+    std::chrono::microseconds duration;
+    ax::Label* autoTestLabel = nullptr;
+    ax::Rect rect;
+};
+
+class DrawNodePolygonTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodePolygonTest);
+
+    DrawNodePolygonTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
 class DrawNodeSpLinesOpenClosedTest : public DrawNodeBaseTest
 {
 public:
@@ -462,7 +469,43 @@ private:
     ax::PointArray* array;
 };
 
+class DrawNodeRoundRectTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeRoundRectTest);
+
+    DrawNodeRoundRectTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
+class DrawNodeButtonTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeButtonTest);
+
+    DrawNodeButtonTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
 #if defined(AX_PLATFORM_PC)
+
+class DrawNodePointTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodePointTest);
+
+    DrawNodePointTest();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    void update(float dt) override;
+};
+
 class CandyMixEeffect : public DrawNodeBaseTest
 {
 public:
