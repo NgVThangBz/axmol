@@ -42,7 +42,7 @@
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.17.0
+- Version: 8.18.0
 - License: Curl (MIT/X)
 
 ## doctest
@@ -57,7 +57,7 @@
 
 ## fast_float
 - [![Upstream](https://img.shields.io/github/v/release/fastfloat/fast_float?label=Upstream)](https://github.com/fastfloat/fast_float)
-- Version: 8.2.2
+- Version: 8.2.3
 - License: MIT
 
 ## flatbuffers
@@ -73,13 +73,15 @@
 
 ## FreeType
 - [![Upstream](https://img.shields.io/gitlab/v/tag/freetype/freetype?label=Upstream)](https://gitlab.freedesktop.org/freetype/freetype)
-- Version: 2.14.1
+- Version: 2.14.2
 - License: BSD-style (The FreeType Project)
 
 ## Glad
 - [![Upstream](https://img.shields.io/github/v/tag/Dav1dde/glad?label=Upstream)](https://github.com/Dav1dde/glad)
 - Version: 2.0.8
 - License: MIT
+
+`vk_mem_alloc.h` is taken from https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator Version: git-e722e57 (Dec 1, 2025)
 
 ## glfw
 - [![Upstream](https://img.shields.io/github/v/release/glfw/glfw?label=Upstream)](https://github.com/glfw/glfw)
@@ -108,7 +110,7 @@
 
 ## llhttp
 - [![Upstream](https://img.shields.io/github/v/release/nodejs/llhttp?label=Upstream)](https://github.com/nodejs/llhttp)
-- Version: 9.3.0
+- Version: 9.3.1
 - License: MIT
 
 ## lua
@@ -118,13 +120,13 @@
   - License: MIT (http://www.lua.org/license.html)
   
 - sol2
-  - [![Upstream](https://img.shields.io/github/v/release/ThePhD/sol2?label=Upstream)](https://github.com/ThePhD/sol2)
-  - Version: 3.3.0 
+  - [![Upstream](https://img.shields.io/github/v/tag/ThePhD/sol2?label=Upstream)](https://github.com/ThePhD/sol2)
+  - Version: 3.5.0 with modified for lua-5.5 support
   - License: MIT
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-7152e15
+  - Version: 2.1-a553b3d
   - License: MIT
 
 - tolua
@@ -180,22 +182,22 @@
 
 ## OpenAL Soft
 - [![Upstream](https://img.shields.io/github/v/release/kcat/openal-soft?label=Upstream)](https://github.com/kcat/openal-soft)
-- Version: 1.25.0-94259df
+- Version: 1.25.1-b2255be
 - Modifications: 
   - Remove `-Werror=undef`
   - Linking `fmt::fmt` instead `alsoft::fmt`
   - Exclude target `alsoft::excommon`
-  - Fix `al::char_as_u8/al::u8_as_char` with compiler flag: `-fno-char8_t` or `/Zc:char8_t-`
+  - Fix `al::char_as_u8/al::u8_as_char` in `common/alstring.hpp` with compiler flag: `-fno-char8_t` or `/Zc:char8_t-`
 - License: LGPL-2.1
 
 ## OpenSSL
 - [![Upstream](https://img.shields.io/github/v/release/openssl/openssl?label=Upstream)](https://github.com/openssl/openssl)
-- Version: 3.0.18
+- Version: 3.0.19
 - License: Apache-2.0
 
 ## png
 - [![Upstream](https://img.shields.io/github/v/tag/glennrp/libpng?label=Upstream)](https://github.com/glennrp/libpng)
-- Version: 1.6.53
+- Version: 1.6.55
 - License: PNG Reference Library License version 2
 
 ## poly2tri
@@ -222,7 +224,7 @@
 
 ## robin-map
 - [![Upstream](https://img.shields.io/github/v/tag/Tessil/robin-map?label=Upstream)](https://github.com/Tessil/robin-map)
-- Version: 1.4.0 with modified for stl compatibility
+- Version: 1.4.1 with modified for stl compatibility
     - Modify `robin_map::iterator->second` to mutable same with `stl map/unordered_map`
     - Forward `robin_map::operator[]` key by `std::forward` same with `stl map/unordered_map`
     - Improve code compiler compatibility, i.g. `std::max` ==> `(std::max)`
@@ -230,7 +232,7 @@
 
 ## simdjson
 - [![Upstream](https://img.shields.io/github/v/tag/simdjson/simdjson?label=Upstream)](https://github.com/simdjson/simdjson)
-- Version: 4.2.2
+- Version: 4.3.1
 - License: Apache-2.0
 
 ## stb (stb_image)
@@ -265,6 +267,6 @@
 
 ## zlib
 - [![Upstream](https://img.shields.io/github/v/tag/madler/zlib?label=Upstream)](https://github.com/madler/zlib)
-- Version: 1.3.1
+- Version: 1.3.2
 - License: zlib
 

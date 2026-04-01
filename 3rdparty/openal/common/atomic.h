@@ -30,7 +30,7 @@
  */
 inline auto gAtomicWaitMutex = std::mutex{};
 inline auto gAtomicWaitCondVar = std::condition_variable{};
-inline auto gAtomicWaitCounter = 0_u32;
+inline auto gAtomicWaitCounter = std::uint32_t{0};
 
 /* See: https://outerproduct.net/futex-dictionary.html */
 #define UL_COMPARE_AND_WAIT          1
@@ -43,8 +43,8 @@ inline auto gAtomicWaitCounter = 0_u32;
 #define ULF_WAKE_ALL 0x00000100
 
 extern "C" {
-auto __attribute__((weak_import)) __ulock_wait(u32 op, void *addr, u64 value, u32 timeout) -> int;
-auto __attribute__((weak_import)) __ulock_wake(u32 op, void *addr, u64 wake_value) -> int;
+auto __attribute__((weak_import)) __ulock_wait(std::uint32_t op, void *addr, std::uint64_t value, std::uint32_t timeout) -> int;
+auto __attribute__((weak_import)) __ulock_wake(std::uint32_t op, void *addr, std::uint64_t wake_value) -> int;
 } /* extern "C" */
 #endif
 
@@ -81,13 +81,13 @@ auto atomic_wait(std::atomic<T> &aval, T const value,
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 110000
     static_assert(sizeof(aval) == sizeof(T));
 
-    if(sizeof(T) == sizeof(u32) && __ulock_wait != nullptr)
+    if(sizeof(T) == sizeof(std::uint32_t) && __ulock_wait != nullptr)
     {
         while(aval.load(order) == value)
             __ulock_wait(UL_COMPARE_AND_WAIT, &aval, value, 0);
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-    else if(sizeof(T) == sizeof(u64) && __ulock_wait != nullptr)
+    else if(sizeof(T) == sizeof(std::uint64_t) && __ulock_wait != nullptr)
     {
         while(aval.load(order) == value)
             __ulock_wait(UL_COMPARE_AND_WAIT64, &aval, value, 0);
@@ -114,10 +114,10 @@ auto atomic_notify_one(std::atomic<T> &aval) noexcept -> void
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 110000
     static_assert(sizeof(aval) == sizeof(T));
 
-    if(sizeof(T) == sizeof(u32) && __ulock_wake != nullptr)
+    if(sizeof(T) == sizeof(std::uint32_t) && __ulock_wake != nullptr)
         __ulock_wake(UL_COMPARE_AND_WAIT, &aval, 0);
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-    else if(sizeof(T) == sizeof(u64) && __ulock_wake != nullptr)
+    else if(sizeof(T) == sizeof(std::uint64_t) && __ulock_wake != nullptr)
         __ulock_wake(UL_COMPARE_AND_WAIT64, &aval, 0);
 #endif
     else
@@ -148,10 +148,10 @@ auto atomic_notify_all(std::atomic<T> &aval) noexcept -> void
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 110000
     static_assert(sizeof(aval) == sizeof(T));
 
-    if(sizeof(T) == sizeof(u32) && __ulock_wake != nullptr)
+    if(sizeof(T) == sizeof(std::uint32_t) && __ulock_wake != nullptr)
         __ulock_wake(UL_COMPARE_AND_WAIT | ULF_WAKE_ALL, &aval, 0);
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-    else if(sizeof(T) == sizeof(u64) && __ulock_wake != nullptr)
+    else if(sizeof(T) == sizeof(std::uint64_t) && __ulock_wake != nullptr)
         __ulock_wake(UL_COMPARE_AND_WAIT64 | ULF_WAKE_ALL, &aval, 0);
 #endif
     else

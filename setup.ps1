@@ -3,7 +3,8 @@
 # PowerShell Param statement : every line must end in #\ except the last line must with <#\
 # And, you can't use backticks in this section        #\
 # refer https://gist.github.com/ryanmaclean/a1f3135f49c1ab3fa7ec958ac3f8babe #\
-param( [switch]$updateAdt                    #\
+param( [switch]$updateAdt,                    #\
+    [string]$gradleMirror #\
 )                                                <#\
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `
 #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -296,25 +297,18 @@ else {
     }
     elseif ($IsLinux) {
         # determine distro
-        if ($(Get-Command 'dpkg' -ErrorAction SilentlyContinue)) {
-            $LinuxDistro = 'Debian'
-        }
-        elseif ($(Get-Command 'pacman' -ErrorAction SilentlyContinue)) {
-            $LinuxDistro = 'Arch'
-        }
-        else {
-            $LinuxDistro = 'Linux'
-        }
+        $LinuxDistro = (Get-Content /etc/os-release | Where-Object { $_ -match '^ID=' }) -replace '^ID="?', '' -replace '"?$', ''
+        println "Detected Linux Distro: $LinuxDistro"
 
         # preferred ~/.profile to ensure GUI apps and terminal works
         updateUnixProfile ~/.profile
 
-        # ~/.profile not read by bash(1), if ~/.bash_profile or ~/.bash_login
-        if (Test-Path ~/.bash_profile -PathType Leaf) {
-            if ("$env:SHELL" -like '*/zsh') {
-                updateUnixProfile ~/.zshrc
-            }
-            else {
+        if ("$env:SHELL" -like '*/zsh') {
+            updateUnixProfile ~/.zshrc
+        }
+        else {
+            # ~/.profile not read by bash(1), if ~/.bash_profile or ~/.bash_login exists, for example: wsl
+            if ((Test-Path ~/.bash_profile -PathType Leaf) -or (Test-Path ~/.bash_login -PathType Leaf)) {
                 updateUnixProfile ~/.bashrc
             }
         }
@@ -322,7 +316,7 @@ else {
         Write-Host "Install Axmol Linux dependencies (one-time)? (y/N) " -NoNewline
         $answer = Read-Host
         if ($answer -like 'y*') {
-            if ($LinuxDistro -eq 'Debian') {
+            if (($LinuxDistro -eq 'debian') -or ($LinuxDistro -eq 'ubuntu')) {
                 println "It will take few minutes"
                 $os_name = $PSVersionTable.OS
                 $os_ver = [Regex]::Match($os_name, '\d+(\.\d+)*(-[a-z0-9]+)?').Value
@@ -335,8 +329,6 @@ else {
                 }
 
                 sudo apt-get update
-                # for vm, libxxf86vm-dev also required
-
                 $DEPENDS = @()
 
                 $DEPENDS += 'libx11-dev'
@@ -371,7 +363,7 @@ else {
                     sudo apt-get install --allow-unauthenticated --yes $DEPENDS
                 }
             }
-            elseif ($LinuxDistro -eq 'Arch') {
+            elseif ($LinuxDistro -eq 'arch') {
                 $mirror_list = [System.IO.File]::ReadAllText('/etc/pacman.d/mirrorlist')
                 $tsinghua_mirror = 'https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch'
                 if (!$mirror_list.Contains($tsinghua_mirror)) {
@@ -405,8 +397,18 @@ else {
                 )
                 sudo pacman -S --needed --noconfirm @DEPENDS
             }
+            elseif($LinuxDistro -eq 'fedora') {
+                $DEPENDS = @(
+                    "gcc",
+                    "g++",
+                    "libX11-devel",
+                    "gtk3-devel",
+                    "libXxf86vm-devel"
+                )
+                sudo dnf install -y --setopt=install_weak_deps=False @DEPENDS
+            }
             else {
-                println "Warning: current Linux distro isn't officially supported by axmol community"
+                println "Warning: current Linux distro: $LinuxDistro isn't officially supported by axmol community, you need install dependencies manually"
             }
         }
     }
@@ -438,13 +440,18 @@ if ($updateAdt) {
         $gradle_tag = "v$gradleVer"
     }
 
+    if (!$gradleMirror) { $gradleMirror = 'origin' }
+
+    $gradle_url = devtool_url 'gradle' $gradleVer -mirror $gradleMirror
+    $gradle_url = $gradle_url.Replace(':', "\:")
+
     $gradle_settings_file = Join-Path $aproj_source_gradle_wrapper 'gradle-wrapper.properties'
     $settings_lines = Get-Content $gradle_settings_file
     $settings_lines[0] = "#$current_time"
     for ($i = 1; $i -lt $settings_lines.Count; ++$i) {
         $line_text = $settings_lines[$i]
         if ($line_text -match '^distributionUrl\s*=.*') {
-            $settings_lines[$i] = [Regex]::Replace($line_text, 'gradle-.+-bin.zip', "gradle-$gradleVer-bin.zip")
+            $settings_lines[$i] = "distributionUrl=$gradle_url"
             break
         }
     }

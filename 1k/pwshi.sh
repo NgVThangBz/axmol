@@ -6,7 +6,8 @@
 
 HOST_OS=$(uname)
 
-myRoot=$(dirname "$0")
+script_root=$(dirname "$0")
+ax_root=$(realpath $script_root/..)
 
 cacheDir=~/.1kiss
 mkdir -p $cacheDir
@@ -62,6 +63,7 @@ if [ $HOST_OS = 'Darwin' ] ; then
     sudo xattr -rd com.apple.quarantine "$pwsh_pkg_out"
     sudo installer -pkg "$pwsh_pkg_out" -target /
 elif [ $HOST_OS = 'Linux' ] ; then
+    distro=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
     if command -v dpkg > /dev/null; then  # Linux distro: deb (ubuntu)
         check_pwsh $pwsh_min_ver $pwsh_ver
 
@@ -156,6 +158,22 @@ elif [ $HOST_OS = 'Linux' ] ; then
         cd $cacheDir/powershell-bin
         makepkg -si --needed --noconfirm
         cd -
+    else
+        # install generic edition from tar package for other linux distro manually
+        check_pwsh $pwsh_min_ver $pwsh_ver
+        pwsh_pkg="powershell-$pwsh_ver-linux-$pwsh_arch.tar.gz"
+        pwsh_pkg_out="$cacheDir/$pwsh_pkg"
+        if [ ! -f  "$pwsh_pkg_out" ] ; then
+            curl -L "https://github.com/PowerShell/PowerShell/releases/download/v$pwsh_ver/$pwsh_pkg" -o "$pwsh_pkg_out"
+        fi
+        pwsh_inst_dir="$ax_root/tools/external/powershell"
+        mkdir -p "$pwsh_inst_dir"
+        pwsh_path="$pwsh_inst_dir/pwsh"
+        if [ ! -f "$pwsh_path" ]; then
+            tar xvf $pwsh_pkg_out -C "$pwsh_inst_dir"
+        fi
+        chmod +x "$pwsh_path"
+        sudo ln -s "$pwsh_path" /usr/local/bin/pwsh
     fi
 else
     echo "pwshi: Unsupported HOST OS: $HOST_OS"

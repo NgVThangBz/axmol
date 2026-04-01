@@ -45,9 +45,7 @@ struct BufferStorage;
 
 namespace {
 
-using uint = unsigned int;
-
-constexpr float LowpassFreqRef{5000.0f};
+constexpr auto LowpassFreqRef = 5000.0f;
 
 struct EchoState final : public EffectState {
     std::vector<float> mSampleBuffer;
@@ -82,8 +80,8 @@ void EchoState::deviceUpdate(const DeviceBase *Device, const BufferStorage*)
 
     // Use the next power of 2 for the buffer length, so the tap offsets can be
     // wrapped using a mask instead of a modulo
-    const uint maxlen{NextPowerOf2(float2uint(EchoMaxDelay*frequency + 0.5f) +
-        float2uint(EchoMaxLRDelay*frequency + 0.5f))};
+    auto const maxlen = NextPowerOf2(float2uint(EchoMaxDelay*frequency + 0.5f) +
+        float2uint(EchoMaxLRDelay*frequency + 0.5f));
     if(maxlen != mSampleBuffer.size())
         decltype(mSampleBuffer)(maxlen).swap(mSampleBuffer);
 
