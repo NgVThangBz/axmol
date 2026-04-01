@@ -1774,7 +1774,7 @@ void Label::updateContent()
         if (_numberOfLines > 0 && _currentLabelType != LabelType::STRING_TEXTURE)
         {
             // This is the logic for TTF fonts
-            float thickness         = std::max(std::ceil(_lineHeight * _fontScale * 0.12f * 2) / 2.f, 2.f);
+            float thickness         = std::max(std::ceil(_lineHeight * _fontScale * 0.1f) / 2.f, 2.f);
             float nextY             = _letterOffsetY;
             auto contentScaleFactor = AX_CONTENT_SCALE_FACTOR();
             float lineSpacing       = _lineSpacing;

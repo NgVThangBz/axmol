@@ -41,8 +41,6 @@
 namespace ax
 {
 
-static const int DEFAULT_LINE_WIDTH = 2;
-
 class PointArray;
 
 /**
@@ -712,18 +710,7 @@ public:
     bool isPreserveDrawOrder() const { return _preserveDrawOrder; }
 
     // convenience: reset to defaults
-    void resetAdvancedSettings()
-    {
-        _thicknessScale        = 1.0f;
-        _localScale            = Vec2(1.0f, 1.0f);
-        _localPivot            = Vec2::ZERO;
-        _localRotation         = 0.0f;
-        _localRotationRad      = 0.0f;
-        _localPosition         = Vec2::ZERO;
-        _preserveDrawOrder     = false;
-        _localTransformEnabled = false;
-        _trianglesDirty = _linesDirty = _pointsDirty = true;
-    }
+    void resetAdvancedSettings();
 
 protected:
     // thickness scale (was factor)

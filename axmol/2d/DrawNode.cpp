@@ -1357,7 +1357,18 @@ tlx::pod_vector<Vec2> DrawNode::_transform(const Vec2* _vertices, unsigned int& 
 
     return vert;
 }
-
+void DrawNode::resetAdvancedSettings()
+{
+    _thicknessScale        = 0.55f;
+    _localScale            = Vec2(1.0f, 1.0f);
+    _localPivot            = Vec2::ZERO;
+    _localRotation         = 0.0f;
+    _localRotationRad      = 0.0f;
+    _localPosition         = Vec2::ZERO;
+    _preserveDrawOrder     = false;
+    _localTransformEnabled = false;
+    _trianglesDirty = _linesDirty = _pointsDirty = true;
+}
 void DrawNode::applyLocalTransform(const Vec2* from, Vec2* to, unsigned int count) const
 {
     if (!_localTransformEnabled)
