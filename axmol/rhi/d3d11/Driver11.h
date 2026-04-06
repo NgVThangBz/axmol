@@ -27,6 +27,7 @@
 #include "axmol/rhi/DXUtils.h"
 #include "axmol/rhi/DriverFactory.h"
 #include <d3d11.h>
+#include <dxgi1_2.h>
 #include <optional>
 
 namespace ax::rhi::d3d11
@@ -44,11 +45,6 @@ namespace ax::rhi::d3d11
 class DriverImpl : public DriverBase
 {
 public:
-    static constexpr D3D_FEATURE_LEVEL DEFAULT_REATURE_LEVELS[2] = {
-        D3D_FEATURE_LEVEL_11_1,
-        D3D_FEATURE_LEVEL_11_0,
-    };
-
     /// @name Constructor, Destructor and Initializers
     DriverImpl();
     ~DriverImpl();
@@ -141,7 +137,10 @@ public:
     inline ID3D11DeviceContext* getContext() const { return _context; }
 
     const ComPtr<IDXGIFactory>& getDXGIFactory() const { return _dxgiFactory; }
+    const ComPtr<IDXGIFactory2>& getDXGIFactory2() const { return _dxgiFactory2; }
     const ComPtr<IDXGIAdapter>& getDXGIAdapter() const { return _dxgiAdapter; }
+
+    IUnknown* compileShader(std::span<uint8_t> shaderCode, ShaderStage stage, ID3DBlob*& outBlob);
 
 protected:
     /**
@@ -155,9 +154,9 @@ protected:
     void destroySampler(SamplerHandle& h) override;
 
 private:
-    void initializeAdapter();
-    void initializeDevice();
-    HRESULT createD3DDevice(int requestDriverType, int createFlags);
+    void selectAdapter(PowerPreference powerPreference);
+    void initializeDevice(bool requestDebugLayer);
+    HRESULT createD3DDevice(int requestDriverType, int createFlags, std::span<const D3D_FEATURE_LEVEL> featureLevels);
 
     bool checkFormatSupport(DXGI_FORMAT format);
 
@@ -165,10 +164,11 @@ private:
     ID3D11DeviceContext* _context = nullptr;
 
     ComPtr<IDXGIFactory> _dxgiFactory;
+    ComPtr<IDXGIFactory2> _dxgiFactory2;  // DXGI 1.2 factory, used for creating swapchain on Windows 8 and above, may
+                                          // be null on Windows 7
     ComPtr<IDXGIAdapter> _dxgiAdapter;
 
     DXGI_ADAPTER_DESC _adapterDesc{};
-
     D3D_FEATURE_LEVEL _featureLevel{};
 
     // FeatureSet _featureSet = FeatureSet::Unknown;

@@ -10,12 +10,14 @@
 #include "TaskScheduler.h"
 #include "draw.h"
 #include "imgui.h"
+#include "implot.h"
 #include "random.h"
 
 // consider using https://github.com/skeeto/pdjson
 #include "jsmn.h"
 
 #include "box2d/box2d.h"
+#include "box2d/constants.h"
 #include "box2d/math_functions.h"
 
 #include <GLFW/glfw3.h>
@@ -56,8 +58,8 @@ void SampleContext::Save()
 	FILE* file = fopen( fileName, "w" );
 	fprintf( file, "{\n" );
 	fprintf( file, "  \"sampleIndex\": %d,\n", sampleIndex );
-	fprintf( file, "  \"drawShapes\": %s,\n", drawShapes ? "true" : "false" );
-	fprintf( file, "  \"drawJoints\": %s,\n", drawJoints ? "true" : "false" );
+	fprintf( file, "  \"drawShapes\": %s,\n", debugDraw.drawShapes ? "true" : "false" );
+	fprintf( file, "  \"drawJoints\": %s,\n", debugDraw.drawJoints ? "true" : "false" );
 	fprintf( file, "}\n" );
 	fclose( file );
 }
@@ -72,10 +74,78 @@ static int jsoneq( const char* json, jsmntok_t* tok, const char* s )
 	return -1;
 }
 
+void DrawPolygonFcn( const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawPolygon( sampleContext->draw, vertices, vertexCount, color );
+}
+
+void DrawSolidPolygonFcn( b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
+						  void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawSolidPolygon( sampleContext->draw, transform, vertices, vertexCount, radius, color );
+}
+
+void DrawCircleFcn( b2Vec2 center, float radius, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawCircle( sampleContext->draw, center, radius, color );
+}
+
+void DrawSolidCircleFcn( b2Transform transform, float radius, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawSolidCircle( sampleContext->draw, transform, radius, color );
+}
+
+void DrawSolidCapsuleFcn( b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawSolidCapsule( sampleContext->draw, p1, p2, radius, color );
+}
+
+void DrawLineFcn( b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawLine( sampleContext->draw, p1, p2, color );
+}
+
+void DrawTransformFcn( b2Transform transform, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawTransform( sampleContext->draw, transform, 1.0f );
+}
+
+void DrawPointFcn( b2Vec2 p, float size, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawPoint( sampleContext->draw, p, size, color );
+}
+
+void DrawStringFcn( b2Vec2 p, const char* s, b2HexColor color, void* context )
+{
+	SampleContext* sampleContext = static_cast<SampleContext*>( context );
+	DrawWorldString( sampleContext->draw, &sampleContext->camera, p, color, s );
+}
+
 #define MAX_TOKENS 32
 
 void SampleContext::Load()
 {
+	camera = GetDefaultCamera();
+	debugDraw = b2DefaultDebugDraw();
+	debugDraw.DrawPolygonFcn = DrawPolygonFcn;
+	debugDraw.DrawSolidPolygonFcn = DrawSolidPolygonFcn;
+	debugDraw.DrawCircleFcn = DrawCircleFcn;
+	debugDraw.DrawSolidCircleFcn = DrawSolidCircleFcn;
+	debugDraw.DrawSolidCapsuleFcn = DrawSolidCapsuleFcn;
+	debugDraw.DrawLineFcn = DrawLineFcn;
+	debugDraw.DrawTransformFcn = DrawTransformFcn;
+	debugDraw.DrawPointFcn = DrawPointFcn;
+	debugDraw.DrawStringFcn = DrawStringFcn;
+	debugDraw.context = this;
+
 	char* data = nullptr;
 	int size = 0;
 	bool found = ReadFile( data, size, fileName );
@@ -112,11 +182,11 @@ void SampleContext::Load()
 			const char* s = data + tokens[i + 1].start;
 			if ( strncmp( s, "true", 4 ) == 0 )
 			{
-				drawShapes = true;
+				debugDraw.drawShapes = true;
 			}
 			else if ( strncmp( s, "false", 5 ) == 0 )
 			{
-				drawShapes = false;
+				debugDraw.drawShapes = false;
 			}
 		}
 		else if ( jsoneq( data, &tokens[i], "drawJoints" ) == 0 )
@@ -124,11 +194,11 @@ void SampleContext::Load()
 			const char* s = data + tokens[i + 1].start;
 			if ( strncmp( s, "true", 4 ) == 0 )
 			{
-				drawJoints = true;
+				debugDraw.drawJoints = true;
 			}
 			else if ( strncmp( s, "false", 5 ) == 0 )
 			{
-				drawJoints = false;
+				debugDraw.drawJoints = false;
 			}
 		}
 	}
@@ -215,7 +285,7 @@ Sample::Sample( SampleContext* context )
 {
 	m_context = context;
 	m_camera = &context->camera;
-	m_draw = &context->draw;
+	m_draw = context->draw;
 
 	m_scheduler = new enki::TaskScheduler;
 	m_scheduler->Initialize( m_context->workerCount );
@@ -227,13 +297,21 @@ Sample::Sample( SampleContext* context )
 
 	m_worldId = b2_nullWorldId;
 
-	m_textLine = 30;
-	m_textIncrement = 22;
+	m_textIncrement = 26;
+	m_textLine = m_textIncrement;
 	m_mouseJointId = b2_nullJointId;
 
 	m_stepCount = 0;
+	m_didStep = false;
 
-	m_groundBodyId = b2_nullBodyId;
+	m_mouseBodyId = b2_nullBodyId;
+	m_mousePoint = {};
+	m_mouseForceScale = 100.0f;
+
+	memset( m_profiles, 0, sizeof( m_profiles ) );
+	m_currentProfileIndex = 0;
+	m_profileReadIndex = 0;
+	m_profileWriteIndex = 0;
 
 	m_maxProfile = {};
 	m_totalProfile = {};
@@ -267,13 +345,16 @@ void Sample::CreateWorld()
 	worldDef.finishTask = FinishTask;
 	worldDef.userTaskContext = this;
 	worldDef.enableSleep = m_context->enableSleep;
+
+	// todo experimental
+	// worldDef.enableContactSoftening = true;
+
 	m_worldId = b2CreateWorld( &worldDef );
 }
 
-void Sample::DrawTitle( const char* string )
+void Sample::ResetText()
 {
-	m_context->draw.DrawString( 5, 5, string );
-	m_textLine = int( 26.0f );
+	m_textLine = m_textIncrement;
 }
 
 struct QueryContext
@@ -320,6 +401,8 @@ void Sample::MouseDown( b2Vec2 p, int button, int mod )
 		box.lowerBound = b2Sub( p, d );
 		box.upperBound = b2Add( p, d );
 
+		m_mousePoint = p;
+
 		// Query the world for overlapping shapes.
 		QueryContext queryContext = { p, b2_nullBodyId };
 		b2World_OverlapAABB( m_worldId, box, b2DefaultQueryFilter(), QueryCallback, &queryContext );
@@ -327,37 +410,45 @@ void Sample::MouseDown( b2Vec2 p, int button, int mod )
 		if ( B2_IS_NON_NULL( queryContext.bodyId ) )
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
-			m_groundBodyId = b2CreateBody( m_worldId, &bodyDef );
+			bodyDef.type = b2_kinematicBody;
+			bodyDef.position = m_mousePoint;
+			bodyDef.enableSleep = false;
+			m_mouseBodyId = b2CreateBody( m_worldId, &bodyDef );
 
-			b2MouseJointDef mouseDef = b2DefaultMouseJointDef();
-			mouseDef.bodyIdA = m_groundBodyId;
-			mouseDef.bodyIdB = queryContext.bodyId;
-			mouseDef.target = p;
-			mouseDef.hertz = 10.0f;
-			mouseDef.dampingRatio = 0.7f;
-			mouseDef.maxForce = 1000.0f * b2Body_GetMass( queryContext.bodyId ) * b2Length(b2World_GetGravity(m_worldId));
-			m_mouseJointId = b2CreateMouseJoint( m_worldId, &mouseDef );
+			b2MotorJointDef jointDef = b2DefaultMotorJointDef();
+			jointDef.base.bodyIdA = m_mouseBodyId;
+			jointDef.base.bodyIdB = queryContext.bodyId;
+			jointDef.base.localFrameB.p = b2Body_GetLocalPoint( queryContext.bodyId, p );
+			jointDef.linearHertz = 7.5f;
+			jointDef.linearDampingRatio = 1.0f;
 
-			b2Body_SetAwake( queryContext.bodyId, true );
+			b2MassData massData = b2Body_GetMassData( queryContext.bodyId );
+			float g = b2Length( b2World_GetGravity( m_worldId ) );
+			float mg = massData.mass * g;
+
+			jointDef.maxSpringForce = m_mouseForceScale * mg;
+
+			if ( massData.mass > 0.0f )
+			{
+				// This acts like angular friction
+				float lever = sqrtf( massData.rotationalInertia / massData.mass );
+				jointDef.maxVelocityTorque = 0.25f * lever * mg;
+			}
+
+			m_mouseJointId = b2CreateMotorJoint( m_worldId, &jointDef );
 		}
 	}
 }
 
 void Sample::MouseUp( b2Vec2 p, int button )
 {
-	if ( b2Joint_IsValid( m_mouseJointId ) == false )
-	{
-		// The world or attached body was destroyed.
-		m_mouseJointId = b2_nullJointId;
-	}
-
 	if ( B2_IS_NON_NULL( m_mouseJointId ) && button == GLFW_MOUSE_BUTTON_1 )
 	{
-		b2DestroyJoint( m_mouseJointId );
+		b2DestroyJoint( m_mouseJointId, true );
 		m_mouseJointId = b2_nullJointId;
 
-		b2DestroyBody( m_groundBodyId );
-		m_groundBodyId = b2_nullBodyId;
+		b2DestroyBody( m_mouseBodyId );
+		m_mouseBodyId = b2_nullBodyId;
 	}
 }
 
@@ -369,28 +460,40 @@ void Sample::MouseMove( b2Vec2 p )
 		m_mouseJointId = b2_nullJointId;
 	}
 
-	if ( B2_IS_NON_NULL( m_mouseJointId ) )
+	m_mousePoint = p;
+}
+
+void Sample::DrawColoredTextLine( b2HexColor color, const char* text,... )
+{
+	if (m_context->showUI == false)
 	{
-		b2MouseJoint_SetTarget( m_mouseJointId, p );
-		b2BodyId bodyIdB = b2Joint_GetBodyB( m_mouseJointId );
-		b2Body_SetAwake( bodyIdB, true );
+		return;
 	}
+
+	char buffer[256];
+	va_list arg;
+	va_start( arg, text );
+	vsnprintf( buffer, 256, text, arg );
+	va_end( arg );
+	buffer[255] = 0;
+	DrawScreenString( m_draw, 5, m_textLine, color, buffer );
+	m_textLine += m_textIncrement;
 }
 
 void Sample::DrawTextLine( const char* text, ... )
 {
+	if (m_context->showUI == false)
+	{
+		return;
+	}
+
+	char buffer[256];
 	va_list arg;
 	va_start( arg, text );
-	ImGui::Begin( "Overlay", nullptr,
-				  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
-					  ImGuiWindowFlags_NoScrollbar );
-	ImGui::PushFont(m_context->draw.m_regularFont, ImGui::GetStyle().FontSizeBase); // axmol spec
-	ImGui::SetCursorPos( ImVec2( 5.0f, float( m_textLine ) ) );
-	ImGui::TextColoredV( ImColor( 230, 153, 153, 255 ), text, arg );
-	ImGui::PopFont();
-	ImGui::End();
+	vsnprintf( buffer, 256, text, arg );
 	va_end( arg );
-
+	buffer[255] = 0;
+	DrawScreenString( m_draw, 5, m_textLine, b2_colorWhite, buffer );
 	m_textLine += m_textIncrement;
 }
 
@@ -401,8 +504,10 @@ void Sample::ResetProfile()
 	m_stepCount = 0;
 }
 
-void Sample::Step(  )
+void Sample::Step()
 {
+	m_didStep = false;
+
 	float timeStep = m_context->hertz > 0.0f ? 1.0f / m_context->hertz : 0.0f;
 
 	if ( m_context->pause )
@@ -416,39 +521,44 @@ void Sample::Step(  )
 			timeStep = 0.0f;
 		}
 
-		if ( m_context->draw.m_showUI )
+		if ( m_context->showUI )
 		{
 			DrawTextLine( "****PAUSED****" );
 			m_textLine += m_textIncrement;
 		}
 	}
 
-	m_context->draw.m_debugDraw.drawingBounds = m_context->camera.GetViewBounds();
-	m_context->draw.m_debugDraw.useDrawingBounds = m_context->useCameraBounds;
+	if ( B2_IS_NON_NULL( m_mouseJointId ) && b2Joint_IsValid( m_mouseJointId ) == false )
+	{
+		// The world or attached body was destroyed.
+		m_mouseJointId = b2_nullJointId;
 
-	// todo testing
-	// b2Transform t1 = {m_context->draw.m_debugDraw.drawingBounds.lowerBound, b2Rot_identity};
-	// b2Transform t2 = {m_context->draw.m_debugDraw.drawingBounds.upperBound, b2Rot_identity};
-	// m_context->draw.DrawSolidCircle(t1, b2Vec2_zero, 1.0f, {1.0f, 0.0f, 0.0f, 1.0f});
-	// m_context->draw.DrawSolidCircle(t2, b2Vec2_zero, 1.0f, {1.0f, 0.0f, 0.0f, 1.0f});
+		if ( B2_IS_NON_NULL( m_mouseBodyId ) )
+		{
+			b2DestroyBody( m_mouseBodyId );
+			m_mouseBodyId = b2_nullBodyId;
+		}
+	}
 
-	m_context->draw.m_debugDraw.drawShapes = m_context->drawShapes;
-	m_context->draw.m_debugDraw.drawJoints = m_context->drawJoints;
-	m_context->draw.m_debugDraw.drawJointExtras = m_context->drawJointExtras;
-	m_context->draw.m_debugDraw.drawBounds = m_context->drawBounds;
-	m_context->draw.m_debugDraw.drawMass = m_context->drawMass;
-	m_context->draw.m_debugDraw.drawBodyNames = m_context->drawBodyNames;
-	m_context->draw.m_debugDraw.drawContacts = m_context->drawContactPoints;
-	m_context->draw.m_debugDraw.drawGraphColors = m_context->drawGraphColors;
-	m_context->draw.m_debugDraw.drawContactNormals = m_context->drawContactNormals;
-	m_context->draw.m_debugDraw.drawContactImpulses = m_context->drawContactImpulses;
-	m_context->draw.m_debugDraw.drawContactFeatures = m_context->drawContactFeatures;
-	m_context->draw.m_debugDraw.drawFrictionImpulses = m_context->drawFrictionImpulses;
-	m_context->draw.m_debugDraw.drawIslands = m_context->drawIslands;
+	if ( B2_IS_NON_NULL( m_mouseBodyId ) && timeStep > 0.0f )
+	{
+		bool wake = true;
+		b2Body_SetTargetTransform( m_mouseBodyId, { m_mousePoint, b2Rot_identity }, timeStep, wake );
+	}
 
+	m_context->debugDraw.drawingBounds = GetViewBounds( &m_context->camera );
 	b2World_EnableSleeping( m_worldId, m_context->enableSleep );
 	b2World_EnableWarmStarting( m_worldId, m_context->enableWarmStarting );
 	b2World_EnableContinuous( m_worldId, m_context->enableContinuous );
+
+	if (m_context->enableRecycling)
+	{
+		b2World_SetContactRecycleDistance( m_worldId, B2_CONTACT_RECYCLE_DISTANCE );
+	}
+	else
+	{
+		b2World_SetContactRecycleDistance( m_worldId, 0.0f );
+	}
 
 	for ( int i = 0; i < 1; ++i )
 	{
@@ -456,11 +566,22 @@ void Sample::Step(  )
 		m_taskCount = 0;
 	}
 
-	b2World_Draw( m_worldId, &m_context->draw.m_debugDraw );
+	b2World_Draw( m_worldId, &m_context->debugDraw );
 
 	if ( timeStep > 0.0f )
 	{
-		++m_stepCount;
+		m_stepCount += 1;
+		m_didStep = true;
+
+		if ( m_profileWriteIndex == m_profileCapacity + m_profileReadIndex )
+		{
+			m_profileReadIndex += 1;
+		}
+
+		m_currentProfileIndex = static_cast<int>(m_profileWriteIndex & ( m_profileCapacity - 1 ));
+		m_profiles[m_currentProfileIndex] = b2World_GetProfile( m_worldId );
+
+		m_profileWriteIndex += 1;
 	}
 
 	if ( m_context->drawCounters )
@@ -489,13 +610,13 @@ void Sample::Step(  )
 	}
 
 	// Track maximum profile times
+	if (m_didStep)
 	{
-		b2Profile p = b2World_GetProfile( m_worldId );
+		b2Profile p = m_profiles[m_currentProfileIndex];
 		m_maxProfile.step = b2MaxFloat( m_maxProfile.step, p.step );
 		m_maxProfile.pairs = b2MaxFloat( m_maxProfile.pairs, p.pairs );
 		m_maxProfile.collide = b2MaxFloat( m_maxProfile.collide, p.collide );
 		m_maxProfile.solve = b2MaxFloat( m_maxProfile.solve, p.solve );
-		m_maxProfile.mergeIslands = b2MaxFloat( m_maxProfile.mergeIslands, p.mergeIslands );
 		m_maxProfile.prepareStages = b2MaxFloat( m_maxProfile.prepareStages, p.prepareStages );
 		m_maxProfile.solveConstraints = b2MaxFloat( m_maxProfile.solveConstraints, p.solveConstraints );
 		m_maxProfile.prepareConstraints = b2MaxFloat( m_maxProfile.prepareConstraints, p.prepareConstraints );
@@ -508,6 +629,7 @@ void Sample::Step(  )
 		m_maxProfile.storeImpulses = b2MaxFloat( m_maxProfile.storeImpulses, p.storeImpulses );
 		m_maxProfile.transforms = b2MaxFloat( m_maxProfile.transforms, p.transforms );
 		m_maxProfile.splitIslands = b2MaxFloat( m_maxProfile.splitIslands, p.splitIslands );
+		m_maxProfile.jointEvents = b2MaxFloat( m_maxProfile.jointEvents, p.jointEvents );
 		m_maxProfile.hitEvents = b2MaxFloat( m_maxProfile.hitEvents, p.hitEvents );
 		m_maxProfile.refit = b2MaxFloat( m_maxProfile.refit, p.refit );
 		m_maxProfile.bullets = b2MaxFloat( m_maxProfile.bullets, p.bullets );
@@ -518,7 +640,6 @@ void Sample::Step(  )
 		m_totalProfile.pairs += p.pairs;
 		m_totalProfile.collide += p.collide;
 		m_totalProfile.solve += p.solve;
-		m_totalProfile.mergeIslands += p.mergeIslands;
 		m_totalProfile.prepareStages += p.prepareStages;
 		m_totalProfile.solveConstraints += p.solveConstraints;
 		m_totalProfile.prepareConstraints += p.prepareConstraints;
@@ -531,6 +652,7 @@ void Sample::Step(  )
 		m_totalProfile.storeImpulses += p.storeImpulses;
 		m_totalProfile.transforms += p.transforms;
 		m_totalProfile.splitIslands += p.splitIslands;
+		m_totalProfile.jointEvents += p.jointEvents;
 		m_totalProfile.hitEvents += p.hitEvents;
 		m_totalProfile.refit += p.refit;
 		m_totalProfile.bullets += p.bullets;
@@ -540,8 +662,6 @@ void Sample::Step(  )
 
 	if ( m_context->drawProfile )
 	{
-		b2Profile p = b2World_GetProfile( m_worldId );
-
 		b2Profile aveProfile = {};
 		if ( m_stepCount > 0 )
 		{
@@ -550,7 +670,6 @@ void Sample::Step(  )
 			aveProfile.pairs = scale * m_totalProfile.pairs;
 			aveProfile.collide = scale * m_totalProfile.collide;
 			aveProfile.solve = scale * m_totalProfile.solve;
-			aveProfile.mergeIslands = scale * m_totalProfile.mergeIslands;
 			aveProfile.prepareStages = scale * m_totalProfile.prepareStages;
 			aveProfile.solveConstraints = scale * m_totalProfile.solveConstraints;
 			aveProfile.prepareConstraints = scale * m_totalProfile.prepareConstraints;
@@ -563,6 +682,7 @@ void Sample::Step(  )
 			aveProfile.storeImpulses = scale * m_totalProfile.storeImpulses;
 			aveProfile.transforms = scale * m_totalProfile.transforms;
 			aveProfile.splitIslands = scale * m_totalProfile.splitIslands;
+			aveProfile.jointEvents = scale * m_totalProfile.jointEvents;
 			aveProfile.hitEvents = scale * m_totalProfile.hitEvents;
 			aveProfile.refit = scale * m_totalProfile.refit;
 			aveProfile.bullets = scale * m_totalProfile.bullets;
@@ -570,12 +690,11 @@ void Sample::Step(  )
 			aveProfile.sensors = scale * m_totalProfile.sensors;
 		}
 
+		const b2Profile& p = m_profiles[m_currentProfileIndex];
 		DrawTextLine( "step [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.step, aveProfile.step, m_maxProfile.step );
 		DrawTextLine( "pairs [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.pairs, aveProfile.pairs, m_maxProfile.pairs );
 		DrawTextLine( "collide [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.collide, aveProfile.collide, m_maxProfile.collide );
 		DrawTextLine( "solve [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solve, aveProfile.solve, m_maxProfile.solve );
-		DrawTextLine( "> merge islands [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.mergeIslands, aveProfile.mergeIslands,
-					  m_maxProfile.mergeIslands );
 		DrawTextLine( "> prepare tasks [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.prepareStages, aveProfile.prepareStages,
 					  m_maxProfile.prepareStages );
 		DrawTextLine( "> solve constraints [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.solveConstraints, aveProfile.solveConstraints,
@@ -600,6 +719,8 @@ void Sample::Step(  )
 					  m_maxProfile.splitIslands );
 		DrawTextLine( "> update transforms [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.transforms, aveProfile.transforms,
 					  m_maxProfile.transforms );
+		DrawTextLine( "> joint events [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.jointEvents, aveProfile.jointEvents,
+					  m_maxProfile.jointEvents );
 		DrawTextLine( "> hit events [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.hitEvents, aveProfile.hitEvents,
 					  m_maxProfile.hitEvents );
 		DrawTextLine( "> refit BVH [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.refit, aveProfile.refit, m_maxProfile.refit );
@@ -607,6 +728,53 @@ void Sample::Step(  )
 					  m_maxProfile.sleepIslands );
 		DrawTextLine( "> bullets [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.bullets, aveProfile.bullets, m_maxProfile.bullets );
 		DrawTextLine( "sensors [ave] (max) = %5.2f [%6.2f] (%6.2f)", p.sensors, aveProfile.sensors, m_maxProfile.sensors );
+	}
+}
+
+void Sample::UpdateGui()
+{
+	if ( m_context->frameTime )
+	{
+		float frameTimeHeight = 400.0f;
+		float frameTimeWidth = 800.0f;
+
+		ImGui::SetNextWindowPos( { 30.0f, 30.0f }, ImGuiCond_FirstUseEver );
+		ImGui::SetNextWindowSize( { frameTimeWidth, frameTimeHeight }, ImGuiCond_FirstUseEver );
+
+		ImGui::Begin( "Frame Time", nullptr, ImGuiWindowFlags_NoCollapse );
+
+		ImGui::PushItemWidth( ImGui::GetWindowWidth() - 20.0f );
+
+		float maxValue = 0.0f;
+		float times[m_profileCapacity];
+		float stepTimes[m_profileCapacity];
+		float collideTimes[m_profileCapacity];
+		float solveTimes[m_profileCapacity];
+		int count = static_cast<int>(m_profileWriteIndex - m_profileReadIndex);
+		for ( int i = 0; i < count; ++i )
+		{
+			int index = ( m_profileReadIndex + i ) & ( m_profileCapacity - 1 );
+			times[i] = i / 60.0f;
+			stepTimes[i] = m_profiles[index].step;
+			collideTimes[i] = m_profiles[index].collide;
+			solveTimes[i] = m_profiles[index].solve;
+			maxValue = b2MaxFloat( stepTimes[i], maxValue );
+		}
+
+		// This is the pixel size, not the range.
+		ImVec2 plotSize = { -1, 22.0f * ImGui::GetTextLineHeight() };
+		if ( ImPlot::BeginPlot( "Profile", plotSize, ImPlotFlags_NoTitle ) )
+		{
+			ImPlot::SetupAxes( "t", "ms" );
+			ImPlot::SetupAxesLimits( 0, m_profileCapacity / 60.0, 0.0, maxValue, ImPlotCond_Always );
+			ImPlot::PlotLine( "step", times, stepTimes, count );
+			ImPlot::PlotLine( "collide", times, collideTimes, count );
+			ImPlot::PlotLine( "solve", times, solveTimes, count );
+			ImPlot::EndPlot();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::End();
 	}
 }
 

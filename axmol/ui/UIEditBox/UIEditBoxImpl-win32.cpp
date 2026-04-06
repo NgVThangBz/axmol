@@ -38,6 +38,7 @@ THE SOFTWARE.
 #    include "axmol/base/text_utils.h"
 #    include <Commctrl.h>
 #    include <windows.h>
+#    include "ntcvt/ntcvt.hpp"
 #    include "axmol/ui/UIHelper.h"
 
 namespace ax
@@ -72,11 +73,7 @@ EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
 }
 
 EditBoxImplWin::EditBoxImplWin(EditBox* pEditText)
-    : EditBoxImplCommon(pEditText)
-    , _hwndEdit(NULL)
-    , _changedTextManually(false)
-    , _hasFocus(false)
-    , _endAction(EditBoxDelegate::EditBoxEndAction::UNKNOWN)
+    : EditBoxImplCommon(pEditText), _endAction(EditBoxDelegate::EditBoxEndAction::UNKNOWN)
 {
     if (!s_isInitialized)
     {
@@ -106,6 +103,8 @@ void EditBoxImplWin::cleanupEditCtrl()
         _changedTextManually = false;
         _editingMode         = false;
         _hwndEdit            = NULL;
+
+        cleanupFont();
     }
 }
 
@@ -143,15 +142,35 @@ void EditBoxImplWin::createNativeControl(const Rect& frame)
 void EditBoxImplWin::setNativeFont(std::string_view fontName, int fontSize)
 {
     auto renderView = Director::getInstance()->getRenderView();
-    HFONT hFont = ::CreateFontW(static_cast<int>(fontSize * renderView->getScaleX()), 0, 0, 0, FW_NORMAL, FALSE, FALSE,
-                                FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-                                VARIABLE_PITCH, L"Arial");
+    auto hFont = ::CreateFontW(static_cast<int>(fontSize * renderView->getScaleX()), 0, 0, 0, FW_NORMAL, FALSE, FALSE,
+                               FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+                               VARIABLE_PITCH, ntcvt::from_chars(fontName).c_str());
+
+    if (!hFont)
+    {
+        AXLOGW("Failed to create font for EditBox, fallback to default font");
+        hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+        if (hFont)
+            return;
+    }
 
     ::SendMessageW(_hwndEdit,           // Handle of edit control
                    WM_SETFONT,          // Message to change the font
                    (WPARAM)hFont,       // handle of the font
                    MAKELPARAM(TRUE, 0)  // Redraw text
     );
+
+    cleanupFont();
+    _hEditFont = hFont;
+}
+
+void EditBoxImplWin::cleanupFont()
+{
+    if (_hEditFont && _hEditFont != (HFONT)GetStockObject(DEFAULT_GUI_FONT))
+    {
+        DeleteObject(_hEditFont);
+        _hEditFont = nullptr;
+    }
 }
 
 void EditBoxImplWin::setNativeFontColor(const Color32& /*color*/)

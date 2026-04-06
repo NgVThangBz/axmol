@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "axmol/platform/PlatformMacros.h"
 #include "axmol/base/Object.h"
 #include "axmol/base/Vector.h"
-#include "axmol/2d/Scene.h"
+#include "axmol/scene/Scene.h"
 #include "axmol/math/Math.h"
 #include "axmol/platform/RenderView.h"
 #if defined(AX_PLATFORM_PC)
@@ -581,6 +581,8 @@ protected:
     std::stack<Mat4> _modelViewMatrixStack;
     std::stack<Mat4> _textureMatrixStack;
     std::stack<Mat4> _projectionMatrixStack;
+
+    static Director* s_SharedDirector;
 
     /** Scheduler associated with this director
      @since v2.0
