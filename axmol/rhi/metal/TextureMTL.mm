@@ -56,7 +56,14 @@ TextureImpl::TextureImpl(id<MTLDevice> mtlDevice, const TextureDesc& desc) : _mt
     updateTextureDesc(desc);
 }
 
-TextureImpl::~TextureImpl() {}
+TextureImpl::~TextureImpl()
+{
+    if (_mtlTexture != nil)
+    {
+        [_mtlTexture release];
+        _mtlTexture = nil;
+    }
+}
 
 void TextureImpl::updateSamplerDesc(const SamplerDesc& desc)
 {

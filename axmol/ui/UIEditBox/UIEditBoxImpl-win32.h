@@ -68,6 +68,7 @@ public:
 private:
     void createEditCtrl(bool singleLine);
     void cleanupEditCtrl();
+    void cleanupFont();
     std::string getNativeText() const;
     void _WindowProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -76,10 +77,11 @@ private:
     static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    bool _initialFocus = true;
-    HWND _hwndEdit;
-    bool _changedTextManually;
-    bool _hasFocus;
+    bool _initialFocus{true};
+    bool _changedTextManually{false};
+    bool _hasFocus{false};
+    HWND _hwndEdit{nullptr};
+    HFONT _hEditFont{nullptr};
     EditBoxDelegate::EditBoxEndAction _endAction;
     static WNDPROC s_prevCocosWndProc;
 

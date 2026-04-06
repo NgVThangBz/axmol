@@ -11,7 +11,7 @@
 
 ## Box2D
 - [![Upstream](https://img.shields.io/github/v/release/erincatto/box2d?label=Upstream)](https://github.com/erincatto/box2d)
-- Version: 3.1.1
+- Version: 3.2.0-4996f6e (Until Mar 29, 2026)
 - License: MIT
 
 ## Bullet
@@ -32,17 +32,17 @@
 
 ## ConcurrentQueue
 - [![Upstream](https://img.shields.io/github/v/tag/cameron314/concurrentqueue?label=Upstream)](https://github.com/cameron314/concurrentqueue)
-- Version: 1.0.4
+- Version: 1.0.5
 - License: BSL-1.0
 
 ## ConvertUTF
 - Upstream: https://github.com/llvm/llvm-project
-- Version: git 20451cb (until Aug.13 2022) without LLVM-specific wrappers of the functions
+- Version: git-20451cb (until Aug.13 2022) without LLVM-specific wrappers of the functions
 - License: Apache-2.0 WITH LLVM-exception
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.18.0
+- Version: 8.19.0
 - License: Curl (MIT/X)
 
 ## doctest
@@ -57,7 +57,7 @@
 
 ## fast_float
 - [![Upstream](https://img.shields.io/github/v/release/fastfloat/fast_float?label=Upstream)](https://github.com/fastfloat/fast_float)
-- Version: 8.2.3
+- Version: 8.2.4
 - License: MIT
 
 ## flatbuffers
@@ -73,7 +73,7 @@
 
 ## FreeType
 - [![Upstream](https://img.shields.io/gitlab/v/tag/freetype/freetype?label=Upstream)](https://gitlab.freedesktop.org/freetype/freetype)
-- Version: 2.14.2
+- Version: 2.14.3
 - License: BSD-style (The FreeType Project)
 
 ## Glad
@@ -100,7 +100,7 @@
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.1.3
+- Version: 3.1.4.1
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -126,7 +126,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-a553b3d
+  - Version: 2.1-18b087c
   - License: MIT
 
 - tolua
@@ -197,7 +197,7 @@
 
 ## png
 - [![Upstream](https://img.shields.io/github/v/tag/glennrp/libpng?label=Upstream)](https://github.com/glennrp/libpng)
-- Version: 1.6.55
+- Version: 1.6.56
 - License: PNG Reference Library License version 2
 
 ## poly2tri
@@ -232,7 +232,7 @@
 
 ## simdjson
 - [![Upstream](https://img.shields.io/github/v/tag/simdjson/simdjson?label=Upstream)](https://github.com/simdjson/simdjson)
-- Version: 4.3.1
+- Version: 4.6.1
 - License: Apache-2.0
 
 ## stb (stb_image)

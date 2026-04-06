@@ -94,16 +94,20 @@ public:
     virtual std::string title() const override;
     void drawDirection(const ax::Vec2* vec, const int size, ax::Vec2 offset);
 
-    float ns;     // drawNode->getScale;
-    ax::Vec2 po;  // drawNode->_localPosition
-    ax::Vec2 ps;  // drawNode->_localScale
-    float pf;     // drawNode->_thicknessScale
+    int _color;    //
+    float _count;  //
+    bool _transparent;
+    float _nodeScale;         // drawNode->getScale;
+    ax::Vec2 _localePos;      // drawNode->_localPosition
+    ax::Vec2 _localePivot;    // drawNode->_localPivot
+    ax::Vec2 _localeScale;    // drawNode->_localScale
+    float _localeThickScale;  // drawNode->_thicknessScale
     float thickness;
-    float pa;  // drawNode->_localRotation
-    float as;  // angle start
-    float ae;  // angle end
-    bool drawOrder;
-    bool transform;
+    float _localeRotation;  // drawNode->_localRotation
+    float _angelStart;      // angle start
+    float _angelEnd;        // angle end
+    bool _drawOrder;
+    bool _transform;
     int flagGUI        = -1;
     ax::Scene* _target = nullptr;
 
@@ -124,7 +128,7 @@ protected:
 
     // DrawNode stuff
     ax::DrawNode* drawNode = nullptr;
-    ax::DrawNode* drawNodeArray[10];
+    ax::DrawNode* drawNodeArray[100];  // max 100
 
     // Window stuff
     ax::Vec2 origin;
@@ -176,12 +180,13 @@ public:
     void onEnter() override;
 
 private:
-    ax::Vec2* verticesObj1[10];
-    ax::Vec2* verticesObj2[10];
-    ax::Vec2* verticesObjMorph[10];
-    ax::Color color[10];
-    float rad[10];
-    bool state[10];
+    ax::Vec2* verticesObj1[100];
+    ax::Vec2* verticesObj2[100];
+    ax::Vec2* verticesObjMorph[100];
+    ax::Color color[100];
+    float rad[100];
+    bool state[100];
+    int oldCount = 0;
 
     int segments = 40;
 };
@@ -199,32 +204,15 @@ public:
     void onEnter() override;
 
 private:
-    ax::Vec2* verticesObj1[10];
-    ax::Vec2* verticesObj2[10];
-    ax::Vec2* verticesObjMorph[10];
-    ax::Color color[10];
-    float rad[10];
-    bool state[10];
+    ax::Vec2* verticesObj1[100];
+    ax::Vec2* verticesObj2[100];
+    ax::Vec2* verticesObjMorph[100];
+    ax::Color color[100];
+    float rad[100];
+    bool state[100];
+    int oldCount = 0;
 
     int segments = 40;
-};
-
-class DrawNodeThicknessTest : public DrawNodeBaseTest
-{
-public:
-    CREATE_FUNC(DrawNodeThicknessTest);
-
-    DrawNodeThicknessTest();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-
-    void update(float dt) override;
-    void onEnter() override;
-
-private:
-    ax::Label* _thicknessLabel;
-    float thickness = 1.0f;
 };
 
 class DrawNodeLineDrawTest : public DrawNodeBaseTest
@@ -313,22 +301,6 @@ private:
     int selectedRadioButton;
 };
 
-class DrawNodeDrawInWrongOrder_Issue1888 : public DrawNodeBaseTest
-{
-public:
-    CREATE_FUNC(DrawNodeDrawInWrongOrder_Issue1888);
-
-    DrawNodeDrawInWrongOrder_Issue1888();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-    void update(float dt) override;
-
-private:
-    ax::Vec2* heart;
-    const int totalFrames = 240;
-};
-
 class DrawNodeAxmolTest2 : public DrawNodeBaseTest
 {
 public:
@@ -362,38 +334,6 @@ public:
 
     void update(float dt) override;
     void onEnter() override;
-
-    void changeThreshold(Object* pSender, ax::ui::Slider::EventType type);
-    void changeLineWidth(Object* pSender, ax::ui::Slider::EventType type);
-
-private:
-    ax::Label* _lineWidthLabel;
-    float lineWidth = 0;
-    ax::Label* _thresholdLabel;
-    float threshold = 0;
-};
-
-class DrawNodeThicknessStressTest : public DrawNodeBaseTest
-{
-public:
-    CREATE_FUNC(DrawNodeThicknessStressTest);
-
-    DrawNodeThicknessStressTest();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-
-    void update(float dt) override;
-    //  void onEnter() override;
-
-    void changeThreshold(Object* pSender, ax::ui::Slider::EventType type);
-    void changeLineWidth(Object* pSender, ax::ui::Slider::EventType type);
-
-private:
-    ax::Label* _lineWidthLabel;
-    float lineWidth = 0;
-    ax::Label* _thresholdLabel;
-    float threshold = 0;
 };
 
 class DrawNodeSpLinesTest : public DrawNodeBaseTest
@@ -489,6 +429,20 @@ public:
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
+};
+
+class DrawNodeThickness1Test : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeThickness1Test);
+
+    DrawNodeThickness1Test();
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    void update(float dt) override;
+    void onEnter() override;
 };
 
 #if defined(AX_PLATFORM_PC)

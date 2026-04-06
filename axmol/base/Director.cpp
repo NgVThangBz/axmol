@@ -46,7 +46,7 @@ THE SOFTWARE.
 #include "axmol/renderer/TextureCache.h"
 #include "axmol/renderer/Renderer.h"
 #include "axmol/renderer/RenderState.h"
-#include "axmol/2d/Camera.h"
+#include "axmol/scene/Camera.h"
 #include "axmol/base/UserDefault.h"
 #include "axmol/base/Utils.h"
 #include "axmol/base/FPSImages.h"
@@ -78,11 +78,6 @@ THE SOFTWARE.
 
 namespace ax
 {
-// FIXME: it should be a Director ivar. Move it there once support for multiple directors is added
-
-// singleton stuff
-static Director* s_SharedDirector = nullptr;
-
 #define kDefaultFPS 60  // 60 frames per second
 
 std::string_view Director::EVENT_BEFORE_SET_NEXT_SCENE = "director_before_set_next_scene"sv;
@@ -111,6 +106,8 @@ static constexpr std::string_view kWindowPlatformNameMap[] = {
     "Web"sv,
 };
 // clang-format on
+
+Director* Director::s_SharedDirector = nullptr;
 
 Director* Director::getInstance()
 {
@@ -338,7 +335,7 @@ void Director::drawScene()
 
     if (_runningScene)
     {
-#if (defined(AX_ENABLE_PHYSICS) || defined(AX_ENABLE_3D_PHYSICS) || defined(AX_ENABLE_NAVMESH))
+#if (defined(AX_ENABLE_PHYSICS_2D) || defined(AX_ENABLE_PHYSICS_3D) || defined(AX_ENABLE_NAVMESH))
         _runningScene->stepPhysicsAndNavigation(_deltaTime);
 #endif
         // clear draw stats
