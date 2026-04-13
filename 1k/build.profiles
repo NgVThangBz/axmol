@@ -10,7 +10,7 @@ axslcc=3.6.0+
 
 # The cmake, @gradle @axmol-cmdline
 # as latest as possible
-cmake=4.2.0~4.2.3+
+cmake=4.2.0~4.3.1+
 
 # The ninja
 ninja=1.10.0~1.13.2+
@@ -34,7 +34,7 @@ llvm=21.1.8
 # region platform:android
 
 # The microsoft openjdk, @axmol-cmdline
-jdk=17.0.10~17.0.17+
+jdk=17.0.10~17.0.18+
 
 # The android cmdline-tools aka sdkmanager, as stable as possible
 cmdlinetools=19.0
@@ -93,7 +93,7 @@ emsdk=3.1.73~5.0.5+
 # --- endregion
 
 # --- region dependencies @fetch.cmake
-1kdist=v118
+1kdist=v119
 oboe=1.10.0
 kcp=v1.7-f4f3a89
 lz4=v1.10.0

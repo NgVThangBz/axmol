@@ -1594,14 +1594,14 @@ void Director::startAnimation(SetIntervalReason reason)
 
 void Director::queueOperation(AsyncOperation op, void* param)
 {
-#if defined(AX_PLATFORM_PC)
+#if defined(AX_PLATFORM_GLFW)
     _operations.enqueue([=]() { op(param); });
 #else
     _renderView->queueOperation(op, param);
 #endif
 }
 
-#if defined(AX_PLATFORM_PC)
+#if defined(AX_PLATFORM_GLFW)
 void Director::processOperations()
 {
     std::function<void()> op;
@@ -1612,7 +1612,7 @@ void Director::processOperations()
 
 void Director::renderFrame()
 {
-#if defined(AX_PLATFORM_PC)
+#if defined(AX_PLATFORM_GLFW)
     processOperations();
 #endif
 

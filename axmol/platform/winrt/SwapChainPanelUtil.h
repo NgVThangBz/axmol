@@ -1,6 +1,5 @@
 /****************************************************************************
- Copyright (c) 2013-2016 Chukong Technologies Inc.
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 
  https://axmol.dev/
 
@@ -21,49 +20,37 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
-
  ****************************************************************************/
 
-#pragma once
+#include <windows.ui.xaml.media.dxinterop.h>
+#include <winrt/Windows.UI.Xaml.Controls.h>
+#include <winrt/Windows.Foundation.Numerics.h>
+#include "axmol/platform/winrt/DispatcherUtil.h"
 
-#include "axmol/base/EventListener.h"
-#include "axmol/base/EventKeyboard.h"
-
-/**
- * @addtogroup base
- * @{
- */
-
-namespace ax
+namespace ax::winrt
 {
+using Vector2 = winrt::Windows::Foundation::Numerics::float2;
+using winrt::Windows::Foundation::Size;
+using winrt::Windows::UI::Xaml::Controls::ISwapChainPanel;
+using winrt::Windows::UI::Xaml::Controls::SwapChainPanel;
 
-class Event;
-
-/** @class EventListenerKeyboard
- * @brief Keyboard event listener.
- */
-class AX_DLL EventListenerKeyboard : public EventListener
+inline static HRESULT GetSwapChainPanelRenderMetrics(SwapChainPanel& swapChainPanel,
+                                                     const CoreDispatcher& dispatcher,
+                                                     Size& windowSize,
+                                                     Vector2& renderScale)
 {
-public:
-    static const std::string_view LISTENER_ID;
-
-    /** Create a keyboard event listener.
-     *
-     * @return An autoreleased EventListenerKeyboard object.
-     */
-    static EventListenerKeyboard* create();
-
-    /// Overrides
-    EventListenerKeyboard* clone() override;
-    bool checkAvailable() override;
-
-    std::function<void(EventKeyboard::KeyCode, Event*)> onKeyPressed;
-    std::function<void(EventKeyboard::KeyCode, Event*)> onKeyReleased;
-    EventListenerKeyboard();
-    bool init();
-};
-
-}  // namespace ax
-
-// end of base group
-/// @}
+    try
+    {
+        RunOnUIThreadSync(dispatcher, [&]() {
+            windowSize      = swapChainPanel.RenderSize();
+            auto panelIface = swapChainPanel.as<ISwapChainPanel>();
+            renderScale     = Vector2{panelIface.CompositionScaleX(), panelIface.CompositionScaleY()};
+        });
+        return S_OK;
+    }
+    catch (...)
+    {
+        return E_FAIL;
+    }
+}
+}  // namespace ax::winrt
