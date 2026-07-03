@@ -27,7 +27,7 @@
 
 #include "axmol/rhi/RHITypes.h"
 #include "axmol/rhi/RenderContext.h"
-#include "axmol/base/EventListenerCustom.h"
+#include "axmol/base/CustomEventListener.h"
 #include "axmol/platform/GL.h"
 
 #include "axmol/platform/StdC.h"
@@ -140,13 +140,13 @@ public:
      */
     void setInstanceBuffer(Buffer* buffer) override;
 
-    void drawArrays(std::size_t start, std::size_t count, bool wireframe = false) override;
-    void drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool wireframe = false) override;
+    void drawArrays(size_t start, size_t count, bool wireframe = false) override;
+    void drawArraysInstanced(size_t start, size_t count, int instanceCount, bool wireframe = false) override;
 
-    void drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool wireframe = false) override;
+    void drawElements(IndexFormat indexType, size_t count, size_t offset, bool wireframe = false) override;
     void drawElementsInstanced(IndexFormat indexType,
-                               std::size_t count,
-                               std::size_t offset,
+                               size_t count,
+                               size_t offset,
                                int instanceCount,
                                bool wireframe = false) override;
 
@@ -160,17 +160,9 @@ public:
      */
     void endFrame() override;
 
-    /**
-     * Fixed-function state
-     * @param x, y Specifies the lower left corner of the scissor box
-     * @param wdith Specifies the width of the scissor box
-     * @param height Specifies the height of the scissor box
-     */
-    void setScissorRect(bool isEnabled, float x, float y, float width, float height) override;
+    void setScissorRect(bool enabled, float x, float y, float width, float height) override;
 
-    void readPixels(RenderTarget* rt,
-                    bool preserveAxisHint,
-                    std::function<void(const PixelBufferDesc&)> callback) override;
+    void readPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)> callback) override;
 
     void readPixels(RenderTarget* rt,
                     int x,
@@ -178,7 +170,6 @@ public:
                     uint32_t width,
                     uint32_t height,
                     uint32_t bytesPerRow,
-                    bool preserveAxisHint,
                     PixelBufferDesc& pbd);
 
 protected:
@@ -201,7 +192,7 @@ protected:
     GLboolean _alphaTestEnabled = false;
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
-    EventListenerCustom* _backToForegroundListener = nullptr;
+    CustomEventListener* _backToForegroundListener = nullptr;
 #endif
 };
 

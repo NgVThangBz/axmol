@@ -8,7 +8,7 @@ define_property(TARGET
 )
 
 if(WINDOWS)
-  cmake_minimum_required(VERSION 3.27...4.1)
+  cmake_minimum_required(VERSION 3.27...4.3)
   cmake_policy(SET CMP0141 NEW)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
 
@@ -26,13 +26,13 @@ if(WINRT)
   # The minmal deploy target version: Windows 10, version 1809 (Build 10.0.17763) for building msix package
   # refer to: https://learn.microsoft.com/en-us/windows/msix/supported-platforms?source=recommendations
   set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_MIN_VERSION "10.0.17763" CACHE STRING "")
-  set(AX_CPPWINRT_VERSION "2.0.250303.1" CACHE STRING "")
+  set(AX_CPPWINRT_VERSION "3.0.260520.1" CACHE STRING "")
 
   # For axmol deprecated policy, we need disable /sdl checks explicitly to avoid compiler traits invoking deprecated functions as error
   set(CMAKE_C_FLAGS "/sdl- ${CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "/sdl- ${CMAKE_CXX_FLAGS}")
 elseif(WIN32)
-  set(AX_MSEDGE_WEBVIEW2_VERSION "1.0.3650.58" CACHE STRING "")
+  set(AX_MSEDGE_WEBVIEW2_VERSION "1.0.3912.50" CACHE STRING "")
 endif()
 
 if(ANDROID OR LINUX)
@@ -63,6 +63,18 @@ message(STATUS "CMAKE_C_STANDARD=${CMAKE_C_STANDARD}")
 
 if(NOT DEFINED CMAKE_C_STANDARD_REQUIRED)
   set(CMAKE_C_STANDARD_REQUIRED ON)
+endif()
+
+if(FULL_MSVC)
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("/std:c++23" _AX_MSVC_SUPPORTS_STABLE_CXX23)
+  if(_AX_MSVC_SUPPORTS_STABLE_CXX23)
+    set(CMAKE_CXX23_STANDARD_COMPILE_OPTION "/std:c++23")
+    set(CMAKE_CXX23_EXTENSION_COMPILE_OPTION "/std:c++23")
+  elseif(MSVC_VERSION GREATER_EQUAL 1943)
+    set(CMAKE_CXX23_STANDARD_COMPILE_OPTION "/std:c++23preview")
+    set(CMAKE_CXX23_STANDARD_COMPILE_OPTION "/std:c++23preview")
+  endif()
 endif()
 
 # config c++ standard, minimal require c++23
@@ -166,7 +178,9 @@ set(_ax_c_flags)
 if(FUZZ_MSVC)
   list(APPEND _ax_compile_opts /GF)
   list(APPEND _ax_cxx_flags "/Zc:char8_t-")
-  list(APPEND _ax_cxx_flags "/wd5030" "/wd5222")
+  # disable warnings
+  # suppress warning C4875: a non-string literal argument to [[gsl::suppress]] is deprecated it
+  list(APPEND _ax_cxx_flags "/wd5030" "/wd5222" "/wd4201" "/wd4875")
 else() # others
   list(APPEND _ax_cxx_flags "-fno-char8_t")
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -194,6 +208,9 @@ if(EMSCRIPTEN)
 
   # fix build fail on windows host when cmake invoking emscan-deps (raise unknown options)
   list(APPEND _ax_link_opts  "-ljpeg")
+
+  list(APPEND _ax_compile_opts "-fwasm-exceptions")
+  list(APPEND _ax_link_opts "-fwasm-exceptions")
 
   # list(APPEND _ax_link_opts "-sASSERTIONS=1")
 

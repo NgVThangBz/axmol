@@ -23,13 +23,13 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <numbers>
 #include <ranges>
 #include <span>
 #include <variant>
 
 #include "alc/effects/base.h"
-#include "alnumeric.h"
 #include "core/ambidefs.h"
 #include "core/bufferline.h"
 #include "core/context.h"
@@ -123,7 +123,8 @@ void DistortionState::deviceUpdate(DeviceBase const *const device, const BufferS
         auto const splitter = BandSplitter{device->mXOverFreq
             / static_cast<float>(device->mSampleRate)};
 
-        auto &upsampler = mUpsampler.emplace();
+        using upsampler_t = decltype(mUpsampler)::value_type;
+        auto &upsampler = mUpsampler.emplace(upsampler_t{});
         for(auto &chandata : upsampler)
         {
             chandata.mHfScale = hfscales[idx];
@@ -168,7 +169,7 @@ void DistortionState::update(const ContextBase *context, const EffectSlotBase *s
 
     mOutTarget = target.Main->Buffer;
     target.Main->setAmbiMixParams(slot->Wet, slot->Gain*props.Gain,
-        [this](usize const idx, u8 const outchan, float const outgain)
+        [this](std::size_t const idx, u8 const outchan, float const outgain)
     {
         if(idx < mChans.size())
         {

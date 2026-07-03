@@ -22,15 +22,6 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-//
-//  Bug-12847.cpp
-//  cocos2d_tests
-//
-//  Issue: https://github.com/cocos2d/cocos2d-x/issues/12847
-//  Please test in iPhone5 +
-//
-//
-
 #include "Bug-12847.h"
 
 using namespace ax;
@@ -97,11 +88,11 @@ void Bug12847Layer::update(float dt)
 void Bug12847Layer::onEnter()
 {
     BugsTestBase::onEnter();
-    Director::getInstance()->setClearColor(Color::RED);
+    Director::getInstance()->setClearColor(Color::red);
 }
 
 void Bug12847Layer::onExit()
 {
-    Director::getInstance()->setClearColor(Color::BLACK);
+    Director::getInstance()->setClearColor(Color::black);
     BugsTestBase::onExit();
 }

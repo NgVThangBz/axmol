@@ -39,20 +39,23 @@ class DepthStencilStateImpl;
 class RenderPipelineImpl;
 class RenderTargetImpl;
 
-enum RasterFlag
+enum class RenderStateFlag : uint32_t
 {
-    RF_CULL_MODE = 1,
-    RF_WINDING   = 1 << 1,
-    RF_SCISSOR   = 1 << 2
+    None        = 0,
+    RasterDesc  = 1,
+    Viewport    = 1 << 1,
+    ScissorRect = 1 << 2,
 };
+AX_ENABLE_BITMASK_OPS(RenderStateFlag);
 
-struct RasterStateDesc
+struct alignas(4) RasterStateDesc
 {
     CullMode cullMode{CullMode::BACK};
     Winding winding{Winding::CLOCK_WISE};
-    bool scissorEnable{FALSE};
-    unsigned int dirtyFlags{0};
+    bool scissorEnable{false};
+    uint8_t padding{0};
 };
+static_assert(sizeof(RasterStateDesc) == sizeof(uint32_t), "RasterStateDesc size must be 4 bytes");
 
 /**
  * @brief A D3D11-based RenderContext implementation
@@ -109,14 +112,14 @@ public:
 
     void setInstanceBuffer(Buffer* buffer) override;
 
-    void drawArrays(std::size_t start, std::size_t count, bool wireframe) override;
-    void drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool wireframe = false) override;
+    void drawArrays(size_t start, size_t count, bool wireframe) override;
+    void drawArraysInstanced(size_t start, size_t count, int instanceCount, bool wireframe = false) override;
 
-    void drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool wireframe) override;
+    void drawElements(IndexFormat indexType, size_t count, size_t offset, bool wireframe) override;
 
     void drawElementsInstanced(IndexFormat indexType,
-                               std::size_t count,
-                               std::size_t offset,
+                               size_t count,
+                               size_t offset,
                                int instanceCount,
                                bool wireframe = false) override;
 
@@ -124,16 +127,14 @@ public:
 
     void endFrame() override;
 
-    void setScissorRect(bool isEnabled, float x, float y, float width, float height) override;
+    void setScissorRect(bool enabled, float x, float y, float width, float height) override;
 
-    void readPixels(RenderTarget* rt,
-                    bool preserveAxisHint,
-                    std::function<void(const PixelBufferDesc&)> callback) override;
+    void readPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)> callback) override;
 
 protected:
     void readPixels(RenderTarget* rt, UINT x, UINT y, UINT width, UINT height, PixelBufferDesc& pbd);
 
-    void updateRasterizerState();
+    void applyRenderStates();
 
     void prepareDrawing();
 
@@ -143,8 +144,9 @@ protected:
     RenderTargetImpl* _screenRT{nullptr};
     IDXGISwapChain* _swapChain{nullptr};
     ID3D11Texture2D* _depthStencilTexture{nullptr};
-    ComPtr<ID3D11RasterizerState> _rasterState{nullptr};
     RasterStateDesc _rasterDesc{};
+    D3D11_RECT _scissorRect{};
+    D3D11_VIEWPORT _viewport{.MinDepth = 0.0f, .MaxDepth = 1.0f};
     BufferImpl* _vertexBuffer{nullptr};
     BufferImpl* _indexBuffer{nullptr};
     BufferImpl* _instanceBuffer{nullptr};
@@ -163,6 +165,12 @@ protected:
     UINT _syncInterval{0};
     UINT _presentFlags{0};
     BOOL _allowTearing{FALSE};
+
+    tlx::hash_map<uint32_t, ComPtr<ID3D11RasterizerState>> _rasterStateCache;
+
+    // Initialize with RenderStateFlag::RasterDesc to ensure a rasterizer state is created and bound at
+    // least once before the first draw.
+    RenderStateFlag _dirtyStateFlags{RenderStateFlag::RasterDesc};
 
     RenderScaleMode _renderScaleMode{};
 };

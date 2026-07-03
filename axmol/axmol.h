@@ -43,8 +43,8 @@ THE SOFTWARE.
 #include "axmol/base/Logging.h"
 #include "axmol/base/Data.h"
 #include "axmol/base/Director.h"
-#include "axmol/base/IMEDelegate.h"
-#include "axmol/base/IMEDispatcher.h"
+#include "axmol/base/InputDelegate.h"
+#include "axmol/base/InputSystem.h"
 #include "axmol/base/Map.h"
 #include "axmol/base/Profiling.h"
 #include "axmol/base/Properties.h"
@@ -63,22 +63,20 @@ THE SOFTWARE.
 #include "axmol/base/Utils.h"
 
 // EventDispatcher
-#include "axmol/base/EventAcceleration.h"
-#include "axmol/base/EventCustom.h"
+#include "axmol/base/AccelerationEvent.h"
+#include "axmol/base/CustomEvent.h"
 #include "axmol/base/EventDispatcher.h"
-#include "axmol/base/EventFocus.h"
-#include "axmol/base/EventKeyboard.h"
-#include "axmol/base/EventListenerAcceleration.h"
-#include "axmol/base/EventListenerCustom.h"
-#include "axmol/base/EventListenerFocus.h"
-#include "axmol/base/EventListenerKeyboard.h"
-#include "axmol/base/EventListenerMouse.h"
-#include "axmol/base/EventListenerController.h"
-#include "axmol/base/EventListenerTouch.h"
-#include "axmol/base/EventMouse.h"
-#include "axmol/base/EventController.h"
+#include "axmol/base/FocusEvent.h"
+#include "axmol/base/KeyboardEvent.h"
+#include "axmol/base/AccelerationEventListener.h"
+#include "axmol/base/CustomEventListener.h"
+#include "axmol/base/FocusEventListener.h"
+#include "axmol/base/KeyboardEventListener.h"
+#include "axmol/base/ControllerEventListener.h"
+#include "axmol/base/PointerEventListener.h"
+#include "axmol/base/ControllerEvent.h"
 #include "axmol/base/Controller.h"
-#include "axmol/base/EventTouch.h"
+#include "axmol/base/PointerEvent.h"
 #include "axmol/base/EventType.h"
 
 // math
@@ -87,7 +85,7 @@ THE SOFTWARE.
 #include "axmol/math/Vertex.h"
 #include "axmol/math/Mat4.h"
 #include "axmol/math/MathUtil.h"
-#include "axmol/math/Quaternion.h"
+#include "axmol/math/Quat.h"
 #include "axmol/math/Vec2.h"
 #include "axmol/math/Vec3.h"
 #include "axmol/math/Vec4.h"
@@ -130,7 +128,7 @@ THE SOFTWARE.
 #include "axmol/2d/ParticleSystemQuad.h"
 #include "axmol/2d/ProgressTimer.h"
 #include "axmol/2d/ProtectedNode.h"
-#include "axmol/2d/RenderTexture.h"
+#include "axmol/renderer/RenderTexture.h"
 #include "axmol/scene/Scene.h"
 #include "axmol/2d/Transition.h"
 #include "axmol/2d/TransitionPageTurn.h"
@@ -156,6 +154,7 @@ THE SOFTWARE.
 #include "axmol/renderer/RenderCommandPool.h"
 #include "axmol/renderer/RenderState.h"
 #include "axmol/renderer/Renderer.h"
+#include "axmol/scene/SceneRenderer.h"
 #include "axmol/renderer/Technique.h"
 #include "axmol/renderer/Texture2D.h"
 #include "axmol/renderer/TextureCube.h"
@@ -164,11 +163,10 @@ THE SOFTWARE.
 #include "axmol/renderer/Shaders.h"
 
 // physics2d
-#include "axmol/2d/physics/Rigidbody2D.h"
-#include "axmol/2d/physics/Contact2D.h"
-#include "axmol/2d/physics/Joint2D.h"
-#include "axmol/2d/physics/Collider2D.h"
-#include "axmol/2d/physics/PhysicsWorld2D.h"
+#include "axmol/physics/physics-2d.h"
+
+// physics3d
+#include "axmol/physics/physics-3d.h"
 
 // platform
 #include "axmol/platform/Common.h"
@@ -203,7 +201,7 @@ THE SOFTWARE.
 #    include "axmol/platform/wasm/StdC-wasm.h"
 #endif  // AX_TARGET_PLATFORM == AX_PLATFORM_WASM
 
-#include "axmol/platform/RenderViewImpl.h"
+#include "axmol/platform/RenderView.h"
 
 #if AX_ENABLE_GL
 #    include "axmol/platform/GL.h"
@@ -221,9 +219,6 @@ THE SOFTWARE.
 #include "axmol/2d/SpriteBatchNode.h"
 #include "axmol/2d/SpriteFrame.h"
 #include "axmol/2d/SpriteFrameCache.h"
-
-// text_input_node
-#include "axmol/2d/TextFieldTTF.h"
 
 // textures
 #include "axmol/renderer/TextureAtlas.h"

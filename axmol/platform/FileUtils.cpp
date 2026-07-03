@@ -46,6 +46,16 @@ THE SOFTWARE.
 
 #if defined(_WIN32)
 #    include "ntcvt/ntcvt.hpp"
+#else
+// default implements for unix like os
+#    include <sys/types.h>
+#    include <errno.h>
+#    include <dirent.h>
+
+// android doesn't have ftw.h
+#    if (AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID) && !defined(AX_TARGET_OS_TVOS)
+#        include <ftw.h>
+#    endif
 #endif
 
 #include "pugixml/pugixml.hpp"
@@ -290,7 +300,7 @@ public:
                 else if (sName == "integer"sv)
                     _curArray->emplace_back(Value(atoi(_curValue.c_str())));
                 else
-                    _curArray->emplace_back(Value(std::atof(_curValue.c_str())));
+                    _curArray->emplace_back(Value(atof(_curValue.c_str())));
             }
             else if (SAX_DICT == curState)
             {
@@ -299,7 +309,7 @@ public:
                 else if (sName == "integer"sv)
                     (*_curDict)[_curKey] = Value(atoi(_curValue.c_str()));
                 else
-                    (*_curDict)[_curKey] = Value(std::atof(_curValue.c_str()));
+                    (*_curDict)[_curKey] = Value(atof(_curValue.c_str()));
             }
 
             _curValue.clear();
@@ -895,6 +905,68 @@ std::unique_ptr<IFileStream> FileUtils::openFileStream(std::string_view filePath
     return fs.open(filePath, mode) ? std::make_unique<FileStream>(std::move(fs)) : nullptr;
 }
 
+bool FileUtils::copyFile(std::string_view sourcePath, std::string_view destinationPath, int64_t bufferSize)
+{
+    auto srcFs = openFileStream(sourcePath, IFileStream::Mode::READ);
+    if (!srcFs)
+    {
+        AXLOGW("FileUtils::copyFile failed, can't open sourcePath: {}", sourcePath);
+        return false;
+    }
+
+    std::unique_ptr<IFileStream> destFs{nullptr};
+
+    if (isAbsolutePathInternal(destinationPath))
+    {
+        destFs = openFileStream(destinationPath, IFileStream::Mode::WRITE);
+    }
+    else
+    {
+        std::string fullpath = getWritablePath();
+        fullpath += destinationPath;
+        destFs = openFileStream(fullpath, IFileStream::Mode::WRITE);
+    }
+    if (!destFs)
+    {
+        AXLOGW("FileUtils::copyFile failed, can't open destinationPath: {}", sourcePath);
+        return false;
+    }
+
+    auto srcFileSize = srcFs->size();
+    if (srcFileSize <= 0)
+        return true;
+
+    destFs->resize(srcFileSize);
+
+    if (bufferSize <= 0)
+        bufferSize = srcFileSize;
+
+    tlx::byte_buffer buffer(bufferSize);
+
+    int64_t totalCopied = 0;
+    do
+    {
+        unsigned int toRead = static_cast<unsigned int>(std::min(bufferSize, srcFileSize - totalCopied));
+        int readBytes       = srcFs->read(buffer.data(), toRead);
+        if (readBytes <= 0)
+        {
+            AXLOGW("FileUtils::copyFile failed, read error at offset {}", totalCopied);
+            return false;
+        }
+
+        int writtenBytes = destFs->write(buffer.data(), readBytes);
+        if (writtenBytes != readBytes)
+        {
+            AXLOGW("FileUtils::copyFile failed, write error at offset {}", totalCopied);
+            return false;
+        }
+
+        totalCopied += readBytes;
+    } while (totalCopied < srcFileSize);
+
+    return true;
+}
+
 /* !!!Notes for c++fs
  a. ios: require ios 13.0+, currently use ghc as workaround in lower ios 13.0- devices
  b. android: require ndk-r22+
@@ -1010,15 +1082,6 @@ int64_t FileUtils::getFileSize(std::string_view filepath) const
 }
 
 #else
-// default implements for unix like os
-#    include <sys/types.h>
-#    include <errno.h>
-#    include <dirent.h>
-
-// android doesn't have ftw.h
-#    if (AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID)
-#        include <ftw.h>
-#    endif
 
 bool FileUtils::isDirectoryExistInternal(std::string_view dirPath) const
 {
@@ -1061,10 +1124,10 @@ namespace
 #    if (AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID)
 int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf)
 {
-    int rv = remove(fpath);
+    int rv = ::remove(fpath);
 
     if (rv)
-        perror(fpath);
+        ::perror(fpath);
 
     return rv;
 }
@@ -1074,7 +1137,7 @@ int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW
 bool FileUtils::removeDirectory(std::string_view path) const
 {
 #    if (AX_TARGET_PLATFORM != AX_PLATFORM_ANDROID) && !defined(AX_TARGET_OS_TVOS)
-    return nftw(path.data(), unlink_cb, 64, FTW_DEPTH | FTW_PHYS) != -1;
+    return ::nftw(path.data(), unlink_cb, 64, FTW_DEPTH | FTW_PHYS) != -1;
 #    else
     std::error_code ec;
     auto n = stdfs::remove_all(path, ec);
@@ -1084,7 +1147,7 @@ bool FileUtils::removeDirectory(std::string_view path) const
 
 bool FileUtils::removeFile(std::string_view path) const
 {
-    if (remove(path.data()))
+    if (::remove(path.data()))
     {
         return false;
     }
@@ -1099,7 +1162,7 @@ bool FileUtils::renameFile(std::string_view oldfullpath, std::string_view newful
     AXASSERT(!oldfullpath.empty(), "Invalid path");
     AXASSERT(!newfullpath.empty(), "Invalid path");
 
-    int errorCode = rename(oldfullpath.data(), newfullpath.data());
+    int errorCode = ::rename(oldfullpath.data(), newfullpath.data());
 
     if (0 != errorCode)
     {

@@ -17,12 +17,7 @@
  */
 
 #include "PhysicsDebugNode.h"
-#include "axmol/2d/physics/PhysicsUtility2D.h"
-
-#if defined(_WIN32)
-#    pragma push_macro("TRANSPARENT")
-#    undef TRANSPARENT
-#endif
+#include "axmol//physics/2d/PhysicsUtility2D.h"
 
 NS_AX_EXT_BEGIN
 
@@ -35,7 +30,7 @@ static void b2DrawPolygon(const b2Vec2* verts, int vertexCount, b2HexColor color
     {
         vec[i] = Vec2(verts[i].x * dn->getPTMRatio(), verts[i].y * dn->getPTMRatio()) + dn->getWorldOffset();
     }
-    dn->drawPolygon(vec, vertexCount, ax::Color::BLACK, 0.4f, PhysicsUtility2D::toColor(color));
+    dn->drawPolygon(vec, vertexCount, ax::Color::black, 0.4f, b2util::cast(color));
 }
 
 /// Draw a solid closed polygon provided in CCW order.
@@ -58,7 +53,7 @@ static void b2DrawSolidPolygon(b2Transform t,
         auto pt = b2TransformPoint(t, verts[i]);
         vec[i]  = Vec2(pt.x * dn->getPTMRatio(), pt.y * dn->getPTMRatio()) + dn->getWorldOffset();
     }
-    auto color4f = PhysicsUtility2D::toColor(color);
+    auto color4f = b2util::cast(color);
     dn->drawPolygon(vec.data(), vertexCount, ax::Color(color4f.r / 2, color4f.g / 2, color4f.b / 2, color4f.a), 0.5f,
                     color4f);
 }
@@ -68,7 +63,7 @@ static void b2DrawSolidPolygon(b2Transform t,
 static void b2DrawCircle(b2Vec2 center, float radius, b2HexColor color, PhysicsDebugNode* dn)
 {
     dn->drawDot(Vec2(center.x * dn->getPTMRatio(), center.y * dn->getPTMRatio()) + dn->getWorldOffset(),
-                radius * dn->getPTMRatio(), PhysicsUtility2D::toColor(color));
+                radius * dn->getPTMRatio(), b2util::cast(color));
 }
 
 /// Draw a solid circle.
@@ -77,8 +72,13 @@ static void b2DrawSolidCircle(b2Transform t, float radius, b2HexColor color, Phy
 {
     auto center  = b2TransformPoint(t, b2Vec2_zero);
     Vec2 c       = {Vec2(center.x * dn->getPTMRatio(), center.y * dn->getPTMRatio()) + dn->getWorldOffset()};
-    auto color4f = PhysicsUtility2D::toColor(color);
+    auto color4f = b2util::cast(color);
 
+#if AX_DRAWNODE_FAST_LINE2CENTER
+    dn->drawSolidCircle(c, radius * dn->getPTMRatio(), color4f,
+                        ax::Color(color4f.r / 4, color4f.g / 4, color4f.b / 4, color4f.a),
+                        AX_RADIANS_TO_DEGREES(b2Rot_GetAngle(t.q)));
+#else
     dn->drawDot(Vec2(center.x * dn->getPTMRatio(), center.y * dn->getPTMRatio()) + dn->getWorldOffset(),
                 radius * dn->getPTMRatio(), color4f);
     dn->drawDot(Vec2(center.x * dn->getPTMRatio(), center.y * dn->getPTMRatio()) + dn->getWorldOffset(),
@@ -88,6 +88,7 @@ static void b2DrawSolidCircle(b2Transform t, float radius, b2HexColor color, Phy
     b2Vec2 pp = {(center + radius * b2Rot_GetXAxis(t.q))};
     Vec2 cp   = {Vec2(pp.x * dn->getPTMRatio(), pp.y * dn->getPTMRatio()) + dn->getWorldOffset()};
     dn->drawLine(c, cp, color4f);
+#endif  // AX_DRAWNODE_FAST_LINE2CENTER
 }
 
 /// Draw a solid capsule.
@@ -98,8 +99,7 @@ static void b2DrawSolidCircle(b2Transform t, float radius, b2HexColor color, Phy
 static void b2DrawLine(b2Vec2 p1, b2Vec2 p2, b2HexColor color, PhysicsDebugNode* dn)
 {
     dn->drawLine(Vec2(p1.x * dn->getPTMRatio(), p1.y * dn->getPTMRatio()) + dn->getWorldOffset(),
-                 Vec2(p2.x * dn->getPTMRatio(), p2.y * dn->getPTMRatio()) + dn->getWorldOffset(),
-                 PhysicsUtility2D::toColor(color));
+                 Vec2(p2.x * dn->getPTMRatio(), p2.y * dn->getPTMRatio()) + dn->getWorldOffset(), b2util::cast(color));
 }
 
 /// Draw a transform. Choose your own length scale.
@@ -121,7 +121,7 @@ static void b2DrawTransform(b2Transform t, PhysicsDebugNode* dn)
 static void b2DrawPoint(b2Vec2 p, float size, b2HexColor color, PhysicsDebugNode* dn)
 {
     dn->drawPoint(Vec2(p.x * dn->getPTMRatio(), p.y * dn->getPTMRatio()) + dn->getWorldOffset(), size,
-                  PhysicsUtility2D::toColor(color));
+                  b2util::cast(color));
 }
 
 bool PhysicsDebugNode::initWithWorld(b2WorldId worldId)
@@ -182,7 +182,3 @@ void PhysicsDebugNode::setBuiltinDrawFuncs()
 }
 
 NS_AX_EXT_END
-
-#if defined(_WIN32)
-#    pragma pop_macro("TRANSPARENT")
-#endif

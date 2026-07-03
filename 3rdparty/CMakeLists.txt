@@ -186,7 +186,34 @@ if(AX_ENABLE_NAVMESH)
 endif()
 
 if(AX_ENABLE_PHYSICS_3D)
-  ax_add_3rd(bullet)
+  set(jolt_opts "DEBUG_RENDERER_IN_DISTRIBUTION ON")
+
+  set(USE_SSE4_1_OPT "USE_SSE4_1 OFF")
+  set(USE_SSE4_2_OPT "USE_SSE4_2 OFF")
+  set(USE_AVX_OPT "USE_AVX OFF")
+  set(USE_AVX2_OPT "USE_AVX2 OFF")
+  set(USE_AVX512_OPT "USE_AVX512 OFF")
+
+  if (AX_ISA_LEVEL GREATER_EQUAL 2)
+    set(USE_SSE4_1_OPT "USE_SSE4_1 ON")
+  endif()
+  if (AX_ISA_LEVEL GREATER_EQUAL 3)
+    set(USE_SSE4_2_OPT "USE_SSE4_2 ON")
+  endif()
+  if (AX_ISA_LEVEL GREATER_EQUAL 4)
+    set(USE_AVX_OPT "USE_AVX ON")
+    set(USE_AVX2_OPT "USE_AVX2 ON")
+    set(USE_AVX512_OPT "USE_AVX2 ON")
+  endif()
+
+  list(APPEND jolt_opts
+    ${USE_SSE4_1_OPT}
+    ${USE_SSE4_2_OPT}
+    ${USE_AVX_OPT}
+    ${USE_AVX2_OPT}
+    ${USE_AVX512_OPT}
+  )
+  ax_add_3rd(jolt TARGETS Jolt OPTIONS ${jolt_opts})
 endif()
 
 if(AX_WITH_JPEG AND NOT WINRT AND NOT EMSCRIPTEN)
@@ -243,6 +270,7 @@ if(AX_ENABLE_AUDIO)
   # The openal-soft(LGPL 2.1)
   if(NOT EMSCRIPTEN)
     set(alsoft_opts
+      "ALSOFT_ENABLE_MODULES OFF"
       "ALSOFT_DLOPEN OFF"
       "ALSOFT_UTILS OFF"
       "ALSOFT_EXAMPLES OFF"
@@ -265,7 +293,8 @@ if(AX_ENABLE_AUDIO)
         set(OBOE_SOURCE "${oboe_SOURCE_DIR}" CACHE STRING "Source directory for Oboe." FORCE)
       endif()
 
-      list(APPEND alsoft_opts "ALSOFT_RTKIT OFF"
+      list(APPEND alsoft_opts
+        "ALSOFT_RTKIT OFF"
         "ALSOFT_BACKEND_PIPEWIRE OFF"
         "ALSOFT_BACKEND_PULSEAUDIO OFF"
         "ALSOFT_BACKEND_ALSA OFF"
@@ -275,22 +304,17 @@ if(AX_ENABLE_AUDIO)
         "ALSOFT_BACKEND_JACK OFF"
         "ALSOFT_BACKEND_PORTAUDIO OFF"
         "ALSOFT_BACKEND_SDL2 OFF"
-        )
-      set(ALSOFT_RTKIT OFF CACHE BOOL "Enable RTKit support" FORCE)
-    elseif(WINDOWS)
-      list(APPEND alsoft_opts "ALSOFT_BACKEND_WASAPI ON" "ALSOFT_BACKEND_WAVE OFF" "ALSOFT_BACKEND_DSOUND OFF" "ALSOFT_BACKEND_WINMM OFF")
-    elseif(WASM)
-      list(APPEND alsoft_opts "ALSOFT_BACKEND_SDL2 ON" "ALSOFT_REQUIRE_SDL2 ON")
-      find_program(embuilder_script embuilder.ps1)
-      message(STATUS "Building wasm sdl2 port ...")
-      execute_process(
-        COMMAND ${PWSH_PROG} ${embuilder_script} build sdl2
-        WORKING_DIRECTORY ${_AX_ROOT}
-        RESULT_VARIABLE _ret
-        OUTPUT_VARIABLE _out
-        ERROR_VARIABLE  _err
       )
-      message(STATUS "Build wasm sdl2 port done: ${_ret}")
+    elseif(WINDOWS)
+      list(APPEND alsoft_opts
+        "ALSOFT_RTKIT OFF"
+        "ALSOFT_BACKEND_WASAPI ON"
+        "ALSOFT_BACKEND_WAVE OFF"
+        "ALSOFT_BACKEND_DSOUND OFF"
+        "ALSOFT_BACKEND_WINMM OFF"
+      )
+    elseif(APPLE)
+      list(APPEND alsoft_opts "ALSOFT_RTKIT OFF")
     endif()
 
     if(WINRT)
@@ -300,6 +324,7 @@ if(AX_ENABLE_AUDIO)
     ax_add_3rd(openal EXCLUDE_FROM_ALL TARGETS OpenAL;alsoft.common OPTIONS ${alsoft_opts})
 
     set_target_properties(OpenAL alsoft.common PROPERTIES CXX_STANDARD ${_AX_CXX_STD})
+    set_target_properties(alsoft.default_hrtf_data PROPERTIES FOLDER "3rdparty")
 
     if(AX_USE_ALSOFT_STATIC)
       target_compile_definitions(3rdparty INTERFACE AL_LIBTYPE_STATIC=1)
@@ -330,10 +355,13 @@ if((WINDOWS AND NOT WINRT) OR MACOSX OR LINUX)
     list(APPEND _glfw_options "GLFW_BUILD_X11 ON")
     if(AX_ENABLE_WAYLAND)
       list(APPEND _glfw_options "GLFW_BUILD_WAYLAND ON")
+    else()
+      list(APPEND _glfw_options "GLFW_BUILD_WAYLAND OFF")
     endif()
   endif()
   ax_add_3rd(glfw OPTIONS ${_glfw_options})
   set_target_properties(glfw PROPERTIES OUTPUT_NAME glfw)
+  set_target_properties(update_mappings PROPERTIES FOLDER "3rdparty")
 
   if(NOT WINDOWS)
     target_link_libraries(3rdparty INTERFACE pthread)

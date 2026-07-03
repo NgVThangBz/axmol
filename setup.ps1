@@ -32,11 +32,11 @@ function println($message) { Write-Host "axmol: $message" }
 # import VersionEx
 . (Join-Path $PSScriptRoot '1k/extensions.ps1')
 
-[VersionEx]$pwsh_ver = [Regex]::Match($PSVersionTable.PSVersion.ToString(), '(\d+\.)+(\*|\d+)').Value
+[VersionEx]$pwshVersion = $pwsh_ver
 
 function mkdirs([string]$path) {
     if (!(Test-Path $path -PathType Container)) {
-        if ($pwsh_ver -ge [VersionEx]'5.0') {
+        if ($pwshVersion -ge [VersionEx]'5.0') {
             New-Item $path -ItemType Directory 1>$null
         }
         else {
@@ -45,7 +45,7 @@ function mkdirs([string]$path) {
     }
 }
 
-if ($pwsh_ver -lt [VersionEx]'5.0') {
+if ($pwshVersion -lt [VersionEx]'5.0') {
     $ErrorActionPreference = 'Stop'
 
     # try setup WMF5.1, require reboot, try run setup.ps1 several times
@@ -195,7 +195,7 @@ if ($IsWin) {
     }
 
     $execPolicy = powershell -Command 'Get-ExecutionPolicy'
-    if ($pwsh_ver.Major -gt 5) {
+    if ($pwshVersion.Major -gt 5) {
         $execPolicy = powershell -Command 'Get-ExecutionPolicy'
         if ($execPolicy -ne 'Bypass') {
             println "Setting system installed powershell execution policy '$execPolicy'==>'Bypass', please click 'YES' on UAC dialog"
@@ -370,7 +370,7 @@ else {
                     Write-Host "Are want add tsinghua mirror for speed up package install in china region? (y/N)" -NoNewline
                     $answer = Read-Host
                     if ($answer -like 'y*') {
-                        $mirror_list = "$tsinghua_mirror`n$mirror_list"
+                        $mirror_list = "Server = $tsinghua_mirror`n$mirror_list"
                         $mirror_list_tmp_file = (Join-Path $AX_ROOT 'mirrorlist')
                         [System.IO.File]::WriteAllText($mirror_list_tmp_file, $mirror_list)
                         sudo mv -f $mirror_list_tmp_file /etc/pacman.d/mirrorlist
@@ -379,7 +379,10 @@ else {
                 }
 
                 $DEPENDS = @(
+                    'gcc',
                     'git',
+                    'less', # for git diff
+                    'pkgconf',
                     'cmake',
                     'make',
                     'libx11',
@@ -389,12 +392,21 @@ else {
                     'libxi',
                     'fontconfig',
                     'gtk3',
-                    'webkit2gtk',
                     'vlc',
                     'wayland',
                     'wayland-protocols',
                     'libglvnd'
                 )
+
+                if ($(pacman -Si webkit2gtk -q 2>$null)) 
+                {
+                    $DEPENDS += 'webkit2gtk'
+                }
+                else
+                {
+                    $DEPENDS += 'webkit2gtk-4.1'
+                }
+
                 sudo pacman -S --needed --noconfirm @DEPENDS
             }
             elseif($LinuxDistro -eq 'fedora') {

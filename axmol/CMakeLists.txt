@@ -177,7 +177,7 @@ cmake_dependent_option(AX_ENABLE_VLC_MEDIA "Enabling vlc media" OFF "(WIN32 AND 
 cmake_dependent_option(AX_ENABLE_WAYLAND "Enabling linux wayland" OFF "LINUX" OFF)
 
 option(AX_ENABLE_PHYSICS_2D "Build Physics2D support" ON)
-cmake_dependent_option(AX_ENABLE_MEDIA "Build media support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
+cmake_dependent_option(AX_ENABLE_VIDEO "Build video support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
 option(AX_ENABLE_AUDIO "Build audio support" ON)
 option(AX_ENABLE_OPUS "Build with opus support" ON)
 option(AX_ENABLE_CONSOLE "Build axmol debug tool: console support" ON)
@@ -231,19 +231,19 @@ if(WASM)
 endif()
 
 # axmolver.h
-find_program(GIT_PROG NAMES git)
+find_program(GIT_EXECUTABLE NAMES git)
 
-if(AX_UPDATE_BUILD_VERSION AND GIT_PROG AND EXISTS "${_AX_ROOT}/.git")
+if(AX_UPDATE_BUILD_VERSION AND GIT_EXECUTABLE AND EXISTS "${_AX_ROOT}/.git")
   # Get the current working branch and its latest abbreviated commit hash
-  execute_process(COMMAND ${GIT_PROG} -C "${_AX_ROOT}" rev-list --count HEAD
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C "${_AX_ROOT}" rev-list --count HEAD
     TIMEOUT 5
     OUTPUT_VARIABLE AX_BUILD_NUM
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_PROG} -C "${_AX_ROOT}" branch --show-current
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C "${_AX_ROOT}" branch --show-current
     TIMEOUT 5
     OUTPUT_VARIABLE AX_GIT_BRANCH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${GIT_PROG} -C "${_AX_ROOT}" rev-parse --short=7 HEAD
+  execute_process(COMMAND ${GIT_EXECUTABLE} -C "${_AX_ROOT}" rev-parse --short=7 HEAD
     TIMEOUT 5
     OUTPUT_VARIABLE AX_GIT_COMMIT_HASH
     OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -272,15 +272,9 @@ if(AX_ENABLE_3D)
 endif()
 
 include(platform/CMakeLists.txt)
-
-if(AX_ENABLE_PHYSICS_2D)
-  include(2d/physics/CMakeLists.txt)
+if(AX_ENABLE_PHYSICS_2D OR AX_ENABLE_PHYSICS_3D)
+    include(physics/CMakeLists.txt)
 endif()
-
-if(AX_ENABLE_PHYSICS_3D)
-  include(3d/physics/CMakeLists.txt)
-endif()
-
 include(math/CMakeLists.txt)
 
 if(AX_ENABLE_NAVMESH)
@@ -298,7 +292,7 @@ if(AX_ENABLE_AUDIO)
   include(audio/CMakeLists.txt)
 endif()
 
-if(AX_ENABLE_MEDIA)
+if(AX_ENABLE_VIDEO)
   file(GLOB_RECURSE _AX_MEDIA_HEADER media/*.h)
   file(GLOB_RECURSE _AX_MEDIA_SRC media/*.cpp)
 
@@ -311,7 +305,7 @@ endif()
 if(AX_ENABLE_VR)
     include(vr/CMakeLists.txt)
     if (APPLE)
-        set_source_files_properties(vr/VRGenericHeadTracker.cpp PROPERTIES LANGUAGE OBJCXX)
+      set_source_files_properties(vr/VRGenericHeadTracker.cpp PROPERTIES LANGUAGE OBJCXX)
     endif()
 endif()
 
@@ -345,14 +339,9 @@ if(AX_ENABLE_3D)
   list(APPEND _AX_SRC ${_AX_3D_SRC})
 endif()
 
-if(AX_ENABLE_PHYSICS_2D)
+if(AX_ENABLE_PHYSICS_2D OR AX_ENABLE_PHYSICS_3D)
   list(APPEND _AX_HEADER ${_AX_PHYSICS_HEADER})
   list(APPEND _AX_SRC ${_AX_PHYSICS_SRC})
-endif()
-
-if(AX_ENABLE_PHYSICS_3D)
-  list(APPEND _AX_HEADER ${_AX_PHYSICS3D_HEADER})
-  list(APPEND _AX_SRC ${_AX_PHYSICS3D_SRC})
 endif()
 
 if(AX_ENABLE_NAVMESH)
@@ -360,7 +349,7 @@ if(AX_ENABLE_NAVMESH)
   list(APPEND _AX_SRC ${_AX_NAVMESH_SRC})
 endif()
 
-if(AX_ENABLE_MEDIA)
+if(AX_ENABLE_VIDEO)
   list(APPEND _AX_HEADER ${_AX_MEDIA_HEADER})
   list(APPEND _AX_SRC ${_AX_MEDIA_SRC})
 endif()
@@ -397,6 +386,11 @@ elseif(AX_ENABLE_MFMEDIA AND NOT WINRT)
   if(BUILD_SHARED_LIBS)
     ax_add_delay_load_options(${_AX_CORE_LIB})
   endif()
+endif()
+
+if(IOS)
+  # Add Obj-C source files for iOS platform to avoid hack categories not working without -ObjC flag
+  target_link_options(${_AX_CORE_LIB} INTERFACE -ObjC)
 endif()
 
 ax_find_shaders(${_AX_ROOT}/axmol/renderer/shaders _builtin_shaders)
@@ -446,7 +440,7 @@ ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_PHYSICS_2D)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_3D)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_PHYSICS_3D)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_NAVMESH)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_MEDIA)
+ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_VIDEO)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_AUDIO)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_CONSOLE)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_VR)
@@ -630,4 +624,21 @@ elseif(LINUX)
     target_include_directories(${_AX_CORE_LIB} PUBLIC ${WEBKIT2GTK_INCLUDE_DIRS})
     target_link_libraries(${_AX_CORE_LIB} ${WEBKIT2GTK_LIBRARIES})
   endif()
+endif()
+
+# ====================================================================
+# Create 'axmol-sdk' target to cascade build the core and all extensions
+# ====================================================================
+if(BUILD_ENGINE_BEGAN)
+    add_custom_target(axmol-sdk)
+
+    add_dependencies(axmol-sdk axmol ${_AX_EXTENSION_LIBS})
+
+    # Automatically gather only the necessary libraries (Core + 3rdparty + Extensions)
+    ax_collect_sdk_targets(${CMAKE_SOURCE_DIR} _axmol_libs)
+
+    # Export the clean library target map
+    export(TARGETS ${_axmol_libs} FILE "${CMAKE_BINARY_DIR}/AxmolTargets.cmake")
+
+    message(STATUS "🔧 Created target 'axmol-sdk' (included extensions: ${_AX_EXTENSION_LIBS}) and exported clean SDK library map (Tests excluded).")
 endif()

@@ -8,7 +8,6 @@
 #include "gears/GearDisplay.h"
 #include "gears/GearDisplay2.h"
 #include "utils/ByteBuffer.h"
-#include "utils/WeakPtr.h"
 
 NS_FGUI_BEGIN
 using namespace ax;
@@ -46,8 +45,7 @@ GObject::GObject() : _scale{1, 1},
                      _packageItem(nullptr),
                      _data(nullptr),
                      _touchDisabled(false),
-                     _alignToBL(false),
-                     _weakPtrRef(0)
+                     _alignToBL(false)
 {
     static uint64_t _gInstanceCounter = 1;
     _uid = _gInstanceCounter++;
@@ -73,9 +71,6 @@ GObject::~GObject()
         AX_SAFE_DELETE(_gears[i]);
     AX_SAFE_DELETE(_relations);
     AX_SAFE_DELETE(_dragBounds);
-
-    if (_weakPtrRef > 0)
-        WeakPtr::markDisposed(this);
 }
 
 bool GObject::init()
@@ -129,7 +124,7 @@ void GObject::setPosition(float xv, float yv)
         }
 
         if (_draggingObject == this && !sUpdateInDragging)
-            sGlobalRect = localToGlobal(Rect(Vec2::ZERO, _size));
+            sGlobalRect = localToGlobal(Rect(Vec2::zero, _size));
     }
 }
 
@@ -719,7 +714,7 @@ GObject* GObject::hitTest(const Vec2& worldPoint, const Camera* camera)
 
     Rect rect;
     rect.size = _size;
-    //if (isScreenPointInRect(worldPoint, camera, _displayObject->getWorldToNodeTransform(), rect, nullptr))
+    //if (camera->isWorldPointInRect(worldPoint, _displayObject->getWorldToNodeTransform(), rect))
     if (rect.containsPoint(_displayObject->convertToNodeSpace(worldPoint)))
         return this;
     else
@@ -941,7 +936,7 @@ void GObject::dragBegin(int touchId)
     }
 
     sGlobalDragStart = UIRoot->getTouchPosition(touchId);
-    sGlobalRect = localToGlobal(Rect(Vec2::ZERO, _size));
+    sGlobalRect = localToGlobal(Rect(Vec2::zero, _size));
 
     _draggingObject = this;
     _dragTesting = true;

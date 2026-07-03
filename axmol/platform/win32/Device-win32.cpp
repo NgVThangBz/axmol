@@ -27,35 +27,103 @@ THE SOFTWARE.
 #include "axmol/platform/Device.h"
 #include "axmol/platform/FileUtils.h"
 #include "axmol/platform/StdC.h"
-#include "axmol/platform/msw/DWriteTextRenderer.h"
 #include "ntcvt/ntcvt.hpp"
 
 namespace ax
 {
-
-Data Device::getTextureDataForText(std::string_view text,
-                                   const FontDefinition& textDefinition,
-                                   TextAlign align,
-                                   int& width,
-                                   int& height,
-                                   bool& hasPremultipliedAlpha)
+namespace
 {
-    Data ret;
-    do
+struct ScopedClipboard
+{
+    ScopedClipboard() : _ok(::OpenClipboard(nullptr)) {}
+    ~ScopedClipboard()
     {
-        auto& textRenderer = DWriteTextRenderer::sharedTextRenderer();
+        if (_ok)
+            ::CloseClipboard();
+    }
+    ScopedClipboard(const ScopedClipboard&)            = delete;
+    ScopedClipboard& operator=(const ScopedClipboard&) = delete;
 
-        SIZE size = {(LONG)textDefinition._dimensions.width, (LONG)textDefinition._dimensions.height};
-        if (!textRenderer.drawText(text, textDefinition, static_cast<unsigned int>(align), hasPremultipliedAlpha, size,
-                                   ret))
-            break;
+    explicit operator bool() const { return !!_ok; }
 
-        width  = size.cx;
-        height = size.cy;
+private:
+    BOOL _ok;
+};
+}  // namespace
 
-    } while (0);
+void Device::getClipboardText(std::function<void(std::string_view)> callback)
+{
+    if (!callback)
+        return;
+    ScopedClipboard clipboard;
+    if (!clipboard)
+    {
+        callback(std::string_view{});
+        return;
+    }
 
-    return ret;
+    std::string result;
+    HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+    if (hData)
+    {
+        LPCWSTR pwsz = static_cast<LPCWSTR>(GlobalLock(hData));
+        if (pwsz)
+        {
+            result = ntcvt::from_chars(pwsz, CP_UTF8);
+            GlobalUnlock(hData);
+        }
+    }
+
+    callback(result);
+}
+
+void Device::setClipboardText(std::string_view text)
+{
+    // Convert to wide (UTF-16)
+    ScopedClipboard clipboard;
+    if (!clipboard)
+        return;
+
+    // Empty clipboard first
+    if (!EmptyClipboard() || text.empty())
+    {
+        return;
+    }
+
+    // Allocate global memory for the wide string including null terminator
+    int cch = ::MultiByteToWideChar(CP_UTF8, 0, text.data(), text.size(), nullptr, 0);
+    if (cch <= 0)
+    {
+        return;
+    }
+    size_t bytes  = (cch + 1) * sizeof(wchar_t);
+    HGLOBAL hGlob = GlobalAlloc(GMEM_MOVEABLE, bytes);
+    if (!hGlob)
+    {
+        return;
+    }
+
+    void* pGlob = GlobalLock(hGlob);
+    if (!pGlob)
+    {
+        GlobalFree(hGlob);
+        return;
+    }
+
+    ::MultiByteToWideChar(CP_UTF8, 0, text.data(), text.size(), static_cast<wchar_t*>(pGlob), cch);
+    static_cast<wchar_t*>(pGlob)[cch] = L'\0';
+    GlobalUnlock(hGlob);
+
+    // Set clipboard data as CF_UNICODETEXT
+    if (!SetClipboardData(CF_UNICODETEXT, hGlob))
+        GlobalFree(hGlob);
+}
+
+void Device::clearClipboard()
+{
+    ScopedClipboard clipboard;
+    if (clipboard)
+        EmptyClipboard();
 }
 
 int Device::getDPI()

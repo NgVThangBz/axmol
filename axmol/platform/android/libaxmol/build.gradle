@@ -23,10 +23,17 @@ android {
         manifest.srcFile "AndroidManifest.xml"
     }
 
+    if (minSdk.toInteger() >= 23) {
+        sourceSets.main.java.srcDirs += '../java/23'
+    }
+    else {
+        sourceSets.main.java.srcDirs += '../java/21'
+    }
+
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     buildFeatures {

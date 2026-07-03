@@ -98,6 +98,9 @@ function axmol_deploy() {
     . axmol_build @sub_args
     if ($TARGET_OS -eq 'winrt') {
         $appxManifestFile = Join-Path $BUILD_DIR "bin/$cmake_target/$optimize_flag/Appx/AppxManifest.xml"
+        if (!(Test-Path $appxManifestFile -PathType Leaf)) {
+            $appxManifestFile = Join-Path $BUILD_DIR "bin/$cmake_target/$optimize_flag/AppxManifest.xml"
+        }
 
         # deploy by visual studio major program: devenv.exe
         $vswherePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
@@ -107,8 +110,9 @@ function axmol_deploy() {
             $devenvRoot = Split-Path $devenvPath -Parent
             $env:PATH = "$devenvRoot;$env:PATH"
             $slnDir = $BUILD_DIR
-            $slnFileName = (Get-ChildItem $slnDir *.sln).Name
+            $slnFileName = Get-ChildItem "$slnDir\*" -Include *.slnx,*.sln -File -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Name
             $slnFilePath = Join-Path $slnDir $slnFileName
+            println "Executing: 'devenv $slnFilePath /deploy $optimize_flag /project $cmake_target /projectconfig $optimize_flag'"
             devenv $slnFilePath /deploy $optimize_flag /project $cmake_target /projectconfig $optimize_flag
         }
 
@@ -148,6 +152,10 @@ function axmol_deploy() {
         [XML]$androidManifest = Get-Content $androidManifestFile
         $androidActivity = $androidManifest.manifest.application.activity.name
 
+        $adb_cmd = find_cmd 'adb'
+        if (!$adb_cmd) {
+            $1k.addpath("$env:ANDROID_HOME/platform-tools", $false)
+        }
         adb install -t -r $apkFullPath
         if ($?) {
             println "Deploy $cmake_target done: $androidAppId/$androidActivity"

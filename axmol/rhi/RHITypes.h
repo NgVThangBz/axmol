@@ -319,14 +319,14 @@ enum class DepthStencilFlags : unsigned int
 AX_ENABLE_BITMASK_OPS(DepthStencilFlags)
 AX_ENABLE_BITSHIFT_OPS(DepthStencilFlags)
 
-enum class CullMode : uint32_t
+enum class CullMode : uint8_t
 {
-    NONE  = 0x00000000,
-    BACK  = 0x00000001,
-    FRONT = 0x00000002
+    NONE  = 0x00,
+    BACK  = 0x01,
+    FRONT = 0x02
 };
 
-enum class Winding : uint32_t
+enum class Winding : uint8_t
 {
     CLOCK_WISE,
     COUNTER_CLOCK_WISE
@@ -600,7 +600,7 @@ struct UniformLocation
 
 struct UniformLocationHash
 {
-    size_t operator()(UniformLocation const& u) const noexcept { return std::size_t(u.location); }
+    size_t operator()(UniformLocation const& u) const noexcept { return size_t(u.location); }
 };
 
 // vertex input descriptor in vertex shader
@@ -705,7 +705,14 @@ struct ProgramType
 
 struct RectI
 {
-    RectI() { this->x = this->y = this->w = this->h = 0; }
+    constexpr RectI() { this->x = this->y = this->w = this->h = 0; }
+    constexpr RectI(int xx, int yy, int ww, int hh)
+    {
+        this->x = xx;
+        this->y = yy;
+        this->w = ww;
+        this->h = hh;
+    }
     int x;
     int y;
 
@@ -727,12 +734,12 @@ struct RectI
     {
         return this->x == v.x && this->y == v.y && this->width == v.width && this->height == v.height;
     }
-    inline RectI& set(int x, int y, int w, int h)
+    inline RectI& set(int x1, int y1, int w1, int h1)
     {
-        this->x      = x;
-        this->y      = y;
-        this->width  = w;
-        this->height = h;
+        this->x      = x1;
+        this->y      = y1;
+        this->width  = w1;
+        this->height = h1;
         return *this;
     }
 };

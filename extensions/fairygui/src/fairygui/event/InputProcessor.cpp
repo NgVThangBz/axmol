@@ -4,7 +4,7 @@
 #include "GRoot.h"
 #include "GRichTextField.h"
 #include "GTextInput.h"
-#include "utils/WeakPtr.h"
+#include "axmol/base/WeakPtr.h"
 
 NS_FGUI_BEGIN
 using namespace ax;
@@ -21,76 +21,62 @@ public:
 
     void reset();
 
-    ax::Touch* touch;
+    ax::PointerEvent* event;
+    intptr_t pointerId;
     ax::Vec2 pos;
-    int touchId;
     int clickCount;
     int mouseWheelDelta;
-    ax::EventMouse::MouseButton button;
+    int button;
     ax::Vec2 downPos;
     bool began;
     bool clickCancelled;
     clock_t lastClickTime;
-    WeakPtr lastRollOver;
-    std::vector<WeakPtr> downTargets;
-    std::vector<WeakPtr> touchMonitors;
+    ax::WeakPtr<GObject> lastRollOver;
+    std::vector<ax::WeakPtr<GObject>> downTargets;
+    std::vector<ax::WeakPtr<GObject>> touchMonitors;
 };
 
 InputProcessor::InputProcessor(GComponent* owner) :
     _keyModifiers(0),
-    _mouseListener(nullptr),
-    _touchListener(nullptr),
+    _pointerListener(nullptr),
     _keyboardListener(nullptr)
 {
     _owner = owner;
     _recentInput._inputProcessor = this;
 
-#ifdef AX_PLATFORM_PC
-    _mouseListener = EventListenerMouse::create();
-    AX_SAFE_RETAIN(_mouseListener);
-    _mouseListener->onMouseDown = AX_CALLBACK_1(InputProcessor::onMouseDown, this);
-    _mouseListener->onMouseUp = AX_CALLBACK_1(InputProcessor::onMouseUp, this);
-    _mouseListener->onMouseMove = AX_CALLBACK_1(InputProcessor::onMouseMove, this);
-    _mouseListener->onMouseScroll = AX_CALLBACK_1(InputProcessor::onMouseScroll, this);
-    _owner->displayObject()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_mouseListener, _owner->displayObject());
-#endif
+    _pointerListener = PointerEventListener::create();
+    AX_SAFE_RETAIN(_pointerListener);
+    _pointerListener->onPointerDown   = AX_CALLBACK_1(InputProcessor::onPointerDown, this);
+    _pointerListener->onPointerMove   = AX_CALLBACK_1(InputProcessor::onPointerMove, this);
+    _pointerListener->onPointerUp     = AX_CALLBACK_1(InputProcessor::onPointerUp, this);
+    _pointerListener->onPointerCancel = AX_CALLBACK_1(InputProcessor::onPointerCancel, this);
+    _pointerListener->onPointerScroll = AX_CALLBACK_1(InputProcessor::onPointerScroll, this);
+    _owner->displayObject()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_pointerListener,
+                                                                                          _owner->displayObject());
 
-    _touchListener = EventListenerTouchOneByOne::create();
-    AX_SAFE_RETAIN(_touchListener);
-    _touchListener->setSwallowTouches(false);
-    _touchListener->onTouchBegan = AX_CALLBACK_2(InputProcessor::onTouchBegan, this);
-    _touchListener->onTouchMoved = AX_CALLBACK_2(InputProcessor::onTouchMoved, this);
-    _touchListener->onTouchEnded = AX_CALLBACK_2(InputProcessor::onTouchEnded, this);
-    _touchListener->onTouchCancelled = AX_CALLBACK_2(InputProcessor::onTouchCancelled, this);
-    _owner->displayObject()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_touchListener, _owner->displayObject());
-
-    _keyboardListener = EventListenerKeyboard::create();
+    _keyboardListener = KeyboardEventListener::create();
     AX_SAFE_RETAIN(_keyboardListener);
-    _keyboardListener->onKeyPressed = AX_CALLBACK_2(InputProcessor::onKeyDown, this);
-    _keyboardListener->onKeyReleased = AX_CALLBACK_2(InputProcessor::onKeyUp, this);
+    _keyboardListener->onKeyPressed = AX_CALLBACK_1(InputProcessor::onKeyDown, this);
+    _keyboardListener->onKeyReleased = AX_CALLBACK_1(InputProcessor::onKeyUp, this);
     _owner->displayObject()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_keyboardListener, _owner->displayObject());
 }
 
 InputProcessor::~InputProcessor()
 {
-#ifdef AX_PLATFORM_PC
-    _owner->displayObject()->getEventDispatcher()->removeEventListener(_mouseListener);
-#endif
-    _owner->displayObject()->getEventDispatcher()->removeEventListener(_touchListener);
+    _owner->displayObject()->getEventDispatcher()->removeEventListener(_pointerListener);
     _owner->displayObject()->getEventDispatcher()->removeEventListener(_keyboardListener);
-    AX_SAFE_RELEASE_NULL(_touchListener);
-    AX_SAFE_RELEASE_NULL(_mouseListener);
+    AX_SAFE_RELEASE_NULL(_pointerListener);
     AX_SAFE_RELEASE_NULL(_keyboardListener);
 
     for (auto &ti : _touches)
         delete ti;
 }
 
-ax::Vec2 InputProcessor::getTouchPosition(int touchId)
+ax::Vec2 InputProcessor::getTouchPosition(intptr_t touchId)
 {
     for (auto &ti : _touches)
     {
-        if (ti->touchId == touchId)
+        if (ti->pointerId == touchId)
             return ti->pos;
     }
     return _recentInput.getPosition();
@@ -101,9 +87,9 @@ TouchInfo* InputProcessor::getTouch(int touchId, bool createIfNotExisits)
     TouchInfo* ret = nullptr;
     for (auto &ti : _touches)
     {
-        if (ti->touchId == touchId)
+        if (ti->pointerId == touchId)
             return ti;
-        else if (ti->touchId == -1)
+        else if (ti->pointerId == -1)
             ret = ti;
     }
 
@@ -115,7 +101,7 @@ TouchInfo* InputProcessor::getTouch(int touchId, bool createIfNotExisits)
         ret = new TouchInfo();
         _touches.push_back(ret);
     }
-    ret->touchId = touchId;
+    ret->pointerId = touchId;
     return ret;
 }
 
@@ -127,8 +113,7 @@ void InputProcessor::updateRecentInput(TouchInfo* ti, GObject* target)
     _recentInput._clickCount = ti->clickCount;
     _recentInput._button = ti->button;
     _recentInput._mouseWheelDelta = ti->mouseWheelDelta;
-    _recentInput._touch = ti->touch;
-    _recentInput._touchId = ti->touch ? ti->touchId : -1;
+    _recentInput._pointerId       = ti->event ? ti->event->getPointerId() : -1;
 
     int curFrame = Director::getInstance()->getTotalFrames();
     bool flag = target != _owner;
@@ -144,12 +129,12 @@ void InputProcessor::handleRollOver(TouchInfo* touch, GObject* target)
     if (touch->lastRollOver == target)
         return;
 
-    std::vector<WeakPtr> rollOutChain;
-    std::vector<WeakPtr> rollOverChain;
-    GObject* element = touch->lastRollOver.ptr();
+    std::vector<ax::WeakPtr<GObject>> rollOutChain;
+    std::vector<ax::WeakPtr<GObject>> rollOverChain;
+    GObject* element = touch->lastRollOver.get();
     while (element != nullptr)
     {
-        rollOutChain.push_back(WeakPtr(element));
+        rollOutChain.emplace_back(element);
         element = element->findParent();
     }
 
@@ -162,7 +147,7 @@ void InputProcessor::handleRollOver(TouchInfo* touch, GObject* target)
             rollOutChain.resize(iter - rollOutChain.cbegin());
             break;
         }
-        rollOverChain.push_back(WeakPtr(element));
+        rollOverChain.emplace_back(element);
 
         element = element->findParent();
     }
@@ -171,14 +156,14 @@ void InputProcessor::handleRollOver(TouchInfo* touch, GObject* target)
 
     for (auto &wptr : rollOutChain)
     {
-        element = wptr.ptr();
+        element = wptr.get();
         if (element && element->onStage())
             element->dispatchEvent(UIEventType::RollOut);
     }
 
     for (auto &wptr : rollOverChain)
     {
-        element = wptr.ptr();
+        element = wptr.get();
         if (element && element->onStage())
             element->dispatchEvent(UIEventType::RollOver);
     }
@@ -192,7 +177,7 @@ void InputProcessor::addTouchMonitor(int touchId, GObject * target)
 
     auto it = std::find(ti->touchMonitors.cbegin(), ti->touchMonitors.cend(), target);
     if (it == ti->touchMonitors.cend())
-        ti->touchMonitors.push_back(WeakPtr(target));
+        ti->touchMonitors.emplace_back(target);
 }
 
 void InputProcessor::removeTouchMonitor(GObject * target)
@@ -216,27 +201,27 @@ void InputProcessor::simulateClick(GObject* target, int touchId)
 {
     _activeProcessor = this;
 
-    Vec2 pt = target->localToGlobal(Vec2::ZERO);
+    Vec2 pt = target->localToGlobal(Vec2::zero);
     _recentInput._pos.x = pt.x;
     _recentInput._pos.y = pt.y;
     _recentInput._target = target;
     _recentInput._clickCount = 1;
-    _recentInput._button = EventMouse::MouseButton::BUTTON_LEFT;
-    _recentInput._touch = nullptr;
-    _recentInput._touchId = touchId;
+    _recentInput._button = ax::InputButton::Left;
+    _recentInput._pointerEvent = nullptr;
+    _recentInput._pointerId = touchId;
 
     if (_captureCallback)
         _captureCallback(UIEventType::TouchBegin);
 
-    WeakPtr wptr(target);
+    ax::WeakPtr<GObject> wptr(target);
     target->bubbleEvent(UIEventType::TouchBegin);
 
-    target = wptr.ptr();
+    target = wptr.get();
     if (target)
     {
         target->bubbleEvent(UIEventType::TouchEnd);
 
-        target = wptr.ptr();
+        target = wptr.get();
         if (target)
             target->bubbleEvent(UIEventType::Click);
     }
@@ -254,7 +239,7 @@ void InputProcessor::setBegin(TouchInfo* touch, GObject* target)
     GObject* obj = target;
     while (obj != nullptr)
     {
-        touch->downTargets.push_back(WeakPtr(obj));
+        touch->downTargets.emplace_back(obj);
         obj = obj->findParent();
     }
 }
@@ -285,7 +270,7 @@ GObject* InputProcessor::clickTest(TouchInfo* touch, GObject* target)
         || std::abs(touch->pos.x - touch->downPos.x) > 50 || std::abs(touch->pos.y - touch->downPos.y) > 50)
         return nullptr;
 
-    GObject* obj = touch->downTargets[0].ptr();
+    GObject* obj = touch->downTargets[0].get();
     if (obj && obj->onStage())
         return obj;
 
@@ -293,10 +278,11 @@ GObject* InputProcessor::clickTest(TouchInfo* touch, GObject* target)
     while (obj != nullptr)
     {
         auto it = std::find(touch->downTargets.cbegin(), touch->downTargets.cend(), obj);
-        if (it != touch->downTargets.cend() && it->onStage())
+        if (it != touch->downTargets.cend())
         {
-            obj = it->ptr();
-            break;
+            obj = it->get();
+            if (obj && obj->onStage())
+                break;
         }
 
         obj = obj->findParent();
@@ -312,41 +298,43 @@ bool InputProcessor::isTouchOnUI()
 
 void InputProcessor::disableDefaultTouchEvent()
 {
-    _owner->displayObject()->getEventDispatcher()->removeEventListener(_touchListener);
+    _owner->displayObject()->getEventDispatcher()->removeEventListener(_pointerListener);
 }
 
-bool InputProcessor::touchDown(ax::Touch *touch, ax::Event *event)
+bool InputProcessor::pointerDown(ax::PointerEvent *event)
 {
-    return onTouchBegan(touch, event);
+    return onPointerDown(event);
 }
 
-void InputProcessor::touchMove(ax::Touch *touch, ax::Event *event)
+void InputProcessor::pointerMove(ax::PointerEvent* event)
 {
-    onTouchMoved(touch, event);
+    onPointerMove(event);
 }
 
-void InputProcessor::touchUp(ax::Touch *touch, ax::Event *event)
+void InputProcessor::pointerUp(ax::PointerEvent* event)
 {
-    onTouchEnded(touch, event);
+    onPointerUp(event);
 }
 
-bool InputProcessor::onTouchBegan(Touch *touch, Event* /*unusedEvent*/)
+bool InputProcessor::onPointerDown(ax::PointerEvent* event)
 {
+    if (!event->isPrimaryPressed())
+        return false;
+
     if (!(_owner->isTouchable() && _owner->isVisible())) {
         return false;
     }
     
     auto camera = Camera::getVisitingCamera();
-    Vec2 pt = touch->getLocation();
+    Vec2 pt         = event->getLocation();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
         target = _owner;
-    _touchListener->setSwallowTouches(target != _owner);
 
-    TouchInfo* ti = getTouch(touch->getID());
+    TouchInfo* ti    = getTouch(event->getPointerId());
     ti->pos = UIRoot->worldToRoot(pt);
-    ti->button = EventMouse::MouseButton::BUTTON_LEFT;
-    ti->touch = touch;
+    ti->button = ax::InputButton::Left;
+    ti->event  = event;
     setBegin(ti, target);
 
     updateRecentInput(ti, target);
@@ -355,9 +343,9 @@ bool InputProcessor::onTouchBegan(Touch *touch, Event* /*unusedEvent*/)
     if (_captureCallback)
         _captureCallback(UIEventType::TouchBegin);
 
-    WeakPtr wptr(target);
+    ax::WeakPtr<GObject> wptr(target);
     target->bubbleEvent(UIEventType::TouchBegin);
-    target = wptr.ptr();
+    target = wptr.get();
 
     handleRollOver(ti, target);
 
@@ -366,18 +354,18 @@ bool InputProcessor::onTouchBegan(Touch *touch, Event* /*unusedEvent*/)
     return true;
 }
 
-void InputProcessor::onTouchMoved(Touch *touch, Event* /*unusedEvent*/)
+void InputProcessor::onPointerMove(ax::PointerEvent* event)
 {
     auto camera = Camera::getVisitingCamera();
-    Vec2 pt = touch->getLocation();
+    Vec2 pt         = event->getLocation();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
         target = _owner;
 
-    TouchInfo* ti = getTouch(touch->getID());
+    TouchInfo* ti = getTouch(event->getPointerId());
     ti->pos = UIRoot->worldToRoot(pt);
-    ti->button = EventMouse::MouseButton::BUTTON_LEFT;
-    ti->touch = touch;
+    ti->button    = ax::InputButton::Left;
+    ti->event     = event;
 
     updateRecentInput(ti, target);
     _activeProcessor = this;
@@ -395,7 +383,7 @@ void InputProcessor::onTouchMoved(Touch *touch, Event* /*unusedEvent*/)
         {
             for (size_t i = 0; i < cnt; i++)
             {
-                GObject* mm = ti->touchMonitors[i].ptr();
+                GObject* mm = ti->touchMonitors[i].get();
                 if (!mm)
                     continue;
 
@@ -411,18 +399,18 @@ void InputProcessor::onTouchMoved(Touch *touch, Event* /*unusedEvent*/)
     _activeProcessor = nullptr;
 }
 
-void InputProcessor::onTouchEnded(Touch *touch, Event* /*unusedEvent*/)
+void InputProcessor::onPointerUp(ax::PointerEvent* event)
 {
     auto camera = Camera::getVisitingCamera();
-    Vec2 pt = touch->getLocation();
+    Vec2 pt         = event->getLocation();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
         target = _owner;
 
-    TouchInfo* ti = getTouch(touch->getID());
+    TouchInfo* ti = getTouch(event->getPointerId());
     ti->pos = UIRoot->worldToRoot(pt);
-    ti->button = EventMouse::MouseButton::BUTTON_LEFT;
-    ti->touch = touch;
+    ti->button = ax::InputButton::Left;
+    ti->event     = event;
     setEnd(ti, target);
 
     updateRecentInput(ti, target);
@@ -431,13 +419,13 @@ void InputProcessor::onTouchEnded(Touch *touch, Event* /*unusedEvent*/)
     if (_captureCallback)
         _captureCallback(UIEventType::TouchEnd);
 
-    WeakPtr wptr(target);
+    ax::WeakPtr<GObject> wptr(target);
     size_t cnt = ti->touchMonitors.size();
     if (cnt > 0)
     {
         for (size_t i = 0; i < cnt; i++)
         {
-            GObject* mm = ti->touchMonitors[i].ptr();
+            GObject* mm = ti->touchMonitors[i].get();
             if (!mm)
                 continue;
 
@@ -446,12 +434,12 @@ void InputProcessor::onTouchEnded(Touch *touch, Event* /*unusedEvent*/)
                 mm->dispatchEvent(UIEventType::TouchEnd);
         }
         ti->touchMonitors.clear();
-        target = wptr.ptr();
+        target = wptr.get();
     }
     if (target)
     {
         target->bubbleEvent(UIEventType::TouchEnd);
-        target = wptr.ptr();
+        target = wptr.get();
     }
 
     target = clickTest(ti, target);
@@ -467,12 +455,12 @@ void InputProcessor::onTouchEnded(Touch *touch, Event* /*unusedEvent*/)
             if (linkHref)
             {
                 tf->bubbleEvent(UIEventType::ClickLink, nullptr, Value(linkHref));
-                target = wptr.ptr();
+                target = wptr.get();
             }
         }
 
         target->bubbleEvent(UIEventType::Click);
-        target = wptr.ptr();
+        target = wptr.get();
     }
 
 #ifndef AX_PLATFORM_PC
@@ -481,19 +469,19 @@ void InputProcessor::onTouchEnded(Touch *touch, Event* /*unusedEvent*/)
 #else
     handleRollOver(ti, target);
 #endif
-    ti->touchId = -1;
-    ti->button = EventMouse::MouseButton::BUTTON_UNSET;
+    ti->pointerId = -1;
+    ti->button = ax::InputButton::None;
 
     _activeProcessor = nullptr;
 }
 
-void InputProcessor::onTouchCancelled(Touch* touch, Event* /*unusedEvent*/)
+void InputProcessor::onPointerCancel(ax::PointerEvent* event)
 {
-    TouchInfo* ti = getTouch(touch->getID());
+    TouchInfo* ti = getTouch(event->getPointerId());
     if (ti == nullptr)
         return;
 
-    ti->touch = touch;
+    ti->event = event;
     updateRecentInput(ti, _owner);
     _activeProcessor = this;
 
@@ -505,7 +493,7 @@ void InputProcessor::onTouchCancelled(Touch* touch, Event* /*unusedEvent*/)
     {
         for (size_t i = 0; i < cnt; i++)
         {
-            GObject* mm = ti->touchMonitors[i].ptr();
+            GObject* mm = ti->touchMonitors[i].get();
             if (!mm)
                 continue;
 
@@ -518,161 +506,12 @@ void InputProcessor::onTouchCancelled(Touch* touch, Event* /*unusedEvent*/)
 
     handleRollOver(ti, nullptr);
 
-    ti->touchId = -1;
-    ti->button = EventMouse::MouseButton::BUTTON_UNSET;
+    ti->pointerId = -1;
+    ti->button = ax::InputButton::None;
     _activeProcessor = nullptr;
 }
 
-bool InputProcessor::onMouseDown(ax::EventMouse * event)
-{
-    if (event->getMouseButton() == EventMouse::MouseButton::BUTTON_LEFT)
-        return true;
-
-    auto camera = Camera::getVisitingCamera();
-    Vec2 pt = event->getLocation();
-    GObject* target = _owner->hitTest(pt, camera);
-    if (!target)
-        target = _owner;
-    _touchListener->setSwallowTouches(target != _owner);
-
-    TouchInfo* ti = getTouch(0);
-    ti->pos = UIRoot->worldToRoot(pt);
-    ti->button = event->getMouseButton();
-    ti->touch = nullptr;
-    setBegin(ti, target);
-
-    updateRecentInput(ti, target);
-    _activeProcessor = this;
-
-    if (_captureCallback)
-        _captureCallback(UIEventType::TouchBegin);
-
-    WeakPtr wptr(target);
-    target->bubbleEvent(UIEventType::TouchBegin);
-
-    _activeProcessor = nullptr;
-
-    return true;
-}
-
-bool InputProcessor::onMouseUp(ax::EventMouse * event)
-{
-    if (event->getMouseButton() == EventMouse::MouseButton::BUTTON_LEFT)
-        return true;
-
-    auto camera = Camera::getVisitingCamera();
-    Vec2 pt = event->getLocation();
-    GObject* target = _owner->hitTest(pt, camera);
-    if (!target)
-        target = _owner;
-
-    TouchInfo* ti = getTouch(0);
-    ti->pos = UIRoot->worldToRoot(pt);
-    ti->button = event->getMouseButton();
-    ti->touch = nullptr;
-    setEnd(ti, target);
-
-    updateRecentInput(ti, target);
-    _activeProcessor = this;
-
-    if (_captureCallback)
-        _captureCallback(UIEventType::TouchEnd);
-
-    WeakPtr wptr(target);
-    size_t cnt = ti->touchMonitors.size();
-    if (cnt > 0)
-    {
-        for (size_t i = 0; i < cnt; i++)
-        {
-            GObject* mm = ti->touchMonitors[i].ptr();
-            if (!mm)
-                continue;
-
-            if (mm != target
-                && (!dynamic_cast<GComponent*>(mm) || !((GComponent*)mm)->isAncestorOf(target)))
-                mm->dispatchEvent(UIEventType::TouchEnd);
-        }
-        ti->touchMonitors.clear();
-        target = wptr.ptr();
-    }
-    if (target)
-    {
-        target->bubbleEvent(UIEventType::TouchEnd);
-        target = wptr.ptr();
-    }
-
-    target = clickTest(ti, target);
-    if (target)
-    {
-        wptr = target;
-        updateRecentInput(ti, target);
-
-        if (ti->button == EventMouse::MouseButton::BUTTON_MIDDLE)
-            target->bubbleEvent(UIEventType::MiddleClick);
-        else
-            target->bubbleEvent(UIEventType::RightClick);
-    }
-
-    ti->touchId = -1;
-    ti->button = EventMouse::MouseButton::BUTTON_UNSET;
-
-    _activeProcessor = nullptr;
-
-    return true;
-}
-
-bool InputProcessor::onMouseMove(ax::EventMouse * event)
-{
-    TouchInfo* ti = getTouch(0);
-    auto pt = event->getLocation();
-    Vec2 npos = UIRoot->worldToRoot(pt);
-    if (std::abs(ti->pos.x - npos.x) < 1
-        && std::abs(ti->pos.y - npos.y) < 1)
-        return true;
-
-    auto camera = Camera::getVisitingCamera();
-    GObject* target = _owner->hitTest(pt, camera);
-    if (!target)
-        target = _owner;
-
-    ti->pos = UIRoot->worldToRoot(pt);
-    ti->touch = nullptr;
-
-    updateRecentInput(ti, target);
-    _activeProcessor = this;
-
-    if (_captureCallback)
-        _captureCallback(UIEventType::TouchMove);
-
-    handleRollOver(ti, target);
-
-    if (ti->began)
-    {
-        bool done = false;
-        size_t cnt = ti->touchMonitors.size();
-        if (cnt > 0)
-        {
-            for (size_t i = 0; i < cnt; i++)
-            {
-                GObject* mm = ti->touchMonitors[i].ptr();
-                if (!mm)
-                    continue;
-
-                mm->dispatchEvent(UIEventType::TouchMove);
-                if (mm == _owner)
-                    done = true;
-            }
-        }
-        if (!done)
-            _owner->dispatchEvent(UIEventType::TouchMove);
-    }
-
-    _activeProcessor = nullptr;
-
-    return true;
-}
-
-bool InputProcessor::onMouseScroll(ax::EventMouse * event)
+bool InputProcessor::onPointerScroll(ax::PointerEvent* event)
 {
     auto camera = Camera::getVisitingCamera();
     Vec2 pt = event->getLocation();
@@ -682,7 +521,7 @@ bool InputProcessor::onMouseScroll(ax::EventMouse * event)
 
     TouchInfo* ti = getTouch(0);
     ti->pos = UIRoot->worldToRoot(pt);
-    ti->touch = nullptr;
+    ti->event = nullptr;
     ti->mouseWheelDelta = MAX(event->getScrollX(), event->getScrollY());
 
     updateRecentInput(ti, target);
@@ -696,13 +535,14 @@ bool InputProcessor::onMouseScroll(ax::EventMouse * event)
     return true;
 }
 
-void InputProcessor::onKeyDown(ax::EventKeyboard::KeyCode keyCode, ax::Event * event)
+void InputProcessor::onKeyDown(ax::KeyboardEvent* event)
 {
-    if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_CTRL || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_CTRL)
+    auto keyCode = event->getKeyCode();
+    if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_CTRL || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_CTRL)
         _keyModifiers |= 1;
-    else if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ALT || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ALT)
+    else if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_ALT || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_ALT)
         _keyModifiers |= 2;
-    else if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_SHIFT || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_SHIFT)
+    else if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_SHIFT || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_SHIFT)
         _keyModifiers |= 4;
 
     _recentInput._keyCode = keyCode;
@@ -713,13 +553,14 @@ void InputProcessor::onKeyDown(ax::EventKeyboard::KeyCode keyCode, ax::Event * e
 	_activeProcessor = nullptr; // add by binxiaojiao
 }
 
-void InputProcessor::onKeyUp(ax::EventKeyboard::KeyCode keyCode, ax::Event *)
+void InputProcessor::onKeyUp(ax::KeyboardEvent* event)
 {
-    if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_CTRL || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_CTRL)
+    auto keyCode = event->getKeyCode();
+    if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_CTRL || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_CTRL)
         _keyModifiers &= ~1;
-    else if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ALT || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ALT)
+    else if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_ALT || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_ALT)
         _keyModifiers &= ~2;
-    else if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_SHIFT || keyCode == EventKeyboard::KeyCode::KEY_RIGHT_SHIFT)
+    else if (keyCode == KeyboardEvent::KeyCode::KEY_LEFT_SHIFT || keyCode == KeyboardEvent::KeyCode::KEY_RIGHT_SHIFT)
         _keyModifiers &= ~4;
 
     _recentInput._keyCode = keyCode;
@@ -731,11 +572,11 @@ void InputProcessor::onKeyUp(ax::EventKeyboard::KeyCode keyCode, ax::Event *)
 }
 
 TouchInfo::TouchInfo() :
-    touch(nullptr),
-    touchId(-1),
+    event(nullptr),
+    pointerId(-1),
     clickCount(0),
     mouseWheelDelta(0),
-    button(EventMouse::MouseButton::BUTTON_UNSET),
+    button(ax::InputButton::None),
     began(false),
     lastClickTime(0),
     clickCancelled(false)
@@ -750,10 +591,10 @@ TouchInfo::~TouchInfo()
 
 void TouchInfo::reset()
 {
-    touchId = -1;
+    pointerId       = -1;
     mouseWheelDelta = 0;
-    button = EventMouse::MouseButton::BUTTON_UNSET;
-    touch = nullptr;
+    button = ax::InputButton::None;
+    event = nullptr;
     pos.setZero();
     downPos.setZero();
     clickCount = 0;

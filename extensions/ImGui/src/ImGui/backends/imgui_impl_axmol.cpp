@@ -3,14 +3,16 @@
 #include "axmol/base/Director.h"
 #include "axmol/base/Data.h"
 #if defined(AX_PLATFORM_GLFW)
-#    include "axmol/platform/RenderViewImpl.h"
+#    include "axmol/platform/RenderView.h"
 #endif
 #include "axmol/rhi/Program.h"
 #include "axmol/rhi/ProgramState.h"
 #include "axmol/renderer/ProgramManager.h"
 #include "axmol/renderer/Shaders.h"
 #include "axmol/renderer/Renderer.h"
+#include "axmol/renderer/CustomCommand.h"
 #include "axmol/renderer/CallbackCommand.h"
+#include "axmol/scene/Camera.h"
 #include "axmol/rhi/DriverContext.h"
 #include "axmol/rhi/Buffer.h"
 
@@ -129,9 +131,9 @@ struct ImGui_ImplAxmol_Data
     // axmol spec data, TODO: new type: ImGui_ImplAxmol_Data
     std::chrono::steady_clock::time_point LastFrameTime{};
 
-    ImGuiImplAxmolUpdateFontsFn UpdateFontsFunc = nullptr;
-    void* UpdateFontsFuncUserData               = nullptr;
-    bool FontsDirty                             = false;
+    ImGuiImplAxmolRebuildFontsFn RebuildFontsFunc = nullptr;
+    void* RebuildFontsFuncUserData                = nullptr;
+    bool FontsDirty                               = false;
 
     ProgramInfoData ProgramInfo{};
     Mat4 Projection;
@@ -335,8 +337,8 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_NewFrame()
     if (bd->FontsDirty)
     {
         // since imgui-1.92.0, rebuild font atlas at here
-        if (bd->UpdateFontsFunc)
-            bd->UpdateFontsFunc(bd->UpdateFontsFuncUserData);
+        if (bd->RebuildFontsFunc)
+            bd->RebuildFontsFunc(bd->RebuildFontsFuncUserData);
 
         bd->FontsDirty = false;
     }
@@ -358,6 +360,8 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
     ImGui_ImplAxmol_SaveRenderState(renderer);
 
     ImGui_ImplAxmol_SetupRenderState(renderer, draw_data, fb_width, fb_height);
+
+    auto drawCallback_ResetState = ImGui::GetPlatformIO().DrawCallback_ResetRenderState;
 
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clip_off   = draw_data->DisplayPos;        // (0,0) unless using multi-viewports
@@ -389,7 +393,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user
                 // to request the renderer to reset render state.)
-                if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                if (pcmd->UserCallback == drawCallback_ResetState)
                     ImGui_ImplAxmol_SetupRenderState(renderer, draw_data, fb_width, fb_height);
                 else
                 {
@@ -409,17 +413,13 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
                 {
                     // Apply scissor/clipping rectangle
                     ImGui_ImplAxmol_PostCommand([=]() {
-                        if (rhi::DriverContext::isD3D12())
-                            renderer->setScissorRect(clip_rect.x, clip_rect.y, clip_rect.z - clip_rect.x,
-                                                     clip_rect.w - clip_rect.y);
-                        else
-                            renderer->setScissorRect(clip_rect.x, fb_height - clip_rect.w, clip_rect.z - clip_rect.x,
-                                                     clip_rect.w - clip_rect.y);
+                        renderer->setScissorRect(clip_rect.x, fb_height - clip_rect.w, clip_rect.z - clip_rect.x,
+                                                 clip_rect.w - clip_rect.y);
                     });
 
                     auto bd = ImGui_ImplAxmol_GetBackendData();
 
-                    if (typeid(*((Object*)pcmd->TexRef.GetTexID())) == typeid(Texture2D))
+                    if (dynamic_cast<Texture2D*>((Object*)pcmd->TexRef.GetTexID()))
                     {
                         auto tex = (Texture2D*)(uintptr_t)(pcmd->TexRef.GetTexID());
                         auto cmd = std::make_shared<CustomCommand>();
@@ -450,8 +450,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderDrawData(ImDrawData* draw_data)
                         const auto tr = node->getNodeToParentTransform();
                         node->setVisible(true);
                         node->setNodeToParentTransform(tr);
-                        const auto& proj =
-                            Director::getInstance()->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+                        const auto& proj = Camera::getDefaultCamera()->getViewProjectionMatrix();
                         node->visit(Director::getInstance()->getRenderer(), proj.getInversed() * bd->Projection, 0);
                         node->setVisible(false);
                     }
@@ -597,11 +596,11 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_DestroyDeviceObjects()
             ImGui_ImplAxmol_DestroyTexture(tex);
 }
 
-IMGUI_IMPL_API void ImGui_ImplAxmol_SetUpdateFontsFunc(ImGuiImplAxmolUpdateFontsFn func, void* userdata)
+IMGUI_IMPL_API void ImGui_ImplAxmol_SetRebuildFontsFunc(ImGuiImplAxmolRebuildFontsFn func, void* userdata)
 {
-    auto bd                     = ImGui_ImplAxmol_GetBackendData();
-    bd->UpdateFontsFunc         = func;
-    bd->UpdateFontsFuncUserData = userdata;
+    auto bd                      = ImGui_ImplAxmol_GetBackendData();
+    bd->RebuildFontsFunc         = func;
+    bd->RebuildFontsFuncUserData = userdata;
 }
 
 IMGUI_IMPL_API void ImGui_ImplAxmol_MarkFontsDirty()

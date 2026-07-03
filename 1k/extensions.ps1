@@ -1,7 +1,7 @@
 # PowerShell 5.x No builtin variable: $IsWindows
-if ($Global:__1k_ext_imported) { return }
+if ($Global:__1k_ext_imported_v3) { return }
 
-$Global:__1k_ext_imported = $true
+$Global:__1k_ext_imported_v3 = $true
 
 $Global:IsWin = $IsWindows -or ("$env:OS" -eq 'Windows_NT')
 
@@ -302,4 +302,12 @@ function Global:Get-NativeArchitecture {
     }
 
     return $arch
+}
+
+function Global:eval($code) {
+    return Invoke-Expression $code
+}
+
+function Global:expand_str($str) {
+    return $ExecutionContext.InvokeCommand.ExpandString($str)
 }

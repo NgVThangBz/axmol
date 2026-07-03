@@ -223,7 +223,7 @@ void EffectBlur::setTarget(EffectSprite* sprite)
     if (_programState == nullptr)
         return;
 
-    Size size = sprite->getTexture()->getContentSizeInPixels();
+    Size size = sprite->getTexture()->getPixelSize();
     SET_UNIFORM(_programState, "resolution", size);
     SET_UNIFORM(_programState, "blurRadius", _blurRadius);
     SET_UNIFORM(_programState, "sampleNum", _blurSampleNum);
@@ -284,8 +284,8 @@ protected:
 
     virtual void setTarget(EffectSprite* sprite) override
     {
-        auto s = sprite->getTexture()->getContentSizeInPixels();
-        SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
+        auto s = sprite->getTexture()->getPixelSize();
+        SET_UNIFORM(_programState, "resolution", s);
     }
 };
 
@@ -304,7 +304,7 @@ protected:
 
     virtual void setTarget(EffectSprite* sprite) override
     {
-        auto s = sprite->getTexture()->getContentSizeInPixels();
+        auto s = sprite->getTexture()->getPixelSize();
         SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
     }
 };
@@ -352,7 +352,7 @@ protected:
 
     virtual void setTarget(EffectSprite* sprite) override
     {
-        auto s = sprite->getTexture()->getContentSizeInPixels();
+        auto s = sprite->getTexture()->getPixelSize();
         SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
     }
 };
@@ -372,7 +372,7 @@ protected:
 
     virtual void setTarget(EffectSprite* sprite) override
     {
-        auto s = sprite->getTexture()->getContentSizeInPixels();
+        auto s = sprite->getTexture()->getPixelSize();
         SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
     }
 };
@@ -392,7 +392,7 @@ protected:
 
     virtual void setTarget(EffectSprite* sprite) override
     {
-        auto s = sprite->getTexture()->getContentSizeInPixels();
+        auto s = sprite->getTexture()->getPixelSize();
         SET_UNIFORM(_programState, "textureResolution", Vec2(s.width, s.height));
         s = Director::getInstance()->getCanvasSize();
         SET_UNIFORM(_programState, "resolution", Vec2(s.width, s.height));
@@ -474,7 +474,7 @@ bool EffectSpriteTest::init()
     if (ShaderTestDemo2::init())
     {
 
-        auto layer = LayerColor::create(Color32::BLUE);
+        auto layer = LayerColor::create(Color32::blue);
         this->addChild(layer);
 
         auto s = Director::getInstance()->getCanvasSize();
@@ -560,24 +560,22 @@ bool EffectSpriteLamp::init()
         lampEffect->setLightPos(Vec3(lightPosInLocalSpace.x, lightPosInLocalSpace.y, 50.0f));
         lampEffect->setKBump(2);
         _sprite->setEffect(lampEffect);
-        _effect                  = lampEffect;
-        auto listener            = EventListenerTouchAllAtOnce::create();
-        listener->onTouchesBegan = AX_CALLBACK_2(EffectSpriteLamp::onTouchesBegan, this);
-        listener->onTouchesMoved = AX_CALLBACK_2(EffectSpriteLamp::onTouchesMoved, this);
-        listener->onTouchesEnded = AX_CALLBACK_2(EffectSpriteLamp::onTouchesEnded, this);
+        _effect                 = lampEffect;
+        auto listener           = PointerEventListener::create();
+        listener->onPointerDown = AX_CALLBACK_1(EffectSpriteLamp::onPointerDown, this);
+        listener->onPointerMove = AX_CALLBACK_1(EffectSpriteLamp::onPointerMove, this);
+        listener->onPointerUp   = AX_CALLBACK_1(EffectSpriteLamp::onPointerUp, this);
         _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
         return true;
     }
     return false;
 }
 
-void EffectSpriteLamp::onTouchesBegan(const std::vector<Touch*>& touches, Event* unused_event)
+bool EffectSpriteLamp::onPointerDown(PointerEvent* ev)
 {
-    for (auto&& item : touches)
     {
-        auto touch         = item;
         auto s             = Director::getInstance()->getCanvasSize();
-        Point loc_winSpace = touch->getLocationInView();
+        Point loc_winSpace = ev->getScreenLocation();
         _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
         Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
         Mat4 mat = _sprite->getNodeToWorldTransform();
@@ -585,31 +583,27 @@ void EffectSpriteLamp::onTouchesBegan(const std::vector<Touch*>& touches, Event*
             PointApplyAffineTransform(Vec2(pos.x, pos.y), _sprite->getWorldToNodeAffineTransform());
         ((EffectNormalMapped*)_effect)->setLightPos(Vec3(lightPosInLocalSpace.x, lightPosInLocalSpace.y, 50.0f));
     }
+    return true;
 }
 
-void EffectSpriteLamp::onTouchesMoved(const std::vector<Touch*>& touches, Event* unused_event)
+void EffectSpriteLamp::onPointerMove(PointerEvent* ev)
 {
-    for (auto&& item : touches)
-    {
-        auto touch         = item;
-        auto s             = Director::getInstance()->getCanvasSize();
-        Point loc_winSpace = touch->getLocationInView();
-        _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
-        Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
-        Mat4 mat = _sprite->getNodeToWorldTransform();
-        Point lightPosInLocalSpace =
-            PointApplyAffineTransform(Vec2(pos.x, pos.y), _sprite->getWorldToNodeAffineTransform());
-        ((EffectNormalMapped*)_effect)->setLightPos(Vec3(lightPosInLocalSpace.x, lightPosInLocalSpace.y, 50.0f));
-    }
+    auto s             = Director::getInstance()->getCanvasSize();
+    Point loc_winSpace = ev->getScreenLocation();
+    _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
+    Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
+    Mat4 mat = _sprite->getNodeToWorldTransform();
+    Point lightPosInLocalSpace =
+        PointApplyAffineTransform(Vec2(pos.x, pos.y), _sprite->getWorldToNodeAffineTransform());
+    ((EffectNormalMapped*)_effect)->setLightPos(Vec3(lightPosInLocalSpace.x, lightPosInLocalSpace.y, 50.0f));
+    return;
 }
 
-void EffectSpriteLamp::onTouchesEnded(const std::vector<Touch*>& touches, Event* unused_event)
+void EffectSpriteLamp::onPointerUp(PointerEvent* ev)
 {
-    for (auto&& item : touches)
     {
-        auto touch         = item;
         auto s             = Director::getInstance()->getCanvasSize();
-        Point loc_winSpace = touch->getLocationInView();
+        Point loc_winSpace = ev->getScreenLocation();
         _lightSprite->setPosition(Vec2(loc_winSpace.x, s.height - loc_winSpace.y));
         Vec3 pos(loc_winSpace.x, loc_winSpace.y, 50);
         Mat4 mat = _sprite->getNodeToWorldTransform();

@@ -27,7 +27,7 @@
 
 # build engine library and all tests
 
-cmake_minimum_required(VERSION 3.22...4.2)
+cmake_minimum_required(VERSION 3.22...4.3)
 
 project(axmol)
 
@@ -46,6 +46,9 @@ include(PreventInSourceBuilds)
 include(AXBuildSet)
 
 option(AX_BUILD_TESTS "Build cpp & lua tests" ON)
+
+# Mark that engine build is invoked from root
+set(BUILD_ENGINE_BEGAN ON)
 
 add_subdirectory(${_AX_ROOT}/axmol ${ENGINE_BINARY_PATH}/axmol)
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2019-2024 Arm Limited
+// Copyright 2019-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -724,6 +724,8 @@ ASTCENC_SIMD_INLINE vfloat4 operator/(vfloat4 a, vfloat4 b)
 
 /**
  * @brief Overload: vector by vector equality.
+ *
+ * Returns vector of false mask values if a or b is NaN.
  */
 ASTCENC_SIMD_INLINE vmask4 operator==(vfloat4 a, vfloat4 b)
 {
@@ -732,6 +734,8 @@ ASTCENC_SIMD_INLINE vmask4 operator==(vfloat4 a, vfloat4 b)
 
 /**
  * @brief Overload: vector by vector inequality.
+ *
+ * Returns vector of true mask values if a or b is NaN.
  */
 ASTCENC_SIMD_INLINE vmask4 operator!=(vfloat4 a, vfloat4 b)
 {
@@ -1218,7 +1222,7 @@ ASTCENC_SIMD_INLINE vint4 vtable_lookup_32bit(
  */
 ASTCENC_SIMD_INLINE vint4 interleave_rgba8(vint4 r, vint4 g, vint4 b, vint4 a)
 {
-// Workaround an XCode compiler internal fault; note is slower than slli_epi32
+// Workaround an Xcode compiler internal fault; note it is slower than slli_epi32
 // so we should revert this when we get the opportunity
 #if defined(__APPLE__)
 	__m128i value = r.m;

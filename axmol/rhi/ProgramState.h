@@ -28,12 +28,12 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
+#include <stdint.h>
 #include <functional>
 #include <span>
 #include "axmol/platform/PlatformMacros.h"
 #include "axmol/base/Object.h"
-#include "axmol/base/EventListenerCustom.h"
+#include "axmol/base/CustomEventListener.h"
 #include "axmol/rhi/RHITypes.h"
 #include "axmol/rhi/Program.h"
 #include "axmol/renderer/VertexLayoutManager.h"
@@ -129,7 +129,7 @@ public:
      * @param data Specifies the new values to be used for the specified uniform variable.
      * @param size Specifies the uniform data size.
      */
-    void setUniform(const rhi::UniformLocation& uniformLocation, const void* data, std::size_t size);
+    void setUniform(const rhi::UniformLocation& uniformLocation, const void* data, size_t size);
 
     /**
      * Get uniform location in given uniform name.
@@ -340,7 +340,7 @@ protected:
     uint64_t _batchId = -1;
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
-    EventListenerCustom* _backToForegroundListener{nullptr};
+    CustomEventListener* _backToForegroundListener{nullptr};
 #endif
 
     bool _isBatchable = false;

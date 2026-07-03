@@ -1,24 +1,22 @@
 include(CMakeParseArguments)
-find_program(PWSH_PROG NAMES pwsh powershell NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
+find_program(PWSH_EXECUTABLE NAMES pwsh powershell NO_PACKAGE_ROOT_PATH NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PATH NO_CMAKE_FIND_ROOT_PATH)
 
-if(NOT PWSH_PROG)
+if(NOT PWSH_EXECUTABLE)
   message("powershell not found.")
   message(FATAL_ERROR "Please install it https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell, and run CMake again.")
 endif()
 
-if (WASM)
+if(WASM)
   set(AX_WASM_SHELL_FILE "${_AX_ROOT}/axmol/platform/wasm/shell_minimal.html" CACHE STRING "The path of wasm shell file")
-  set(_AX_WASM_EXPORTS "_main,_axmol_webglcontextlost,_axmol_webglcontextrestored,_axmol_hdoc_visibilitychange,_axmol_onwebclickcallback")
+  set(_AX_WASM_EXPORTS "_main")
 
   # option: AX_WASM_ENABLE_DEVTOOLS
   option(AX_WASM_ENABLE_DEVTOOLS "Enable wasm devtools" ON)
-  if(AX_WASM_ENABLE_DEVTOOLS)
-    string(APPEND _AX_WASM_EXPORTS ",_axmol_dev_pause,_axmol_dev_resume,_axmol_dev_step")
-  endif()
   set(AX_WASM_EXPORTS "${_AX_WASM_EXPORTS}" CACHE STRING "" FORCE)
 
   # option: AX_WASM_ASSETS_PRELOAD_FILE
   option(AX_WASM_ASSETS_PRELOAD_FILE "Assets are preloaded into IndexedDB from .data file" ON)
+
   if(AX_WASM_ASSETS_PRELOAD_FILE)
     set(AX_WASM_ASSETS_LINKER_FLAG "--preload-file" CACHE STRING "" FORCE)
   else()
@@ -55,7 +53,7 @@ function(ax_sync_target_res ax_target)
       # get_filename_component(link_folder ${opt_LINK_TO} DIRECTORY)
       get_filename_component(link_folder_abs ${opt_LINK_TO} ABSOLUTE)
       add_custom_command(TARGET ${sync_target_name} POST_BUILD
-        COMMAND ${PWSH_PROG} ARGS ${_AX_ROOT}/1k/fsync.ps1
+        COMMAND ${PWSH_EXECUTABLE} ARGS ${_AX_ROOT}/1k/fsync.ps1
         -s ${cc_folder} -d ${link_folder_abs} -l ${opt_SYM_LINK}
       )
     endforeach()
@@ -96,18 +94,18 @@ function(ax_sync_lua_scripts ax_target src_dir dst_dir)
 
   if(MSVC)
     add_custom_command(TARGET ${luacompile_target} POST_BUILD
-      COMMAND ${PWSH_PROG} ARGS ${_AX_ROOT}/1k/fsync.ps1
+      COMMAND ${PWSH_EXECUTABLE} ARGS ${_AX_ROOT}/1k/fsync.ps1
       -s ${src_dir} -d ${dst_dir}
     )
   else()
     if("${CMAKE_BUILD_TYPE}" STREQUAL "")
       add_custom_command(TARGET ${luacompile_target} POST_BUILD
-        COMMAND ${PWSH_PROG} ARGS ${_AX_ROOT}/1k/fsync.ps1
+        COMMAND ${PWSH_EXECUTABLE} ARGS ${_AX_ROOT}/1k/fsync.ps1
         -s ${src_dir} -d ${dst_dir}
       )
     else()
       add_custom_command(TARGET ${luacompile_target} POST_BUILD
-        COMMAND ${PWSH_PROG} ARGS ${_AX_ROOT}/1k/fsync.ps1
+        COMMAND ${PWSH_EXECUTABLE} ARGS ${_AX_ROOT}/1k/fsync.ps1
         -s ${src_dir} -d ${dst_dir}
       )
     endif()
@@ -237,6 +235,7 @@ function(ax_sync_target_dlls ax_target)
   if(AX_GLES_PROFILE OR AX_ENABLE_D3D12 OR AX_ENABLE_D3D11)
     find_windows_sdk_bin(_winsdk_bin_dir ${ARCH_ALIAS})
     list(APPEND all_depend_dlls "${_winsdk_bin_dir}/d3dcompiler_47.dll")
+
     if(AX_ENABLE_D3D12)
       list(APPEND all_depend_dlls "${_winsdk_bin_dir}/dxcompiler.dll")
     endif()
@@ -522,6 +521,7 @@ function(ax_setup_app_config app_name)
       XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
       XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING "YES"
       XCODE_ATTRIBUTE_ENABLE_STDEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+
       # XCODE_ATTRIBUTE_STRIP_STYLE "debugging"
       XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)"
     )
@@ -587,16 +587,6 @@ function(ax_setup_app_config app_name)
       XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY ON
     )
 
-    # Detecting Xcode version
-    execute_process(
-      COMMAND xcodebuild -version
-      OUTPUT_VARIABLE XCODE_VERSION_RAW
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    string(REGEX MATCH "Xcode ([0-9]+\\.[0-9]+)" _match "${XCODE_VERSION_RAW}")
-    set(XCODE_VERSION "${CMAKE_MATCH_1}")
-
-    message(STATUS "Detected Xcode version: ${XCODE_VERSION}")
     if(XCODE_VERSION VERSION_LESS_EQUAL "14.2")
       message(STATUS
         "Detected Xcode ${XCODE_VERSION} (<= 14.2): "
@@ -674,7 +664,7 @@ macro(ax_setup_app_props app_name)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     target_link_options(${app_name} PRIVATE
       "-sEXPORTED_FUNCTIONS=[${AX_WASM_EXPORTS}]"
-      "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap,HEAPU8,requestFullscreen]"
+      "-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap,HEAPU8,requestFullscreen,lengthBytesUTF8,stringToUTF8]"
     )
     set(EMSCRIPTEN_LINK_FLAGS "-lidbfs.js -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s STACK_SIZE=4mb --shell-file ${AX_WASM_SHELL_FILE} --use-preload-cache")
 
@@ -739,6 +729,7 @@ macro(ax_setup_winrt_sources)
         ${_AX_ROOT}/${_AX_THIRDPARTY_NAME}/angle/_x/lib/${PLATFORM_NAME}/${ARCH_ALIAS}/libEGL.dll
       )
     endif()
+
     if(AX_ENABLE_D3D12)
       list(APPEND prebuilt_dlls "${_winsdk_bin_dir}/dxcompiler.dll")
     endif()
@@ -756,16 +747,7 @@ macro(ax_setup_winrt_sources)
     ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.idl
     ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.h
     ${_AX_ROOT}/axmol/platform/winrt/xaml/SwapChainPage.cpp
-    ${_AX_ROOT}/axmol/platform/winrt/xaml/AxmolRenderer.h
-    ${_AX_ROOT}/axmol/platform/winrt/xaml/AxmolRenderer.cpp
   )
-
-  if(AX_ENABLE_GL)
-    list(APPEND PLATFORM_SOURCES
-      ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.h
-      ${_AX_ROOT}/axmol/platform/winrt/xaml/EGLSurfaceProvider.cpp
-    )
-  endif()
 
   file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proj.winrt/App.xaml" APP_XAML_FULL_PATH)
   set_property(
@@ -974,3 +956,41 @@ macro(source_group_by_dir proj_dir source_files)
     endforeach(sgbd_file)
   endif(MSVC OR APPLE)
 endmacro(source_group_by_dir)
+
+# Helper function to recursively collect ONLY library targets
+function(ax_collect_sdk_targets dir out_list)
+  # Get targets defined in the current directory
+  get_property(local_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+
+  # Get all subdirectories
+  get_property(subdirs DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+
+  set(temp_list "")
+
+  # Filter targets
+  foreach(tg IN LISTS local_targets)
+    # Check target type (Static, Shared, Interface, Utility, etc.)
+    get_target_property(tg_type ${tg} TYPE)
+
+    # Condition 1: Skip executables (tests/tools) AND custom/utility targets (like axmol_shaders)
+    if(tg_type STREQUAL "EXECUTABLE" OR tg_type STREQUAL "UTILITY")
+      continue()
+    endif()
+
+    # Condition 2: Explicit safety check to bypass any test targets
+    if(tg MATCHES "-tests$")
+      continue()
+    endif()
+
+    list(APPEND temp_list ${tg})
+  endforeach()
+
+  # Recurse into subdirectories
+  foreach(subdir IN LISTS subdirs)
+    ax_collect_sdk_targets(${subdir} sub_list)
+    list(APPEND temp_list ${sub_list})
+  endforeach()
+
+  # Pass the filtered list back to the parent scope
+  set(${out_list} ${temp_list} PARENT_SCOPE)
+endfunction()

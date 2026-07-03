@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "axmol/platform/msw/ComPtr.h"
 #include "ntcvt/ntcvt.hpp"
 #include <algorithm>
-#include <cstring>
+#include <string.h>
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
@@ -222,7 +222,6 @@ DWriteTextRenderer& DWriteTextRenderer::sharedTextRenderer()
 
 DWriteTextRenderer::DWriteTextRenderer()
 {
-    std::ignore = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     initialize();
 }
 
@@ -233,7 +232,6 @@ DWriteTextRenderer::~DWriteTextRenderer()
     SafeRelease(_dwriteFactory);
     SafeRelease(_d2dFactory);
     SafeRelease(_wicFactory);
-    CoUninitialize();
 }
 
 bool DWriteTextRenderer::initialize()

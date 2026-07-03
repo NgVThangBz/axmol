@@ -438,12 +438,12 @@ RenderContext* DriverImpl::createRenderContext(SurfaceHandle surface)
     return new RenderContextImpl(this, surface);
 }
 
-Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial)
+Buffer* DriverImpl::createBuffer(size_t size, BufferType type, BufferUsage usage, const void* initial)
 {
     return new BufferImpl(_mtlDevice, size, type, usage, initial);
 }
 
-Texture* DriverImpl::createTexture(const TextureDesc& descriptor)
+Texture* DriverImpl::createTexture(const TextureDesc& descriptor, std::optional<Color>)
 {
     return new TextureImpl(_mtlDevice, descriptor);
 }
@@ -513,7 +513,7 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
     if (@available(iOS 14.0, macOS 10.12, *))
     {
         supportBorderColor = ([_mtlDevice respondsToSelector:@selector(supportsSamplerBorderColor)] &&
-                              [_mtlDevice supportsSamplerBorderColor]);
+                              (bool)(void*)[_mtlDevice performSelector:@selector(supportsSamplerBorderColor)]);
     }
 
     // --- Address Modes ---

@@ -39,19 +39,19 @@ struct AX_DLL Vec4Base
 {
     constexpr Vec4Base() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
     constexpr Vec4Base(float xx, float yy, float zz, float ww) : x(xx), y(yy), z(zz), w(ww) {}
-    explicit Vec4Base(const float* src) { this->set(src); }
+    constexpr explicit Vec4Base(const float* src) : x(src[0]), y(src[1]), z(src[2]), w(src[3]) {}
 
     /**
      * Sets the elements of this vector to those in the specified vector.
      *
-     * @param v The vector to copy.
+     * @param val The vector to copy.
      */
-    void set(const Vec4Base& v)
+    void set(const Vec4Base& val)
     {
-        this->x = v.x;
-        this->y = v.y;
-        this->z = v.z;
-        this->w = v.w;
+        this->x = val.x;
+        this->y = val.y;
+        this->z = val.z;
+        this->w = val.w;
     }
 
     /**
@@ -75,10 +75,8 @@ struct AX_DLL Vec4Base
      *
      * @param array An array containing the elements of the vector in the order x, y, z, w.
      */
-    void set(const float* array)
+    constexpr void set(const float* array)
     {
-        AX_ASSERT(array);
-
         this->x = array[0];
         this->y = array[1];
         this->z = array[2];
@@ -147,12 +145,12 @@ public:
         return *static_cast<impl_type*>(this);
     }
 
-    impl_type& add(const impl_type& v)
+    impl_type& add(const impl_type& val)
     {
-        x += v.x;
-        y += v.y;
-        z += v.z;
-        w += v.w;
+        x += val.x;
+        y += val.y;
+        z += val.z;
+        w += val.w;
         return *static_cast<impl_type*>(this);
     }
 
@@ -160,23 +158,23 @@ public:
      * Subtracts this vector and the specified vector as (this - v)
      * and stores the result in this vector.
      *
-     * @param v The vector to subtract.
+     * @param val The vector to subtract.
      */
-    impl_type& subtract(const impl_type& v)
+    impl_type& subtract(const impl_type& val)
     {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
-        w -= v.w;
+        x -= val.x;
+        y -= val.y;
+        z -= val.z;
+        w -= val.w;
         return *static_cast<impl_type*>(this);
     }
 
-    impl_type& scale(float scalar)
+    impl_type& scale(float factor)
     {
-        x *= scalar;
-        y *= scalar;
-        z *= scalar;
-        w *= scalar;
+        x *= factor;
+        y *= factor;
+        z *= factor;
+        w *= factor;
         return *static_cast<impl_type*>(this);
     }
 
@@ -185,73 +183,73 @@ public:
     /**
      * Adds the given vector to this vector.
      *
-     * @param v The vector to add.
+     * @param val The vector to add.
      * @return This vector, after the addition occurs.
      */
-    inline impl_type& operator+=(const impl_type& v) { return this->add(v); }
+    inline impl_type& operator+=(const impl_type& val) { return this->add(val); }
 
     /**
      * Subtracts the given vector from this vector.
      *
-     * @param v The vector to subtract.
+     * @param val The vector to subtract.
      * @return This vector, after the subtraction occurs.
      */
-    inline impl_type& operator-=(const impl_type& v) { return this->subtract(v); }
+    inline impl_type& operator-=(const impl_type& val) { return this->subtract(val); }
 
     /**
      * Scales this vector by the given value.
      *
-     * @param s The value to scale by.
+     * @param factor The value to scale by.
      * @return This vector, after the scale occurs.
      */
-    inline impl_type& operator*=(float s)
+    inline impl_type& operator*=(float factor)
     {
-        scale(s);
+        scale(factor);
         return *static_cast<impl_type*>(this);
     }
 
     /**
      * Scales this vector by the given value.
      *
-     * @param s The value to scale by.
+     * @param factor The value to scale by.
      * @return This vector, after the scale occurs.
      */
-    inline impl_type& operator*=(const impl_type& s)
+    inline impl_type& operator*=(const impl_type& factor)
     {
-        this->x *= s.x;
-        this->y *= s.y;
-        this->z *= s.z;
-        this->w *= s.w;
+        this->x *= factor.x;
+        this->y *= factor.y;
+        this->z *= factor.z;
+        this->w *= factor.w;
         return *static_cast<impl_type*>(this);
     }
 
     /**
      * Divide this vector by the given value.
      *
-     * @param s The value to scale by.
+     * @param factor The value to divide by.
      * @return This vector, after the scale occurs.
      */
-    inline impl_type& operator/=(float s)
+    inline impl_type& operator/=(float factor)
     {
-        this->x /= s;
-        this->y /= s;
-        this->z /= s;
-        this->w /= s;
+        this->x /= factor;
+        this->y /= factor;
+        this->z /= factor;
+        this->w /= factor;
         return *static_cast<impl_type*>(this);
     }
 
     /**
      * Divide this vector by the given value.
      *
-     * @param s The value to scale by.
-     * @return This vector, after the scale occurs.
+     * @param factor The value to divide by.
+     * @return This vector, after the divide occurs.
      */
-    inline impl_type& operator/=(const impl_type& s)
+    inline impl_type& operator/=(const impl_type& factor)
     {
-        this->x /= s.x;
-        this->y /= s.y;
-        this->z /= s.z;
-        this->w /= s.w;
+        this->x /= factor.x;
+        this->y /= factor.y;
+        this->z /= factor.z;
+        this->w /= factor.w;
         return *static_cast<impl_type*>(this);
     }
 
@@ -362,40 +360,40 @@ public:
     static void add(const Vec4& v1, const Vec4& v2, Vec4* dst);
 
     /**
-     * Returns the distance between this vector and v.
+     * Returns the distance between this vector and val.
      *
-     * @param v The other vector.
+     * @param val The other vector.
      *
-     * @return The distance between this vector and v.
+     * @return The distance between this vector and val.
      *
      * @see distanceSquared
      */
-    float distance(const Vec4& v) const;
+    float distance(const Vec4& val) const;
 
     /**
-     * Returns the squared distance between this vector and v.
+     * Returns the squared distance between this vector and val.
      *
      * When it is not necessary to get the exact distance between
      * two vectors (for example, when simply comparing the
      * distance between different vectors), it is advised to use
      * this method instead of distance.
      *
-     * @param v The other vector.
+     * @param val The other vector.
      *
-     * @return The squared distance between this vector and v.
+     * @return The squared distance between this vector and val.
      *
      * @see distance
      */
-    float distanceSquared(const Vec4& v) const;
+    float distanceSquared(const Vec4& val) const;
 
     /**
      * Returns the dot product of this vector and the specified vector.
      *
-     * @param v The vector to compute the dot product with.
+     * @param val The vector to compute the dot product with.
      *
      * @return The dot product.
      */
-    float dot(const Vec4& v) const;
+    float dot(const Vec4& val) const;
 
     /**
      * Returns the dot product between the specified vectors.
@@ -473,26 +471,14 @@ public:
     static void subtract(const Vec4& v1, const Vec4& v2, Vec4* dst);
 
     /** equals to Vec4(0,0,0,0) */
-    static const Vec4 ZERO;
+    static const Vec4 zero;
     /** equals to Vec4(1,1,1,1) */
-    static const Vec4 ONE;
-    /** equals to Vec4(1,0,0,0) */
-    static const Vec4 UNIT_X;
-    /** equals to Vec4(0,1,0,0) */
-    static const Vec4 UNIT_Y;
-    /** equals to Vec4(0,0,1,0) */
-    static const Vec4 UNIT_Z;
-    /** equals to Vec4(0,0,0,1) */
-    static const Vec4 UNIT_W;
+    static const Vec4 one;
 };
 
 #if !(defined(AX_DLLEXPORT) || defined(AX_DLLIMPORT))
-inline constexpr Vec4 Vec4::ZERO   = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
-inline constexpr Vec4 Vec4::ONE    = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-inline constexpr Vec4 Vec4::UNIT_X = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
-inline constexpr Vec4 Vec4::UNIT_Y = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
-inline constexpr Vec4 Vec4::UNIT_Z = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
-inline constexpr Vec4 Vec4::UNIT_W = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+inline constexpr Vec4 Vec4::zero{0.0f, 0.0f, 0.0f, 0.0f};
+inline constexpr Vec4 Vec4::one{1.0f, 1.0f, 1.0f, 1.0f};
 #endif
 
 NS_AX_MATH_END

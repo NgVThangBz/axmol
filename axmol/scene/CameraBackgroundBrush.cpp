@@ -37,8 +37,8 @@
 #include "axmol/renderer/Shaders.h"
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
-#    include "axmol/base/EventCustom.h"
-#    include "axmol/base/EventListenerCustom.h"
+#    include "axmol/base/CustomEvent.h"
+#    include "axmol/base/CustomEventListener.h"
 #    include "axmol/base/EventType.h"
 #    include "axmol/base/EventDispatcher.h"
 #endif
@@ -94,7 +94,7 @@ CameraBackgroundDepthBrush::CameraBackgroundDepthBrush()
 {
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
     _backToForegroundListener =
-        EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) { initBuffer(); });
+        CustomEventListener::create(EVENT_RENDERER_RECREATED, [this](CustomEvent*) { initBuffer(); });
     Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(_backToForegroundListener, -1);
 #endif
 }
@@ -139,7 +139,7 @@ bool CameraBackgroundDepthBrush::init()
     _vertices[2].position = Vec3(1, 1, 0);
     _vertices[3].position = Vec3(-1, 1, 0);
 
-    _vertices[0].color = _vertices[1].color = _vertices[2].color = _vertices[3].color = Color32::BLACK;
+    _vertices[0].color = _vertices[1].color = _vertices[2].color = _vertices[3].color = Color32::black;
 
     _vertices[0].texCoord = Tex2F(0, 0);
     _vertices[1].texCoord = Tex2F(1, 0);
@@ -270,7 +270,7 @@ CameraBackgroundSkyBoxBrush::CameraBackgroundSkyBoxBrush()
 {
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
     _backToForegroundListener =
-        EventListenerCustom::create(EVENT_RENDERER_RECREATED, [this](EventCustom*) { initBuffer(); });
+        CustomEventListener::create(EVENT_RENDERER_RECREATED, [this](CustomEvent*) { initBuffer(); });
     Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(_backToForegroundListener, -1);
 #endif
 }

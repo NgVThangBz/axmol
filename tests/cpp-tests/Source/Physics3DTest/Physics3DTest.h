@@ -23,30 +23,22 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _PHYSICS3D_TEST_H_
-#define _PHYSICS3D_TEST_H_
+#pragma once
 
 #include "../BaseTest.h"
 #include <string>
 
+#if defined(AX_ENABLE_PHYSICS_3D)
+
 namespace ax
 {
 
-class Physics3DConstraint;
+class Joint3D;
+class Rigidbody3D;
 
-}
+}  // namespace ax
 
 DEFINE_TEST_SUITE(Physics3DTests);
-
-#if !defined(AX_ENABLE_PHYSICS_3D)
-class Physics3DDemoDisabled : public TestCase
-{
-public:
-    CREATE_FUNC(Physics3DDemoDisabled);
-
-    virtual void onEnter() override;
-};
-#else
 
 class Physics3DTestDemo : public TestCase
 {
@@ -61,18 +53,18 @@ public:
     virtual std::string subtitle() const override;
     virtual void update(float delta) override;
 
-    virtual void onTouchesBegan(const std::vector<ax::Touch*>& touches, ax::Event* event);
-    virtual void onTouchesMoved(const std::vector<ax::Touch*>& touches, ax::Event* event);
-    virtual void onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event);
+    virtual bool onPointerDown(ax::PointerEvent* event);
+    virtual void onPointerMove(ax::PointerEvent* event);
+    virtual void onPointerUp(ax::PointerEvent* event);
 
 protected:
     void shootBox(const ax::Vec3& des);
 
 protected:
     std::string _title;
-    ax::Camera* _camera = nullptr;
-    float _angle        = 0.f;
-    bool _needShootBox  = false;
+    ax::Camera* _camera{nullptr};
+    float _angle{0.f};
+    bool _needShootBox{false};
 };
 
 class BasicPhysics3DDemo : public Physics3DTestDemo
@@ -87,24 +79,38 @@ public:
     virtual bool init() override;
 };
 
-class Physics3DConstraintDemo : public Physics3DTestDemo
+class Physics3DOneWayPlatform : public Physics3DTestDemo
 {
 public:
-    CREATE_FUNC(Physics3DConstraintDemo);
-    Physics3DConstraintDemo() : _constraint(nullptr), _pickingDistance(0.f) {};
-    virtual ~Physics3DConstraintDemo() {};
+    CREATE_FUNC(Physics3DOneWayPlatform);
+    Physics3DOneWayPlatform() {};
+    virtual ~Physics3DOneWayPlatform() {};
+
+    virtual std::string subtitle() const override;
+    virtual bool init() override;
+
+private:
+    bool onPreSolve(const ax::ContactInfo3D& info);
+};
+
+class Joint3DDemo : public Physics3DTestDemo
+{
+public:
+    CREATE_FUNC(Joint3DDemo);
+    Joint3DDemo() : _constraint(nullptr), _pickingDistance(0.f) {};
+    virtual ~Joint3DDemo() {};
 
     virtual std::string subtitle() const override;
 
     virtual bool init() override;
 
-    virtual void onTouchesBegan(const std::vector<ax::Touch*>& touches, ax::Event* event) override;
-    virtual void onTouchesMoved(const std::vector<ax::Touch*>& touches, ax::Event* event) override;
-    virtual void onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event) override;
+    virtual bool onPointerDown(ax::PointerEvent* event) override;
+    virtual void onPointerMove(ax::PointerEvent* event) override;
+    virtual void onPointerUp(ax::PointerEvent* event) override;
 
 protected:
-    ax::Physics3DConstraint* _constraint;  // for picking
-    float _pickingDistance;                // picking distance
+    ax::Joint3D* _constraint;  // for picking
+    float _pickingDistance;    // picking distance
 };
 
 class Physics3DKinematicDemo : public Physics3DTestDemo
@@ -158,7 +164,5 @@ public:
 
 private:
 };
-
-#endif
 
 #endif

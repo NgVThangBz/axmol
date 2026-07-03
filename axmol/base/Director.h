@@ -28,6 +28,8 @@ THE SOFTWARE.
 ****************************************************************************/
 #pragma once
 
+#include <functional>
+#include <memory>
 #include <stack>
 #include <thread>
 #include <chrono>
@@ -37,15 +39,15 @@ THE SOFTWARE.
 #include "axmol/base/Vector.h"
 #include "axmol/scene/Scene.h"
 #include "axmol/math/Math.h"
-#include "axmol/platform/RenderView.h"
-#if defined(AX_PLATFORM_GLFW)
-#    include "concurrentqueue/concurrentqueue.h"
-#endif
+#include "axmol/platform/RenderViewCore.h"
+#include "concurrentqueue/concurrentqueue.h"
 #ifdef AX_ENABLE_CONSOLE
 #    include "axmol/base/Console.h"
 #endif
 
 #include "axmol/base/JobSystem.h"
+
+extern void _axmolPerformFrameBoundaryTasks();
 
 namespace ax
 {
@@ -57,17 +59,20 @@ namespace ax
 
 /* Forward declarations. */
 class LabelAtlas;
-// class RenderView;
 class DirectorDelegate;
 class Node;
 class Scheduler;
 class ActionManager;
 class EventDispatcher;
-class EventCustom;
-class EventListenerCustom;
+class CustomEvent;
+class CustomEventListener;
 class TextureCache;
 class Renderer;
 class Camera;
+class SceneRenderer;
+class Application;
+class ApplicationCore;
+class PoolManager;
 
 /**
  @brief Class that creates and handles the main Window and manages how
@@ -83,6 +88,8 @@ class Camera;
  */
 class AX_DLL Director
 {
+    using FrameTaskQueue = moodycamel::ConcurrentQueue<std::function<void()>>;
+
 public:
     /** Director will trigger an event before set next scene. */
     static std::string_view EVENT_BEFORE_SET_NEXT_SCENE;
@@ -105,8 +112,9 @@ public:
 
     /** Director will trigger an event while resetting Director */
     static std::string_view EVENT_RESET;
-    /** Director will trigger an event while destroying Director */
-    static std::string_view EVENT_DESTROY;
+
+    /** Director dispatches this event before deletion. */
+    static std::string_view EVENT_DISPOSING;
 
     /** Director will trigger an event before dropping the graphics subsystem */
     static std::string_view EVENT_BEFORE_GFX_DROP;
@@ -129,6 +137,26 @@ public:
 
         /// Default projection is 3D projection.
         DEFAULT = _3D,
+    };
+
+    /**
+     * @brief Defines the execution timing for asynchronous tasks dispatched to the main execution thread.
+     */
+    enum class TaskTiming
+    {
+        /**
+         * @brief Defer the task to the next main logic update tick (inside Scheduler::update).
+         * @note Recommended for 95% of standard gameplay logic, UI refreshes, and network response handlers.
+         */
+        NextUpdate,
+
+        /**
+         * @brief Defer the task to the absolute boundary of a frame (outside the main loop's update/visit/render
+         * stages).
+         * @note Reserved for heavy, structural operations such as scene destruction/replacement,
+         * massive resource purges, or critical RHI context resets on mobile platforms.
+         */
+        FrameBoundary
     };
 
     /**
@@ -177,12 +205,12 @@ public:
      * Get the RenderView.
      * @lua NA
      */
-    RenderView* getRenderView() { return _renderView; }
+    RenderViewCore* getRenderView() { return _renderView; }
     /**
      * Sets the RenderView.
      * @lua NA
      */
-    void setRenderView(RenderView* renderView);
+    void setRenderView(RenderViewCore* renderView);
 
     /*
      * Gets singleton of TextureCache.
@@ -234,7 +262,15 @@ public:
      */
     void setNotificationNode(Node* node);
 
-    // view size
+    /** Converts a size from canvas coordinates to canvas pixels.
+     *
+     * This applies only the Director content scale factor. Use this when a
+     * canvas-sized logical area needs a texture with matching pixel density,
+     * while preserving the same logical content size when used by Sprite.
+     */
+    Vec2 canvasToPixels(const Vec2& size) const;
+
+    // canvas size
 
     /** Returns the size of the render view in points.
      */
@@ -258,19 +294,17 @@ public:
     Rect getSafeAreaRect() const;
 
     /**
-     * Converts a point from screen coordinates to the rendering coordinate system.
+     * Converts a point from screen coordinates to the rendering 2d-coordinate system.
      * Useful for mapping (multi)touch input to the current scene layout,
      * taking into account orientation (portrait or landscape) and viewport settings.
      */
     Vec2 screenToWorld(const Vec2& point);
-    AX_DEPRECATED(3.0) Vec2 convertToGL(const Vec2& point) { return screenToWorld(point); }
 
     /**
-     * Converts an rendering coordinate to a screen coordinate.
+     * Converts an rendering 2d-coordinate to a screen coordinate.
      * Useful to convert node points to window points for calls such as glScissor.
      */
     Vec2 worldToScreen(const Vec2& point);
-    AX_DEPRECATED(3.0) Vec2 convertToUI(const Vec2& point) { return worldToScreen(point); }
 
     /**
      * Gets the distance between camera and near clipping frame.
@@ -366,11 +400,6 @@ public:
      */
     void startAnimation();
 
-    /** Draw the scene.
-     * This method is called every frame. Don't call it manually.
-     */
-    void drawScene();
-
     // Memory Helper
 
     /** Removes all axmol cached data.
@@ -388,9 +417,6 @@ public:
      * It will enable alpha blending, disable depth test.
      */
     void setRenderDefaults();
-#ifndef AX_CORE_PROFILE
-    AX_DEPRECATED(2.9) void setGLDefaultValues() { setRenderDefaults(); }
-#endif
 
     /** Sets clear values for the color buffers,
      * value range of each element is [0.0, 1.0].
@@ -398,12 +424,12 @@ public:
     void setClearColor(const Color& clearColor);
     const Color& getClearColor() const { return _clearColor; }
 
-    [[internal]] void renderFrame();
-    /** Invoke render frame with delta time. Then `calculateDeltaTime` can just use the delta time directly.
-     * The delta time paseed may include vsync time. See issue #17806
+    [[internal]] void stepFrame();
+    /** Invoke frame step with delta time. Then `calculateDeltaTime` can just use the delta time directly.
+     * The delta time passed may include vsync time. See issue #17806
      * @since 3.16
      */
-    [[internal]] void renderFrame(float dt);
+    [[internal]] void stepFrame(float dt);
 
     /** The size in pixels of the surface. It could be different than the screen size.
      * High-res devices might have a higher surface size than the screen size.
@@ -421,6 +447,23 @@ public:
      * @since axmol-2.1.4
      */
     JobSystem* getJobSystem() const { return _jobSystem; }
+
+    /**
+     * @brief Run work on the JobSystem and optionally post a completion callback to the Axmol thread.
+     *
+     * The task function runs on the JobSystem. After task returns, done is posted through Director::postTask()
+     * and therefore runs later on the Axmol thread.
+     *
+     * @param task Function executed by the JobSystem.
+     * @param done Optional completion callback posted to the Axmol thread after task returns.
+     * @return A handle for the background job. The handle reaches a terminal state after task returns; it does not wait
+     *         for the posted done callback to run.
+     *
+     * @note This is the preferred high-level API for the common background-work-then-main-thread-callback pattern.
+     *       Use JobSystem::enqueue() directly for low-level jobs that do not need Director or Scheduler semantics.
+     * @since axmol-3.0.0
+     */
+    JobHandle runAsync(std::function<void()> task, std::function<void()> done = nullptr);
 
     /** Gets the Scheduler associated with this director.
      * @since v2.0
@@ -457,6 +500,21 @@ public:
      */
     Renderer* getRenderer() const { return _renderer; }
 
+    SceneRenderer* getSceneRenderer() const { return _sceneRenderer.get(); }
+
+    Camera* getOffscreenCamera();
+
+    /** Replaces the active scene renderer.
+     *  Pass nullptr to restore the default SceneRenderer.
+     *  The new renderer's onRenderViewChanged is called immediately if a render view exists.
+     *  The previous renderer is destroyed synchronously.
+     *  @param impl  New renderer, or nullptr for default.
+     *  @note The default implementation renders all cameras in the scene.
+     *        A VR renderer (VRGenericRenderer) renders each eye into an
+     *        offscreen texture and applies barrel distortion.
+     */
+    void setSceneRenderer(std::unique_ptr<SceneRenderer>&& impl);
+
 #ifdef AX_ENABLE_CONSOLE
     /** Returns the Console associated with this director.
      * @since v3.0
@@ -470,45 +528,6 @@ public:
      *  Gets Frame Rate.
      */
     float getFrameRate() const { return _frameRate; }
-
-    /**
-     * Clones a specified type matrix and put it to the top of specified type of matrix stack.
-     */
-    void pushMatrix(MATRIX_STACK_TYPE type);
-
-    /** Pops the top matrix of the specified type of matrix stack.
-     */
-    void popMatrix(MATRIX_STACK_TYPE type);
-
-    /** Adds an identity matrix to the top of specified type of matrix stack.
-     */
-    void loadIdentityMatrix(MATRIX_STACK_TYPE type);
-
-    /**
-     * Adds a matrix to the top of specified type of matrix stack.
-     *
-     * @param type Matrix type.
-     * @param mat The matrix that to be added.
-     */
-    void loadMatrix(MATRIX_STACK_TYPE type, const Mat4& mat);
-
-    /**
-     * Multiplies a matrix to the top of specified type of matrix stack.
-     *
-     * @param type Matrix type.
-     * @param mat The matrix that to be multiplied.
-     */
-    void multiplyMatrix(MATRIX_STACK_TYPE type, const Mat4& mat);
-
-    /**
-     * Gets the top matrix of specified type of matrix stack.
-     */
-    const Mat4& getMatrix(MATRIX_STACK_TYPE type) const;
-
-    /**
-     * Clear all types of matrix stack, and add identity matrix to these matrix stacks.
-     */
-    void resetMatrixStack();
 
     /**
      * returns the axmol thread id.
@@ -528,10 +547,36 @@ public:
      */
     bool isChildrenIndexerEnabled() const { return _childrenIndexerEnabled; }
 
-    /** since Axmol-1.0
-     * queue a priority operation in render thread, even through app in background
+    /**
+     * @brief Safely dispatches a callable task from any background thread (e.g., Java UI thread,
+     * network thread, or audio thread) to be executed on the main Axmol thread.
+     * * This API provides a high-performance, Zero-Allocation (Zero GC) pipeline across platforms by
+     * utilizing modern C++ move semantics internally, paired with an optimized FIFO signaling pipeline
+     * on Android to completely eliminate runtime heap allocations.
+     * * @param task   The callable closure, lambda, or std::function to be executed.
+     * @param timing The specific execution timing when this task should be consumed.
+     * Defaults to TaskTiming::NextUpdate.
+     * * @code
+     * // Example 1: Standard asynchronous network callback (runs in the next logic tick)
+     * Director::getInstance()->postTask([=]() {
+     * this->updatePlayerGold(goldCount);
+     * });
+     * * // Example 2: Critical structural engine operation (runs at the safe frame boundary)
+     * Director::getInstance()->postTask([=]() {
+     * Director::getInstance()->replaceScene(battleScene);
+     * }, Director::TaskTiming::FrameBoundary);
+     * @endcode
+     * @since axmol-3.0.0
      */
-    void queueOperation(AsyncOperation op, void* param = nullptr);
+    void postTask(std::function<void()> task, TaskTiming timing = TaskTiming::NextUpdate);
+
+    /**
+     * @brief Forcefully purges all pending tasks from the specified queue.
+     * @warning This is an extreme, engine-level utility (e.g., during full game reboot or director end).
+     * Calling this on FrameBoundary may leak graphics contexts or skip critical structural cleanups.
+     * Do NOT use this for standard gameplay object lifecycle management.
+     */
+    void clearPendingTasks(TaskTiming timing = TaskTiming::NextUpdate);
 
     /**
      * returns whether or not the Director is in a valid state
@@ -539,16 +584,33 @@ public:
     bool isValid() const { return !_invalid; }
 
 protected:
+    /**
+     * Process one frame of the engine loop.
+     *
+     * This method is invoked automatically once per frame by the Director.
+     * It drives both the game logic update and the rendering pipeline:
+     *   - Calculates delta time
+     *   - Updates scheduler, actions, and scene logic
+     *   - Handles scene transitions
+     *   - Executes rendering of the current scene and overlay nodes
+     *   - Updates performance statistics and swaps buffers
+     *
+     * Do not call this method manually.
+     */
+    [[internal]] void processFrame();
+
+    static void performFrameTasks(FrameTaskQueue& frameTasks);
+
+    void performFrameBoundaryTasks();
+
     void reset();
+
+    void dispatchDisposing();
 
     /**
      * @brief Internal-only: Sets canvas size aka design size, invoked by RenderView
      */
     void setCanvasSize(const Vec2& canvasSize);
-
-#if defined(AX_PLATFORM_GLFW)
-    void processOperations();
-#endif
 
     virtual void startAnimation(SetIntervalReason reason);
     virtual void setAnimationInterval(float interval, SetIntervalReason reason);
@@ -562,6 +624,10 @@ protected:
     void setNextScene();
 
     void updateFrameRate();
+    Camera* getOverlayCamera();
+    void updateOverlayCamera();
+    void updateOffscreenCamera();
+
 #if !AX_STRIP_FPS
     void showStats();
     void createStatsLabel();
@@ -575,12 +641,6 @@ protected:
     // textureCache creation or release
     void initTextureCache();
     void destroyTextureCache();
-
-    void initMatrixStack();
-
-    std::stack<Mat4> _modelViewMatrixStack;
-    std::stack<Mat4> _textureMatrixStack;
-    std::stack<Mat4> _projectionMatrixStack;
 
     static Director* s_SharedDirector;
 
@@ -598,26 +658,26 @@ protected:
      @since v3.0
      */
     EventDispatcher* _eventDispatcher    = nullptr;
-    EventCustom* _eventProjectionChanged = nullptr;
-    EventCustom* _eventBeforeDraw        = nullptr;
-    EventCustom* _eventAfterDraw         = nullptr;
-    EventCustom* _eventAfterVisit        = nullptr;
-    EventCustom* _eventBeforeUpdate      = nullptr;
-    EventCustom* _eventAfterUpdate       = nullptr;
-    EventCustom* _beforeSetNextScene     = nullptr;
-    EventCustom* _afterSetNextScene      = nullptr;
-    EventCustom* _eventResetDirector     = nullptr;
-    EventCustom* _eventDestroyDirector   = nullptr;
-    EventCustom* _eventBeforeGfxDrop     = nullptr;
-    EventCustom* _eventAfterGfxDrop      = nullptr;
+    CustomEvent* _eventProjectionChanged = nullptr;
+    CustomEvent* _eventBeforeDraw        = nullptr;
+    CustomEvent* _eventAfterDraw         = nullptr;
+    CustomEvent* _eventAfterVisit        = nullptr;
+    CustomEvent* _eventBeforeUpdate      = nullptr;
+    CustomEvent* _eventAfterUpdate       = nullptr;
+    CustomEvent* _beforeSetNextScene     = nullptr;
+    CustomEvent* _afterSetNextScene      = nullptr;
+    CustomEvent* _eventDirectorReset     = nullptr;
+    CustomEvent* _eventDirectorDisposing = nullptr;
+    CustomEvent* _eventBeforeGfxDrop     = nullptr;
+    CustomEvent* _eventAfterGfxDrop      = nullptr;
 
     /* delta time since last tick to main loop */
     float _deltaTime              = 1e-6f;
     bool _deltaTimePassedByCaller = false;
 
-    /* The _renderView, where everything is rendered, RenderView is a abstract class,cocos2d-x provide RenderViewImpl
+    /* The _renderView, where everything is rendered, RenderViewCore is a abstract class,axmol provide RenderView
      which inherit from it as default renderer context,you can have your own by inherit from it*/
-    RenderView* _renderView = nullptr;
+    RenderViewCore* _renderView = nullptr;
 
     JobSystem* _jobSystem = nullptr;
 
@@ -666,7 +726,7 @@ protected:
     Projection _projection = Projection::DEFAULT;
 
     /* canvas size in points */
-    Vec2 _canvasSizeInPoints = Vec2::ZERO;
+    Vec2 _canvasSizeInPoints = Vec2::zero;
 
     /* content scale factor */
     float _contentScaleFactor = 1.0f;
@@ -676,6 +736,13 @@ protected:
 
     /* Renderer for the Director */
     Renderer* _renderer = nullptr;
+
+    PoolManager* _poolManager = nullptr;
+
+    Camera* _overlayCamera   = nullptr;  // retained
+    Camera* _offscreenCamera = nullptr;  // retained
+
+    std::unique_ptr<SceneRenderer> _sceneRenderer;
 
     Color _clearColor = {0, 0, 0, 1};
 #ifdef AX_ENABLE_CONSOLE
@@ -692,17 +759,22 @@ protected:
     /* axmol thread id */
     std::thread::id _axmol_thread_id;
 
-#if defined(AX_PLATFORM_GLFW)
-    /* axmol priority operations in render thread for PC platforms */
-    moodycamel::ConcurrentQueue<std::function<void()>> _operations;
-#endif
+    /** @brief Thread-safe FIFO queue for tasks executed during the main logic update loop. */
+    FrameTaskQueue _nextUpdateTasks;
+
+    /** @brief Thread-safe FIFO queue for engine-level structural tasks executed at the frame boundary. */
+    FrameTaskQueue _frameBoundaryTasks;
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
-    EventListenerCustom* _rendererRecreatedListener = nullptr;
+    CustomEventListener* _rendererRecreatedListener = nullptr;
 #endif
 
-    // RenderView will recreate stats labels to fit visible rect
-    friend class RenderView;
+    // RenderViewCore will recreate stats labels to fit visible rect
+    friend class RenderViewCore;
+    friend class ApplicationCore;
+    friend class Application;
+
+    friend void ::_axmolPerformFrameBoundaryTasks();
 };
 
 // end of base group

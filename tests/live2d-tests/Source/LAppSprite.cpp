@@ -20,11 +20,11 @@ LAppSprite::~LAppSprite()
 {
 }
 
-void LAppSprite::RenderImmidiate(Csm::Rendering::CubismCommandBuffer_Cocos2dx* commandBuffer,
+void LAppSprite::RenderImmidiate(Csm::Rendering::CubismCommandBuffer_Axmol* commandBuffer,
                                  rhi::Texture* texture,
                                  float uvVertex[8]) const
 {
-    Csm::Rendering::CubismCommandBuffer_Cocos2dx::DrawCommandBuffer* drawCommandBuffer = CSM_NEW Csm::Rendering::CubismCommandBuffer_Cocos2dx::DrawCommandBuffer();
+    Csm::Rendering::CubismCommandBuffer_Axmol::DrawCommandBuffer* drawCommandBuffer = CSM_NEW Csm::Rendering::CubismCommandBuffer_Axmol::DrawCommandBuffer();
     auto cmd = drawCommandBuffer->GetCommandDraw()->GetCommand();
     rhi::BlendDesc* blendDescriptor = drawCommandBuffer->GetCommandDraw()->GetBlendDescriptor();
     rhi::ProgramState* programState = cmd->unsafePS();

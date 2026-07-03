@@ -13,11 +13,18 @@
 
 #include "alformat.hpp"
 #include "alnumeric.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "fmt/ranges.h"
 #include "gsl/gsl"
 #include "hrtf.h"
+
+#if HAVE_CXXMODULES
+import format.types;
+import logging;
+#else
+#include "alformattypes.hpp"
 #include "logging.h"
+#endif
 
 
 namespace {
@@ -166,7 +173,7 @@ auto readle(std::istream &data) -> T
     alignas(T) auto ret = std::array<char,sizeof(T)>{};
     if(!data.read(ret.data(), num_bits/8))
     {
-        if constexpr(al::strong_number<T>)
+        if constexpr(al::strict_number<T>)
             return T{gsl::narrow_cast<typename T::value_t>(EOF)};
         else
             return gsl::narrow_cast<T>(EOF);
@@ -716,6 +723,22 @@ auto LoadHrtf03(std::istream &data) -> std::unique_ptr<HrtfStore>
 
 } // namespace
 
+namespace al {
+
+template <typename _Tp, std::size_t _Extent>
+constexpr auto as_bytes(std::span<_Tp, _Extent> s) noexcept
+{
+    if constexpr (_Extent == std::dynamic_extent) {
+        return std::span<const uint8_t, std::dynamic_extent>(
+            reinterpret_cast<const uint8_t*>(s.data()), s.size_bytes());
+    } else {
+        return std::span<const uint8_t, sizeof(_Tp) * _Extent>(
+            reinterpret_cast<const uint8_t*>(s.data()), sizeof(_Tp) * _Extent);
+    }
+}
+
+}
+
 auto LoadHrtf(std::istream &stream) -> std::unique_ptr<HrtfStore>
 {
     auto magic = std::array<char,HeaderMarkerSize>{};
@@ -742,6 +765,7 @@ auto LoadHrtf(std::istream &stream) -> std::unique_ptr<HrtfStore>
         TRACE("Detected data set format v0");
         return LoadHrtf00(stream);
     }
+    
     throw std::runtime_error{fmt::format("Invalid header: {::#04X}",
-        std::as_bytes(std::span{magic}))};
+        al::as_bytes(std::span{magic}))};
 }

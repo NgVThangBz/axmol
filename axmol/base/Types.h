@@ -29,6 +29,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <string>
+#include <stack>
 
 #include "axmol/math/Math.h"
 #include "axmol/base/Object.h"
@@ -94,21 +95,6 @@ struct TextureSamplerFlag
         DEFAULT      = 0,
         DUAL_SAMPLER = 1 << 1,
     };
-};
-
-/**
- * @brief Matrix stack type.
- */
-enum class MATRIX_STACK_TYPE
-{
-    /// Model view matrix stack
-    MATRIX_STACK_MODELVIEW,
-
-    /// projection matrix stack
-    MATRIX_STACK_PROJECTION,
-
-    /// texture matrix stack
-    MATRIX_STACK_TEXTURE
 };
 
 /**
@@ -417,7 +403,7 @@ struct AX_DLL AnimationFrameData
 struct AX_DLL FontStroke
 {
     /// stroke color
-    Color32 _strokeColor = Color32::BLACK;
+    Color32 _strokeColor = Color32::black;
     /// stroke size
     float _strokeSize = 0.f;
     /// true if stroke enabled
@@ -438,9 +424,9 @@ struct AX_DLL FontDefinition
     /// vertical alignment
     TextVAlignment _vertAlignment = TextVAlignment::TOP;
     /// rendering box
-    Vec2 _dimensions = Vec2::ZERO;
+    Vec2 _dimensions = Vec2::zero;
     /// font color
-    Color32 _fontFillColor = Color32::WHITE;
+    Color32 _fontFillColor = Color32::white;
     /// font stroke
     FontStroke _stroke;
     /// enable text wrap
@@ -450,6 +436,16 @@ struct AX_DLL FontDefinition
      * For more information, please refer to Label::Overflow enum class.
      */
     int _overflow = 0;
+};
+
+/**
+ * @brief Clear parameters for a render texture pass.
+ */
+struct ClearValue
+{
+    Color color{0, 0, 0, 0};
+    float depth          = 1.f;
+    unsigned int stencil = 0;
 };
 
 // d3d RHI spec
@@ -469,33 +465,43 @@ enum class RenderScaleMode
 
 using DriverPreference = rhi::DriverType;
 
-/** @struct ContextAttrs
+/**
+ * @struct ContextAttrs
+ * @brief Engine context attributes for rendering, window, and driver setup.
  *
- * The axmol Engine attributes.
+ * This structure defines the configuration parameters used when creating
+ * the rendering context and window surface. Attributes are grouped into:
+ * - Rendering attributes: color/depth/stencil precision, MSAA, vsync,
+ *   debug layers, upload buffer size, shader-controlled sampler.
+ * - Window attributes: visibility, decorations, parent window handle.
+ * - Driver attributes: GPU power preference, render scale mode.
+ *
+ * Default values are chosen to provide a balance between compatibility
+ * and quality across platforms.
  */
 struct ContextAttrs
 {
-    int redBits{8};
-    int greenBits{8};
-    int blueBits{8};
-    int alphaBits{8};
-    int depthBits{24};
-    int stencilBits{8};
-    int multisamplingCount{0};
-    bool visible{true};
-    bool decorated{true};
-    bool vsync{true};
-    bool debugLayerEnabled{false};
-    void* windowParent{nullptr};  // win32-spec
-    PowerPreference powerPreference{PowerPreference::Auto};
-    RenderScaleMode renderScaleMode{RenderScaleMode::Default};
-    DriverPreference driverPreference{DriverPreference::Auto};
+    // Rendering attributes
+    int redBits{8};                               ///< Red channel precision in bits.
+    int greenBits{8};                             ///< Green channel precision in bits.
+    int blueBits{8};                              ///< Blue channel precision in bits.
+    int alphaBits{8};                             ///< Alpha channel precision in bits.
+    int depthBits{24};                            ///< Depth buffer precision in bits.
+    int stencilBits{8};                           ///< Stencil buffer precision in bits.
+    int multisamplingCount{0};                    ///< Number of samples for MSAA (0 = disabled).
+    bool vsync{true};                             ///< Enable vertical sync.
+    bool debugLayerEnabled{false};                ///< Enable graphics API debug layer.
+    uint32_t uploadBufferSize{16 * 1024 * 1024};  ///< Upload buffer size (used by D3D12 RHI).
+    bool shaderControlledSampler{false};          ///< Whether samplers are fully controlled by shaders (D3D12 style).
 
-    // The uploadBuffer size, current used by d3d12 RHI
-    uint32_t uploadBufferSize{16 * 1024 * 1024};
+    // Window attributes
+    bool visible{true};           ///< Whether the window is visible at creation.
+    bool decorated{true};         ///< Whether the window has system decorations.
+    void* windowParent{nullptr};  ///< Parent window handle (Win32-specific).
 
-    // Whether sampler binding is fully controlled by shader (D3D12 style)
-    bool shaderControlledSampler{false};
+    // Driver attributes
+    PowerPreference powerPreference{PowerPreference::Auto};     ///< GPU power preference.
+    RenderScaleMode renderScaleMode{RenderScaleMode::Default};  ///< Render scaling mode.
 };
 
 /** @struct Acceleration
@@ -524,7 +530,8 @@ using TargetBufferFlags = rhi::TargetBufferFlags;
 using DepthStencilFlags = rhi::DepthStencilFlags;
 using ClearFlag         = rhi::ClearFlag;
 
-typedef void (*AsyncOperation)(void* param);
+template <typename _Ty>
+using LinearStack = std::stack<_Ty, std::vector<_Ty>>;
 
 }  // namespace ax
 // end group

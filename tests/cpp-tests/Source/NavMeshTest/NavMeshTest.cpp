@@ -26,7 +26,7 @@
  ****************************************************************************/
 
 #include "NavMeshTest.h"
-#include "axmol/3d/physics/Physics3D.h"
+#include "axmol/physics/physics-3d.h"
 #include "axmol/3d/Bundle3D.h"
 #include "axmol/2d/Light.h"
 
@@ -92,10 +92,10 @@ bool NavMeshBaseTestDemo::init()
         _camera->setCameraFlag(CameraFlag::USER1);
         this->addChild(_camera);
 
-        auto listener            = EventListenerTouchAllAtOnce::create();
-        listener->onTouchesBegan = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesBegan, this);
-        listener->onTouchesMoved = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesMoved, this);
-        listener->onTouchesEnded = AX_CALLBACK_2(NavMeshBaseTestDemo::onTouchesEnded, this);
+        auto listener           = PointerEventListener::create();
+        listener->onPointerDown = AX_CALLBACK_1(NavMeshBaseTestDemo::onPointerDown, this);
+        listener->onPointerMove = AX_CALLBACK_1(NavMeshBaseTestDemo::onPointerMove, this);
+        listener->onPointerUp   = AX_CALLBACK_1(NavMeshBaseTestDemo::onPointerUp, this);
         _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
         initScene();
@@ -105,18 +105,19 @@ bool NavMeshBaseTestDemo::init()
     return true;
 }
 
-void NavMeshBaseTestDemo::onTouchesBegan(const std::vector<ax::Touch*>& touches, ax::Event* event)
+bool NavMeshBaseTestDemo::onPointerDown(ax::PointerEvent* event)
 {
     _needMoveAgents = true;
-    touchesBegan(touches, event);
+    touchesBegan(event);
+
+    return true;
 }
 
-void NavMeshBaseTestDemo::onTouchesMoved(const std::vector<ax::Touch*>& touches, ax::Event* event)
+void NavMeshBaseTestDemo::onPointerMove(ax::PointerEvent* event)
 {
-    if (touches.size() && _camera)
+    if (_camera)
     {
-        auto touch = touches[0];
-        auto delta = touch->getDelta();
+        auto delta = event->getDelta();
 
         _angle -= AX_DEGREES_TO_RADIANS(delta.x);
         _camera->setPosition3D(Vec3(100.0f * sinf(_angle), 50.0f, 100.0f * cosf(_angle)));
@@ -127,36 +128,32 @@ void NavMeshBaseTestDemo::onTouchesMoved(const std::vector<ax::Touch*>& touches,
             _needMoveAgents = false;
         }
     }
-    touchesMoved(touches, event);
+    touchesMoved(event);
+
+    return;
 }
 
-void NavMeshBaseTestDemo::onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event)
+void NavMeshBaseTestDemo::onPointerUp(ax::PointerEvent* event)
 {
-    touchesEnded(touches, event);
+    touchesEnded(event);
 }
 
 void NavMeshBaseTestDemo::initScene()
 {
-    getPhysicsWorld3D()->setDebugDrawEnable(false);
+    setDebugCamera(_camera);
+
+    _physicsWorld3D->setDebugDrawEnabled(false);
     // create mesh
     std::vector<Vec3> trianglesList = Bundle3D::getTrianglesList("NavMesh/scene.obj");
 
-    Physics3DRigidBodyDes rbDes;
-    rbDes.mass     = 0.0f;
-    rbDes.shape    = Physics3DShape::createMesh(&trianglesList[0], (int)trianglesList.size() / 3);
-    auto rigidBody = Physics3DRigidBody::create(&rbDes);
-    auto component = Physics3DComponent::create(rigidBody);
-    auto mesh      = MeshRenderer::create("NavMesh/scene.obj");
-    mesh->addComponent(component);
+    auto mesh = MeshRenderer::create("NavMesh/scene.obj");
+    mesh->addComponent(Rigidbody3D::create(MeshCollider3D::create(trianglesList)));
     mesh->setCameraMask((unsigned short)CameraFlag::USER1);
     this->addChild(mesh);
-    setPhysics3DDebugCamera(_camera);
 
     auto navMesh = NavMesh::create("NavMesh/all_tiles_tilecache.bin", "NavMesh/geomset.txt");
-    navMesh->setDebugDrawEnable(true);
+    navMesh->setDebugDrawEnabled(true);
     setNavMesh(navMesh);
-    setNavMeshDebugCamera(_camera);
-
     auto ambientLight = AmbientLight::create(Color32(64, 64, 64));
     ambientLight->setCameraMask((unsigned short)CameraFlag::USER1);
     this->addChild(ambientLight);
@@ -242,7 +239,7 @@ void NavMeshBaseTestDemo::moveAgents(const ax::Vec3& des)
                 refAxes.normalize();
                 Vec3::cross(refAxes, dir, &axes);
                 float angle = Vec3::dot(refAxes, dir);
-                agent->getOwner()->setRotationQuat(Quaternion(axes, acosf(angle)));
+                agent->getOwner()->setRotationQuat(Quat(axes, acosf(angle)));
                 data->time += 0.01f;
                 if (1.0f < data->time)
                 {
@@ -279,24 +276,20 @@ std::string NavMeshBasicTestDemo::subtitle() const
     return "Basic Test";
 }
 
-void NavMeshBasicTestDemo::touchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event)
+void NavMeshBasicTestDemo::touchesEnded(ax::PointerEvent* event)
 {
     if (!_needMoveAgents)
         return;
-    if (!touches.empty())
-    {
-        auto touch    = touches[0];
-        auto location = touch->getLocationInView();
-        Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
-        auto size = Director::getInstance()->getCanvasSize();
-        _camera->unproject(size, &nearP, &nearP);
-        _camera->unproject(size, &farP, &farP);
+    auto location = event->getScreenLocation();
+    Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
-        Physics3DWorld::HitResult result;
-        getPhysicsWorld3D()->rayCast(nearP, farP, &result);
-        moveAgents(result.hitPosition);
-    }
+    nearP = _camera->deprojectScreenToWorld(nearP);
+    farP  = _camera->deprojectScreenToWorld(farP);
+
+    PhysicsWorld3D::HitResult result;
+    getPhysicsWorld3D()->rayCast(nearP, farP, &result);
+    moveAgents(result.hitPosition);
 }
 
 bool NavMeshBasicTestDemo::init()
@@ -309,7 +302,7 @@ bool NavMeshBasicTestDemo::init()
     _debugLabel->retain();
     auto menuItem1 = MenuItemLabel::create(_debugLabel, [this](Object*) {
         bool enabledDebug = !getNavMesh()->isDebugDrawEnabled();
-        getNavMesh()->setDebugDrawEnable(enabledDebug);
+        getNavMesh()->setDebugDrawEnabled(enabledDebug);
         if (enabledDebug)
         {
             _debugLabel->setString("Debug Draw ON");
@@ -319,10 +312,10 @@ bool NavMeshBasicTestDemo::init()
             _debugLabel->setString("Debug Draw OFF");
         }
     });
-    menuItem1->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+    menuItem1->setAnchorPoint(Anchors::topLeft);
     menuItem1->setPosition(Vec2(VisibleRect::left().x, VisibleRect::top().y - 100));
     auto menu = Menu::create(menuItem1, nullptr);
-    menu->setPosition(Vec2::ZERO);
+    menu->setPosition(Vec2::zero);
     addChild(menu);
 
     return true;
@@ -332,7 +325,7 @@ void NavMeshBasicTestDemo::onEnter()
 {
     NavMeshBaseTestDemo::onEnter();
 
-    Physics3DWorld::HitResult result;
+    PhysicsWorld3D::HitResult result;
     getPhysicsWorld3D()->rayCast(Vec3(0.0f, 50.0f, 0.0f), Vec3(0.0f, -50.0f, 0.0f), &result);
     createAgent(result.hitPosition);
 }
@@ -357,26 +350,26 @@ bool NavMeshAdvanceTestDemo::init()
     auto menuItem0 = MenuItemLabel::create(_obstacleLabel, [this](Object*) {
         float x = ax::random(-50.0f, 50.0f);
         float z = ax::random(-50.0f, 50.0f);
-        Physics3DWorld::HitResult result;
+        PhysicsWorld3D::HitResult result;
         getPhysicsWorld3D()->rayCast(Vec3(x, 50.0f, z), Vec3(x, -50.0f, z), &result);
         createObstacle(result.hitPosition);
     });
-    menuItem0->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+    menuItem0->setAnchorPoint(Anchors::topLeft);
     menuItem0->setPosition(Vec2(VisibleRect::left().x, VisibleRect::top().y - 50));
 
     auto menuItem1 = MenuItemLabel::create(_agentLabel, [this](Object*) {
         float x = ax::random(-50.0f, 50.0f);
         float z = ax::random(-50.0f, 50.0f);
-        Physics3DWorld::HitResult result;
+        PhysicsWorld3D::HitResult result;
         getPhysicsWorld3D()->rayCast(Vec3(x, 50.0f, z), Vec3(x, -50.0f, z), &result);
         createAgent(result.hitPosition);
     });
-    menuItem1->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+    menuItem1->setAnchorPoint(Anchors::topLeft);
     menuItem1->setPosition(Vec2(VisibleRect::left().x, VisibleRect::top().y - 100));
 
     auto menuItem2 = MenuItemLabel::create(_debugLabel, [this](Object*) {
         bool enabledDebug = !getNavMesh()->isDebugDrawEnabled();
-        getNavMesh()->setDebugDrawEnable(enabledDebug);
+        getNavMesh()->setDebugDrawEnabled(enabledDebug);
         if (enabledDebug)
         {
             _debugLabel->setString("Debug Draw ON");
@@ -386,11 +379,11 @@ bool NavMeshAdvanceTestDemo::init()
             _debugLabel->setString("Debug Draw OFF");
         }
     });
-    menuItem2->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+    menuItem2->setAnchorPoint(Anchors::topLeft);
     menuItem2->setPosition(Vec2(VisibleRect::left().x, VisibleRect::top().y - 150));
 
     auto menu = Menu::create(menuItem0, menuItem1, menuItem2, nullptr);
-    menu->setPosition(Vec2::ZERO);
+    menu->setPosition(Vec2::zero);
     addChild(menu);
 
     return true;
@@ -400,7 +393,7 @@ void NavMeshAdvanceTestDemo::onEnter()
 {
     NavMeshBaseTestDemo::onEnter();
 
-    Physics3DWorld::HitResult result;
+    PhysicsWorld3D::HitResult result;
     getPhysicsWorld3D()->rayCast(Vec3(0.0f, 50.0f, 0.0f), Vec3(0.0f, -50.0f, 0.0f), &result);
     createAgent(result.hitPosition);
 }
@@ -415,21 +408,18 @@ std::string NavMeshAdvanceTestDemo::subtitle() const
     return "Advance Test";
 }
 
-void NavMeshAdvanceTestDemo::touchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event)
+void NavMeshAdvanceTestDemo::touchesEnded(ax::PointerEvent* event)
 {
     if (!_needMoveAgents)
         return;
-    if (!touches.empty())
     {
-        auto touch    = touches[0];
-        auto location = touch->getLocationInView();
+        auto location = event->getScreenLocation();
         Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
-        auto size = Director::getInstance()->getCanvasSize();
-        _camera->unproject(size, &nearP, &nearP);
-        _camera->unproject(size, &farP, &farP);
+        nearP = _camera->deprojectScreenToWorld(nearP);
+        farP  = _camera->deprojectScreenToWorld(farP);
 
-        Physics3DWorld::HitResult result;
+        PhysicsWorld3D::HitResult result;
         getPhysicsWorld3D()->rayCast(nearP, farP, &result);
         moveAgents(result.hitPosition);
     }

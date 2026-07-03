@@ -27,7 +27,7 @@
 
 #include "axmol/rhi/Texture.h"
 #include "axmol/platform/GL.h"
-#include "axmol/base/EventListenerCustom.h"
+#include "axmol/base/CustomEventListener.h"
 
 #include "axmol/rhi/opengl/OpenGLState.h"
 
@@ -80,7 +80,7 @@ public:
      * reduction image.
      * @param layerIndex Specifies the layer index for 2D array textures.
      */
-    void updateCompressedData(const void* data, int width, int height, std::size_t dataSize, int level, int layerIndex)
+    void updateCompressedData(const void* data, int width, int height, size_t dataSize, int level, int layerIndex)
         override;
 
     /**
@@ -113,7 +113,7 @@ public:
                                  int yoffset,
                                  int width,
                                  int height,
-                                 std::size_t dataSize,
+                                 size_t dataSize,
                                  int level,
                                  const void* data,
                                  int layerIndex) override;
@@ -152,14 +152,32 @@ public:
      */
     void apply(int slot) const;
 
-    void ensureNativeTexture(size_t imageSize = 0);
+    void ensureNativeTexture();
+
+    /**
+     * @brief Allocate GPU storage for a specific mipmap level of a texture array.
+     *
+     * Ensures that the given mipmap level has valid storage before updating
+     * with glTexSubImage3D, preventing GL_INVALID_OPERATION (0x502).
+     *
+     * @note For GL_TEXTURE_ARRAY (arraySize > 1):
+     *       - Updating array elements must use glSubXXX with the `zoffset` parameter.
+     *       - glSubXXX requires that storage for the target mipmap level
+     *         be allocated in advance.
+     *
+     * @param level          Mipmap level index to allocate.
+     */
+    void ensureLevelStorage(int level);
 
 private:
     void configureUnpackAlignment(unsigned int width);
 
     NativeTextureDesc _nativeDesc{};
     GLuint _nativeTexture{0};
-    GLuint _nativeSampler{0};  // weak ref
+    GLuint _nativeSampler{0};  // weak
+
+    // Bitmask to track allocated mipmap levels for texture array (up to 32 levels)
+    uint32_t _allocatedLevelsBits{0};
 };
 
 // end of _opengl group

@@ -23,7 +23,7 @@
 #include "axmol/math/Mat4.h"
 
 #include <cmath>
-#include "axmol/math/Quaternion.h"
+#include "axmol/math/Quat.h"
 #include "axmol/math/MathUtil.h"
 #include "axmol/base/Macros.h"
 #include "axmol/rhi/DriverContext.h"
@@ -31,10 +31,9 @@
 NS_AX_MATH_BEGIN
 
 #if defined(AX_DLLEXPORT) || defined(AX_DLLIMPORT)
-const Mat4 Mat4::IDENTITY =
-    Mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-
-const Mat4 Mat4::ZERO = Mat4(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+const Mat4 Mat4::zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const Mat4 Mat4::identity{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 #endif
 
 void Mat4::createLookAt(const Vec3& eyePosition, const Vec3& targetPosition, const Vec3& up, Mat4* dst)
@@ -94,6 +93,13 @@ void Mat4::createLookAt(float eyePositionX,
     dst->m[15] = 1.0f;
 }
 
+void Mat4::createOrthographic(float width, float height, float zNearPlane, float zFarPlane, Mat4* dst)
+{
+    float halfWidth  = width / 2.0f;
+    float halfHeight = height / 2.0f;
+    createOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, zNearPlane, zFarPlane, dst);
+}
+
 void Mat4::createPerspective(float fieldOfView, float aspectRatio, float zNearPlane, float zFarPlane, Mat4* dst)
 {
     AX_ASSERT(dst);
@@ -120,19 +126,17 @@ void Mat4::createPerspective(float fieldOfView, float aspectRatio, float zNearPl
     dst->m[11] = -1.0f;
     dst->m[14] = -2.0f * zFarPlane * zNearPlane * f_n;
 
-    if (rhi::DriverContext::isMetal())
+    // NDC Z difference: OpenGL [-1,1], D3D/Vulkan/Metal [0,1]
+    // References:
+    // - https://metashapes.com/blog/opengl-metal-projection-matrix-problem/
+    // - Apple Metal Shading Language Spec (Coordinate Systems)
+    // - Microsoft Direct3D Projection Transform
+    // - Khronos Vulkan Specification
+    if (!rhi::DriverContext::isOpenGL())
     {
-        // https://metashapes.com/blog/opengl-metal-projection-matrix-problem/
         dst->m[10] = -zFarPlane * f_n;
         dst->m[14] = -(zFarPlane * zNearPlane) * f_n;
     }
-}
-
-void Mat4::createOrthographic(float width, float height, float zNearPlane, float zFarPlane, Mat4* dst)
-{
-    float halfWidth  = width / 2.0f;
-    float halfHeight = height / 2.0f;
-    createOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, zNearPlane, zFarPlane, dst);
 }
 
 void Mat4::createOrthographicOffCenter(float left,
@@ -158,8 +162,13 @@ void Mat4::createOrthographicOffCenter(float left,
     dst->m[14] = (zNearPlane + zFarPlane) / (zNearPlane - zFarPlane);
     dst->m[15] = 1;
 
-    //// https://metashapes.com/blog/opengl-metal-projection-matrix-problem/
-    if (rhi::DriverContext::isMetal())
+    // NDC Z difference: OpenGL [-1,1], D3D/Vulkan/Metal [0,1]
+    // References:
+    // - https://metashapes.com/blog/opengl-metal-projection-matrix-problem/
+    // - Apple Metal Shading Language Spec (Coordinate Systems)
+    // - Microsoft Direct3D Projection Transform
+    // - Khronos Vulkan Specification
+    if (!rhi::DriverContext::isOpenGL())
     {
         dst->m[10] = 1 / (zNearPlane - zFarPlane);
         dst->m[14] = zNearPlane / (zNearPlane - zFarPlane);
@@ -259,7 +268,7 @@ void Mat4::createScale(float xScale, float yScale, float zScale, Mat4* dst)
     dst->m[10] = zScale;
 }
 
-void Mat4::createRotation(const Quaternion& q, Mat4* dst)
+void Mat4::createRotation(const Quat& q, Mat4* dst)
 {
     AX_ASSERT(dst);
 
@@ -446,7 +455,7 @@ void Mat4::add(const Mat4& m1, const Mat4& m2, Mat4* dst)
     MathUtil::addMatrix(m1.m, m2.m, dst->m);
 }
 
-bool Mat4::decompose(Vec3* scale, Quaternion* rotation, Vec3* translation) const
+bool Mat4::decompose(Vec3* scale, Quat* rotation, Vec3* translation) const
 {
     if (translation)
     {
@@ -578,7 +587,7 @@ void Mat4::getScale(Vec3* scale) const
     decompose(scale, nullptr, nullptr);
 }
 
-bool Mat4::getRotation(Quaternion* rotation) const
+bool Mat4::getRotation(Quat* rotation) const
 {
     return decompose(nullptr, rotation, nullptr);
 }
@@ -700,7 +709,7 @@ bool Mat4::inverse()
 
 bool Mat4::isIdentity() const
 {
-    return (memcmp(m, IDENTITY.m, sizeof(m)) == 0);
+    return (memcmp(m, identity.m, sizeof(m)) == 0);
 }
 
 void Mat4::multiply(float scalar)
@@ -742,12 +751,12 @@ Mat4 Mat4::getNegated() const
     return mat;
 }
 
-void Mat4::rotate(const Quaternion& q)
+void Mat4::rotate(const Quat& q)
 {
     rotate(q, this);
 }
 
-void Mat4::rotate(const Quaternion& q, Mat4* dst) const
+void Mat4::rotate(const Quat& q, Mat4* dst) const
 {
     Mat4 r;
     createRotation(q, &r);

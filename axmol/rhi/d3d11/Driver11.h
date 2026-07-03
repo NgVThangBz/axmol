@@ -68,14 +68,14 @@ public:
      * BufferUsage::STATIC, BufferUsage::DYNAMIC.
      * @return A Buffer object.
      */
-    Buffer* createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial) override;
+    Buffer* createBuffer(size_t size, BufferType type, BufferUsage usage, const void* initial) override;
 
     /**
      * Create a Texture object.
      * @param descriptor Specifies texture description.
      * @return A Texture object.
      */
-    Texture* createTexture(const TextureDesc& descriptor) override;
+    Texture* createTexture(const TextureDesc& descriptor, std::optional<Color> clearColorHint = std::nullopt) override;
 
     RenderTarget* createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment) override;
 

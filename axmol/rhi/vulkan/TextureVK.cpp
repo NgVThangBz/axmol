@@ -27,8 +27,8 @@
 #include "axmol/rhi/SamplerCache.h"
 #include "axmol/rhi/RHIUtils.h"
 #include "axmol/base/Logging.h"
-#include <cassert>
-#include <cstring>
+#include <assert.h>
+#include <string.h>
 #include <algorithm>
 #include <vector>
 
@@ -181,11 +181,15 @@ TextureImpl::TextureImpl(DriverImpl* driver, const TextureDesc& desc)
     updateTextureDesc(desc);
 }
 
-TextureImpl::TextureImpl(DriverImpl* driver, VkImage existingImage, VkImageView existingImageView)
+TextureImpl::TextureImpl(DriverImpl* driver,
+                         VkImage existingImage,
+                         VkImageView existingImageView,
+                         VkImageUsageFlags usage)
     : _driver(driver), _ownResources(false), _layoutTracker(LEVEL_INITIAL_CAPS, LAYER_INITIAL_CAPS)
 {
     _nativeTexture.image = existingImage;
     _nativeTexture.view  = existingImageView;
+    _vkUsageFlags        = usage;
     // Note: existingImage is owned externally (e.g., swapchain), we only wrap it.
 }
 
@@ -436,7 +440,7 @@ void TextureImpl::generateMipmaps(VkCommandBuffer cmd)
 void TextureImpl::updateCompressedData(const void* data,
                                        int width,
                                        int height,
-                                       std::size_t dataSize,
+                                       size_t dataSize,
                                        int level,
                                        int layerIndex)
 {
@@ -454,7 +458,7 @@ void TextureImpl::updateCompressedSubData(int xoffset,
                                           int yoffset,
                                           int width,
                                           int height,
-                                          std::size_t dataSize,
+                                          size_t dataSize,
                                           int level,
                                           const void* data,
                                           int layerIndex)
@@ -650,10 +654,14 @@ void TextureImpl::ensureNativeTexture()
         allocCreateInfo.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
     VmaAllocationInfo allocationInfo{};
+
     VkResult res = vmaCreateImage(vmaAllocator, &imageInfo, &allocCreateInfo, &_nativeTexture.image,
                                   &_nativeTexture.vmaMemory, &allocationInfo);
 
     VK_REQUIRE(res, "vmaCreateImage failed");
+
+    // Save usage
+    _vkUsageFlags = imageInfo.usage;
 
     // Create image view
     VkImageViewCreateInfo viewInfo{};

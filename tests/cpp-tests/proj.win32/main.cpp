@@ -25,18 +25,20 @@
 
 #include "main.h"
 #include "AppDelegate.h"
-#include "axmol/platform/Application.h"
+#include "axmol/platform/CommandLineArgs.h"
+
+#include <tchar.h>
 
 // Uncomment to enable win32 console
 #define USE_WIN32_CONSOLE
 
 using namespace ax;
 
-static int axmol_main()
+static int axmol_main(int argc, TCHAR** argv)
 {
     // create the application instance
     AppDelegate app;
-    return Application::getInstance()->run();
+    return Application::getInstance()->launch(argc, argv);
 }
 
 #if !defined(_CONSOLE)
@@ -51,11 +53,11 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 #    endif
 
     // create the application instance
-    return axmol_main();
+    return axmol_main(__argc, __targv);
 }
 #else
-int main(int, char**)
+int _tmain(int argc, TCHAR** argv)
 {
-    return axmol_main();
+    return axmol_main(argc, argv);
 }
 #endif

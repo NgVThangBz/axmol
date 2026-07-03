@@ -33,6 +33,7 @@
 #include "extensions/axmol-ext.h"
 #include "axmol/rhi/DriverContext.h"
 #include "axmol/tlx/charconv.hpp"
+#include "axmol/platform/CommandLineArgs.h"
 #include <system_error>
 
 using namespace ax;
@@ -50,7 +51,10 @@ void AppDelegate::initContextAttrs()
 {
     // set vulkan min android api level, 31 for Android 12
     // refer: https://developer.android.com/tools/releases/platforms
-    rhi::DriverContext::setVulkanMinAndroidApiLevel(31);
+    DriverContext::setVulkanMinAndroidApiLevel(31);
+
+    // Overrides any command-line driver preference (default is Auto).
+    // DriverContext::setDriverPreference(DriverPreference::Auto);
 
     // set app context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
     // powerPreference only affect when RHI backend is D3D11, D3D12, Vulkan
@@ -94,9 +98,9 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
 #ifdef AX_PLATFORM_GLFW
         renderView =
-            RenderViewImpl::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height), 1.0F, true);
+            RenderView::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height), 1.0F, true);
 #else
-        renderView = RenderViewImpl::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height));
+        renderView = RenderView::createWithRect(title, Rect(0, 0, g_resourceSize.width, g_resourceSize.height));
 #endif
         director->setRenderView(renderView);
 
@@ -140,6 +144,8 @@ bool AppDelegate::applicationDidFinishLaunching()
     renderView->setDesignResolutionSize(g_designSize.width, g_designSize.height, ResolutionPolicy::SHOW_ALL);
 
     director->setClearColor(g_testsDefaultClearColor);
+
+    director->postTask([] { AXLOGI("##### run in frame boundary"); }, Director::TaskTiming::FrameBoundary);
 
     // Enable Remote Console
     auto console = director->getConsole();

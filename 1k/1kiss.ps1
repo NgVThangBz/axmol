@@ -1,11 +1,8 @@
-# //////////////////////////////////////////////////////////////////////////////////////////
-# // A multi-platform support c++11 library with focus on asynchronous socket I/O for any
-# // client application.
-# //////////////////////////////////////////////////////////////////////////////////////////
+# Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md)
+#
+#   https://axmol.dev/
 #
 # The MIT License (MIT)
-#
-# Copyright (c) 2012-2025 HALX99
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +31,7 @@
 #  -a: build arch: x86,x64,armv7,arm64
 #  -d: the build workspace, i.e project root which contains root CMakeLists.txt, empty use script run working directory aka cwd
 #  -cc: The C/C++ compiler toolchain: clang, msvc, gcc(mingw) or empty use default installed on current OS
-#       msvc: msvc-120, msvc-141
+#       msvc: msvc-120, msvc-140 (vs2015), mvsc-141 (vs2017), v142 (vs2019) , v143 (vs2022), v145 (vs2026)
 #       ndk: ndk-r16b, ndk-r16b+
 #  -xt: cross build tool, default: cmake, for android can be gradlew, can be path of cross build tool program
 #  -xc: cross build tool configure options: i.e.  -xc '-Dbuild'
@@ -252,6 +249,7 @@ $cmake_generators = @{
 $cmdlinetools_revs = @{
     '12.0' = '11076708'
     '19.0' = '13114758'
+    '20.0' = '14742923'
 }
 
 $ndk_r23d_rev = '12186248'
@@ -358,18 +356,10 @@ if (!$Global:target_minsdk) {
 }
 
 # define some useful global vars
-function eval($str, $raw = $false) {
-    if (!$raw) {
-        return Invoke-Expression "`"$str`""
-    }
-    else {
-        return Invoke-Expression $str
-    }
-}
 
 function create_symlink($sourcePath, $destPath) {
     & "$PSScriptRoot\fsync.ps1" -s $sourcePath -d $destPath -l $true 2>$null
-    if(!$?) {
+    if (!$?) {
         throw "create_symlink $destPath ==> $sourcePath fail"
     }
 }
@@ -468,10 +458,10 @@ if ($1k.isfile($manifest_file)) {
     . $manifest_file
 }
 
-if($1k.isfile($Global:__1k_user_profile)) {
+if ($1k.isfile($Global:__1k_user_profile)) {
     $1k.println("Loading user build profile: $__1k_user_profile")
     $profile_entries = ConvertFrom-Props (Get-Content $__1k_user_profile)
-    foreach($entry in $profile_entries.GetEnumerator()) {
+    foreach ($entry in $profile_entries.GetEnumerator()) {
         $manifest[$entry.Key] = $entry.Value
     }
 }
@@ -481,7 +471,7 @@ function unescape_path([string]$Path) {
 }
 
 $Script:preferred_sdk_dir = $null
-if($1k.isfile($Global:__1k_android_local_profile)) {
+if ($1k.isfile($Global:__1k_android_local_profile)) {
     $1k.println("Loading android local profile: $__1k_android_local_profile")
     $profile_entries = ConvertFrom-Props (Get-Content $__1k_android_local_profile)
     if ($profile_entries.Contains('sdk.dir')) {
@@ -503,31 +493,34 @@ else {
 $1k.println("proj_dir=$((Get-Location).Path), install_prefix=$install_prefix")
 
 # 1kdist
-$sentry_file = Join-Path $PSScriptRoot '.active-mirror'
+$Script:1k_env_file = Join-Path $PSScriptRoot '.env'
 
-if ($1k.isfile($sentry_file)) {
-    $Script:ACTIVE_MIRROR = Get-Content $sentry_file
+if ($1k.isfile($1k_env_file)) {
+    $Script:1k_env = ConvertFrom-Props (Get-Content $1k_env_file)
 }
 else {
-    $Script:ACTIVE_MIRROR = 'origin'
+    $Script:1k_env = @{
+        'active_mirror' = 'origin'
+        'android_sdk_root' = ''
+    }
+    $1k_env_str = Global:ConvertTo-Props $Script:1k_env
+    [System.IO.File]::WriteAllText($1k_env_file, $1k_env_str)
 }
 
-$mirrors_conf_file = Join-Path $PSScriptRoot 'mirrors.json'
-$mirrors_conf = ConvertFrom-Json (Get-Content $mirrors_conf_file -raw)
+$sources_conf_file = Join-Path $PSScriptRoot 'sources.json'
+$sources_conf = ConvertFrom-Json (Get-Content $sources_conf_file -raw)
 
 function devtool_url($name, $ver = $null, $mirror = $null) {
-    $tool_info = $mirrors_conf.devtools.$name
+    $tool_info = $sources_conf.devtools.$name
     if ($tool_info -is [string]) {
-        return $(eval $tool_info)
+        return $(expand_str $tool_info)
     }
 
-    if ($tool_info.mirrors -is [string]) {
-        # single mirror
-        $base_url = $tool_info.mirrors
-    }
-    else {
-        if (!$mirror) { $mirror = $Script:ACTIVE_MIRROR }
-        $base_url = $tool_info.mirrors.$mirror
+    if (!$mirror) { $mirror = $Script:1k_env.active_mirror }
+    $base_url = $tool_info.sources.$mirror
+    if (!$base_url) {
+        Write-Warning "1kiss: Mirror '$mirror' is not configured for package '$name'; falling back to 'origin'."
+        $base_url = $tool_info.sources.origin
     }
 
     $artifacts = $tool_info.artifacts
@@ -539,7 +532,7 @@ function devtool_url($name, $ver = $null, $mirror = $null) {
         if ([bool]$artifacts.psobject.Properties[$HOST_OS]) {
             $artifact = $artifacts.$HOST_OS
         }
-        elseif([bool]$artifacts.psobject.Properties[$couple]) {
+        elseif ([bool]$artifacts.psobject.Properties[$couple]) {
             $artifact = $artifacts.$couple
         }
         else {
@@ -548,8 +541,8 @@ function devtool_url($name, $ver = $null, $mirror = $null) {
     }
 
     $url = "$base_url$artifact"
-    # eval url with $ver on current scope
-    return eval $url
+    # expand_str url with $ver on current scope
+    return expand_str $url
 }
 
 # accept x.y.z-rc1
@@ -621,14 +614,19 @@ function validate_cmd($source) {
     return (validate_cmd_fs $source $source)
 }
 
+function info_cmd($cmd) {
+    return Get-Command $cmd -ErrorAction SilentlyContinue
+}
+
 function find_cmd($cmd) {
-    $cmd_info = (Get-Command $cmd -ErrorAction SilentlyContinue)
+    $cmd_info = (info_cmd $cmd)
     if ($cmd_info -and (validate_cmd $cmd_info.Source)) {
         return $cmd_info
     }
 
     return $null
 }
+
 function find_prog($name, $path = $null, $mode = 'ONLY', $cmd = $null, $params = @('--version'), $silent = $false, $usefv = $false) {
     if ($path) {
         $storedPATH = $env:PATH
@@ -1015,7 +1013,7 @@ function setup_axslcc() {
     }
 
     $axslcc_prog = (Join-Path $axslcc_bin "axslcc$EXE_SUFFIX")
-    if($1k.isfile($axslcc_prog)) {
+    if ($1k.isfile($axslcc_prog)) {
         $1k.del($axslcc_prog)
     }
 
@@ -1025,7 +1023,8 @@ function setup_axslcc() {
 
     if ($1k.isfile($axslcc_prog)) {
         $1k.println("Using axslcc: $axslcc_prog, version: $axslcc_ver")
-    } else {
+    }
+    else {
         throw "Install axslcc fail"
     }
 }
@@ -1163,7 +1162,7 @@ function setup_nasm() {
             $1k.addpath($nasm_bin)
         }
         elseif ($IsLinux) {
-            if ($(which dpkg)) {
+            if (info_cmd dpkg) {
                 sudo apt-get install -y nasm
             }
         }
@@ -1208,13 +1207,13 @@ function setup_jdk() {
 
 function setup_unzip() {
     if ($IsWin) { return }
-    $unzip_cmd_info = Get-Command 'unzip' -ErrorAction SilentlyContinue
+    $unzip_cmd_info = info_cmd 'unzip'
     if (!$unzip_cmd_info) {
         if ($IsLinux) {
-            if ($(which dpkg)) {
+            if (info_cmd dpkg) {
                 sudo apt-get install -y unzip
             }
-            elseif($(which pacman)) {
+            elseif (info_cmd pacman) {
                 sudo pacman -S --needed --noconfirm unzip
             }
             else {
@@ -1224,7 +1223,7 @@ function setup_unzip() {
         elseif ($IsMacOS) {
             brew install unzip
         }
-        $unzip_cmd_info = Get-Command 'unzip' -ErrorAction SilentlyContinue
+        $unzip_cmd_info = info_cmd 'unzip'
         if (!$unzip_cmd_info) {
             throw "setup unzip fail"
         }
@@ -1233,7 +1232,7 @@ function setup_unzip() {
 
 function setup_7z() {
     # ensure 7z_prog
-    $7z_cmd_info = Get-Command '7z' -ErrorAction SilentlyContinue
+    $7z_cmd_info = info_cmd '7z'
     if (!$7z_cmd_info) {
         if ($IsWin) {
             $7z_ver = '2600'
@@ -1246,13 +1245,13 @@ function setup_7z() {
             $1k.addpath($7z_bin)
         }
         elseif ($IsLinux) {
-            if ($(which dpkg)) { sudo apt-get install -y p7zip-full }
+            if ($(info_cmd dpkg)) { sudo apt-get install -y p7zip-full }
         }
         elseif ($IsMacOS) {
             brew install p7zip
         }
 
-        $7z_cmd_info = Get-Command '7z' -ErrorAction SilentlyContinue
+        $7z_cmd_info = info_cmd '7z'
         if (!$7z_cmd_info) {
             throw "setup 7z fail"
         }
@@ -1298,7 +1297,7 @@ function setup_android_sdk() {
 
     # looking up require ndk installed in exists sdk roots
     $selected_sdk_root = $null
-    if($Script:preferred_sdk_dir) {
+    if ($Script:preferred_sdk_dir) {
         $selected_sdk_root = $Script:preferred_sdk_dir
         $1k.println("Using android sdk dir (Preferred): $selected_sdk_root")
     }
@@ -1306,12 +1305,17 @@ function setup_android_sdk() {
         $selected_sdk_root = $env:ANDROID_HOME
         $1k.println("Using android sdk dir from env:ANDROID_HOME: $selected_sdk_root")
     }
-    elseif($env:ANDROID_SDK_ROOT) {
+    elseif ($env:ANDROID_SDK_ROOT) {
         $selected_sdk_root = $env:ANDROID_SDK_ROOT
         $1k.println("Using android sdk dir from env:ANDROID_SDK_ROOT: $selected_sdk_root")
     }
     else {
-        $selected_sdk_root = Join-Path $install_prefix 'adt/sdk'
+        $old_sdk_root = Join-Path $install_prefix 'adt/sdk'
+        $selected_sdk_root = Join-Path $install_prefix 'android-sdk'
+        if ((Test-Path $old_sdk_root -PathType Container) -and !(Test-Path $selected_sdk_root -PathType Container))
+        {
+            Move-Item -Path $old_sdk_root -Destination $selected_sdk_root
+        }
         $1k.println("Using android sdk dir from axmol external: $selected_sdk_root")
     }
 
@@ -1412,7 +1416,7 @@ function setup_android_sdk() {
                 "android-ndk-${ndk_r23d_rev}-linux-x86_64.zip",
                 "android-ndk-${ndk_r23d_rev}-darwin-x86_64.zip")[$HOST_OS_INT]
             $_target_os = @('win64', 'linux', 'darwin_mac')[$HOST_OS_INT]
-            . (Join-Path $PSScriptRoot 'resolv-url.ps1') -artifact $_artifact -target $_target_os -build_id $ndk_r23d_rev -mirror gcloud -out_var 'artifact_info'
+            . (Join-Path $PSScriptRoot 'resolv-url.ps1') -artifact $_artifact -target $_target_os -build_id $ndk_r23d_rev -source gcloud -out_var 'artifact_info'
             $artifact_url = $artifact_info[0].messageData
             $full_ver = "23.3.${ndk_r23d_rev}"
             $ndk_root = Join-Path $ndk_prefix $full_ver
@@ -1449,7 +1453,14 @@ function setup_android_sdk() {
     }
 
     if (!$ndkOnly) {
-        $sdk_comps_list = 'platform-tools', "platforms/android-$($manifest['target_sdk'])", "build-tools/$($manifest['buildtools'])"
+        $sdk_api_level = $manifest['target_sdk']
+        $parts = $sdk_api_level.Split('.')
+        $major = [int]$parts[0]
+        if (($major -ge 37) -and ($parts.Count -lt 2)) {
+            $sdk_api_level = "$major.0"
+        }
+
+        $sdk_comps_list = 'platform-tools', "platforms/android-$sdk_api_level", "build-tools/$($manifest['buildtools'])"
         foreach ($comp in $sdk_comps_list) {
             if (!$1k.isfile("$sdk_root/$comp/source.properties") -or $updateAdt) {
                 $sdk_comps += $comp.Replace('/', ';')
@@ -1473,7 +1484,7 @@ function setup_emsdk() {
     if (!$emcc_prog) {
         # no suitable emcc toolchain found, use official emsdk to setup
         $1k.println('Not found emcc toolchain in $env:PATH, setup emsdk ...')
-        $emsdk_cmd = (Get-Command emsdk -ErrorAction SilentlyContinue)
+        $emsdk_cmd = (info_cmd emsdk)
         if (!$emsdk_cmd) {
             $emsdk_root = Join-Path $install_prefix 'emsdk'
             if (!$1k.isdir($emsdk_root)) {
@@ -1488,7 +1499,7 @@ function setup_emsdk() {
             $emsdk_root = Split-Path $emsdk_cmd.Source -Parent
         }
 
-        $emcmake = (Get-Command emcmake -ErrorAction SilentlyContinue)
+        $emcmake = (info_cmd emcmake)
         if (!$emcmake) {
             Push-Location $emsdk_root
             ./emsdk install $emcc_ver
@@ -1591,6 +1602,25 @@ function setup_gclient() {
     $env:DEPOT_TOOLS_WIN_TOOLCHAIN = 0
 }
 
+function Get-VsToolsetFromMsvcVersion {
+    param(
+        [string]$msvcVer,
+        [string]$configPath = "$PSScriptRoot\vs_toolset.json"
+    )
+
+    $config = Get-Content $configPath -Raw | ConvertFrom-Json
+    $ver = [Version]$msvcVer
+
+    foreach ($mapping in $config.mappings) {
+        $max = [Version]$mapping.threshold
+        if ($ver -lt $max) {
+            return $mapping
+        }
+    }
+
+    throw "Unsupported MSVC compiler version: $msvcVer"
+}
+
 # preprocess methods:
 function preprocess_win() {
     $outputOptions = @()
@@ -1602,11 +1632,18 @@ function preprocess_win() {
         if ($vs_ver -ge [VersionEx]'16.0') {
             if ($TOOLCHAIN_VER -match '^\d+$') {
                 $outputOptions += "-Tv$TOOLCHAIN_VER"
-            } elseif($TOOLCHAIN_VER -match '^\d+\.\d+$') {
-                $outputOptions += '-T', "version=$TOOLCHAIN_VER"
+            }
+            elseif ($TOOLCHAIN_VER -match '^\d+\.\d+$') {
+                $toolsetInfo = Get-VsToolsetFromMsvcVersion $TOOLCHAIN_VER
+                $outputOptions += '-T', "$($toolsetInfo.toolset),version=$TOOLCHAIN_VER"
+                # Specifying a CMake generator requires multiple Visual Studio versions
+                # (e.g., "Visual Studio $($toolsetInfo.vsVer) $($toolsetInfo.vsYear)").
+                # If no generator is specified, CMake will automatically select the latest
+                # available version, so only the newest Visual Studio (e.g., VS2026) needs to be installed.
+                # $Script:cmake_generator = "Visual Studio $($toolsetInfo.vsVer) $($toolsetInfo.vsYear)"
             }
             # refer: https://cmake.org/cmake/help/latest/variable/CMAKE_GENERATOR_PLATFORM.html
-            if($options.sdk) {
+            if ($options.sdk) {
                 $outputOptions += "-DCMAKE_GENERATOR_PLATFORM=$arch,version=$($options.sdk)"
             }
             else {
@@ -1643,7 +1680,8 @@ function preprocess_win() {
     }
     elseif ($Global:is_clang) {
         $outputOptions += "-DTARGET_ARCH=$($options.a)"
-        if ($options.sdk) { # clang: set preferred version, depends on project self
+        if ($options.sdk) {
+            # clang: set preferred version, depends on project self
             $outputOptions += "-DWINDOWS_SDK_VERSION=$($options.sdk)"
         }
         $outputOptions += '-DCMAKE_C_COMPILER=clang', '-DCMAKE_CXX_COMPILER=clang++'
@@ -1847,6 +1885,13 @@ elseif ($Global:is_android) {
     $env:ANDROID_NDK_HOME = $ndk_root
     $env:ANDROID_NDK_ROOT = $ndk_root
 
+    if ($Script:1k_env.android_sdk_root -ne $sdk_root)
+    {
+        $Script:1k_env['android_sdk_root'] = $sdk_root
+        $1k_env_str = ConvertTo-Props $Script:1k_env
+        [System.IO.File]::WriteAllText($1k_env_file, $1k_env_str)
+    }
+
     $ndk_host = @('windows', 'linux', 'darwin')[$HOST_OS_INT]
     $env:ANDROID_NDK_BIN = Join-Path $ndk_root "toolchains/llvm/prebuilt/$ndk_host-x86_64/bin"
     function active_ndk_toolchain() {
@@ -1861,7 +1906,13 @@ elseif ($Global:is_wasm) {
 
 $is_host_target = $Global:is_win32 -or $Global:is_linux -or $Global:is_mac
 $is_host_cpu = $HOST_CPU -eq $TARGET_CPU
-$cmake_target = $null
+if ($cmake_target) {
+    # put cmake_target to global
+    $global:cmake_target = $cmake_target
+}
+else {
+    $cmake_target = $null
+}
 
 if (!$setupOnly) {
     $BUILD_DIR = $null
@@ -1869,12 +1920,12 @@ if (!$setupOnly) {
 
     function resolve_out_dir($prefix) {
         if ($prefix.EndsWith('/') -or $prefix.EndsWith('\')) {
-          if ($is_host_target) {
-            return $1k.realpath("$prefix$TARGET_CPU/")
-          }
-          else {
-              return $1k.realpath("$prefix${TARGET_OS}_$TARGET_CPU/")
-          }
+            if ($is_host_target) {
+                return $1k.realpath("$prefix$TARGET_CPU/")
+            }
+            else {
+                return $1k.realpath("$prefix${TARGET_OS}_$TARGET_CPU/")
+            }
         }
 
         if ($is_host_target) {
@@ -2068,11 +2119,11 @@ if (!$setupOnly) {
         $1k.println("CONFIG_ALL_OPTIONS=$CONFIG_ALL_OPTIONS, Count={0}" -f $CONFIG_ALL_OPTIONS.Count)
 
         if ($Global:is_android -and $is_gradlew) {
-            $build_tool = (Get-Command $options.xt).Source
+            $build_tool = (info_cmd $options.xt).Source
             $build_tool_dir = Split-Path $build_tool -Parent
             Push-Location $build_tool_dir
+            $build_task = @('assemble', 'bundle')[$options.aab]
             if (!$configOnly) {
-                $build_task = @('assemble', 'bundle')[$options.aab]
                 if ($optimize_flag -eq 'Debug') {
                     & $build_tool ${build_task}Debug $CONFIG_ALL_OPTIONS | Out-Host
                 }
@@ -2082,9 +2133,11 @@ if (!$setupOnly) {
             }
             else {
                 if ($optimize_flag -eq 'Debug') {
+                    & $build_tool ${build_task}Debug $CONFIG_ALL_OPTIONS --dry-run | Out-Host
                     & $build_tool configureCMakeDebug prepareKotlinBuildScriptModel $CONFIG_ALL_OPTIONS | Out-Host
                 }
                 else {
+                    & $build_tool ${build_task}Release $CONFIG_ALL_OPTIONS --dry-run | Out-Host
                     & $build_tool configureCMakeRelWithDebInfo prepareKotlinBuildScriptModel $CONFIG_ALL_OPTIONS | Out-Host
                 }
             }
@@ -2096,21 +2149,25 @@ if (!$setupOnly) {
             $cmakeEntryFile = 'CMakeLists.txt'
             $mainDep = if (!$SOURCE_DIR) { Join-Path $workDir $cmakeEntryFile } else { $(Join-Path $SOURCE_DIR $cmakeEntryFile) }
             if ($1k.isfile($mainDep)) {
-                $mainDepChanged = $false
                 # A Windows file time is a 64-bit value that represents the number of 100-nanosecond
-                $tempFileItem = Get-Item $mainDep
-                $lastWriteTime = $tempFileItem.LastWriteTime.ToFileTimeUTC()
+                $entryFileItem = Get-Item $mainDep
+                $lastWriteTime = $entryFileItem.LastWriteTime.ToFileTimeUTC()
                 $tempFile = Join-Path $BUILD_DIR '1k_cache.txt'
-
-                $storeHash = 0
-                if ($1k.isfile($tempFile)) {
-                    $storeHash = Get-Content $tempFile -Raw
-                }
-                $hashValue = $1k.hash("$CONFIG_ALL_OPTIONS#$lastWriteTime")
-                $mainDepChanged = "$storeHash" -ne "$hashValue"
                 $cmakeCachePath = $1k.realpath("$BUILD_DIR/CMakeCache.txt")
 
-                if ($mainDepChanged -or !$1k.isfile($cmakeCachePath) -or $forceConfig) {
+                $shouldRegen = $forceConfig
+                if(!$shouldRegen) {
+                    $shouldRegen = !$1k.isfile($cmakeCachePath) -or !$1k.isfile($tempFile)
+                }
+
+                $hashValue = $1k.hash("$CONFIG_ALL_OPTIONS#$lastWriteTime")
+
+                if (!$shouldRegen) {
+                    $storeHash = Get-Content $tempFile -Raw
+                    $shouldRegen = ("$storeHash" -ne "$hashValue")
+                }
+
+                if ($shouldRegen) {
                     $config_cmd = if (!$is_wasm) { 'cmake' } else { 'emcmake' }
                     if ($is_wasm) {
                         $CONFIG_ALL_OPTIONS = @('cmake') + $CONFIG_ALL_OPTIONS
@@ -2162,7 +2219,7 @@ if (!$setupOnly) {
                         $cm_targets = @()
                     }
                     if ($cmake_target) {
-                        if ($cm_targets.Contains($cmake_target)) {
+                        if (!$cm_targets.Contains($cmake_target)) {
                             $cm_targets += $cmake_target
                         }
                     }
@@ -2256,10 +2313,10 @@ if (!$setupOnly) {
         if ($Global:is_win_family) {
             $sln_name = Split-Path $(Get-Location).Path -Leaf
             $vs_ide = $options.ide
-            if(!$vs_ide) {
+            if (!$vs_ide) {
                 $MSVS_VERSIONS = @{
-                  '18' = '2026'
-                  '17' = '2022'
+                    '18' = '2026'
+                    '17' = '2022'
                 }
                 $vs_year_ver = $MSVS_VERSIONS[$vs_major]
                 $vs_ide = "vs$vs_year_ver"

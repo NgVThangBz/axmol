@@ -138,7 +138,8 @@ void ChorusState::deviceUpdate(const DeviceBase *device, const BufferStorage*)
     static constexpr auto MaxDelay = std::max(ChorusMaxDelay, FlangerMaxDelay);
     const auto frequency = static_cast<float>(device->mSampleRate);
 
-    const auto maxlen = usize{NextPowerOf2(float2uint(MaxDelay*2.0f*frequency) + 1u)} * NumLines;
+    const auto maxlen = std::size_t{NextPowerOf2(float2uint(MaxDelay*2.0f*frequency) + 1u)}
+        * NumLines;
     if(maxlen != mDelayBuffers.size())
         decltype(mDelayBuffers)(maxlen).swap(mDelayBuffers);
     std::ranges::fill(mDelayBuffers, 0.0f);
@@ -155,7 +156,8 @@ void ChorusState::deviceUpdate(const DeviceBase *device, const BufferStorage*)
         auto const splitter = BandSplitter{device->mXOverFreq
             / static_cast<float>(device->mSampleRate)};
 
-        auto &upsampler = mUpsampler.emplace();
+        using upsampler_t = decltype(mUpsampler)::value_type;
+        auto &upsampler = mUpsampler.emplace(upsampler_t{});
         for(auto &chandata : upsampler)
         {
             chandata.mHfScale = hfscales[idx];
@@ -223,7 +225,7 @@ void ChorusState::update(const ContextBase *context, const EffectSlotBase *slot,
 
     mOutTarget = target.Main->Buffer;
     target.Main->setAmbiMixParams(slot->Wet, slot->Gain,
-        [this](usize const idx, u8 const outchan, float const outgain)
+        [this](std::size_t const idx, u8 const outchan, float const outgain)
     {
         if(idx < mChans.size())
         {
@@ -389,7 +391,7 @@ void ChorusState::process(const size_t samplesToDo,
             { return sample + in*gain; });
         }
     }
-    mOffset += samplesToDo;
+    mOffset += gsl::narrow_cast<unsigned>(samplesToDo);
 
     if(mUpsampler.has_value())
     {

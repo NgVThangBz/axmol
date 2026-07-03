@@ -104,6 +104,17 @@ void RenderTargetImpl::rebuildSwapchainAttachments(const tlx::pod_vector<VkImage
     auto device = _driver->getDevice();
     for (auto i = 0; i < images.size(); ++i)
     {
+#if !defined(NDEBUG) && defined(_WIN32)
+        if (Application::getContextAttrs().debugLayerEnabled)
+        {
+            VkDebugUtilsObjectNameInfoEXT debugName{.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT};
+            debugName.objectHandle = std::bit_cast<uintptr_t>(images[i]);
+            debugName.pObjectName  = "axmol3-swapchain-image";
+            debugName.objectType   = VK_OBJECT_TYPE_IMAGE;
+            vkSetDebugUtilsObjectNameEXT(_driver->getDevice(), &debugName);
+        }
+#endif
+
         VkImageView imageView{VK_NULL_HANDLE};
 
         VkImageViewCreateInfo viewInfo{};
@@ -124,9 +135,9 @@ void RenderTargetImpl::rebuildSwapchainAttachments(const tlx::pod_vector<VkImage
 
         _swapchainImageViews[i] = imageView;
 
-        // Wrap the swapchain VkImage as TextureImpl (color attachment)
-        // Important: TextureImpl(VkImage) does not own the image memory; it should create a VkImageView for sampling.
-        auto colorTex = new TextureImpl(_driver, images[i], imageView);
+        // Wrap the swapchain VkImage as a presentable color attachment.
+        // It must not be treated as a sampled texture
+        auto colorTex = new TextureImpl(_driver, images[i], imageView, SWAPCHAIN_IMAGE_USAGE_FLAGS);
         // Update descriptor (sampler, mip info, etc.). The TextureImpl should create view if missing.
         colorTex->updateTextureDesc(colorDesc);
         _color[i].texture = colorTex;
@@ -327,6 +338,9 @@ void RenderTargetImpl::endRenderPass(VkCommandBuffer cmd)
             // VkImageView which was previously written during an image layout transition initiated by
             // vkCmdEndRenderPass
             auto texImpl = static_cast<TextureImpl*>(rb.texture);
+            AXASSERT(texImpl->canUseShaderReadOnlyLayout(),
+                     "VkImage must have VK_IMAGE_USAGE_SAMPLED_BIT or VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT before using "
+                     "VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL");
             texImpl->transitionLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
         if (_depthStencil)

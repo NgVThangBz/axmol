@@ -23,8 +23,11 @@
 
 ### 2. **Install Compiler Toolchain**
 
-- **Windows**: Install **Visual Studio 2022 or 2026** with the **`Desktop development with C++`** workload.  
-  - For UWP development, also enable the **`WinUI application development tools`** workload and include the optional component **`C++ Universal Windows Platform tools`**.
+- **Windows**  
+  - Install **Visual Studio 2022 (version 17.9 or higher)** or **Visual Studio 2026**.  
+  - Enable the **`Desktop development with C++`** workload.  
+  - For UWP development, also enable the **`WinUI application development tools`** workload and include the optional component **`C++ Universal Windows Platform tools`**.  
+  - **MSVC Toolset Requirement**: Must install **MSVC v14.39 or higher**.  
 
 - **macOS**:
   - For `axmol-v2`: Install **Xcode 14.2 or later** — note that Xcode 14.2 is only supported on **macOS 12.5 ~ macOS 13.x**.  
@@ -145,7 +148,7 @@ To generate an AAB instead of an APK, simply add the **`-aab`** option.
 - **Android SDK/NDK**: `setup.ps1 -p android` installs the minimum NDK version — **r23d** for `axmol-v2`, and **r27d** for `axmol-v3`.
 - **Linux**: Use **VSCode** with the **C++** and **CMake Tools** extensions for the best development experience.  
   👉 Ensure your system has **GCC/G++** and **CMake** installed (Ubuntu 22.04+, Debian 12+, ArchLinux recommended).
-- **WASM Debugging**: Default emsdk version is `3.1.73`. Use Chrome DevTools for debugging.
+- **WASM Debugging**: Use Chrome DevTools for debugging.
 
 ---
 

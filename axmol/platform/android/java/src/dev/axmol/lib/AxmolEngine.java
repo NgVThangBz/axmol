@@ -27,6 +27,8 @@ THE SOFTWARE.
 package dev.axmol.lib;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
@@ -104,6 +106,7 @@ public class AxmolEngine {
     private static boolean sCompassEnabled;
     private static boolean sActivityVisible;
     private static String sPackageName;
+    private static Context sAppContext = null;
     private static AppCompatActivity sActivity = null;
     private static AxmolEngineListener sAxmolEngineListener;
     private static Set<OnActivityResultListener> onActivityResultListeners = new LinkedHashSet<OnActivityResultListener>();
@@ -130,21 +133,23 @@ public class AxmolEngine {
         sActivity.runOnUiThread(r);
     }
 
-    public static void queueOperation(final long op, final long param) {
+    @SuppressWarnings("unused")
+    public static void postBoundaryTaskSignal() {
         AxmolEngine.runOnAxmolThread(new Runnable() {
             @Override
             public void run() {
-                AxmolEngine.nativeCall0(op, param);
+                AxmolEngine.nativePerformFrameBoundaryTasks();
             }
         });
     }
 
-    private static boolean sInited = false;
+    private static boolean sInitialized = false;
     public static void init(final AppCompatActivity activity) {
+        sAppContext = activity.getApplicationContext();
         sActivity = activity;
         AxmolEngine.sAxmolEngineListener = (AxmolEngineListener)activity;
 
-        if (!sInited) {
+        if (!sInitialized) {
 
             PackageManager pm = activity.getPackageManager();
             boolean isSupportLowLatency = pm.hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
@@ -157,13 +162,11 @@ public class AxmolEngine {
             AxmolEngine.sAssetManager = activity.getAssets();
             AxmolEngine.nativeInit((Context)activity, AxmolEngine.sAssetManager);
 
-            AxmolMediaEngine.setContext(activity);
-
             BitmapHelper.setContext(activity);
 
             AxmolEngine.sVibrateService = (Vibrator)activity.getSystemService(Context.VIBRATOR_SERVICE);
 
-            sInited = true;
+            sInitialized = true;
         }
     }
 
@@ -219,6 +222,8 @@ public class AxmolEngine {
     public static AppCompatActivity getActivity() {
         return sActivity;
     }
+
+    public static Context getApplicationContext() { return sAppContext; }
 
     public static void addOnActivityResultListener(OnActivityResultListener listener) {
         onActivityResultListeners.add(listener);
@@ -1006,6 +1011,47 @@ public class AxmolEngine {
         return result[0];
     }
 
+    @SuppressWarnings("unused")
+    public static String getClipboardText() {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) sAppContext.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = clipboard.getPrimaryClip();
+            if (clip != null && clip.getItemCount() > 0) {
+                return clip.getItemAt(0).getText().toString();
+            }
+        } catch (Exception e) {
+            // Safely returns empty string if anything goes wrong or if clipboard is empty
+        }
+        return "";
+    }
+
+    @SuppressWarnings("unused")
+    public static void setClipboardText(String text) {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) sAppContext.getSystemService(Context.CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText("Axmol Clipboard", text == null ? "" : text));
+        } catch (Exception e) {
+            // Keeps the app alive if the Android clipboard service fails
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static void clearClipboard() {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) sAppContext.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard == null) return;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) { // API 28+ supports clearPrimaryClip() safely
+                clipboard.clearPrimaryClip();
+            } else {
+                // Fallback for older Android versions
+                clipboard.setPrimaryClip(ClipData.newPlainText("", ""));
+            }
+        } catch (Exception e) {
+            // Prevents crashes if the system clipboard service fails
+        }
+    }
+
     // ===========================================================
     // Native methods for AxmolEngine
     // ===========================================================
@@ -1020,5 +1066,5 @@ public class AxmolEngine {
 
     // private static native void nativeSetAudioDeviceInfo(boolean isSupportLowLatency, int deviceSampleRate, int audioBufferSizeInFames);
 
-    public static native void nativeCall0(long func, long ud);
+    public static native void nativePerformFrameBoundaryTasks();
 }

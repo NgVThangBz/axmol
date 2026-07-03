@@ -68,6 +68,10 @@ FastTileMapTests::FastTileMapTests()
     ADD_TEST_CASE(TMXGIDObjectsTestNew);
     ADD_TEST_CASE(TileAnimTestNew);
     ADD_TEST_CASE(TileAnimTestNew2);
+    ADD_TEST_CASE(TMXMultiTilesetBackwardCompatTest);
+    ADD_TEST_CASE(TMXMultiTilesetBatchApiTest);
+    ADD_TEST_CASE(TMXMultiTilesetSetTileSetTest);
+    ADD_TEST_CASE(MultiTileSetsTestNew);
 }
 
 TileDemoNew::TileDemoNew()
@@ -78,8 +82,8 @@ TileDemoNew::TileDemoNew()
     Director::getInstance()->getRenderer()->setDepthTest(true);
     Director::getInstance()->getRenderer()->setDepthWrite(true);
 
-    auto listener            = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesMoved = AX_CALLBACK_2(TileDemoNew::onTouchesMoved, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerMove = AX_CALLBACK_1(TileDemoNew::onPointerMove, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
@@ -102,14 +106,17 @@ void TileDemoNew::onExit()
     Director::getInstance()->getRenderer()->setDepthWrite(false);
 }
 
-void TileDemoNew::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
+void TileDemoNew::onPointerMove(PointerEvent* event)
 {
-    auto touch = touches[0];
+    if (!event->isPrimaryPressed())
+        return;
 
-    auto diff       = touch->getDelta();
+    auto diff       = event->getDelta();
     auto node       = getChildByTag(kTagTileMap);
     auto currentPos = node->getPosition();
     node->setPosition(currentPos + diff);
+
+    return;
 }
 
 //------------------------------------------------------------------
@@ -1379,8 +1386,8 @@ TileAnimTestNew::TileAnimTestNew()
     map = FastTMXTiledMap::create("TileMaps/tile_animation_test.tmx");
     addChild(map, 0, kTagTileMap);
 
-    auto listener            = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesBegan = AX_CALLBACK_2(TileAnimTestNew::onTouchBegan, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = AX_CALLBACK_1(TileAnimTestNew::onPointerDown, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     Size AX_UNUSED s = map->getContentSize();
@@ -1394,10 +1401,12 @@ std::string TileAnimTestNew::title() const
     return "Tile animation test.\nClick to toggle the animation";
 }
 
-void TileAnimTestNew::onTouchBegan(const std::vector<ax::Touch*>& touches, ax::Event* event)
+bool TileAnimTestNew::onPointerDown(ax::PointerEvent* event)
 {
     _animStarted = !_animStarted;
     map->setTileAnimEnabled(_animStarted);
+
+    return true;
 }
 
 //------------------------------------------------------------------
@@ -1411,8 +1420,8 @@ TileAnimTestNew2::TileAnimTestNew2()
     map = FastTMXTiledMap::create("TileMaps/tile_animation_test_2.tmx");
     addChild(map, 0, kTagTileMap);
 
-    auto listener            = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesBegan = AX_CALLBACK_2(TileAnimTestNew2::onTouchBegan, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = AX_CALLBACK_1(TileAnimTestNew2::onPointerDown, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     Size AX_UNUSED s = map->getContentSize();
@@ -1426,8 +1435,155 @@ std::string TileAnimTestNew2::title() const
     return "Tile animation test with flipped/rotated.\nClick to toggle the animation";
 }
 
-void TileAnimTestNew2::onTouchBegan(const std::vector<ax::Touch*>& touches, ax::Event* event)
+bool TileAnimTestNew2::onPointerDown(ax::PointerEvent* event)
 {
     _animStarted = !_animStarted;
     map->setTileAnimEnabled(_animStarted);
+    return true;
+}
+
+//------------------------------------------------------------------
+//
+// TMXMultiTilesetBackwardCompatTest
+//
+// Loads a map that uses one tileset per layer and verifies each layer
+// ends up with exactly one TilesetBatch — ensures the multi-tileset
+// refactor did not break single-tileset maps.
+//
+//------------------------------------------------------------------
+TMXMultiTilesetBackwardCompatTest::TMXMultiTilesetBackwardCompatTest()
+{
+    auto map = ax::FastTMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
+    AXASSERT(map, "map must load");
+    addChild(map, 0, kTagTileMap);
+
+    bool allSingleBatch = true;
+    for (auto* layer : map->getLayers())
+    {
+        const auto& batches = layer->getBatches();
+        AXLOGD("Layer '{}': {} batch(es)", layer->getLayerName(), batches.size());
+        if (batches.size() != 1)
+            allSingleBatch = false;
+    }
+    AXASSERT(allSingleBatch, "every single-tileset layer must produce exactly one TilesetBatch");
+}
+
+std::string TMXMultiTilesetBackwardCompatTest::title() const
+{
+    return "Multi-tileset: backward compat";
+}
+
+std::string TMXMultiTilesetBackwardCompatTest::subtitle() const
+{
+    return "Single-tileset map — each layer must have 1 batch (see console)";
+}
+
+//------------------------------------------------------------------
+//
+// TMXMultiTilesetBatchApiTest
+//
+// Exercises batchIndexForGID() and getBatches() on a loaded map:
+//   - batchIndexForGID(0)   must return -1 (empty tile)
+//   - batchIndexForGID(gid) must return >= 0 for any real tile GID
+//   - The returned index must be within [0, batches.size())
+//
+//------------------------------------------------------------------
+TMXMultiTilesetBatchApiTest::TMXMultiTilesetBatchApiTest()
+{
+    auto map = ax::FastTMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
+    AXASSERT(map, "map must load");
+    addChild(map, 0, kTagTileMap);
+
+    for (auto* layer : map->getLayers())
+    {
+        const auto& batches = layer->getBatches();
+        AXASSERT(!batches.empty(), "loaded layer must have at least one batch");
+
+        // GID 0 is the empty-tile sentinel — must always return -1.
+        AXASSERT(layer->batchIndexForGID(0) == -1, "batchIndexForGID(0) must be -1");
+
+        // Find a real non-empty tile GID and verify the lookup succeeds.
+        const Vec2 layerSize = layer->getLayerSize();
+        bool foundTile       = false;
+        for (int y = 0; y < static_cast<int>(layerSize.height) && !foundTile; ++y)
+        {
+            for (int x = 0; x < static_cast<int>(layerSize.width) && !foundTile; ++x)
+            {
+                TMXTileFlags flags{};
+                int gid = layer->getTileGIDAt(Vec2((float)x, (float)y), &flags);
+                if (gid == 0)
+                    continue;
+
+                int bi = layer->batchIndexForGID(static_cast<uint32_t>(gid));
+                AXASSERT(bi >= 0, "batchIndexForGID must return >= 0 for a non-empty GID");
+                AXASSERT(bi < static_cast<int>(batches.size()), "batch index must be within range");
+                AXLOGD("Layer '{}': GID {} → batch {}", layer->getLayerName(), gid, bi);
+                foundTile = true;
+            }
+        }
+    }
+}
+
+std::string TMXMultiTilesetBatchApiTest::title() const
+{
+    return "Multi-tileset: batch API";
+}
+
+std::string TMXMultiTilesetBatchApiTest::subtitle() const
+{
+    return "batchIndexForGID and getBatches correctness (see console)";
+}
+
+//------------------------------------------------------------------
+//
+// TMXMultiTilesetSetTileSetTest
+//
+// Calls setTileSet on a layer with the layer's own primary tileset.
+// Verifies that afterwards exactly one batch remains and the map
+// still renders without crashing.
+//
+//------------------------------------------------------------------
+TMXMultiTilesetSetTileSetTest::TMXMultiTilesetSetTileSetTest()
+{
+    auto map = ax::FastTMXTiledMap::create("TileMaps/orthogonal-test5.tmx");
+    AXASSERT(map, "map must load");
+    addChild(map, 0, kTagTileMap);
+
+    for (auto* layer : map->getLayers())
+    {
+        ax::TMXTilesetInfo* ts = layer->getTileSet();
+        AXASSERT(ts, "layer must have a primary tileset before setTileSet");
+
+        layer->setTileSet(ts);
+
+        const auto& batches = layer->getBatches();
+        AXASSERT(batches.size() == 1, "setTileSet must leave exactly one batch");
+        AXASSERT(batches[0].tilesetInfo == ts, "the surviving batch must hold the assigned tileset");
+        AXLOGD("Layer '{}': setTileSet OK, {} batch(es) remaining", layer->getLayerName(), batches.size());
+    }
+}
+
+std::string TMXMultiTilesetSetTileSetTest::title() const
+{
+    return "Multi-tileset: setTileSet replacement";
+}
+
+std::string TMXMultiTilesetSetTileSetTest::subtitle() const
+{
+    return "setTileSet must leave exactly 1 batch (see console)";
+}
+
+MultiTileSetsTestNew::MultiTileSetsTestNew()
+{
+    map = FastTMXTiledMap::create("TileMaps/multi-tileset-test.tmx");
+    addChild(map, 0, kTagTileMap);
+    map->setScale(2);
+
+    Size AX_UNUSED s = map->getContentSize();
+    AXLOGD("ContentSize: {}, {}", s.width, s.height);
+}
+
+std::string MultiTileSetsTestNew::title() const
+{
+    return "multiple tilesets in one layer.";
 }

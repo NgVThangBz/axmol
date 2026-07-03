@@ -49,6 +49,9 @@ AppDelegate::~AppDelegate() {}
 // it will affect all platforms
 void AppDelegate::initContextAttrs()
 {
+    // Overrides any command-line driver preference (default is Auto).
+    // DriverContext::setDriverPreference(DriverPreference::Auto);
+
     // set app context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
     // powerPreference only affect when RHI backend is D3D
     ContextAttrs contextAttrs = {.powerPreference = PowerPreference::HighPerformance};
@@ -83,10 +86,10 @@ bool AppDelegate::applicationDidFinishLaunching()
     {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32) || (AX_TARGET_PLATFORM == AX_PLATFORM_MAC) || \
     (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
-        renderView = RenderViewImpl::createWithRect(
+        renderView = RenderView::createWithRect(
             "Dummy", ax::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
 #else
-        renderView = RenderViewImpl::create("Dummy");
+        renderView = RenderView::create("Dummy");
 #endif
         director->setRenderView(renderView);
     }
@@ -95,7 +98,7 @@ bool AppDelegate::applicationDidFinishLaunching()
     // On Android/iOS emulator devices, uncomment to visualize the left/right eye VR rendering output.
     // Useful for debugging stereo rendering without a physical headset.
     // vrRenderer->setDebugIgnoreHeadTracker(true);
-    renderView->setVR(std::move(vrRenderer));
+    director->setSceneRenderer(std::move(vrRenderer));
 #endif
 
     // turn on display FPS

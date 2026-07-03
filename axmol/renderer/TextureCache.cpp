@@ -30,8 +30,7 @@ THE SOFTWARE.
 #include "axmol/renderer/TextureCache.h"
 
 #include <errno.h>
-#include <stack>
-#include <cctype>
+#include <ctype.h>
 #include <list>
 
 #include "axmol/renderer/Texture2D.h"
@@ -72,7 +71,7 @@ std::string TextureCache::checkETC1AlphaFile(std::string_view path)
     return FileUtils::getInstance()->isFileExist(ret) ? ret : std::string{};
 }
 
-TextureCache::TextureCache() : _loadingThread(nullptr), _needQuit(false), _outstandingTaskCount(0) {}
+TextureCache::TextureCache() : _loadingJob(), _outstandingTaskCount(0) {}
 
 TextureCache::~TextureCache()
 {
@@ -81,7 +80,8 @@ TextureCache::~TextureCache()
     for (auto&& texture : _textures)
         texture.second->release();
 
-    AX_SAFE_DELETE(_loadingThread);
+    // the waitForQuit must invoked before dtor
+    assert(!_loadingJob);
 }
 
 std::string TextureCache::getDescription() const
@@ -213,11 +213,10 @@ void TextureCache::addImageAsync(std::string_view path,
     }
 
     // lazy init
-    if (_loadingThread == nullptr)
+    if (!_loadingJob)
     {
         // create a new thread to load images
-        _needQuit      = false;
-        _loadingThread = new std::thread(&TextureCache::loadImage, this);
+        _loadingJob = Director::getInstance()->getJobSystem()->enqueue([this]() { loadImage(); });
     }
 
     if (0 == _outstandingTaskCount)
@@ -269,7 +268,7 @@ void TextureCache::unbindAllImageAsync()
 void TextureCache::loadImage()
 {
     ImageLoadTask* task = nullptr;
-    while (!_needQuit)
+    while (!_loadingJob.isCancelRequested())
     {
         std::unique_lock<std::mutex> ul(_requestMutex);
         // pop an AsyncStruct from request queue
@@ -285,7 +284,7 @@ void TextureCache::loadImage()
 
         if (nullptr == task)
         {
-            if (_needQuit)
+            if (_loadingJob.isCancelRequested())
             {
                 break;
             }
@@ -450,9 +449,9 @@ Texture2D* TextureCache::getDummyTexture()
 #else
     unsigned char texls[] = {255, 0, 0, 255};  // 1*1 red picture
 #endif
-    Image* image        = new Image();  // Notes: andorid: VolatileTextureMgr traits image as dynmaic object
-    bool AX_UNUSED isOK = image->initWithRawData(texls, sizeof(texls), 1, 1, sizeof(unsigned char));
-    texture             = this->addImage(image, key);
+    Image* image = new Image();  // Notes: andorid: VolatileTextureMgr traits image as dynmaic object
+    image->initWithRawData(texls, sizeof(texls), 1, 1, sizeof(unsigned char));
+    texture = this->addImage(image, key);
     image->release();
     return texture;
 }
@@ -550,7 +549,7 @@ void TextureCache::parseNinePatchImage(ax::Image* image, ax::Texture2D* texture,
 {
     if (NinePatchImageParser::isNinePatchImage(path))
     {
-        Rect frameRect = Rect(0, 0, image->getWidth(), image->getHeight());
+        Rect frameRect = Rect(0, 0, static_cast<float>(image->getWidth()), static_cast<float>(image->getHeight()));
         NinePatchImageParser parser(image, frameRect, false);
         texture->addSpriteFrameCapInset(nullptr, parser.parseCapInset());
     }
@@ -797,13 +796,19 @@ const std::string& TextureCache::getTextureFilePath(ax::Texture2D* texture) cons
 
 void TextureCache::waitForQuit()
 {
-    // notify sub thread to quick
-    std::unique_lock<std::mutex> ul(_requestMutex);
-    _needQuit = true;
-    _sleepCondition.notify_one();
-    ul.unlock();
-    if (_loadingThread)
-        _loadingThread->join();
+    if (_loadingJob)
+    {
+        _loadingJob.requestCancel();
+
+        {
+            // notify sub thread to quick
+            std::unique_lock<std::mutex> ul(_requestMutex);
+            _sleepCondition.notify_one();
+        }
+
+        _loadingJob.wait();
+        _loadingJob = JobHandle{};
+    }
 
     for (auto s : _requestQueue)
         delete s;
@@ -824,12 +829,12 @@ std::string TextureCache::getCachedTextureInfo() const
         Texture2D* tex   = texture.second;
         unsigned int bpp = tex->getBitsPerPixelForFormat();
         // Each texture takes up width * height * bytesPerPixel bytes.
-        auto bytes = tex->getPixelsWide() * tex->getPixelsHigh() * bpp / 8;
+        auto bytes = tex->getWidth() * tex->getHeight() * bpp / 8;
         totalBytes += bytes;
         count++;
         auto msg = fmt::format_to_z(tmp, "\"{}\" rc={} id={} {} x {} @ {} bpp => {} KB\n", texture.first,
-                                    tex->getReferenceCount(), fmt::ptr(tex->getRHITexture()), tex->getPixelsWide(),
-                                    tex->getPixelsHigh(), bpp, bytes / 1024);
+                                    tex->getReferenceCount(), fmt::ptr(tex->getRHITexture()), tex->getWidth(),
+                                    tex->getHeight(), bpp, bytes / 1024);
 
         ret += msg;
     }

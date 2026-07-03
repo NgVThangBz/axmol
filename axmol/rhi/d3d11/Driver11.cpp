@@ -294,7 +294,7 @@ RenderContext* DriverImpl::createRenderContext(SurfaceHandle surface)
     return new RenderContextImpl(this, surface);
 }
 
-Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage usage, const void* initial)
+Buffer* DriverImpl::createBuffer(size_t size, BufferType type, BufferUsage usage, const void* initial)
 {
     return new BufferImpl(_device, _context, size, type, usage, initial);
 }
@@ -304,7 +304,7 @@ Buffer* DriverImpl::createBuffer(std::size_t size, BufferType type, BufferUsage 
  * @param descriptor Specifies texture description.
  * @return A Texture object.
  */
-Texture* DriverImpl::createTexture(const TextureDesc& descriptor)
+Texture* DriverImpl::createTexture(const TextureDesc& descriptor, std::optional<Color>)
 {
     return new TextureImpl(_device, descriptor);
 }

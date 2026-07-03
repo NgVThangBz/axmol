@@ -1,8 +1,30 @@
 local size = ax.Director:getInstance():getCanvasSize()
 local MATERIAL_DEFAULT = ax.PhysicsMaterial2D(0.1, 0.5, 0.5)
 local curLayer = nil
+local pointerMouse = nil
 local STATIC_COLOR = ax.color(1.0, 0.0, 0.0, 1.0)
 local DRAG_BODYS_TAG = 0x80
+
+local function hasRigidbody2DTag(body, tag)
+    return body ~= nil and bit.band(body:getTag(), tag) == tag
+end
+
+local function setRigidbody2DTag(node, tag)
+    local body = node:getRigidbody2D()
+    if body ~= nil then
+        body:setTag(tag)
+    end
+    return body
+end
+
+local function getChildByRigidbody2DTag(parent, tag)
+    for _, child in ipairs(parent:getChildren()) do
+        if hasRigidbody2DTag(child:getRigidbody2D(), tag) then
+            return child
+        end
+    end
+    return nil
+end
 
 local function range(from, to, step)
     step = step or 1
@@ -59,42 +81,42 @@ local function addGrossiniAtPosition(layer, p, scale)
     return sp
 end
 
-local function onTouchBegan(touch, event)
-    local location = touch:getLocation()
+local function onTouchBegan(event)
+    local location = event:getLocation()
     local collider = ax.Director:getInstance():getRunningScene():getPhysicsWorld2D():overlapPoint(location)
     if collider == nil then
         return false
     end
 
     local body = collider:getAttachedBody()
-    if bit.band(body:getTag(), DRAG_BODYS_TAG) == 0 then
+    if not hasRigidbody2DTag(body, DRAG_BODYS_TAG) then
         return false
     end
 
     local mouse = ax.Node:create()
     local mouseBody = ax.Rigidbody2D:create()
     mouse:addComponent(mouseBody)
-    mouseBody:setDynamic(false)
+    mouseBody:setKinematic()
     curLayer:addChild(mouse)
     local joint = ax.TargetJoint2D:create(location, body)
     joint:setMaxForceScale(100.0)
     mouse:addComponent(joint)
     mouse:setPosition(location)
-    touch.mouse = mouse
+    pointerMouse = mouse
 
     return true
 end
 
-local function onTouchMoved(touch, event)
-    if touch.mouse then
-        touch.mouse:setPosition(touch:getLocation())
+local function onPointerMove(event)
+    if pointerMouse then
+        pointerMouse:setPosition(event:getLocation())
     end
 end
 
-local function onTouchEnded(touch, event)
-    if touch.mouse then
-        curLayer:removeChild(touch.mouse)
-        touch.mouse = nil
+local function onTouchEnded(event)
+    if pointerMouse then
+        curLayer:removeChild(pointerMouse)
+        pointerMouse = nil
     end
 end
 
@@ -172,14 +194,14 @@ end
 local function PhysicsDemoClickAdd()
     local layer = ax.Layer:create()
     local function onEnter()
-        local function onTouchEnded(touch, event)
-            local location = touch:getLocation()
+        local function onTouchEnded(event)
+            local location = event:getLocation()
             addGrossiniAtPosition(layer, location)
         end
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -288,10 +310,10 @@ local function PhysicsDemoJoints()
     local function onEnter()
         layer:toggleDebug()
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -301,7 +323,7 @@ local function PhysicsDemoJoints()
         local node = ax.Node:create()
         local worldBox = ax.Rigidbody2D:create()
         node:addComponent(worldBox)
-        worldBox:setDynamic(false)
+        worldBox:setKinematic()
         node:setPosition(ax.p(0, 0))
         layer:addChild(node)
 
@@ -319,14 +341,16 @@ local function PhysicsDemoJoints()
                 if index == 0 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBall(layer, ax.p(offset.x + 30, offset.y), 10)
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.PivotJoint2D:create(sp2Rigidbody2D)
-                    joint:setAnchorsInParentSpace(offset);
+                    local anchor1 = sp1Rigidbody2D:world2Local(offset)
+                    local anchor2 = sp2Rigidbody2D:world2Local(offset)
+                    joint:setAnchors(anchor1, anchor2)
                     sp1:addComponent(joint)
 
                     layer:addChild(sp1)
@@ -334,14 +358,16 @@ local function PhysicsDemoJoints()
                 elseif  index == 1 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.FixedJoint2D:create(sp2Rigidbody2D)
-                    joint:setAnchorsInParentSpace(offset);
+                    local anchor1 = sp1Rigidbody2D:world2Local(offset)
+                    local anchor2 = sp2Rigidbody2D:world2Local(offset)
+                    joint:setAnchors(anchor1, anchor2)
                     sp1:addComponent(joint)
 
                     layer:addChild(sp1)
@@ -349,11 +375,11 @@ local function PhysicsDemoJoints()
                 elseif index == 2 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.DistanceJoint2D:create(sp2Rigidbody2D)
                     sp1:addComponent(joint)
@@ -363,11 +389,11 @@ local function PhysicsDemoJoints()
                 elseif index == 3 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.DistanceJoint2D:create(sp2Rigidbody2D)
                     joint:setLimits(ax.vec2(30.0, 52.0))
@@ -378,11 +404,11 @@ local function PhysicsDemoJoints()
                 elseif index == 4 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.SpringJoint2D:create(500.0, 0.3, sp2Rigidbody2D)
                     sp1:addComponent(joint)
@@ -392,11 +418,11 @@ local function PhysicsDemoJoints()
                 elseif index == 5 then
                     local sp1 = makeBall(layer, ax.p(offset.x - 30, offset.y), 10)
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.SliderJoint2D:create(sp2Rigidbody2D)
                     local sliderOrigin = ax.vec2(30.0, 15.0)
@@ -414,11 +440,11 @@ local function PhysicsDemoJoints()
                 elseif index == 6 then
                     local sp1 = makeBox(ax.p(offset.x - 30, offset.y), ax.size(30, 10))
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.SpringJoint2D:create(3000.0, 60.0, sp2Rigidbody2D)
                     joint:setRestLength(60)
@@ -429,11 +455,11 @@ local function PhysicsDemoJoints()
                 elseif index == 7 then
                     local sp1 = makeBox(ax.p(offset.x - 30, offset.y), ax.size(30, 10))
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.WheelJoint2D:create(sp2Rigidbody2D)
                     joint:setMotor(ax.vec2(60.0, 100000))
@@ -445,11 +471,11 @@ local function PhysicsDemoJoints()
                 elseif index == 8 then
                     local sp1 = makeBox(ax.p(offset.x - 30, offset.y), ax.size(30, 10))
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local joint = ax.FilterJoint2D:create(sp2Rigidbody2D)
                     sp1:addComponent(joint);
@@ -459,11 +485,11 @@ local function PhysicsDemoJoints()
                 elseif index == 9 then
                     local sp1 = makeBox(ax.p(offset.x - 30, offset.y), ax.size(30, 10))
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     sp1:addComponent(ax.PinJoint2D:create(ax.vec2(sp1:getPosition()), worldBox));
                     sp2:addComponent(ax.PinJoint2D:create(ax.vec2(sp2:getPosition()), worldBox));
@@ -477,11 +503,11 @@ local function PhysicsDemoJoints()
                 elseif index == 10 then
                     local sp1 = makeBox(ax.p(offset.x - 30, offset.y), ax.size(30, 10))
                     local sp1Rigidbody2D = sp1:getRigidbody2D()
-                    sp1:setTag(DRAG_BODYS_TAG)
+                    sp1Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     local sp2 = makeBox(ax.p(offset.x + 30, offset.y), ax.size(30, 10))
                     local sp2Rigidbody2D = sp2:getRigidbody2D()
-                    sp2:setTag(DRAG_BODYS_TAG)
+                    sp2Rigidbody2D:setTag(DRAG_BODYS_TAG)
 
                     sp1:addComponent(ax.PinJoint2D:create(ax.vec2(sp1:getPosition()), worldBox))
                     sp2:addComponent(ax.PinJoint2D:create(ax.vec2(sp2:getPosition()), worldBox))
@@ -504,10 +530,10 @@ local function PhysicsDemoPyramidStack()
     local layer = ax.Layer:create()
 
     local function onEnter()
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -521,7 +547,7 @@ local function PhysicsDemoPyramidStack()
         local ball = ax.Sprite:create("Images/ball.png")
         ball:setScale(1)
         ball:addComponent(ax.Rigidbody2D:createCircle(10))
-        ball:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(ball, DRAG_BODYS_TAG)
         ball:setPosition(ax.p(VisibleRect:bottom().x, VisibleRect:bottom().y + 60))
         layer:addChild(ball)
 
@@ -533,7 +559,7 @@ local function PhysicsDemoPyramidStack()
                 local x = VisibleRect:bottom().x + (i/2 - j) * 11
                 local y = VisibleRect:bottom().y + (14 - i) * 23 + 100
                 local sp = addGrossiniAtPosition(layer, ax.p(x, y), 0.2)
-                sp:setTag(DRAG_BODYS_TAG)
+                setRigidbody2DTag(sp, DRAG_BODYS_TAG)
             end
         end
     end
@@ -548,8 +574,8 @@ local function PhysicsDemoRayCast()
     local layer = ax.Layer:create()
 
     local function onEnter()
-        local function onTouchEnded(touch, event)
-            local location = touch:getLocation()
+        local function onTouchEnded(event)
+            local location = event:getLocation()
 
             local r = math.random(3)
             if r ==1 then
@@ -561,9 +587,9 @@ local function PhysicsDemoRayCast()
             end
         end
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -681,10 +707,10 @@ local function PhysicsDemoOneWayPlatform()
         local physicsWorld2D = ax.Director:getInstance():getRunningScene():getPhysicsWorld2D()
         physicsWorld2D:setGlobalEventEnabled(ax.physics2d.CollisionEventBits.PreSolve, true)
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -697,21 +723,14 @@ local function PhysicsDemoOneWayPlatform()
 
         local platform = makeBox(VisibleRect:center(), ax.size(200, 50))
         local platformRigidbody2D = platform:getRigidbody2D()
-        platformRigidbody2D:setDynamic(false)
+        platformRigidbody2D:setKinematic()
         layer:addChild(platform)
 
         local ball = makeBall(layer, ax.p(VisibleRect:center().x, VisibleRect:center().y - 50), 20)
         local ballRigidbody2D = ball:getRigidbody2D()
         ballRigidbody2D:setVelocity(ax.p(0, 150))
-        ball:setTag(DRAG_BODYS_TAG)
+        ballRigidbody2D:setTag(DRAG_BODYS_TAG)
         layer:addChild(ball)
-
-        local function onPreSolve(contact)
-            return contact:getContactInfo().normal.y > 0
-        end
-        local contactListener = ax.Contact2DListenerWithBodies:create(platformRigidbody2D, ballRigidbody2D)
-        contactListener:registerScriptHandler(onPreSolve, ax.Handler.EVENT_PHYSICS_2D_PRESOLVE)
-        eventDispatcher:addEventListenerWithSceneGraphPriority(contactListener, layer)
     end
 
     initWithLayer(layer, onEnter)
@@ -723,10 +742,10 @@ end
 local function PhysicsDemoActions()
     local layer = ax.Layer:create()
     local function onEnter()
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -769,26 +788,26 @@ local function PhysicsDemoPump()
 
         local distance = 0.0
         local rotationV = 0.0
-        local function onTouchBeganEx(touch, event)
-            onTouchBegan(touch, event)
-            distance = touch:getLocation().x - VisibleRect:center().x
+        local function onTouchBeganEx(event)
+            onTouchBegan(event)
+            distance = event:getLocation().x - VisibleRect:center().x
             return true
         end
 
-        local function onTouchMovedEx(touch, event)
-            onTouchMoved(touch, event)
-            distance = touch:getLocation().x - VisibleRect:center().x
+        local function onPointerMoveEx(event)
+            onPointerMove(event)
+            distance = event:getLocation().x - VisibleRect:center().x
         end
 
-        local function onTouchEndedEx(touch, event)
-            onTouchEnded(touch, event)
+        local function onTouchEndedEx(event)
+            onTouchEnded(event)
             distance = 0
         end
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBeganEx, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMovedEx, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEndedEx, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBeganEx, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMoveEx, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEndedEx, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -796,7 +815,7 @@ local function PhysicsDemoPump()
             for i, child in ipairs(layer:getChildren()) do
                 local body = child:getRigidbody2D()
                 local x, y = child:getPosition()
-                if body ~= nil and child:getTag() == DRAG_BODYS_TAG and y < 0.0 then
+                if hasRigidbody2DTag(body, DRAG_BODYS_TAG) and y < 0.0 then
                     child:setPosition(ax.p(VisibleRect:leftTop().x + 75,
                             VisibleRect:leftTop().y + math.random() * 90))
                     body:setVelocity(ax.p(0, 0))
@@ -821,7 +840,7 @@ local function PhysicsDemoPump()
 
         local worldBox = ax.Node:create()
         local worldBoxBody = ax.Rigidbody2D:create()
-        worldBoxBody:setDynamic(false)
+        worldBoxBody:setKinematic()
 
         local staticMaterial = ax.PhysicsMaterial2D(ax.PHYSICS_INFINITY_2D, 0, 0.5)
         worldBoxBody:addCollider(ax.EdgeSegmentCollider2D:create(ax.p(VisibleRect:leftTop().x + 50,
@@ -869,7 +888,7 @@ local function PhysicsDemoPump()
                     VisibleRect:leftTop().y),
                 22,
                 ax.PhysicsMaterial2D(0.05, 0.0, 0.1))
-            ball:setTag(DRAG_BODYS_TAG)
+            setRigidbody2DTag(ball, DRAG_BODYS_TAG)
             layer:addChild(ball)
         end
 
@@ -942,7 +961,7 @@ local function PhysicsDemoPump()
         local pluggerB = ax.Rigidbody2D:createEdgeSegment(seg[1],
             seg[2],
             ax.PhysicsMaterial2D(0.01, 0.0, 0.5))
-        pluggerB:setDynamic(true)
+        pluggerB:setDynamic()
         plugger:addComponent(pluggerB)
         plugger:setPosition(segCenter)
         layer:addChild(plugger)
@@ -1027,15 +1046,15 @@ local function PhysicsDemoSlice()
             return true
         end
 
-        local function onTouchEnded(touch, event)
+        local function onTouchEnded(event)
             ax.Director:getInstance():getRunningScene():getPhysicsWorld2D():rayCast(slice,
-                touch:getStartLocation(),
-                touch:getLocation())
+                event:getStartLocation(),
+                event:getLocation())
         end
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(function() return true end, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -1097,31 +1116,6 @@ local function PhysicsContactTest()
         layer.blueBoxNum = 50
         layer.yellowTriangleNum = 50
         layer.blueTriangleNum = 50
-
-        local function onPreSolve(contact)
-            local colA = contact:getColliderA()
-            local colB = contact:getColliderB()
-            if (colA == nil or colB == nil) then
-                return true
-            end
-
-            local bodyA = colA:getAttachedBody()
-            local bodyB = colB:getAttachedBody()
-            if (bodyA == nil or bodyB == nil) then
-                return true
-            end
-
-            local catA  = bodyA:getCategoryBits()
-            local catB  = bodyB:getCategoryBits()
-            local maskA = bodyA:getCollisionMaskBits()
-            local maskB = bodyB:getCollisionMaskBits()
-
-            local a_allowed = bit.band(catA, maskB) ~= 0
-            local b_allowed = bit.band(catB, maskA) ~= 0
-            assert(a_allowed and b_allowed, "onPreSolve: unexpected collision - category/mask mismatch");
-
-            return true
-        end
 
         local function resetTest()
             layer:removeChildByTag(10)
@@ -1352,12 +1346,6 @@ local function PhysicsContactTest()
         label:setAnchorPoint(ax.p(0.5, 0.5))
         label:setPosition(ax.p(s.width/2 - 150, prevMenuPos))
 
-
-        local contactListener = ax.Contact2DListener:create()
-        contactListener:registerScriptHandler(onPreSolve, ax.Handler.EVENT_PHYSICS_2D_PRESOLVE)
-        local eventDispatcher = layer:getEventDispatcher()
-        eventDispatcher:addEventListenerWithSceneGraphPriority(contactListener, layer)
-
         resetTest()
     end
 
@@ -1374,10 +1362,10 @@ local function PhysicsPositionRotationTest()
 
         ax.Director:getInstance():getRunningScene():getPhysicsWorld2D():setGravity(ax.p(0, 0))
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -1393,7 +1381,7 @@ local function PhysicsPositionRotationTest()
         anchorNode:setPosition(100, 100)
         anchorNode:setScale(0.25)
         anchorNode:addComponent(ax.Rigidbody2D:createBox(anchorNode:getContentSize()))
-        anchorNode:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(anchorNode, DRAG_BODYS_TAG)
         layer:addChild(anchorNode)
 
         --parent test
@@ -1402,14 +1390,14 @@ local function PhysicsPositionRotationTest()
         parent:setScale(0.25)
         local parentRigidbody2D = ax.Rigidbody2D:createBox(anchorNode:getContentSize())
         parent:addComponent(parentRigidbody2D)
-        parent:setTag(DRAG_BODYS_TAG)
+        parentRigidbody2D:setTag(DRAG_BODYS_TAG)
         layer:addChild(parent)
 
         local leftBall = ax.Sprite:create("Images/ball.png")
         leftBall:setPosition(-30, 0)
         leftBall:setScale(2)
         leftBall:addComponent(ax.Rigidbody2D:createCircle(leftBall:getContentSize().width / 2))
-        leftBall:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(leftBall, DRAG_BODYS_TAG)
         parent:addChild(leftBall)
 
         -- offset position rotation test
@@ -1421,7 +1409,7 @@ local function PhysicsPositionRotationTest()
         offsetPosNodeRigidbody2D:setPositionOffset(ax.p(-offsetPosNode:getContentSize().width/2,
                 -offsetPosNode:getContentSize().height/2))
         offsetPosNodeRigidbody2D:setRotationOffset(45)
-        offsetPosNode:setTag(DRAG_BODYS_TAG)
+        offsetPosNodeRigidbody2D:setTag(DRAG_BODYS_TAG)
         layer:addChild(offsetPosNode)
     end
 
@@ -1435,10 +1423,10 @@ local function PhysicsSetGravityEnableTest()
     local layer = ax.Layer:create()
     local function onEnter()
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -1450,24 +1438,29 @@ local function PhysicsSetGravityEnableTest()
         layer:addChild(wall)
 
         local commonBox = makeBox(ax.p(100, 100), ax.size(50, 50), 1)
-        commonBox:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(commonBox, DRAG_BODYS_TAG)
         layer:addChild(commonBox)
 
         local box = makeBox(ax.p(200, 100), ax.size(50, 50), 2)
         local boxBody = box:getRigidbody2D()
-        box:setTag(DRAG_BODYS_TAG)
+        boxBody:setTag(DRAG_BODYS_TAG)
         boxBody:setGravityEnabled(false)
         layer:addChild(box)
 
         local ball = makeBall(layer,ax.p(200,200),50)
-        ball:setTag(bit.bor(2, DRAG_BODYS_TAG))
         local ballBody = ball:getRigidbody2D()
+        ballBody:setTag(bit.bor(2, DRAG_BODYS_TAG))
         ballBody:setGravityEnabled(false)
         layer:addChild(ball)
 
         local function onScheduleOnce()
             cclog("onScheduleOnce")
-            local ball = layer:getChildByTag(2)
+            local ball = getChildByRigidbody2DTag(layer, 2)
+            local rigidbody = ball and ball:getRigidbody2D()
+            if rigidbody then
+                rigidbody:setAutoMass(false)
+                rigidbody:setMass(200)
+            end
             ax.Director:getInstance():getRunningScene():getPhysicsWorld2D():setGravity(ax.p(0, -9.8))
         end
         --layer:scheduleOnce(onScheduleOnce,1.0)
@@ -1488,10 +1481,10 @@ local function PhysicsDemoBug5482()
         layer:toggleDebug()
         local _bodyInA = false
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
-        touchListener:registerScriptHandler(onTouchMoved, ax.Handler.EVENT_TOUCH_MOVED)
-        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_TOUCH_ENDED)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
+        touchListener:registerScriptHandler(onPointerMove, ax.Handler.EVENT_POINTER_MOVE)
+        touchListener:registerScriptHandler(onTouchEnded, ax.Handler.EVENT_POINTER_UP)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -1506,14 +1499,13 @@ local function PhysicsDemoBug5482()
         local _nodeA = ax.Sprite:create("Images/YellowSquare.png")
         _nodeA:setPosition(ax.p(VisibleRect:center().x-150,100))
         layer:addChild(_nodeA)
-        _nodeA:setTag(bit.bor(1, DRAG_BODYS_TAG))
 
         local _nodeB = ax.Sprite:create("Images/YellowSquare.png")
         _nodeB:setPosition(ax.p(VisibleRect:center().x+150,100))
         layer:addChild(_nodeB)
-        _nodeB:setTag(bit.bor(2, DRAG_BODYS_TAG))
 
         local _body = ax.Rigidbody2D:createBox(_nodeA:getContentSize())
+        _body:setTag(bit.bor(1, DRAG_BODYS_TAG))
         _body:retain()
 
         local _button = nil
@@ -1561,8 +1553,8 @@ local function PhysicsFixedUpdate()
             local ball = ax.Sprite:create("Images/ball.png")
             ball:setPosition(ax.p(100,100))
             ball:addComponent(ax.Rigidbody2D:createCircle(ball:getContentSize().width/2, ax.PhysicsMaterial2D(0.1, 1, 0.0)))
-            ball:setTag(DRAG_BODYS_TAG)
-            ball:getRigidbody2D():setVelocity(ax.p(1000,20))
+            local ballBody = setRigidbody2DTag(ball, DRAG_BODYS_TAG)
+            ballBody:setVelocity(ax.p(1000,20))
             layer:addChild(ball)
         end
 
@@ -1604,8 +1596,8 @@ local function PhysicsTransformTest()
         layer:toggleDebug()
         ax.Director:getInstance():getRunningScene():getPhysicsWorld2D():setGravity(ax.p(0,0))
 
-        local touchListener = ax.EventListenerTouchOneByOne:create()
-        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_TOUCH_BEGAN)
+        local touchListener = ax.PointerEventListener:create()
+        touchListener:registerScriptHandler(onTouchBegan, ax.Handler.EVENT_POINTER_DOWN)
         local eventDispatcher = layer:getEventDispatcher()
         eventDispatcher:addEventListenerWithSceneGraphPriority(touchListener, layer)
 
@@ -1623,14 +1615,14 @@ local function PhysicsTransformTest()
         _parentSprite:setPosition(ax.p(200,100))
         _parentSprite:setScale(0.25)
         _parentSprite:addComponent(ax.Rigidbody2D:createBox(_parentSprite:getContentSize(),ax.PhysicsMaterial2D(0.1, 1.0, 0.0)))
-        _parentSprite:setTag(bit.bor(1, DRAG_BODYS_TAG))
+        setRigidbody2DTag(_parentSprite, bit.bor(1, DRAG_BODYS_TAG))
         _rootLayer:addChild(_parentSprite)
 
         local leftBall = ax.Sprite:create("Images/ball.png")
         leftBall:setPosition(ax.p(-30,0))
         leftBall:setScale(2)
         leftBall:addComponent(ax.Rigidbody2D:createCircle(leftBall:getContentSize().width/2,ax.PhysicsMaterial2D(0.1,1.0,0.0)))
-        leftBall:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(leftBall, DRAG_BODYS_TAG)
         _parentSprite:addChild(leftBall)
 
         local scaleTo = ax.ScaleTo:create(2.0,0.5)
@@ -1641,7 +1633,7 @@ local function PhysicsTransformTest()
         normal:setPosition(ax.p(300,100))
         normal:setScale(0.25,0.5)
         normal:addComponent(ax.Rigidbody2D:createBox(normal:getContentSize(),ax.PhysicsMaterial2D(0.1,1.0,0.0)))
-        normal:setTag(DRAG_BODYS_TAG)
+        setRigidbody2DTag(normal, DRAG_BODYS_TAG)
         _rootLayer:addChild(normal)
 
         local  bullet = ax.Sprite:create("Images/ball.png")

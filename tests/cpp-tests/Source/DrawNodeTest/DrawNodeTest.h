@@ -307,7 +307,7 @@ public:
     CREATE_FUNC(DrawNodeAxmolTest2);
 
     DrawNodeAxmolTest2();
-    void onChangedRadioButtonSelect(ax::ui::RadioButton* radioButton, ax::ui::RadioButton::EventType type);
+    void onChangedRadioButtonSelect(ax::Object* sender, ax::ui::RadioButton::EventType type);
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
@@ -368,11 +368,13 @@ public:
     DrawNodeSolidCircleTest();
     void showCircles();
 
+    int objects = 100;
+
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
 private:
-    bool fast;
+    int primitive = 0;
     std::chrono::microseconds duration;
     ax::Label* autoTestLabel = nullptr;
     ax::Rect rect;
@@ -399,7 +401,7 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void onTouchesEnded(const std::vector<ax::Touch*>& touches, ax::Event* event);
+    void onPointerUp(ax::PointerEvent* event);
     void addNewControlPoint(ax::Vec2 p);
     void update(float dt) override;
 
@@ -431,33 +433,48 @@ public:
     virtual std::string subtitle() const override;
 };
 
-class DrawNodeThickness1Test : public DrawNodeBaseTest
+class DrawNodeSideEffectTest : public DrawNodeBaseTest
 {
 public:
-    CREATE_FUNC(DrawNodeThickness1Test);
+    CREATE_FUNC(DrawNodeSideEffectTest);
 
-    DrawNodeThickness1Test();
+    DrawNodeSideEffectTest();
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
     void update(float dt) override;
     void onEnter() override;
+
+    ax::DrawNode* issue3094;
 };
 
 #if defined(AX_PLATFORM_PC)
 
-class DrawNodePointTest : public DrawNodeBaseTest
+const int GRID_W = 800;
+const int GRID_H = 600;
+class DrawNodeGameOfLifeTest : public DrawNodeBaseTest
 {
 public:
-    CREATE_FUNC(DrawNodePointTest);
+    CREATE_FUNC(DrawNodeGameOfLifeTest);
 
-    DrawNodePointTest();
+    DrawNodeGameOfLifeTest();
+    ~DrawNodeGameOfLifeTest();
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
     void update(float dt) override;
+
+    int visibleSizeX;
+    int visibleSizeY;
+
+    bool* grid;
+    bool* nextGrid;
+    int* age;
+    static const int colorCount = 10;
+    ax::Color color[colorCount];
+    tlx::pod_vector<ax::Vec2> arrea[colorCount];
 };
 
 class CandyMixEeffect : public DrawNodeBaseTest
@@ -476,8 +493,5 @@ public:
 private:
     std::vector<ax::Vec2> points;
     ax::PointArray* array;
-
-    ax::ui::RadioButtonGroup* _radioButtonGroup;
-    int selectedRadioButton;
 };
 #endif

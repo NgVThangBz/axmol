@@ -63,7 +63,7 @@ void RenderTargetImpl::beginRenderPass(ID3D11DeviceContext* context)
                 _AXASSERT_HR(_device->CreateRenderTargetView(resource, nullptr, &_rtvs[0]));
             }
 
-            if (bitmask::any(_dirtyFlags, TargetBufferFlags::COLOR))
+            if (bitmask::any(_dirtyFlags, TargetBufferFlags::DEPTH_AND_STENCIL))
             {
                 SafeRelease(_dsv);
 

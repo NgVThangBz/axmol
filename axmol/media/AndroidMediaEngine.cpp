@@ -27,7 +27,7 @@
 #    include "axmol/platform/android/jni/JniHelper.h"
 
 extern "C" {
-JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeFireEvent(JNIEnv* env, jclass, jlong pME, int arg1)
+JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaPlayer_nativeFireEvent(JNIEnv* env, jclass, jlong pME, int arg1)
 {
     auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
     if (!mediaEngine)
@@ -36,136 +36,127 @@ JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeFireEvent(JNIEn
     mediaEngine->_fireMediaEvent((ax::MEMediaEventType)arg1);
 }
 
-JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeStoreVideoMeta(JNIEnv* env,
-                                                                                jclass,
-                                                                                jlong pME,
-                                                                                int outputX,
-                                                                                int outputY,
-                                                                                int videoX,
-                                                                                int videoY,
-                                                                                int cbcrOffset,
-                                                                                int rotation,
-                                                                                int videoPF)
+JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaPlayer_nativeSetDuration(JNIEnv* env,
+                                                                             jclass,
+                                                                             jlong pME,
+                                                                             double duration)
 {
     auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
     if (!mediaEngine)
         return;
 
-    mediaEngine->_storeVideoMeta(outputX, outputY, videoX, videoY, cbcrOffset, rotation, videoPF);
+    mediaEngine->_setDuration(duration);
 }
 
-JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeStoreLastVideoSample(JNIEnv* env,
-                                                                                      jclass,
-                                                                                      jlong pME,
-                                                                                      jobject sampleBuffer,
-                                                                                      int sampleLen)
+JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaPlayer_nativeSetVideoMeta(JNIEnv* env,
+                                                                              jclass,
+                                                                              jlong pME,
+                                                                              int outputX,
+                                                                              int outputY,
+                                                                              int videoX,
+                                                                              int videoY,
+                                                                              int cbcrOffset,
+                                                                              int rotation,
+                                                                              int videoPF)
+{
+    auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
+    if (!mediaEngine)
+        return;
+
+    mediaEngine->_setVideoMeta(outputX, outputY, videoX, videoY, cbcrOffset, rotation, videoPF);
+}
+
+JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaPlayer_nativeProcessVideoFrame(JNIEnv* env,
+                                                                                   jclass,
+                                                                                   jlong pME,
+                                                                                   jobject sampleBuffer,
+                                                                                   int sampleLen,
+                                                                                   jlong presentationTimeUs)
 {
     auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
     if (!mediaEngine)
         return;
 
     auto sampleData = static_cast<uint8_t*>(env->GetDirectBufferAddress(sampleBuffer));
-
-    mediaEngine->_storeLastVideoSample(sampleData, sampleLen);
-}
-
-JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeStoreDuration(JNIEnv* env,
-                                                                               jclass,
-                                                                               jlong pME,
-                                                                               double duration)
-{
-    auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
-    if (!mediaEngine)
-        return;
-
-    mediaEngine->_storeDuration(duration);
-}
-
-JNIEXPORT void JNICALL Java_dev_axmol_lib_AxmolMediaEngine_nativeStoreCurrentTime(JNIEnv* env,
-                                                                                  jclass,
-                                                                                  jlong pME,
-                                                                                  double currentTime)
-{
-    auto mediaEngine = (ax::AndroidMediaEngine*)((uintptr_t)pME);
-    if (!mediaEngine)
-        return;
-
-    mediaEngine->_storeCurrentTime(currentTime);
+    if (sampleData)
+        mediaEngine->_processVideoFrame(sampleData, sampleLen, presentationTimeUs);
 }
 }
 
 namespace ax
 {
 
-static const char* className = "dev.axmol.lib.AxmolMediaEngine";
+static const char* className = "dev.axmol.lib.AxmolMediaPlayer";
 
 AndroidMediaEngine::AndroidMediaEngine()
 {
-    // create java object
-    context = JniHelper::callStaticObjectMethod(className, "createMediaEngine");
-    if (context)
-        JniHelper::callVoidMethod(className, "bindNativeObject", context, (jlong)(uintptr_t)this);
+    // Create Java MediaPlayer and take ownership of the global reference.
+    // Note: JniHelper::callStaticObjectMethod returns a jobject that has been
+    // promoted to a GlobalRef (via NewGlobalRef). Do NOT call NewGlobalRef again;
+    // ensure DeleteGlobalRef(_mediaPlayer) is called during native teardown.
+    _mediaPlayer = JniHelper::callStaticObjectMethod(className, "createMediaPlayer", (jlong)(uintptr_t)this);
 }
 AndroidMediaEngine::~AndroidMediaEngine()
 {
-    if (context)
+    if (_mediaPlayer)
     {
         // clear callback
-        JniHelper::callVoidMethod(className, "bindNativeObject", context, (jlong)(uintptr_t)0);
-        JniHelper::getEnv()->DeleteGlobalRef(static_cast<jobject>(context));
-        context = nullptr;
+        JniHelper::callVoidMethod(className, "dispose", _mediaPlayer);
+        JniHelper::getEnv()->DeleteGlobalRef(_mediaPlayer);
+        _mediaPlayer = nullptr;
     }
 }
 
 void AndroidMediaEngine::setAutoPlay(bool bAutoPlay)
 {
-    if (context)
-        JniHelper::callVoidMethod(className, "setAutoPlay", context, bAutoPlay);
+    if (_mediaPlayer)
+        JniHelper::callVoidMethod(className, "setAutoPlay", _mediaPlayer, bAutoPlay);
 }
 bool AndroidMediaEngine::open(std::string_view sourceUri)
 {
-    return context && JniHelper::callBooleanMethod(className, "open", context, sourceUri);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "open", _mediaPlayer, sourceUri);
 }
 bool AndroidMediaEngine::close()
 {
-    return context && JniHelper::callBooleanMethod(className, "close", context);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "close", _mediaPlayer);
 }
 bool AndroidMediaEngine::setLoop(bool bLooping)
 {
-    return context && JniHelper::callBooleanMethod(className, "setLoop", context, bLooping);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "setLoop", _mediaPlayer, bLooping);
 }
 bool AndroidMediaEngine::setRate(double fRate)
 {
-    return context && JniHelper::callBooleanMethod(className, "setRate", context, fRate);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "setRate", _mediaPlayer, fRate);
 }
 bool AndroidMediaEngine::setCurrentTime(double fSeekTimeInSec)
 {
-    return context && JniHelper::callBooleanMethod(className, "setCurrentTime", context, fSeekTimeInSec);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "setCurrentTime", _mediaPlayer, fSeekTimeInSec);
 }
 bool AndroidMediaEngine::play()
 {
-    return context && JniHelper::callBooleanMethod(className, "play", context);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "play", _mediaPlayer);
 }
 bool AndroidMediaEngine::pause()
 {
-    return context && JniHelper::callBooleanMethod(className, "pause", context);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "pause", _mediaPlayer);
 }
 bool AndroidMediaEngine::stop()
 {
-    return context && JniHelper::callBooleanMethod(className, "stop", context);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "stop", _mediaPlayer);
 }
 bool AndroidMediaEngine::isPlaybackEnded() const
 {
-    return context && JniHelper::callBooleanMethod(className, "isPlaybackEnded", context);
+    return _mediaPlayer && JniHelper::callBooleanMethod(className, "isPlaybackEnded", _mediaPlayer);
 }
 MEMediaState AndroidMediaEngine::getState() const
 {
-    return context ? (MEMediaState)JniHelper::callIntMethod(className, "getState", context) : MEMediaState::Closed;
+    return _mediaPlayer ? (MEMediaState)JniHelper::callIntMethod(className, "getState", _mediaPlayer)
+                        : MEMediaState::Closed;
 }
 
 bool AndroidMediaEngine::transferVideoFrame()
 {
-    if (context)
+    if (_mediaPlayer)
     {
         std::unique_lock<std::mutex> lck(_frameBuffer1Mtx);
         if (!_frameBuffer1.empty())
@@ -188,13 +179,13 @@ bool AndroidMediaEngine::transferVideoFrame()
     return false;
 }
 
-void AndroidMediaEngine::_storeVideoMeta(int outputX,
-                                         int outputY,
-                                         int videoX,
-                                         int videoY,
-                                         int cbcrOffset,
-                                         int rotation,
-                                         int videoPF)
+void AndroidMediaEngine::_setVideoMeta(int outputX,
+                                       int outputY,
+                                       int videoX,
+                                       int videoY,
+                                       int cbcrOffset,
+                                       int rotation,
+                                       int videoPF)
 {
     _outputDim.set(outputX, outputY);
     _videoDim.set(videoX, videoY);
@@ -203,10 +194,12 @@ void AndroidMediaEngine::_storeVideoMeta(int outputX,
     _videoPF       = videoPF;
 }
 
-void AndroidMediaEngine::_storeLastVideoSample(const uint8_t* buf, size_t len)
+void AndroidMediaEngine::_processVideoFrame(const uint8_t* sampleData, size_t sampleLen, int64_t presentationTimeUs)
 {
+    _currentTime = presentationTimeUs / 1000000.0;
+
     std::unique_lock<std::mutex> lck(_frameBuffer1Mtx);
-    _frameBuffer1.assign(buf, buf + len);
+    _frameBuffer1.assign(sampleData, sampleData + sampleLen);
 }
 
 }  // namespace ax

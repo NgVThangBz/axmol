@@ -1,7 +1,7 @@
 #include "UIEventDispatcher.h"
 #include "GComponent.h"
 #include "InputProcessor.h"
-#include "utils/WeakPtr.h"
+#include "axmol/base/WeakPtr.h"
 
 using namespace ax;
 NS_FGUI_BEGIN
@@ -239,7 +239,7 @@ void UIEventDispatcher::doDispatch(int eventType, EventContext* context)
             if (context->_touchCapture != 0 && dynamic_cast<GObject*>(this))
             {
                 if (context->_touchCapture == 1 && eventType == UIEventType::TouchBegin)
-                    context->getInput()->getProcessor()->addTouchMonitor(context->getInput()->getTouchId(), dynamic_cast<GObject*>(this));
+                    context->getInput()->getProcessor()->addTouchMonitor(context->getInput()->getPointerId(), dynamic_cast<GObject*>(this));
                 else if (context->_touchCapture == 2)
                     context->getInput()->getProcessor()->removeTouchMonitor(dynamic_cast<GObject*>(this));
             }
@@ -267,7 +267,7 @@ void UIEventDispatcher::doDispatch(int eventType, EventContext* context)
 void UIEventDispatcher::doBubble(int eventType, EventContext* context)
 {
     //parent maybe disposed in callbacks
-    WeakPtr wptr(((GObject*)this)->findParent());
+    ax::WeakPtr<GObject> wptr(((GObject*)this)->findParent());
 
     if (!_callbacks.empty())
     {
@@ -277,7 +277,7 @@ void UIEventDispatcher::doBubble(int eventType, EventContext* context)
             return;
     }
 
-    GObject* p = wptr.ptr();
+    GObject* p = wptr.get();
     if (p)
         p->doBubble(eventType, context);
 }

@@ -34,9 +34,10 @@
 #include "axmol/rhi/vulkan/SemaphorePoolVK.h"
 #include "axmol/rhi/DriverContext.h"
 #include "axmol/base/Logging.h"
+#include "axmol/math/MathUtil.h"
 
 #include <glad/vulkan.h>
-#include <cassert>
+#include <assert.h>
 #include <algorithm>
 
 namespace ax::rhi::vk
@@ -93,16 +94,10 @@ static VkIndexType toVkIndexType(IndexFormat fmt)
     }
 }
 
-inline bool nearlyEqual(float a, float b, float eps = 1e-6f)
-{
-    return std::fabs(a - b) < eps;
-}
-
 inline bool operator==(const VkViewport& a, const VkViewport& b)
 {
-    return nearlyEqual(a.x, b.x) && nearlyEqual(a.y, b.y) && nearlyEqual(a.width, b.width) &&
-           nearlyEqual(a.height, b.height) && nearlyEqual(a.minDepth, b.minDepth) &&
-           nearlyEqual(a.maxDepth, b.maxDepth);
+    return MathUtil::fuzzyEquals(a.x, b.x) && MathUtil::fuzzyEquals(a.y, b.y) &&
+           MathUtil::fuzzyEquals(a.width, b.width) && MathUtil::fuzzyEquals(a.height, b.height);
 }
 
 inline bool operator==(const VkRect2D& a, const VkRect2D& b)
@@ -205,7 +200,7 @@ RenderContextImpl::~RenderContextImpl()
 }
 
 // Create per-frame uniform ring buffers with persistent mapping
-void RenderContextImpl::createUniformRingBuffers(std::size_t capacityBytes)
+void RenderContextImpl::createUniformRingBuffers(size_t capacityBytes)
 {
     // Query minUniformBufferOffsetAlignment from physical device limits
 
@@ -220,7 +215,7 @@ void RenderContextImpl::createUniformRingBuffers(std::size_t capacityBytes)
 
     VkPhysicalDeviceProperties props{};
     vkGetPhysicalDeviceProperties(_driver->getPhysical(), &props);
-    std::size_t devAlign = std::max<std::size_t>(1, props.limits.minUniformBufferOffsetAlignment);
+    size_t devAlign = std::max<size_t>(1, props.limits.minUniformBufferOffsetAlignment);
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {
@@ -296,12 +291,12 @@ void RenderContextImpl::resetUniformRingForCurrentFrame()
 }
 
 // Allocate aligned slice from current frame's ring buffer
-RenderContextImpl::UniformSlice RenderContextImpl::allocateUniformSlice(std::size_t size)
+RenderContextImpl::UniformSlice RenderContextImpl::allocateUniformSlice(size_t size)
 {
     UniformRingBuffer& ring = _uniformRings[_frameIndex];
 
     // Align allocation size to device requirement
-    std::size_t aligned = (size + ring.align - 1) & ~(ring.align - 1);
+    size_t aligned = (size + ring.align - 1) & ~(ring.align - 1);
 
     // Simple overflow check (can be replaced by grow or fallback)
     AXASSERT(ring.writeHead + aligned <= ring.capacity, "Uniform ring buffer overflow");
@@ -470,7 +465,7 @@ void RenderContextImpl::recreateSwapchain()
     scInfo.imageExtent      = extent;
     scInfo.imageArrayLayers = 1;
     // VK_IMAGE_USAGE_TRANSFER_SRC_BIT: Allows use as a blit source (for readPixels)
-    scInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    scInfo.imageUsage       = SWAPCHAIN_IMAGE_USAGE_FLAGS;
     scInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     scInfo.preTransform     = preTransform;
     scInfo.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
@@ -762,14 +757,12 @@ void RenderContextImpl::setViewport(int x, int y, unsigned int w, unsigned int h
     if (w == 0 || h == 0)
         return;
 
-    VkViewport vp{};
+    VkViewport vp{.minDepth = 0.0f, .maxDepth = 1.0f};
 
-    vp.x        = static_cast<float>(x);
-    vp.y        = static_cast<float>(y + h);
-    vp.width    = static_cast<float>(w);
-    vp.height   = -static_cast<float>(h);
-    vp.minDepth = 0.0f;
-    vp.maxDepth = 1.0f;
+    vp.x      = static_cast<float>(x);
+    vp.y      = static_cast<float>(y + h);
+    vp.width  = static_cast<float>(w);
+    vp.height = -static_cast<float>(h);
 
     if (vp != _cachedViewport)
     {
@@ -778,10 +771,10 @@ void RenderContextImpl::setViewport(int x, int y, unsigned int w, unsigned int h
     }
 }
 
-void RenderContextImpl::setScissorRect(bool isEnabled, float x, float y, float width, float height)
+void RenderContextImpl::setScissorRect(bool enabled, float x, float y, float width, float height)
 {
     VkRect2D rect{};
-    if (isEnabled)
+    if (enabled)
     {
         const float rtW = static_cast<float>(_renderTargetWidth);
         const float rtH = static_cast<float>(_renderTargetHeight);
@@ -794,8 +787,8 @@ void RenderContextImpl::setScissorRect(bool isEnabled, float x, float y, float w
 
         rect.offset.x      = minX;
         rect.offset.y      = static_cast<int32_t>(rtH) - maxY;  // filp Y
-        rect.extent.width  = static_cast<uint32_t>(std::max(0, maxX - minX));
-        rect.extent.height = static_cast<uint32_t>(std::max(0, maxY - minY));
+        rect.extent.width  = static_cast<uint32_t>((std::max)(0, maxX - minX));
+        rect.extent.height = static_cast<uint32_t>((std::max)(0, maxY - minY));
     }
     else
     {
@@ -803,10 +796,9 @@ void RenderContextImpl::setScissorRect(bool isEnabled, float x, float y, float w
         rect.extent = {_renderTargetWidth, _renderTargetHeight};
     }
 
-    if (_scissorEnabled != isEnabled || _cachedScissor != rect)
+    if (_cachedScissor != rect)
     {
-        _scissorEnabled = isEnabled;
-        _cachedScissor  = rect;
+        _cachedScissor = rect;
         markDynamicStateDirty(DynamicStateBits::Scissor);
     }
 }
@@ -867,7 +859,7 @@ void RenderContextImpl::markExtendedDynamicStateDirty(ExtendedDynamicStateBits b
 {
     if (_driver->isExtendedDynamicStateSupported())
     {
-        auto&& apply = [this, bits]<std::size_t... _Idx>(std::index_sequence<_Idx...>) {
+        auto&& apply = [this, bits]<size_t... _Idx>(std::index_sequence<_Idx...>) {
             (bitmask::set(_inFlightExtendedDynamicDirtyBits[_Idx], bits), ...);
         };
         apply(std::make_index_sequence<MAX_FRAMES_IN_FLIGHT>{});
@@ -1020,7 +1012,7 @@ void RenderContextImpl::prepareDrawing()
         for (auto& uboInfo : _programState->getActiveUniformBlockInfos())
         {
             UniformSlice s = allocateUniformSlice(uboInfo.sizeBytes);
-            std::memcpy(s.cpuPtr, bufferPtr + uboInfo.cpuOffset, uboInfo.sizeBytes);
+            ::memcpy(s.cpuPtr, bufferPtr + uboInfo.cpuOffset, uboInfo.sizeBytes);
 
             VkWriteDescriptorSet& write        = writes.emplace_back();
             VkDescriptorBufferInfo& bufferInfo = _descriptorBufferInfos.emplace_back();
@@ -1111,20 +1103,20 @@ void RenderContextImpl::prepareDrawing()
     }
 }
 
-void RenderContextImpl::drawArrays(std::size_t start, std::size_t count, bool /*wireframe*/)
+void RenderContextImpl::drawArrays(size_t start, size_t count, bool /*wireframe*/)
 {
     prepareDrawing();
     vkCmdDraw(_currentCmdBuffer, static_cast<uint32_t>(count), 1, static_cast<uint32_t>(start), 0);
 }
 
-void RenderContextImpl::drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool /*wireframe*/)
+void RenderContextImpl::drawArraysInstanced(size_t start, size_t count, int instanceCount, bool /*wireframe*/)
 {
     prepareDrawing();
     vkCmdDraw(_currentCmdBuffer, static_cast<uint32_t>(count), static_cast<uint32_t>(instanceCount),
               static_cast<uint32_t>(start), 0);
 }
 
-void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool /*wireframe*/)
+void RenderContextImpl::drawElements(IndexFormat indexType, size_t count, size_t offset, bool /*wireframe*/)
 {
     prepareDrawing();
 
@@ -1137,8 +1129,8 @@ void RenderContextImpl::drawElements(IndexFormat indexType, std::size_t count, s
 }
 
 void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
-                                              std::size_t count,
-                                              std::size_t offset,
+                                              size_t count,
+                                              size_t offset,
                                               int instanceCount,
                                               bool /*wireframe*/)
 {
@@ -1152,9 +1144,7 @@ void RenderContextImpl::drawElementsInstanced(IndexFormat indexType,
                      static_cast<uint32_t>(offset / (indexType == IndexFormat::U_SHORT ? 2u : 4u)), 0, 0);
 }
 
-void RenderContextImpl::readPixels(RenderTarget* rt,
-                                   bool preserveAxisHint,
-                                   std::function<void(const PixelBufferDesc&)> callback)
+void RenderContextImpl::readPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)> callback)
 {
     if (!rt)
     {
@@ -1163,15 +1153,13 @@ void RenderContextImpl::readPixels(RenderTarget* rt,
     }
     rt->retain();
 
-    _postFrameOps.emplace_back([this, rt, preserveAxisHint, callback = std::move(callback)]() mutable {
-        doReadPixels(rt, preserveAxisHint, callback);
+    _postFrameOps.emplace_back([this, rt, callback = std::move(callback)]() mutable {
+        doReadPixels(rt, callback);
         rt->release();
     });
 }
 
-void RenderContextImpl::doReadPixels(RenderTarget* rt,
-                                     bool /*preserveAxisHint*/,
-                                     std::function<void(const PixelBufferDesc&)>& callback)
+void RenderContextImpl::doReadPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)>& callback)
 {
     PixelBufferDesc pbd{};
     auto* rtImpl = static_cast<RenderTargetImpl*>(rt);
@@ -1253,7 +1241,7 @@ void RenderContextImpl::doReadPixels(RenderTarget* rt,
     pbd._width  = width;
     pbd._height = height;
     pbd._data.resize(static_cast<size_t>(bufferSize));
-    std::memcpy(pbd._data.data(), mapped, static_cast<size_t>(bufferSize));
+    ::memcpy(pbd._data.data(), mapped, static_cast<size_t>(bufferSize));
 
     vmaUnmapMemory(_driver->getVmaAllocator(), stagingAlloc);
 

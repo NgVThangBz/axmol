@@ -105,27 +105,25 @@ public:
     void setViewport(int x, int y, unsigned int w, unsigned int h) override;
     void setCullMode(CullMode mode) override;
     void setWinding(Winding winding) override;
-    void setScissorRect(bool isEnabled, float x, float y, float width, float height) override;
+    void setScissorRect(bool enabled, float x, float y, float width, float height) override;
 
     void setVertexBuffer(Buffer* buffer) override;
     void setIndexBuffer(Buffer* buffer) override;
     void setInstanceBuffer(Buffer* buffer) override;
 
-    void drawArrays(std::size_t start, std::size_t count, bool wireframe) override;
-    void drawArraysInstanced(std::size_t start, std::size_t count, int instanceCount, bool wireframe) override;
-    void drawElements(IndexFormat indexType, std::size_t count, std::size_t offset, bool wireframe) override;
+    void drawArrays(size_t start, size_t count, bool wireframe) override;
+    void drawArraysInstanced(size_t start, size_t count, int instanceCount, bool wireframe) override;
+    void drawElements(IndexFormat indexType, size_t count, size_t offset, bool wireframe) override;
     void drawElementsInstanced(IndexFormat indexType,
-                               std::size_t count,
-                               std::size_t offset,
+                               size_t count,
+                               size_t offset,
                                int instanceCount,
                                bool wireframe) override;
 
     void endRenderPass() override;
     void endFrame() override;
 
-    void readPixels(RenderTarget* rt,
-                    bool preserveAxisHint,
-                    std::function<void(const PixelBufferDesc&)> callback) override;
+    void readPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)> callback) override;
 
     void setStencilReferenceValue(uint32_t value) override;
 
@@ -139,13 +137,11 @@ private:
 
     void prepareDrawing(ID3D12GraphicsCommandList* cmd);
 
-    void readPixelsInternal(RenderTarget* rt,
-                            bool preserveAxisHint,
-                            std::function<void(const PixelBufferDesc&)>& callback);
+    void readPixelsInternal(RenderTarget* rt, std::function<void(const PixelBufferDesc&)>& callback);
 
     void markDynamicStateDirty(DynamicStateBits bits) noexcept
     {
-        auto&& apply = [this, bits]<std::size_t... _Idx>(std::index_sequence<_Idx...>) {
+        auto&& apply = [this, bits]<size_t... _Idx>(std::index_sequence<_Idx...>) {
             (bitmask::set(_inFlightDynamicDirtyBits[_Idx], bits), ...);
         };
         apply(std::make_index_sequence<MAX_FRAMES_IN_FLIGHT>{});
@@ -190,8 +186,8 @@ private:
 #pragma region Uniform ring buffer
     struct UniformSlice
     {
-        std::size_t offset              = 0;        // byte offset from start of ring buffer
-        std::size_t size                = 0;        // requested size (unaligned)
+        size_t offset                   = 0;        // byte offset from start of ring buffer
+        size_t size                     = 0;        // requested size (unaligned)
         uint8_t* cpuPtr                 = nullptr;  // persistently mapped CPU pointer to write data
         D3D12_GPU_VIRTUAL_ADDRESS gpuVA = 0;        // base GPU VA + offset (bind this)
     };
@@ -203,11 +199,11 @@ private:
         uint8_t* mapped                 = nullptr;
 
         // Capacity & allocation state
-        std::size_t capacity  = 0;  // total bytes
-        std::size_t writeHead = 0;  // current write offset
+        size_t capacity  = 0;  // total bytes
+        size_t writeHead = 0;  // current write offset
 
         // Alignment: CBV requires 256-byte alignment
-        std::size_t align = 256;
+        size_t align = 256;
 
         // Cached GPU VA base for fast slice addressing
         D3D12_GPU_VIRTUAL_ADDRESS baseGpuVA = 0;
@@ -222,10 +218,10 @@ private:
     std::array<UniformRingBuffer, MAX_FRAMES_IN_FLIGHT> _uniformRings{};
 
     // Public API
-    void createUniformRingBuffers(std::size_t capacityBytes);
+    void createUniformRingBuffers(size_t capacityBytes);
     void destroyUniformRingBuffers();
     void resetUniformRingForCurrentFrame(UINT frameIndex);
-    UniformSlice allocateUniformSlice(UINT frameIndex, std::size_t size);
+    UniformSlice allocateUniformSlice(UINT frameIndex, size_t size);
 #pragma endregion
 
     DepthStencilStateImpl* _depthStencilState{nullptr};
@@ -236,7 +232,7 @@ private:
 
     std::vector<std::function<void(uint64_t)>> _frameCompletionOps;
 
-    D3D12_VIEWPORT _cachedViewport{};
+    D3D12_VIEWPORT _cachedViewport{.MinDepth = 0.0f, .MaxDepth = 1.0f};
     D3D12_RECT _cachedScissor{};
     D3D12_CULL_MODE _cachedCullMode{D3D12_CULL_MODE_NONE};
     BOOL _cachedFrontCounterClockwise{FALSE};

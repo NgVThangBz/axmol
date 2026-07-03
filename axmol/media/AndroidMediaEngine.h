@@ -26,6 +26,8 @@
 #if defined(__ANDROID__)
 #    include "axmol/media/MediaEngine.h"
 
+#    include <jni.h>
+
 namespace ax
 {
 
@@ -61,13 +63,13 @@ public:
         if (_onMediaEvent)
             _onMediaEvent(event);
     }
-    void _storeDuration(double duration) { _duration = duration; }
-    void _storeCurrentTime(double currentTime) { _currentTime = currentTime; }
-    void _storeLastVideoSample(const uint8_t* buf, size_t len);
-    void _storeVideoMeta(int outputX, int outputY, int videoX, int videoY, int cbcrOffset, int rotation, int videoPF);
+    void _setDuration(double duration) { _duration = duration; }
+    void _setVideoMeta(int outputX, int outputY, int videoX, int videoY, int cbcrOffset, int rotation, int videoPF);
+
+    void _processVideoFrame(const uint8_t* sampleData, size_t sampleLen, int64_t presentationTimeUs);
 
 private:
-    void* context{};  // java object strong-refs
+    jobject _mediaPlayer{nullptr};  // java object strong-refs
     std::function<void(MEMediaEventType)> _onMediaEvent;
     std::function<void(const MEVideoFrame&)> _onVideoFrame;
 
@@ -81,8 +83,8 @@ private:
     tlx::byte_buffer _frameBuffer2;  // for read
     mutable std::mutex _frameBuffer1Mtx;
 
-    double _currentTime{};
-    double _duration{};
+    double _currentTime{0.0};  // current time in seconds
+    double _duration{0.0};     // duration in seconds
 };
 
 struct AndroidMediaEngineFactory : public MediaEngineFactory

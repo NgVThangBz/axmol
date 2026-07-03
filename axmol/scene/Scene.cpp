@@ -28,20 +28,23 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "axmol/scene/Scene.h"
+
+#include <algorithm>
+
 #include "axmol/base/Director.h"
 #include "axmol/scene/Camera.h"
 #include "axmol/base/EventDispatcher.h"
-#include "axmol/base/EventListenerCustom.h"
+#include "axmol/base/CustomEventListener.h"
 #include "axmol/base/text_utils.h"
 #include "axmol/renderer/Renderer.h"
+#include "axmol/scene/SceneRenderer.h"
 
 #if defined(AX_ENABLE_PHYSICS_2D)
-#    include "axmol/2d/physics/PhysicsWorld2D.h"
+#    include "axmol/physics/2d/PhysicsWorld2D.h"
 #endif
 
 #if defined(AX_ENABLE_PHYSICS_3D)
-#    include "axmol/3d/physics/Physics3DWorld.h"
-#    include "axmol/3d/physics/Physics3DComponent.h"
+#    include "axmol/physics/3d/PhysicsWorld3D.h"
 #endif
 
 #if defined(AX_ENABLE_NAVMESH)
@@ -51,24 +54,36 @@ THE SOFTWARE.
 namespace ax
 {
 
-Scene::Scene()
-    : _event(_director->getEventDispatcher()->addCustomEventListener(
-          Director::EVENT_PROJECTION_CHANGED,
-          std::bind(&Scene::onProjectionChanged, this, std::placeholders::_1)))
+namespace
 {
+bool camera_cmp(const Camera* a, const Camera* b)
+{
+    return a->getRenderOrder() < b->getRenderOrder();
+}
+}  // namespace
+
+Scene::Scene()
+{
+    _event = (_director->getEventDispatcher()->addCustomEventListener(
+        Director::EVENT_PROJECTION_CHANGED, std::bind(&Scene::onProjectionChanged, this, std::placeholders::_1)));
     _event->retain();
 
     _ignoreAnchorPointForPosition = true;
     setAnchorPoint(Vec2(0.5f, 0.5f));
+
+    // Set accumulator to fixedDeltaTime so the next tick will immediately run at least one fixedUpdate,
+    // avoiding a stall after changing step size.
+    _fixedAccumulator = _fixedDeltaTime;
 
     Camera::_visitingCamera = nullptr;
 }
 
 Scene::~Scene()
 {
+    AX_SAFE_RELEASE(_debugCamera);
+
 #if defined(AX_ENABLE_PHYSICS_3D)
-    AX_SAFE_RELEASE(_physicsWorld3D);
-    AX_SAFE_RELEASE(_physics3dDebugCamera);
+    PhysicsWorld3D::release(_physicsWorld3D);
 #endif
 #if defined(AX_ENABLE_NAVMESH)
     AX_SAFE_RELEASE(_navMesh);
@@ -123,6 +138,11 @@ void Scene::initDefaultCamera()
     }
 }
 
+void Scene::setCameraOrderDirty()
+{
+    _cameraOrderDirty = true;
+}
+
 Scene* Scene::create()
 {
     Scene* ret = new Scene();
@@ -158,7 +178,7 @@ std::string Scene::getDescription() const
     return fmt::format("<Scene | tag = {}>", _tag);
 }
 
-void Scene::onProjectionChanged(EventCustom* /*event*/)
+void Scene::onProjectionChanged(CustomEvent* /*event*/)
 {
     if (_defaultCamera)
     {
@@ -166,131 +186,47 @@ void Scene::onProjectionChanged(EventCustom* /*event*/)
     }
 }
 
-static bool camera_cmp(const Camera* a, const Camera* b)
+void Scene::registerCamera(Camera* camera)
 {
-    return a->getRenderOrder() < b->getRenderOrder();
+    if (!camera)
+        return;
+
+    auto it = std::find(_cameras.begin(), _cameras.end(), camera);
+    if (it == _cameras.end())
+    {
+        _cameras.emplace_back(camera);
+        setCameraOrderDirty();
+    }
+}
+
+void Scene::unregisterCamera(Camera* camera)
+{
+    if (!camera)
+        return;
+
+    auto it = std::find(_cameras.begin(), _cameras.end(), camera);
+    if (it != _cameras.end())
+        _cameras.erase(it);
 }
 
 const std::vector<Camera*>& Scene::getCameras()
 {
     if (_cameraOrderDirty)
     {
-        stable_sort(_cameras.begin(), _cameras.end(), camera_cmp);
+        std::stable_sort(_cameras.begin(), _cameras.end(), camera_cmp);
         _cameraOrderDirty = false;
     }
     return _cameras;
 }
 
-void Scene::render(Renderer* renderer, const Mat4& eyeTransform, const Mat4* eyeProjection)
+void Scene::setDebugCamera(Camera* camera)
 {
-    Camera* defaultCamera = nullptr;
-    const auto& transform = getNodeToParentTransform();
-
-    for (const auto& camera : getCameras())
-    {
-        if (!camera->isVisible())
-            continue;
-
-        Camera::_visitingCamera = camera;
-        if (Camera::_visitingCamera->getCameraFlag() == CameraFlag::DEFAULT)
-        {
-            defaultCamera = Camera::_visitingCamera;
-        }
-
-        // There are two ways to modify the "default camera" with the eye Transform:
-        // a) modify the "nodeToParentTransform" matrix
-        // b) modify the "additional transform" matrix
-        // both alternatives are correct, if the user manually modifies the camera with a camera->setPosition()
-        // then the "nodeToParent transform" will be lost.
-        // And it is important that the change is "permanent", because the matrix might be used for calculate
-        // culling and other stuff.
-        if (eyeProjection)
-            camera->setAdditionalProjection(*eyeProjection * camera->getProjectionMatrix().getInversed());
-
-        camera->setAdditionalTransform(eyeTransform.getInversed());
-        _director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-        _director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION,
-                              Camera::_visitingCamera->getViewProjectionMatrix());
-
-        camera->apply();
-        // clear background with max depth
-        camera->clearBackground();
-        // visit the scene
-        visit(renderer, transform, 0);
-#if defined(AX_ENABLE_NAVMESH)
-        if (_navMesh && _navMeshDebugCamera == camera)
-        {
-            _navMesh->debugDraw(renderer);
-        }
-#endif
-
-        renderer->render();
-
-        _director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-
-        // we shouldn't restore the transform matrix since it could be used
-        // from "update" or other parts of the game to calculate culling or something else.
-        //        camera->setNodeToParentTransform(eyeCopy);
-    }
-
-#if defined(AX_ENABLE_PHYSICS_3D)
-    if (_physicsWorld3D && _physicsWorld3D->isDebugDrawEnabled())
-    {
-        Camera* physics3dDebugCamera = _physics3dDebugCamera != nullptr ? _physics3dDebugCamera : defaultCamera;
-
-        if (eyeProjection)
-            physics3dDebugCamera->setAdditionalProjection(*eyeProjection *
-                                                          physics3dDebugCamera->getProjectionMatrix().getInversed());
-
-        physics3dDebugCamera->setAdditionalTransform(eyeTransform.getInversed());
-        _director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-        _director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION,
-                              physics3dDebugCamera->getViewProjectionMatrix());
-
-        physics3dDebugCamera->apply();
-        physics3dDebugCamera->clearBackground();
-
-        _physicsWorld3D->debugDraw(renderer);
-        renderer->render();
-
-        _director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-    }
-#endif
-
-    Camera::_visitingCamera = nullptr;
+    Object::assign(_debugCamera, camera);
 }
 
 void Scene::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
 {
     Node::visit(renderer, parentTransform, parentFlags);
-}
-
-void Scene::visit()
-{
-    const auto eyeTransform = Mat4::IDENTITY;
-
-    for (const auto& camera : getCameras())
-    {
-        if (!camera->isVisible())
-            continue;
-
-        Camera::_visitingCamera = camera;
-
-        camera->setAdditionalTransform(eyeTransform.getInversed());
-        _director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-        _director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION,
-                              Camera::_visitingCamera->getViewProjectionMatrix());
-
-        camera->apply();
-        // clear background with max depth
-        camera->clearBackground();
-        // visit the scene
-        Node::visit();
-
-        _director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-    }
-
-    Camera::_visitingCamera = nullptr;
 }
 
 void Scene::removeAllChildren()
@@ -306,25 +242,6 @@ void Scene::removeAllChildren()
         _defaultCamera->release();
     }
 }
-
-#if defined(AX_ENABLE_PHYSICS_3D)
-void Scene::setPhysics3DDebugCamera(Camera* camera)
-{
-    AX_SAFE_RETAIN(camera);
-    AX_SAFE_RELEASE(_physics3dDebugCamera);
-    _physics3dDebugCamera = camera;
-}
-#endif
-
-#if defined(AX_ENABLE_NAVMESH)
-void Scene::setNavMeshDebugCamera(Camera* camera)
-{
-    AX_SAFE_RETAIN(camera);
-    AX_SAFE_RELEASE(_navMeshDebugCamera);
-    _navMeshDebugCamera = camera;
-}
-
-#endif
 
 #if (defined(AX_ENABLE_PHYSICS_2D) || defined(AX_ENABLE_PHYSICS_3D))
 
@@ -361,9 +278,7 @@ bool Scene::initPhysicsWorld()
         this->setContentSize(_director->getCanvasSize());
 
 #    if defined(AX_ENABLE_PHYSICS_3D)
-        Physics3DWorldDes info;
-        AX_BREAK_IF(!(_physicsWorld3D = Physics3DWorld::create(&info)));
-        _physicsWorld3D->retain();
+        _physicsWorld3D = PhysicsWorld3D::obtain(this);
 #    endif
 
         // success
@@ -374,19 +289,71 @@ bool Scene::initPhysicsWorld()
 
 #endif
 
+void Scene::setFixedDeltaTime(float fixedStep)
+{
+    fixedStep = std::clamp<float>(fixedStep, 0.0001F, 10.0F);
+
+    _fixedDeltaTime = fixedStep;
+
+    // Reset accumulator to fixedDeltaTime so the next tick will immediately run at least one fixedUpdate,
+    // avoiding a stall after changing step size.
+    _fixedAccumulator = _fixedDeltaTime;
+}
+
+void Scene::tick(float deltaTime)
+{
+    if (_fixedUpdateEnabled)
+    {
+        // apply time scale and clamp to avoid huge dt spikes
+        deltaTime = (std::min)(deltaTime * _timeScale, _maxDeltaTime);
+
+        // accumulate time
+        _fixedAccumulator += deltaTime;
+
+        int steps = 0;
+        while (_fixedAccumulator >= _fixedDeltaTime && steps < _maxFixedStepsPerFrame)
+        {
+            fixedUpdate(_fixedDeltaTime);
+
+            _fixedAccumulator -= _fixedDeltaTime;
+            ++steps;
+        }
+
+        // spiral of death protection: if we hit max steps, drop remaining accumulator
+        if (steps == _maxFixedStepsPerFrame)
+            _fixedAccumulator = 0.0f;
+
+        // compute interpolation alpha for rendering (0..1)
+        _physicsInterpolationAlpha = static_cast<float>(_fixedAccumulator) / _fixedDeltaTime;
+    }
+    else
+    {
+#if (defined(AX_ENABLE_PHYSICS_2D) || defined(AX_ENABLE_PHYSICS_3D) || defined(AX_ENABLE_NAVMESH))
+        // apply time scale and clamp to avoid huge dt spikes
+        deltaTime = (std::min)(deltaTime * _timeScale, _maxDeltaTime);
+        stepPhysicsAndNavigation(deltaTime);
+#endif
+    }
+}
+
+void Scene::fixedUpdate(float delta)
+{
+#if (defined(AX_ENABLE_PHYSICS_2D) || defined(AX_ENABLE_PHYSICS_3D) || defined(AX_ENABLE_NAVMESH))
+    stepPhysicsAndNavigation(delta);
+#endif
+}
+
 #if (defined(AX_ENABLE_PHYSICS_2D) || defined(AX_ENABLE_PHYSICS_3D) || defined(AX_ENABLE_NAVMESH))
 void Scene::stepPhysicsAndNavigation(float deltaTime)
 {
 #    if defined(AX_ENABLE_PHYSICS_2D)
     if (_physicsWorld2D && _physicsWorld2D->isAutoStep())
-        _physicsWorld2D->update(deltaTime);
+        _physicsWorld2D->stepSimulation(deltaTime);
 #    endif
 
 #    if defined(AX_ENABLE_PHYSICS_3D)
-    if (_physicsWorld3D)
-    {
-        _physicsWorld3D->stepSimulate(deltaTime);
-    }
+    if (_physicsWorld3D && _physicsWorld3D->isAutoStep())
+        _physicsWorld3D->stepSimulation(deltaTime);
 #    endif
 #    if defined(AX_ENABLE_NAVMESH)
     if (_navMesh)

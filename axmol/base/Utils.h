@@ -113,7 +113,7 @@ AX_DLL std::vector<Node*> findChildren(const Node& node, std::string_view name);
 #
 
 /** Same to ::atof, but strip the string, remain 7 numbers after '.' before call atof.
- * Why we need this? Because in android c++_static, atof ( and std::atof ) is unsupported for numbers have long decimal
+ * Why we need this? Because in android c++_static, atof ( and atof ) is unsupported for numbers have long decimal
  * part and contain several numbers can approximate to 1 ( like 90.099998474121094 ), it will return inf. This function
  * is used to fix this bug.
  * @param str The string be to converted to double.
@@ -477,7 +477,7 @@ AX_DLL uint32_t fourccValue(std::string_view str);
  * Parses a 2D vector from a string representation.
  *
  * @param str  String in the form "{x,y}" where x and y are numeric values.
- *             Example: "{3,4}" → Vec2(3, 4)
+ *             Example: "{3,4}" -> Vec2(3, 4)
  * @return     A Vec2 initialized with the parsed coordinates.
  */
 AX_DLL Vec2 parseVec2(std::string_view str);
@@ -487,7 +487,7 @@ AX_DLL Vec2 parseVec2(std::string_view str);
  *
  * @param str  String in the form "{{x,y},{w,h}}" where (x,y) is the rectangle origin
  *             and (w,h) is its size. All values are numeric.
- *             Example: "{{4,3},{5,6}}" → Rect(origin=(4, 3), size=(5, 6))
+ *             Example: "{{4,3},{5,6}}" -> Rect(origin=(4, 3), size=(5, 6))
  * @return     A Rect initialized with the parsed origin and size.
  */
 AX_DLL Rect parseRect(std::string_view str);
