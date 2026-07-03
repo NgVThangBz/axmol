@@ -133,7 +133,7 @@ protected:
                     }
 
                     task();
-                    Director::getInstance()->getScheduler()->runOnAxmolThread(
+                    Director::getInstance()->postTask(
                         std::bind(callback.callback, callback.callbackParam));
                 }
             });
