@@ -1547,10 +1547,10 @@ void DrawNode::resetAdvancedSettings()
 {
     _thicknessScale        = 0.55f;
     _localScale            = Vec2(1.0f, 1.0f);
-    _localPivot            = Vec2::ZERO;
+    _localPivot            = Vec2::zero;
     _localRotation         = 0.0f;
     _localRotationRad      = 0.0f;
-    _localPosition         = Vec2::ZERO;
+    _localPosition         = Vec2::zero;
     _preserveDrawOrder     = false;
     _localTransformEnabled = false;
     _trianglesDirty = _linesDirty = _pointsDirty = true;
