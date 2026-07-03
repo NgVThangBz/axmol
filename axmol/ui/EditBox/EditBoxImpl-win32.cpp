@@ -338,7 +338,9 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         }
         if (_hasFocus && wParam == VK_TAB && _editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
         {
-            _endAction = EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
+            const bool shiftDown = (::GetKeyState(VK_SHIFT) & 0x8000) != 0;
+            _endAction = shiftDown ? EditBoxDelegate::EditBoxEndAction::TAB_TO_PREVIOUS
+                                   : EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
             _hasFocus  = false;
             ::ShowWindow(s_previousFocusWnd, SW_HIDE);
             ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
