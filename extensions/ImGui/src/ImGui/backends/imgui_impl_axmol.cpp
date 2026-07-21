@@ -13,7 +13,7 @@
 #include "axmol/renderer/CustomCommand.h"
 #include "axmol/renderer/CallbackCommand.h"
 #include "axmol/scene/Camera.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/Buffer.h"
 
 using namespace ax;
@@ -286,7 +286,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_Init()
     bd->IndexBufferAllocator  = new BufferPoolAllocator(1 * 1024 * 1024, BufferType::INDEX, BufferUsage::DYNAMIC);
 
 #if (!defined(AX_GLES_PROFILE) || AX_GLES_PROFILE >= 300)
-    if (rhi::DriverContext::isOpenGL())
+    if (rhi::GraphicsCore::isOpenGL())
         io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field,
                                                                     // allowing for large meshes.
 #endif
@@ -471,7 +471,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderPlatform()
 
 #if defined(AX_PLATFORM_GLFW)
         // restore context
-        if (rhi::DriverContext::isOpenGL())
+        if (rhi::GraphicsCore::isOpenGL())
         {
             GLFWwindow* prev_current_context = glfwGetCurrentContext();
             ImGui_ImplAxmol_PostCommand([=]() { ImGui_ImplAxmol_MakeCurrent(prev_current_context, nullptr); });
@@ -483,7 +483,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_RenderPlatform()
 IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window, ImGuiViewport* viewport)
 {
 #if defined(GLFW_VERSION_MAJOR) && AX_ENABLE_GL
-    if (!rhi::DriverContext::isOpenGL())
+    if (!rhi::GraphicsCore::isOpenGL())
         return;
     glfwMakeContextCurrent(window);
     auto state = static_cast<gl::OpenGLState*>(glfwGetWindowUserPointer(window));
@@ -512,7 +512,7 @@ IMGUI_IMPL_API void ImGui_ImplAxmol_MakeCurrent(GLFWwindow* window, ImGuiViewpor
 IMGUI_IMPL_API void ImGui_ImplAxmol_OnDestroyWindow(GLFWwindow* window, ImGuiViewport* viewport)
 {
 #if defined(GLFW_VERSION_MAJOR) && AX_ENABLE_GL
-    if (!rhi::DriverContext::isOpenGL())
+    if (!rhi::GraphicsCore::isOpenGL())
         return;
     if (viewport->RendererUserData)
     {
@@ -550,7 +550,7 @@ IMGUI_IMPL_API bool ImGui_ImplAxmol_CreateDeviceObjects()
 
     auto pm = ProgramManager::getInstance();
 
-    bd->ProgramInfo.program = pm->loadProgram("custom/imgui_sprite_vs"sv, ax::positionTextureColor_frag);
+    bd->ProgramInfo.program = pm->loadProgram("custom/imgui_sprite_vs"sv, ax::positionTextureColor_fs);
 
     IM_ASSERT(bd->ProgramInfo.program);
 
@@ -560,9 +560,9 @@ IMGUI_IMPL_API bool ImGui_ImplAxmol_CreateDeviceObjects()
     auto& info      = bd->ProgramInfo;
     info.texture    = info.program->getUniformLocation(TEXTURE);
     info.projection = info.program->getUniformLocation(MVP_MATRIX);
-    info.position   = info.program->getVertexInputDesc(POSITION);
-    info.uv         = info.program->getVertexInputDesc(TEXCOORD);
-    info.color      = info.program->getVertexInputDesc(COLOR);
+    info.position   = info.program->getVertexInputDesc(VertexSemantic::POSITION);
+    info.uv         = info.program->getVertexInputDesc(VertexSemantic::TEXCOORD0);
+    info.color      = info.program->getVertexInputDesc(VertexSemantic::COLOR0);
     IM_ASSERT(bool(info.texture));
     IM_ASSERT(bool(info.projection));
     IM_ASSERT(!!info.position);
@@ -572,9 +572,9 @@ IMGUI_IMPL_API bool ImGui_ImplAxmol_CreateDeviceObjects()
 
     auto layoutDesc = axvlm->allocateVertexLayoutDesc();
     layoutDesc.startLayout(3);
-    layoutDesc.addAttrib("a_position", info.position, VertexFormat::FLOAT2, 0, false);
-    layoutDesc.addAttrib("a_texCoord", info.uv, VertexFormat::FLOAT2, offsetof(ImDrawVert, uv), false);
-    layoutDesc.addAttrib("a_color", info.color, VertexFormat::UBYTE4, offsetof(ImDrawVert, col), true);
+    layoutDesc.addAttrib(info.position, VertexElementType::FLOAT2, 0, false);
+    layoutDesc.addAttrib(info.uv, VertexElementType::FLOAT2, offsetof(ImDrawVert, uv), false);
+    layoutDesc.addAttrib(info.color, VertexElementType::UBYTE4, offsetof(ImDrawVert, col), true);
     layoutDesc.endLayout();
 
     Object::assign(info.layout, axvlm->getVertexLayout(std::forward<VertexLayoutDesc>(layoutDesc)));

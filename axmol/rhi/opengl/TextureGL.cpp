@@ -31,7 +31,7 @@
 #include "axmol/platform/PlatformConfig.h"
 #include "axmol/rhi/opengl/MacrosGL.h"
 #include "axmol/rhi/opengl/UtilsGL.h"
-#include "axmol/rhi/SamplerCache.h"
+#include "axmol/rhi/SamplerRegistry.h"
 #include "axmol/rhi/RHIUtils.h"
 
 namespace ax::rhi::gl
@@ -41,6 +41,22 @@ namespace ax::rhi::gl
 TextureImpl::TextureImpl(const TextureDesc& desc)
 {
     updateTextureDesc(desc);
+}
+
+TextureImpl::TextureImpl(GLuint texture, uint32_t width, uint32_t height)
+    : _nativeTexture(texture), _ownsNativeTexture(false)
+{
+    _desc.width        = static_cast<uint16_t>(width);
+    _desc.height       = static_cast<uint16_t>(height);
+    _desc.pixelFormat  = PixelFormat::RGBA8;
+    _desc.textureType  = TextureType::TEXTURE_2D;
+    _desc.arraySize    = 1;
+    _desc.mipLevels    = 1;
+    _desc.textureUsage = TextureUsage::RENDER_TARGET;
+
+    UtilsGL::toGLTypes(_desc.pixelFormat, _nativeDesc.internalFormat, _nativeDesc.format, _nativeDesc.type);
+    _nativeDesc.target = GL_TEXTURE_2D;
+    Texture::updateTextureDesc(_desc);
 }
 
 void TextureImpl::updateTextureDesc(const TextureDesc& desc)
@@ -63,12 +79,11 @@ void TextureImpl::updateTextureDesc(const TextureDesc& desc)
 
 TextureImpl::~TextureImpl()
 {
-    if (_nativeTexture)
+    if (_nativeTexture && _ownsNativeTexture)
     {
         __state->deleteTexture(_nativeTexture);
-        _nativeTexture = 0;
     }
-
+    _nativeTexture = 0;
     _nativeSampler = 0;
 }
 
@@ -81,7 +96,7 @@ void TextureImpl::invalidate()
 
 void TextureImpl::updateSamplerDesc(const SamplerDesc& desc)
 {
-    this->_nativeSampler = static_cast<GLuint>(SamplerCache::getInstance()->getSampler(desc));
+    this->_nativeSampler = static_cast<GLuint>(SamplerRegistry::getInstance()->getSampler(desc));
 }
 
 void TextureImpl::updateData(const void* data, int width, int height, int level, int layerIndex)
@@ -89,6 +104,7 @@ void TextureImpl::updateData(const void* data, int width, int height, int level,
     if (_desc.arraySize == 1)
     {
         ensureNativeTexture();
+        CHECK_GL_ERROR_DEBUG();
 
         // !configure unpack alignment only when mipmapsNum == 1 and the data is uncompressed
         configureUnpackAlignment(width);

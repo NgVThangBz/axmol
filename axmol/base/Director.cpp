@@ -42,11 +42,12 @@ THE SOFTWARE.
 #include "axmol/2d/AnimationCache.h"
 #include "axmol/2d/Transition.h"
 #include "axmol/2d/FontFreeType.h"
+#include "axmol/2d/Label.h"
 #include "axmol/2d/LabelAtlas.h"
 #include "axmol/renderer/TextureCache.h"
 #include "axmol/renderer/Renderer.h"
 #include "axmol/renderer/RenderState.h"
-#include "axmol/scene/SceneRenderer.h"
+#include "axmol/scene/SceneCompositor.h"
 #include "axmol/scene/Camera.h"
 #include "axmol/scene/Scene.h"
 #include "axmol/base/UserDefault.h"
@@ -54,6 +55,7 @@ THE SOFTWARE.
 #include "axmol/base/FPSImages.h"
 #include "axmol/base/Scheduler.h"
 #include "axmol/base/Macros.h"
+#include "axmol/base/Profiling.h"
 #include "axmol/base/EventDispatcher.h"
 #include "axmol/base/CustomEvent.h"
 #include "axmol/base/Logging.h"
@@ -70,8 +72,8 @@ THE SOFTWARE.
 #    include "axmol/base/ScriptSupport.h"
 #endif
 
-#include "axmol/rhi/SamplerCache.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/SamplerRegistry.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/renderer/VertexLayoutManager.h"
 
 #if defined(AX_ENABLE_3D)
@@ -85,16 +87,16 @@ namespace ax
 
 std::string_view Director::EVENT_BEFORE_SET_NEXT_SCENE = "director_before_set_next_scene"sv;
 std::string_view Director::EVENT_AFTER_SET_NEXT_SCENE  = "director_after_set_next_scene"sv;
-std::string_view Director::EVENT_PROJECTION_CHANGED    = "director_projection_changed"sv;
-std::string_view Director::EVENT_AFTER_DRAW            = "director_after_draw"sv;
-std::string_view Director::EVENT_AFTER_VISIT           = "director_after_visit"sv;
-std::string_view Director::EVENT_BEFORE_UPDATE         = "director_before_update"sv;
-std::string_view Director::EVENT_AFTER_UPDATE          = "director_after_update"sv;
-std::string_view Director::EVENT_BEFORE_DRAW           = "director_before_draw"sv;
-std::string_view Director::EVENT_RESET                 = "director_reset"sv;
-std::string_view Director::EVENT_DISPOSING             = "director_disposing"sv;
-std::string_view Director::EVENT_BEFORE_GFX_DROP       = "director_before_gfx_drop"sv;
-std::string_view Director::EVENT_AFTER_GFX_DROP        = "director_after_gfx_drop"sv;
+
+std::string_view Director::EVENT_AFTER_DRAW      = "director_after_draw"sv;
+std::string_view Director::EVENT_AFTER_VISIT     = "director_after_visit"sv;
+std::string_view Director::EVENT_BEFORE_UPDATE   = "director_before_update"sv;
+std::string_view Director::EVENT_AFTER_UPDATE    = "director_after_update"sv;
+std::string_view Director::EVENT_BEFORE_DRAW     = "director_before_draw"sv;
+std::string_view Director::EVENT_RESET           = "director_reset"sv;
+std::string_view Director::EVENT_DISPOSING       = "director_disposing"sv;
+std::string_view Director::EVENT_BEFORE_GFX_DROP = "director_before_gfx_drop"sv;
+std::string_view Director::EVENT_AFTER_GFX_DROP  = "director_after_gfx_drop"sv;
 
 // clang-format off
 static constexpr std::string_view kWindowPlatformNameMap[] = {
@@ -172,9 +174,6 @@ bool Director::init()
     _eventBeforeUpdate->setUserData(this);
     _eventAfterUpdate = new CustomEvent(EVENT_AFTER_UPDATE);
     _eventAfterUpdate->setUserData(this);
-    _eventProjectionChanged = new CustomEvent(EVENT_PROJECTION_CHANGED);
-    _eventProjectionChanged->setUserData(this);
-
     _eventDirectorReset = new CustomEvent(EVENT_RESET);
     _eventDirectorReset->setUserData(this);
     _eventDirectorDisposing = new CustomEvent(EVENT_DISPOSING);
@@ -188,14 +187,13 @@ bool Director::init()
     // init TextureCache
     initTextureCache();
 
-    _renderer      = new Renderer();
-    _sceneRenderer = std::make_unique<SceneRenderer>();
+    _renderer = new Renderer();
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
     // listen the event that renderer was recreated on Android/WP8
     _rendererRecreatedListener = CustomEventListener::create(EVENT_RENDERER_RECREATED, [this](CustomEvent*) {
         _isStatusLabelUpdated = true;  // Force recreation of textures
-        rhi::SamplerCache::getInstance()->rebuild();
+        rhi::SamplerRegistry::getInstance()->rebuild();
         rhi::ShaderCache::getInstance()->recompileAll();
     });
 
@@ -225,12 +223,10 @@ Director::~Director()
     AX_SAFE_RELEASE(_eventAfterDraw);
     AX_SAFE_RELEASE(_eventBeforeDraw);
     AX_SAFE_RELEASE(_eventAfterVisit);
-    AX_SAFE_RELEASE(_eventProjectionChanged);
     AX_SAFE_RELEASE(_eventDirectorReset);
     AX_SAFE_RELEASE(_eventDirectorDisposing);
     AX_SAFE_RELEASE(_eventBeforeGfxDrop);
     AX_SAFE_RELEASE(_eventAfterGfxDrop);
-
     _eventDispatcher->removeAllEventListeners();
     AX_SAFE_RELEASE(_eventDispatcher);
 
@@ -269,17 +265,6 @@ void Director::setDefaultValues()
     // Display FPS
     _statsDisplay = env->getValue("axmol.display_fps", Value(false)).asBool();
 
-    // GL projection
-    std::string projection = env->getValue("axmol.gl.projection", Value("3d")).asString();
-    if (projection == "3d")
-        _projection = Projection::_3D;
-    else if (projection == "2d")
-        _projection = Projection::_2D;
-    else if (projection == "custom")
-        _projection = Projection::CUSTOM;
-    else
-        AXASSERT(false, "Invalid projection value");
-
     /* !!!Notes
     ** All compressed image should do PMA at texture convert tools(such as astcenc-2.2+ with -pp-premultiply)
     ** or GPU fragment shader
@@ -307,104 +292,6 @@ void Director::setRenderDefaults()
 
     _renderer->setDepthTest(false);
     _renderer->setDepthCompareFunc(rhi::CompareFunc::LESS_EQUAL);
-    setProjection(_projection);
-}
-
-// process 1 frame
-void Director::processFrame()
-{
-    const auto canRender = _renderer->beginFrame();
-
-    // calculate "global" dt
-    calculateDeltaTime();
-
-    if (_renderView)
-    {
-        _renderView->pollEvents();
-    }
-
-    // tick before glClear: issue #533
-    if (!_paused)
-    {
-        _eventDispatcher->dispatchEvent(_eventBeforeUpdate);
-        _scheduler->update(_deltaTime);
-        performFrameTasks(_nextUpdateTasks);
-        _eventDispatcher->dispatchEvent(_eventAfterUpdate);
-    }
-
-    if (canRender) [[likely]]
-    {
-        _renderer->clear(ClearFlag::ALL, _clearColor, 1, 0, -10000.0);
-
-        _eventDispatcher->dispatchEvent(_eventBeforeDraw);
-
-        /* to avoid flickr, nextScene MUST be here: after tick and before draw.
-         * FIXME: Which bug is this one. It seems that it can't be reproduced with v0.9
-         */
-        if (_nextScene)
-        {
-            setNextScene();
-        }
-
-        if (_runningScene)
-        {
-            _runningScene->tick(_deltaTime);
-
-            // clear draw stats
-            _renderer->clearDrawStats();
-
-            // render the scene
-            _sceneRenderer->renderScene(_renderer, _runningScene);
-
-            _eventDispatcher->dispatchEvent(_eventAfterVisit);
-        }
-
-        // draw the notifications node
-        if (_notificationNode)
-        {
-            auto previousCamera = Camera::_visitingCamera;
-            auto* overlayCamera = getOverlayCamera();
-            if (overlayCamera)
-            {
-                Camera::_visitingCamera = overlayCamera;
-                overlayCamera->apply();
-                _notificationNode->visit(_renderer, Mat4::identity, 0);
-            }
-            Camera::_visitingCamera = previousCamera;
-        }
-
-        updateFrameRate();
-
-        if (_statsDisplay)
-        {
-#if !AX_STRIP_FPS
-            showStats();
-#endif
-        }
-
-        _renderer->render();
-
-        _eventDispatcher->dispatchEvent(_eventAfterDraw);
-
-        _totalFrames++;
-
-        // swap buffers
-        if (_renderView)
-        {
-            _renderView->swapBuffers();
-        }
-
-        _renderer->endFrame();
-    }
-
-    if (_statsDisplay)
-    {
-#if !AX_STRIP_FPS
-        calculateMPF();
-#endif
-    }
-
-    _poolManager->getCurrentPool()->clear();
 }
 
 void Director::calculateDeltaTime()
@@ -465,8 +352,6 @@ void Director::setRenderView(RenderViewCore* renderView)
 
         _renderer->init();
 
-        _sceneRenderer->onRenderViewChanged(_renderView);
-
         if (_renderView)
         {
             setRenderDefaults();
@@ -519,7 +404,7 @@ Camera* Director::getOverlayCamera()
 {
     if (!_overlayCamera)
     {
-        _overlayCamera = Camera::createCanvasOrthographic(-1024.0f, 1024.0f);
+        _overlayCamera = Camera::createOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
         _overlayCamera->retain();
         _overlayCamera->setCameraFlag(CameraFlag::DEFAULT);
         _overlayCamera->setDepth(127);
@@ -532,7 +417,7 @@ Camera* Director::getOffscreenCamera()
 {
     if (!_offscreenCamera)
     {
-        _offscreenCamera = Camera::createCanvasOrthographic(-1024.0f, 1024.0f);
+        _offscreenCamera = Camera::createOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
         _offscreenCamera->retain();
         _offscreenCamera->setCameraFlag(CameraFlag::DEFAULT);
         _offscreenCamera->setDepth(0);
@@ -545,7 +430,7 @@ void Director::updateOverlayCamera()
     if (_canvasSizeInPoints.width <= 0 || _canvasSizeInPoints.height <= 0 || !_offscreenCamera)
         return;
 
-    _overlayCamera->initCanvasOrthographic(-1024.0f, 1024.0f);
+    _overlayCamera->initOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
 }
 
 void Director::updateOffscreenCamera()
@@ -553,43 +438,12 @@ void Director::updateOffscreenCamera()
     if (_canvasSizeInPoints.width <= 0 || _canvasSizeInPoints.height <= 0 || !_offscreenCamera)
         return;
 
-    _offscreenCamera->initCanvasOrthographic(-1024.0f, 1024.0f);
-}
-
-void Director::setSceneRenderer(std::unique_ptr<SceneRenderer>&& impl)
-{
-    if (impl)
-    {
-        _sceneRenderer = std::move(impl);
-        if (_renderView)
-            _sceneRenderer->onRenderViewChanged(_renderView);
-    }
-    else
-    {
-        _sceneRenderer = std::make_unique<SceneRenderer>();
-    }
+    _offscreenCamera->initOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
 }
 
 void Director::setNextDeltaTimeZero(bool nextDeltaTimeZero)
 {
     _nextDeltaTimeZero = nextDeltaTimeZero;
-}
-
-void Director::setProjection(Projection projection)
-{
-    Vec2 size = _canvasSizeInPoints;
-
-    if (size.width == 0 || size.height == 0)
-    {
-        AXLOGE("warning, Director::setProjection() failed because size is 0");
-        return;
-    }
-
-    setViewport();
-
-    _projection = projection;
-
-    _eventDispatcher->dispatchEvent(_eventProjectionChanged);
 }
 
 void Director::purgeCachedData()
@@ -634,65 +488,6 @@ static void getViewProjMatrix(Mat4* transformOut)
     *transformOut = camera ? camera->getViewProjectionMatrix() : Mat4::identity;
 }
 
-Vec2 Director::screenToWorld(const Vec2& screenPoint)
-{
-    auto& viewScale = _renderView->getScale();
-    auto& vp        = _renderView->getViewportRect();
-
-    // Convert screen point to Axmol 2D(UI) point
-    float uiX = (screenPoint.x - vp.origin.x) / viewScale.x;
-    float uiY = (screenPoint.y - vp.origin.y) / viewScale.y;
-
-    Mat4 transform;
-    getViewProjMatrix(&transform);
-
-    Mat4 transformInv = transform.getInversed();
-
-    // Calculate z=0 using -> transform*[0, 0, 0, 1]/w
-    float zClip = transform.m[14] / transform.m[15];
-
-    Vec2 designSize = _renderView->getDesignResolutionSize();
-    Vec4 clipCoord(2.0f * uiX / designSize.width - 1.0f, 1.0f - 2.0f * uiY / designSize.height, zClip, 1);
-
-    Vec4 uiPoint;
-    transformInv.transformVector(clipCoord, &uiPoint);
-    float factor = 1.0f / uiPoint.w;
-    return Vec2{uiPoint.x * factor, uiPoint.y * factor};
-}
-
-Vec2 Director::worldToScreen(const Vec2& worldPoint)
-{
-    Mat4 transform;
-    getViewProjMatrix(&transform);
-
-    Vec4 clipCoord;
-    // Need to calculate the zero depth from the transform.
-    Vec4 worldCoord(worldPoint.x, worldPoint.y, 0.0, 1);
-    transform.transformVector(worldCoord, &clipCoord);
-
-    /*
-    BUG-FIX #5506
-
-    a = (Vx, Vy, Vz, 1)
-    b = (a×M)T
-    Out = 1 ⁄ bw(bx, by, bz)
-    */
-
-    clipCoord.x = clipCoord.x / clipCoord.w;
-    clipCoord.y = clipCoord.y / clipCoord.w;
-    clipCoord.z = clipCoord.z / clipCoord.w;
-
-    Vec2 designSize = _renderView->getDesignResolutionSize();
-    float factor    = 1.0f / worldCoord.w;
-    float uiX       = designSize.width * (clipCoord.x * 0.5f + 0.5f) * factor;
-    float uiY       = designSize.height * (-clipCoord.y * 0.5f + 0.5f) * factor;
-
-    // Convert Axmol 2D(UI) coordinate to screen-coordinate
-    auto& viewScale = _renderView->getScale();
-    auto& vp        = _renderView->getViewportRect();
-    return Vec2{uiX * viewScale.x + vp.origin.x, uiY * viewScale.y + vp.origin.y};
-}
-
 Vec2 Director::canvasToPixels(const Vec2& size) const
 {
     return size * _contentScaleFactor;
@@ -706,6 +501,27 @@ const Vec2& Director::getCanvasSize() const
 Vec2 Director::getCanvasSizeInPixels() const
 {
     return _canvasSizeInPoints * _contentScaleFactor;
+}
+
+Vec2 Director::screenToCanvas(const Vec2& screenPoint) const
+{
+    if (!_renderView)
+        return screenPoint;
+
+    const auto& viewport = _renderView->getViewportRect();
+    const auto& scale    = _renderView->getScale();
+
+    if (scale.x == 0.0f || scale.y == 0.0f)
+        return Vec2::zero;
+
+    // Screen coordinates use a top-left origin, while viewport.origin
+    // is expressed with a bottom-left origin.
+    const float viewportTop = _renderView->getRenderSize().height - (viewport.origin.y + viewport.size.height);
+
+    return Vec2{
+        (screenPoint.x - viewport.origin.x) / scale.x,
+        _canvasSizeInPoints.height - (screenPoint.y - viewportTop) / scale.y,
+    };
 }
 
 Vec2 Director::getVisibleSize() const
@@ -753,7 +569,7 @@ void Director::runWithScene(Scene* scene)
     AXASSERT(_runningScene == nullptr, "_runningScene should be null");
 
     pushScene(scene);
-    startAnimation();
+    activate();
 }
 
 void Director::replaceScene(Scene* scene)
@@ -1017,11 +833,12 @@ void Director::reset()
         _scenesStack.popBack();
     }
 
-    stopAnimation();
+    deactivate();
 
     AX_SAFE_RELEASE_NULL(_FPSLabel);
     AX_SAFE_RELEASE_NULL(_drawnBatchesLabel);
     AX_SAFE_RELEASE_NULL(_drawnVerticesLabel);
+    AX_SAFE_RELEASE_NULL(_VRModeLabel);
     _isStatusLabelUpdated = true;
 
     // purge bitmap cache
@@ -1049,7 +866,7 @@ void Director::reset()
     MeshMaterial::releaseCachedMaterial();
 #endif
 
-    rhi::SamplerCache::destroyInstance();
+    rhi::SamplerRegistry::destroyInstance();
 }
 
 void Director::cleanupDirector()
@@ -1061,8 +878,10 @@ void Director::cleanupDirector()
     // Before destory RHI, clear current pool once
     _poolManager->getCurrentPool()->clear();
 
-    // SceneRenderer may hold GPU resources, need reset before gfx drop
-    _sceneRenderer.reset();
+    // RenderViewCore owns the SceneCompositor and runtime presentation resources;
+    // release them before dropping the graphics backend.
+    if (_renderView)
+        _renderView->onGfxDestory();
 
     // If any graphics resources not cleanup or leaked, will crash on linux when destroy graphics context,
     // so we should cleanup any graphics resources.
@@ -1071,7 +890,7 @@ void Director::cleanupDirector()
     ProgramManager::destroyInstance();
     VertexLayoutManager::destroyInstance();
 
-    rhi::DriverContext::destroyCurrentDriver();
+    rhi::GraphicsCore::destroyCurrentDriver();
 
     if (_renderView)
     {
@@ -1100,7 +919,7 @@ void Director::restartDirector()
     _poolManager->getCurrentPool()->clear();
 
     // Restart animation
-    startAnimation();
+    activate();
 
     // Real restart in script level
 #if AX_ENABLE_SCRIPT_BINDING
@@ -1271,6 +1090,35 @@ void Director::showStats()
 
         Camera::_visitingCamera = previousCamera;
     }
+}
+
+void Director::showVRModeIndicator()
+{
+    if (!_renderView->isVRActive())
+    {
+        AX_SAFE_RELEASE_NULL(_VRModeLabel);
+        return;
+    }
+
+    if (!_VRModeLabel)
+    {
+        _VRModeLabel = Label::createWithSystemFont("VR Mode Active", "Arial", 28);
+        _VRModeLabel->retain();
+        _VRModeLabel->setAnchorPoint(Vec2(0.5f, 0.5f));
+        auto safeSize = getSafeAreaRect().size;
+        _VRModeLabel->setPosition(Vec2(safeSize.width * 0.5f, safeSize.height * 0.5f));
+        _VRModeLabel->enableOutline(Color32::black, 2);
+    }
+
+    auto previousCamera = Camera::_visitingCamera;
+    auto* overlayCamera = getOverlayCamera();
+    if (overlayCamera)
+    {
+        Camera::_visitingCamera = overlayCamera;
+        overlayCamera->apply();
+        _VRModeLabel->visit(_renderer, Mat4::identity, 0);
+    }
+    Camera::_visitingCamera = previousCamera;
 }
 
 void Director::calculateMPF()
@@ -1512,18 +1360,20 @@ void Director::setEventDispatcher(EventDispatcher* dispatcher)
     }
 }
 
-void Director::startAnimation()
+void Director::activate()
 {
-    startAnimation(SetIntervalReason::BY_ENGINE);
+    activate(SetIntervalReason::BY_ENGINE);
 }
 
-void Director::startAnimation(SetIntervalReason reason)
+void Director::activate(SetIntervalReason reason)
 {
     _lastUpdate = std::chrono::steady_clock::now();
 
-    _invalid = false;
+    _active = true;
 
     _axmol_thread_id = std::this_thread::get_id();
+
+    AX_PROFILER_THREAD_NAME("MainThread");
 
     Application::getInstance()->setAnimationInterval(_animationInterval);
 
@@ -1574,35 +1424,135 @@ void Director::performFrameTasks(FrameTaskQueue& frameTasks)
     }
 }
 
-void Director::stepFrame()
+void Director::renderFrame()
 {
-    if (_cleanupDirectorInNextLoop)
+    if (_renderView)
+        _renderView->pollEvents();
+
+    if (_cleanupDirectorInNextLoop) [[unlikely]]
     {
         _cleanupDirectorInNextLoop = false;
         cleanupDirector();
+        return;
     }
-    else if (_restartDirectorInNextLoop)
+
+    if (_restartDirectorInNextLoop) [[unlikely]]
     {
         _restartDirectorInNextLoop = false;
         restartDirector();
-        _renderView->pollEvents();
+        return;
     }
-    else if (!_invalid)
+
+    if (!_active) [[unlikely]]
+        return;
+
+    AX_PROFILER_ZONE_SCOPED;
+
+    const auto canRender = _renderer->beginFrame();
+
+    // calculate "global" dt
+    calculateDeltaTime();
+
+    // tick before glClear: issue #533
+    if (!_paused)
     {
-        processFrame();
+        _eventDispatcher->dispatchEvent(_eventBeforeUpdate);
+        _scheduler->update(_deltaTime);
+        performFrameTasks(_nextUpdateTasks);
+        _eventDispatcher->dispatchEvent(_eventAfterUpdate);
     }
+
+    if (canRender) [[likely]]
+    {
+        _renderer->clear(ClearFlag::ALL, _clearColor, 1, 0, -10000.0);
+
+        _eventDispatcher->dispatchEvent(_eventBeforeDraw);
+
+        /* to avoid flickr, nextScene MUST be here: after tick and before draw.
+         * FIXME: Which bug is this one. It seems that it can't be reproduced with v0.9
+         */
+        if (_nextScene)
+        {
+            setNextScene();
+        }
+
+        if (_runningScene)
+        {
+            _runningScene->tick(_deltaTime);
+
+            // clear draw stats
+            _renderer->clearDrawStats();
+
+            // render the scene
+            _renderView->renderScene(_renderer, _runningScene);
+
+            _eventDispatcher->dispatchEvent(_eventAfterVisit);
+        }
+
+        // draw the notifications node
+        if (_notificationNode)
+        {
+            auto previousCamera = Camera::_visitingCamera;
+            auto* overlayCamera = getOverlayCamera();
+            if (overlayCamera)
+            {
+                Camera::_visitingCamera = overlayCamera;
+                overlayCamera->apply();
+                _notificationNode->visit(_renderer, Mat4::identity, 0);
+            }
+            Camera::_visitingCamera = previousCamera;
+        }
+
+        updateFrameRate();
+
+        if (_statsDisplay)
+        {
+#if !AX_STRIP_FPS
+            showStats();
+#endif
+        }
+
+#ifdef AX_ENABLE_OPENXR
+        showVRModeIndicator();
+#endif
+
+        _renderer->render();
+
+        _eventDispatcher->dispatchEvent(_eventAfterDraw);
+
+        _totalFrames++;
+
+        // swap buffers
+        if (_renderView)
+        {
+            _renderView->swapBuffers();
+        }
+
+        _renderer->endFrame();
+    }
+
+    if (_statsDisplay)
+    {
+#if !AX_STRIP_FPS
+        calculateMPF();
+#endif
+    }
+
+    _poolManager->getCurrentPool()->clear();
+
+    AX_PROFILER_FRAME_MARK;
 }
 
-void Director::stepFrame(float dt)
+void Director::renderFrame(float dt)
 {
     _deltaTime               = dt;
     _deltaTimePassedByCaller = true;
-    stepFrame();
+    renderFrame();
 }
 
-void Director::stopAnimation()
+void Director::deactivate()
 {
-    _invalid = true;
+    _active = false;
 }
 
 void Director::setAnimationInterval(float interval)
@@ -1613,10 +1563,10 @@ void Director::setAnimationInterval(float interval)
 void Director::setAnimationInterval(float interval, SetIntervalReason reason)
 {
     _animationInterval = interval;
-    if (!_invalid)
+    if (_active)
     {
-        stopAnimation();
-        startAnimation(reason);
+        deactivate();
+        activate(reason);
     }
 }
 

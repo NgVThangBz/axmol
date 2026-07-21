@@ -25,7 +25,7 @@
 #include "axmol/rhi/d3d11/Driver11.h"
 #include "axmol/rhi/DXUtils.h"
 #include "axmol/rhi/RHIUtils.h"
-#include "axmol/rhi/SamplerCache.h"
+#include "axmol/rhi/SamplerRegistry.h"
 
 namespace ax::rhi::d3d11
 {
@@ -118,6 +118,8 @@ static void fromD3DTexDesc(TextureDesc& td, const D3D11_TEXTURE2D_DESC& desc)
 TextureImpl::TextureImpl(ID3D11Device* device, const TextureDesc& desc) : _device(device)
 {
     updateTextureDesc(desc);
+    if (desc.textureUsage == TextureUsage::RENDER_TARGET)
+        ensureNativeTexture();
 }
 
 TextureImpl::TextureImpl(ID3D11Device* device, ID3D11Texture2D* texture) : _device(device)
@@ -143,7 +145,7 @@ TextureImpl::~TextureImpl()
 void TextureImpl::updateSamplerDesc(const SamplerDesc& desc)
 {
     _desc.samplerDesc = desc;
-    _samplerState     = static_cast<ID3D11SamplerState*>(SamplerCache::getInstance()->getSampler(desc));
+    _samplerState     = static_cast<ID3D11SamplerState*>(SamplerRegistry::getInstance()->getSampler(desc));
 }
 
 // ------------------------------------------------------------

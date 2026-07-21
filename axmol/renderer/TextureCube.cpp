@@ -28,9 +28,9 @@
 #include "axmol/platform/Image.h"
 #include "axmol/platform/FileUtils.h"
 #include "axmol/rhi/Texture.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/RHIUtils.h"
-#include "axmol/rhi/SamplerCache.h"
+#include "axmol/rhi/SamplerRegistry.h"
 
 namespace ax
 {

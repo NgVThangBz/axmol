@@ -49,8 +49,8 @@ class RenderTarget;
 class Program;
 class VertexLayout;
 
-class SamplerCache;
-class DriverContext;
+class SamplerRegistry;
+class GraphicsCore;
 struct VertexLayoutDesc;
 
 enum class FeatureType : uint32_t
@@ -89,8 +89,8 @@ struct DriverCaps
 class AX_DLL DriverBase
 {
     friend class ShaderCache;
-    friend class SamplerCache;
-    friend class DriverContext;
+    friend class SamplerRegistry;
+    friend class GraphicsCore;
 
 protected:
     virtual bool init()       = 0;
@@ -129,6 +129,11 @@ public:
      */
     virtual Texture* createTexture(const TextureDesc& descriptor,
                                    std::optional<Color> clearColorHint = std::nullopt) = 0;
+
+    /**
+     * Wrap a backend-native texture owned by an external runtime, not auto released.
+     */
+    virtual Texture* createTextureFromNativeHandle(const ExternalTextureDesc& descriptor) = 0;
 
     virtual RenderTarget* createRenderTarget(Texture* colorAttachment        = nullptr,
                                              Texture* depthStencilAttachment = nullptr) = 0;

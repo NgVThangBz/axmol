@@ -68,10 +68,12 @@ THE SOFTWARE.
 #include "axmol/base/EventDispatcher.h"
 #include "axmol/base/FocusEvent.h"
 #include "axmol/base/KeyboardEvent.h"
+#include "axmol/base/XRInputEvent.h"
 #include "axmol/base/AccelerationEventListener.h"
 #include "axmol/base/CustomEventListener.h"
 #include "axmol/base/FocusEventListener.h"
 #include "axmol/base/KeyboardEventListener.h"
+#include "axmol/base/XRInputEventListener.h"
 #include "axmol/base/ControllerEventListener.h"
 #include "axmol/base/PointerEventListener.h"
 #include "axmol/base/ControllerEvent.h"
@@ -81,14 +83,10 @@ THE SOFTWARE.
 
 // math
 #include "axmol/math/AffineTransform.h"
-#include "axmol/math/Math.h"
 #include "axmol/math/Vertex.h"
-#include "axmol/math/Mat4.h"
 #include "axmol/math/MathUtil.h"
-#include "axmol/math/Quat.h"
-#include "axmol/math/Vec2.h"
-#include "axmol/math/Vec3.h"
-#include "axmol/math/Vec4.h"
+#include "axmol/math/Frustum.h"
+#include "axmol/math/Ray.h"
 
 // actions
 #include "axmol/2d/Action.h"
@@ -154,7 +152,7 @@ THE SOFTWARE.
 #include "axmol/renderer/RenderCommandPool.h"
 #include "axmol/renderer/RenderState.h"
 #include "axmol/renderer/Renderer.h"
-#include "axmol/scene/SceneRenderer.h"
+#include "axmol/scene/SceneCompositor.h"
 #include "axmol/renderer/Technique.h"
 #include "axmol/renderer/Texture2D.h"
 #include "axmol/renderer/TextureCube.h"
@@ -225,6 +223,7 @@ THE SOFTWARE.
 
 // tilemap_parallax_nodes
 #include "axmol/2d/ParallaxNode.h"
+
 #include "axmol/2d/TMXObjectGroup.h"
 #include "axmol/2d/TMXXMLParser.h"
 #include "axmol/2d/TileMapAtlas.h"
@@ -236,19 +235,14 @@ THE SOFTWARE.
 #include "axmol/scene/ComponentContainer.h"
 
 // 3d
-#include "axmol/3d/AABB.h"
 #include "axmol/3d/Animate3D.h"
 #include "axmol/3d/Animation3D.h"
 #include "axmol/3d/AttachNode.h"
 #include "axmol/3d/BillBoard.h"
-#include "axmol/3d/Frustum.h"
 #include "axmol/3d/Mesh.h"
 #include "axmol/3d/MeshSkin.h"
 #include "axmol/3d/MotionStreak3D.h"
 #include "axmol/3d/MeshVertexIndexData.h"
-#include "axmol/3d/OBB.h"
-#include "axmol/3d/Plane.h"
-#include "axmol/3d/Ray.h"
 #include "axmol/3d/Skeleton3D.h"
 #include "axmol/3d/Skybox.h"
 #include "axmol/3d/MeshRenderer.h"

@@ -227,7 +227,7 @@ public:
     bool isClippingToBounds() { return _clippingToBounds; }
     void setClippingToBounds(bool bClippingToBounds) { _clippingToBounds = bClippingToBounds; }
 
-    bool onPointerHitTest(PointerEvent* event, const Camera* camera, Vec3* outHitPoint) override;
+    bool onPointerHitTest(PointerEvent* event, Vec3* outHitPoint) override;
 
     virtual bool onPointerDown(PointerEvent*);
     virtual void onPointerMove(PointerEvent*);
@@ -296,6 +296,8 @@ protected:
     void handleZoom();
 
     Rect getViewRect();
+    bool getPointerLocalPoint(PointerEvent* event, Node* node, Vec2* outLocalPoint) const;
+    bool isPointerInView(PointerEvent* event, Vec2* outLocalPoint = nullptr);
 
     /**
      * scroll view delegate

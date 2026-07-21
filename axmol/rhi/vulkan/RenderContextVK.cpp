@@ -32,7 +32,8 @@
 #include "axmol/rhi/vulkan/UtilsVK.h"
 #include "axmol/rhi/vulkan/DriverVK.h"
 #include "axmol/rhi/vulkan/SemaphorePoolVK.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
+#include "axmol/rhi/SamplerRegistry.h"
 #include "axmol/base/Logging.h"
 #include "axmol/math/MathUtil.h"
 
@@ -506,7 +507,7 @@ void RenderContextImpl::recreateSwapchain()
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         auto r = vkCreateSemaphore(_device, &sci, nullptr, &_presentCompleteSemaphores[i]);
-        VK_REQUIRE(VK_SUCCESS, "vkCreateSemaphore failed");
+        VK_REQUIRE(r, "vkCreateSemaphore failed");
     }
 
     // Sync screen size
@@ -572,7 +573,8 @@ bool RenderContextImpl::beginFrame()
 
     AXASSERT(_imageIndex < maxImageIndex, "swapchain image index out of range!");
 
-    _inFrame = true;
+    _inFrame                       = true;
+    _frameAcquireSemaphoreConsumed = false;
 
     _currentCmdBuffer = _commandBuffers[_frameIndex];
     vkResetCommandBuffer(_currentCmdBuffer, 0);
@@ -646,12 +648,12 @@ void RenderContextImpl::endFrame()
     VkSemaphore submissionSemaphore = _renderFinishedSemaphores[_imageIndex];
 
     VkSubmitInfo submitInfo{};
-    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount   = 1;
-    submitInfo.pCommandBuffers      = &_currentCmdBuffer;
-    submitInfo.waitSemaphoreCount   = 1;
-    submitInfo.pWaitSemaphores      = &_presentCompleteSemaphores[_frameIndex];
-    submitInfo.pWaitDstStageMask    = &waitDestinationStageMask;
+    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &_currentCmdBuffer;
+    submitInfo.waitSemaphoreCount = _frameAcquireSemaphoreConsumed ? 0 : 1;
+    submitInfo.pWaitSemaphores    = _frameAcquireSemaphoreConsumed ? nullptr : &_presentCompleteSemaphores[_frameIndex];
+    submitInfo.pWaitDstStageMask  = _frameAcquireSemaphoreConsumed ? nullptr : &waitDestinationStageMask;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores    = &submissionSemaphore;
 
@@ -684,6 +686,63 @@ void RenderContextImpl::endFrame()
     _driver->setFrameIndex(_frameIndex);
 
     _inFrame = false;
+}
+
+void RenderContextImpl::submitCurrentFrameCommands(bool /*waitForCompletion*/)
+{
+    if (!_inFrame || _currentCmdBuffer == VK_NULL_HANDLE)
+        return;
+
+    VkResult vr = vkEndCommandBuffer(_currentCmdBuffer);
+    AXASSERT(vr == VK_SUCCESS, "vkEndCommandBuffer failed");
+
+    UniformRingBuffer& ring = _uniformRings[_frameIndex];
+    if (!ring.isCoherent && ring.writeHead > 0)
+    {
+        VkMappedMemoryRange range{VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE};
+        range.memory = ring.memory;
+        range.offset = 0;
+        range.size   = ring.writeHead;
+        vkFlushMappedMemoryRanges(_device, 1, &range);
+    }
+
+    const VkPipelineStageFlags waitDestinationStageMask{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    auto& currentFence = _inFlightFences[_frameIndex];
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &_currentCmdBuffer;
+    if (!_frameAcquireSemaphoreConsumed)
+    {
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores    = &_presentCompleteSemaphores[_frameIndex];
+        submitInfo.pWaitDstStageMask  = &waitDestinationStageMask;
+    }
+
+    vr = vkQueueSubmit(_graphicsQueue, 1, &submitInfo, currentFence);
+    AXASSERT(vr == VK_SUCCESS, "vkQueueSubmit failed");
+
+    vkWaitForFences(_device, 1, &currentFence, VK_TRUE, UINT64_MAX);
+    _completedFenceValue = currentFence.fenceValue;
+    _driver->processDisposalQueue(_completedFenceValue);
+
+    vkResetFences(_device, 1, &currentFence);
+    currentFence.fenceValue = ++_frameFenceValue;
+
+    _frameAcquireSemaphoreConsumed = true;
+
+    vkResetCommandBuffer(_currentCmdBuffer, 0);
+    VkCommandBufferBeginInfo const binfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+    };
+    vr = vkBeginCommandBuffer(_currentCmdBuffer, &binfo);
+    AXASSERT(vr == VK_SUCCESS, "vkBeginCommandBuffer failed");
+
+    bitmask::set(_inFlightDynamicDirtyBits[_frameIndex], PIPELINE_ALL_DYNAMIC_BITS);
+    markExtendedDynamicStateDirty(PIPELINE_ALL_EXTENDED_DYNAMIC_BITS);
+    _boundPipeline = VK_NULL_HANDLE;
 }
 
 bool RenderContextImpl::handleSwapchainResult(VkResult result, SwapchainOp op, uint32_t frameIndex)
@@ -997,13 +1056,19 @@ void RenderContextImpl::prepareDrawing()
     auto& descriptorSets = descriptorState->sets;
 
     assert(descriptorSets[SET_INDEX_UBO]);
+    if (descriptorState->imageDescriptorCount || descriptorState->combinedDescriptorCount)
+        assert(descriptorSets[SET_INDEX_RESOURCE]);
+    if (descriptorState->samplerDescriptorCount)
+        assert(descriptorSets[SET_INDEX_RESOURCE]);
 
     // Prepare write lists sized to expected UBO + sampler descriptors
     auto& writes = _descriptorWritesPerFrame;
     writes.clear();
-    writes.reserve(descriptorState->uniformDescriptorCount + descriptorState->samplerDescriptorCount);
+    writes.reserve(descriptorState->uniformDescriptorCount + descriptorState->imageDescriptorCount +
+                   descriptorState->samplerDescriptorCount + descriptorState->combinedDescriptorCount);
 
     _descriptorBufferInfos.clear();
+    _descriptorBufferInfos.reserve(descriptorState->uniformDescriptorCount);
 
     auto& cpuBuffer = _programState->getUniformBuffer();
     if (!cpuBuffer.empty())
@@ -1030,10 +1095,14 @@ void RenderContextImpl::prepareDrawing()
         }
     }
 
-    // --- Samplers (set=1, binding=N) ---
+    const auto& activeSamplerInfos = _programState->getProgram()->getActiveSamplerInfos();
+    const bool separateSamplers    = !activeSamplerInfos.empty();
+
+    // --- Sampled images / combined image samplers (set=1, binding=N) ---
     auto& imageInfos = _descriptorImageInfosPerFrame;
     imageInfos.clear();
-    imageInfos.reserve(descriptorState->samplerDescriptorCount);
+    imageInfos.reserve(descriptorState->imageDescriptorCount + descriptorState->samplerDescriptorCount +
+                       descriptorState->combinedDescriptorCount);
 
     for (const auto& [bindingIndex, bindingSet] : _programState->getTextureBindingSets())
     {
@@ -1048,7 +1117,7 @@ void RenderContextImpl::prepareDrawing()
         {
             auto textureImpl      = static_cast<TextureImpl*>(texs[0]);
             auto& imageInfo       = imageInfos.emplace_back();
-            imageInfo.sampler     = textureImpl->getSampler();
+            imageInfo.sampler     = separateSamplers ? VK_NULL_HANDLE : textureImpl->getSampler();
             imageInfo.imageView   = textureImpl->internalHandle().view;
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
@@ -1060,7 +1129,7 @@ void RenderContextImpl::prepareDrawing()
             {
                 auto textureImpl      = static_cast<TextureImpl*>(tex);
                 auto& imageInfo       = imageInfos.emplace_back();
-                imageInfo.sampler     = textureImpl->getSampler();
+                imageInfo.sampler     = separateSamplers ? VK_NULL_HANDLE : textureImpl->getSampler();
                 imageInfo.imageView   = textureImpl->internalHandle().view;
                 imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
@@ -1070,11 +1139,50 @@ void RenderContextImpl::prepareDrawing()
 
         VkWriteDescriptorSet& write = writes.emplace_back();
         write.sType                 = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstSet                = descriptorSets[SET_INDEX_SAMPLER];
+        write.dstSet                = descriptorSets[SET_INDEX_RESOURCE];
         write.dstBinding            = bindingIndex;
-        write.descriptorType        = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        write.descriptorCount       = static_cast<uint32_t>(texs.size());
-        write.pImageInfo            = imageInfos.data() + offset;
+        write.descriptorType =
+            separateSamplers ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        write.descriptorCount = static_cast<uint32_t>(texs.size());
+        write.pImageInfo      = imageInfos.data() + offset;
+    }
+
+    if (separateSamplers)
+    {
+        for (const auto& samplerInfo : activeSamplerInfos)
+        {
+            const size_t offset = imageInfos.size();
+            if (!samplerInfo.samplerId)
+                continue;
+
+            auto samplerHandle = SamplerRegistry::getInstance()->getSampler(samplerInfo.samplerId);
+            if (!samplerHandle)
+                continue;
+
+            auto sampler = static_cast<VkSampler>(samplerHandle);
+
+            for (uint16_t i = 0; i < samplerInfo.count; ++i)
+            {
+                auto& imageInfo   = imageInfos.emplace_back();
+                imageInfo.sampler = sampler;
+            }
+
+            if (imageInfos.size() == offset)
+                continue;
+
+            // Preset samplers in set 1, custom samplers in set 2.
+            // Both have DXC-shifted bindings from SPIR-V.
+            auto dstSet = samplerInfo.presetIndex >= 0 ? descriptorSets[SET_INDEX_RESOURCE]
+                                                       : descriptorSets[SET_INDEX_CUSTOM_SAMPLER];
+
+            VkWriteDescriptorSet& write = writes.emplace_back();
+            write.sType                 = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet                = dstSet;
+            write.dstBinding            = samplerInfo.binding;
+            write.descriptorType        = VK_DESCRIPTOR_TYPE_SAMPLER;
+            write.descriptorCount       = static_cast<uint32_t>(imageInfos.size() - offset);
+            write.pImageInfo            = imageInfos.data() + offset;
+        }
     }
 
     // Commit descriptor writes
@@ -1177,7 +1285,7 @@ void RenderContextImpl::doReadPixels(RenderTarget* rt, std::function<void(const 
 
     const uint32_t width  = colorDesc.width;
     const uint32_t height = colorDesc.height;
-    const VkFormat format = UtilsVK::toVKFormat(colorDesc.pixelFormat);
+    const VkFormat format = UtilsVK::toVkFormat(colorDesc.pixelFormat, colorDesc.colorSpace == ColorSpace::Srgb);
 
     // Basic stride for RGBA8
     const uint32_t pixelStride    = 4;

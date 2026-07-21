@@ -30,7 +30,7 @@
 #include "axmol/base/CustomEventListener.h"
 #include "axmol/platform/GL.h"
 #include "axmol/rhi/Program.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 
 #include <string>
 #include <vector>
@@ -69,6 +69,8 @@ public:
     inline GLuint internalHandle() const { return _program; }
 
     void bindUniformBuffers(const uint8_t* buffer, size_t bufferSize);
+
+    bool isValid() const override;
 
 private:
     void compileProgram();

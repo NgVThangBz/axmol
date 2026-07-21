@@ -64,7 +64,7 @@ public:
      * get define data type
      * @param str The type in string
      */
-    static rhi::VertexFormat parseGLDataType(std::string_view str, int size);
+    static rhi::VertexElementType parseGLDataType(std::string_view str, int size);
 
     /**
      * get define data type
@@ -165,7 +165,7 @@ protected:
      * get vertex attribute type
      * @param str The type in string
      */
-    shaderinfos::VertexKey parseProgramAttribute(std::string_view str);
+    MeshVertexAttribute parseProgramAttribute(std::string_view str);
 
     /*
      * get model path

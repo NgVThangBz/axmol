@@ -180,7 +180,6 @@ option(AX_ENABLE_PHYSICS_2D "Build Physics2D support" ON)
 cmake_dependent_option(AX_ENABLE_VIDEO "Build video support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
 option(AX_ENABLE_AUDIO "Build audio support" ON)
 option(AX_ENABLE_OPUS "Build with opus support" ON)
-option(AX_ENABLE_CONSOLE "Build axmol debug tool: console support" ON)
 
 option(AX_ENABLE_3D "Build 3D support" ON)
 cmake_dependent_option(AX_ENABLE_PHYSICS_3D "Build Physics3D support" ON "AX_ENABLE_3D" OFF)
@@ -191,6 +190,9 @@ option(AX_ENABLE_VR "Build VR support" OFF)
 option(AX_UPDATE_BUILD_VERSION "Update build version" ON)
 option(AX_DISABLE_GLES2 "Whether disable GLES2 support" OFF)
 option(AX_CORE_PROFILE "Whether strip deprecated features" ON)
+
+set(AX_PROFILER_BACKEND "NONE" CACHE STRING "Profiling backend")
+set_property(CACHE AX_PROFILER_BACKEND PROPERTY STRINGS NONE TRACY)
 
 # default value for axmol extensions modules to Build
 # total supported extensions count: 13
@@ -208,6 +210,7 @@ option(AX_ENABLE_EXT_IMGUI "Build extension ImGui" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_LIVE2D "Build extension Live2D" OFF)
 option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" OFF)
 
+cmake_dependent_option(AX_ENABLE_OPENXR "Build OpenXR support" OFF "AX_ENABLE_VR;NOT IOS;NOT WASM" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" ${AX_EXT_HINT} "AX_ENABLE_3D" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_PHYSICS_NODE "Build extension physics-nodes" ${AX_EXT_HINT} "AX_ENABLE_PHYSICS_2D" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_INSPECTOR "Build extension Inspector" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
@@ -413,24 +416,24 @@ configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/renderer/RenderConsts.h.in"
   "${CMAKE_CURRENT_LIST_DIR}/renderer/RenderConsts.h" @ONLY)
 
-# SKINPOSITION_NORMAL_TEXTURE_3D:       skinPositionNormalTexture.vert,     colorNormalTexture.frag, LightDefs
-# POSITION_NORMAL_TEXTURE_3D:           skinPositionNormalTexture.vert,     colorNormalTexture.frag, LightDefs
-# POSITION_NORMAL_3D:                   positionNormalTexture.vert,         colorNormal.frag,        LightDefs
-# POSITION_BUMPEDNORMAL_TEXTURE_3D:     positionNormalTexture.vert,         colorNormalTexture.frag, lightNormMapDef
-# SKINPOSITION_BUMPEDNORMAL_TEXTURE_3D: skinPositionNormalTexture_vert,     colorNormalTexture.frag, lightNormMapDef
+# SKINPOSITION_NORMAL_TEXTURE_3D:       skinPositionNormalTexture_vs.hlsl,     colorNormalTexture_fs.hlsl, LightDefs
+# POSITION_NORMAL_TEXTURE_3D:           skinPositionNormalTexture_vs.hlsl,     colorNormalTexture_fs.hlsl, LightDefs
+# POSITION_NORMAL_3D:                   positionNormalTexture_vs.hlsl,         colorNormal_fs.hlsl,        LightDefs
+# POSITION_BUMPEDNORMAL_TEXTURE_3D:     positionNormalTexture_vs.hlsl,         colorNormalTexture_fs.hlsl, lightNormMapDef
+# SKINPOSITION_BUMPEDNORMAL_TEXTURE_3D: skinPositionNormalTexture_vs.hlsl,     colorNormalTexture_fs.hlsl, lightNormMapDef
 set_source_files_properties(
-  ${_AX_ROOT}/axmol/renderer/shaders/colorNormal.frag
-  ${_AX_ROOT}/axmol/renderer/shaders/colorNormalTexture.frag
-  ${_AX_ROOT}/axmol/renderer/shaders/positionNormalTexture.vert
-  ${_AX_ROOT}/axmol/renderer/shaders/skinPositionNormalTexture.vert
+  ${_AX_ROOT}/axmol/renderer/shaders/colorNormal_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/colorNormalTexture_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/positionNormalTexture_vs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/skinPositionNormalTexture_vs.hlsl
   PROPERTIES AXSLCC_DEFINES
   "MAX_DIRECTIONAL_LIGHT_NUM=${AX_MAX_DIRECTIONAL_LIGHT},MAX_POINT_LIGHT_NUM=${AX_MAX_POINT_LIGHT},MAX_SPOT_LIGHT_NUM=${AX_MAX_SPOT_LIGHT}"
 )
 set_source_files_properties(
-  ${_AX_ROOT}/axmol/renderer/shaders/colorNormalTexture.frag
-  ${_AX_ROOT}/axmol/renderer/shaders/positionNormalTexture.vert
-  ${_AX_ROOT}/axmol/renderer/shaders/skinPositionNormalTexture.vert
-  PROPERTIES AXSLCC_OUTPUT1 "USE_NORMAL_MAPPING=1"
+  ${_AX_ROOT}/axmol/renderer/shaders/colorNormalTexture_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/positionNormalTexture_vs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/skinPositionNormalTexture_vs.hlsl
+  PROPERTIES AXSLCC_VARIANT_DEFINES "USE_NORMAL_MAPPING=1"
 )
 ax_add_shader_target_for(${_AX_CORE_LIB} FILES ${_builtin_shaders} BUILTIN)
 
@@ -442,8 +445,8 @@ ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_PHYSICS_3D)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_NAVMESH)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_VIDEO)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_AUDIO)
-ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_CONSOLE)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_VR)
+ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_OPENXR)
 ax_config_pred(${_AX_CORE_LIB} AX_CORE_PROFILE)
 ax_config_pred(${_AX_CORE_LIB} AX_ENABLE_WAYLAND)
 
@@ -569,6 +572,10 @@ if(_simdc_defines)
     target_compile_options(${_AX_CORE_LIB} PUBLIC ${_simdc_options})
   endif()
 endif()
+
+# profiling configuration
+ax_apply_profiler_backend(${_AX_CORE_LIB} PUBLIC)
+message(STATUS "AX_PROFILER_BACKEND=${AX_PROFILER_BACKEND}")
 
 # 3rd libs
 add_subdirectory(${_AX_ROOT}/3rdparty ${ENGINE_BINARY_PATH}/3rdparty)

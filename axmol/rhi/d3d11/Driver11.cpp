@@ -309,6 +309,17 @@ Texture* DriverImpl::createTexture(const TextureDesc& descriptor, std::optional<
     return new TextureImpl(_device, descriptor);
 }
 
+Texture* DriverImpl::createTextureFromNativeHandle(const ExternalTextureDesc& descriptor)
+{
+    auto nativeTexture = static_cast<ID3D11Texture2D*>(descriptor.nativeTexture.ptr);
+    if (!nativeTexture)
+        return nullptr;
+
+    auto texture = new TextureImpl(_device, nativeTexture);
+    texture->updateTextureDesc(descriptor.desc);
+    return texture;
+}
+
 RenderTarget* DriverImpl::createRenderTarget(Texture* colorAttachment, Texture* depthAttachment)
 {
     auto renderTarget = new RenderTargetImpl(this, false);
@@ -399,6 +410,24 @@ IUnknown* DriverImpl::compileShader(std::span<uint8_t> shaderCode, ShaderStage s
         AXASSERT(false, "Shader compile failed!");
     }
 
+    return shader;
+}
+
+IUnknown* DriverImpl::createShaderFromBytecode(std::span<uint8_t> bytecode, ShaderStage stage)
+{
+    IUnknown* shader = nullptr;
+    if (stage == ShaderStage::VERTEX)
+    {
+        ComPtr<ID3D11VertexShader> vs;
+        _device->CreateVertexShader(bytecode.data(), bytecode.size(), nullptr, vs.GetAddressOf());
+        shader = vs.Detach();
+    }
+    else
+    {
+        ComPtr<ID3D11PixelShader> ps;
+        _device->CreatePixelShader(bytecode.data(), bytecode.size(), nullptr, ps.GetAddressOf());
+        shader = ps.Detach();
+    }
     return shader;
 }
 

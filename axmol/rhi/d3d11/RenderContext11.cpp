@@ -29,7 +29,8 @@
 #include "axmol/rhi/d3d11/Program11.h"
 #include "axmol/rhi/d3d11/VertexLayout11.h"
 #include "axmol/rhi/d3d11/Texture11.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
+#include "axmol/rhi/SamplerRegistry.h"
 #include <dxgi1_2.h>
 #include <dxgi1_3.h>
 #include <dxgi1_5.h>
@@ -672,7 +673,7 @@ void RenderContextImpl::prepareDrawing()
     auto& cpuBuffer = _programState->getUniformBuffer();
     program->bindUniformBuffers(_d3d11Context, cpuBuffer.data(), cpuBuffer.size());
 
-    // bind texture
+    // Phase 1: bind textures.
     _textureBounds = 0;
     for (const auto& [bindingIndex, bindingSet] : _programState->getTextureBindingSets())
     {
@@ -683,10 +684,34 @@ void RenderContextImpl::prepareDrawing()
             const auto slot  = bindingIndex + k;
             auto textureImpl = static_cast<TextureImpl*>(texs[k]);
             context->PSSetShaderResources(slot, 1, &textureImpl->internalHandle().srv);
-            auto samplerState = textureImpl->getSamplerState();
-            context->PSSetSamplers(slot, 1, &samplerState);
             ++_textureBounds;
         }
+    }
+
+    // Phase 2: bind samplers with compact logical→backend slot mapping.
+    // D3D11 has only 16 sampler slots per stage, so we pack active samplers
+    // sequentially rather than using their sparse logical binding indices.
+    auto samplerRegistry = SamplerRegistry::getInstance();
+    uint16_t compactSlot = 0;
+    for (const auto& samplerInfo : program->getActiveSamplerInfos())
+    {
+        if (!samplerInfo.samplerId || samplerInfo.count == 0)
+            continue;
+
+        if (compactSlot + samplerInfo.count > 16)
+        {
+            AXLOGE("D3D11 shader exceeds 16 sampler slot limit");
+            break;
+        }
+
+        auto sampler = static_cast<ID3D11SamplerState*>(samplerRegistry->getSampler(samplerInfo.samplerId));
+        if (!sampler)
+            continue;
+
+        for (uint16_t i = 0; i < samplerInfo.count; ++i)
+            context->PSSetSamplers(compactSlot + i, 1, &sampler);
+
+        compactSlot += samplerInfo.count;
     }
 
     // depth stencil
@@ -712,6 +737,28 @@ void RenderContextImpl::endFrame()
         // }
     }
 #endif
+}
+
+void RenderContextImpl::submitCurrentFrameCommands(bool waitForCompletion)
+{
+    if (waitForCompletion)
+    {
+        D3D11_QUERY_DESC desc{};
+        desc.Query = D3D11_QUERY_EVENT;
+
+        ID3D11Query* query = nullptr;
+        if (SUCCEEDED(_driver->getDevice()->CreateQuery(&desc, &query)) && query)
+        {
+            _d3d11Context->End(query);
+            _d3d11Context->Flush();
+            while (_d3d11Context->GetData(query, nullptr, 0, 0) == S_FALSE)
+                Sleep(0);
+            SafeRelease(query);
+            return;
+        }
+    }
+
+    _d3d11Context->Flush();
 }
 
 void RenderContextImpl::readPixels(RenderTarget* rt, std::function<void(const PixelBufferDesc&)> callback)

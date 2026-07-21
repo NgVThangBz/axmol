@@ -81,7 +81,7 @@ int Application::run()
 
     QueryPerformanceCounter(&nLast);
 
-    initContextAttrs();
+    applicationWillLaunch();
 
     // Initialize instance and axmol.
     if (!applicationDidFinishLaunching())
@@ -111,7 +111,7 @@ int Application::run()
         if (interval >= _animationInterval.QuadPart)
         {
             nLast.QuadPart = nNow.QuadPart;
-            director->stepFrame();
+            director->renderFrame();
         }
         else
         {
@@ -130,7 +130,7 @@ int Application::run()
     if (renderView->isGfxContextReady())
     {
         director->end();
-        director->stepFrame();
+        director->renderFrame();
         director = nullptr;
     }
     renderView->release();

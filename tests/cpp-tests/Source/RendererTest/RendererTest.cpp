@@ -27,7 +27,7 @@
 #include "RendererTest.h"
 #include <chrono>
 #include <sstream>
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 
 namespace
 {
@@ -72,9 +72,9 @@ private:
 NewRendererTests::NewRendererTests()
 {
     auto programManager = ProgramManager::getInstance();
-    s_blur_program_id   = programManager->registerCustomProgram(positionTextureColor_vert, "custom/example_Blur_fs"sv,
+    s_blur_program_id   = programManager->registerCustomProgram(positionTextureColor_vs, "custom/example_Blur_fs"sv,
                                                                 VertexLayoutKind::Sprite);
-    s_sepia_program_id  = programManager->registerCustomProgram(positionTextureColor_vert, "custom/example_Sepia_fs"sv,
+    s_sepia_program_id  = programManager->registerCustomProgram(positionTextureColor_vs, "custom/example_Sepia_fs"sv,
                                                                 VertexLayoutKind::Sprite);
 
     ADD_TEST_CASE(CaptureNodeTest);
@@ -298,7 +298,7 @@ std::string NewClippingNodeTest::subtitle() const
 bool NewClippingNodeTest::onPointerDown(PointerEvent* event)
 {
     auto clipper = this->getChildByTag(kTagClipperNode);
-    Vec2 point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(event->getScreenLocation()));
+    Vec2 point   = clipper->convertToNodeSpace(event->getWorldPoint());
     auto rect    = Rect(0, 0, clipper->getContentSize().width, clipper->getContentSize().height);
     _scrolling   = rect.containsPoint(point);
     _lastPoint   = point;
@@ -311,7 +311,7 @@ void NewClippingNodeTest::onPointerMove(PointerEvent* event)
     if (!_scrolling)
         return;
     auto clipper = this->getChildByTag(kTagClipperNode);
-    auto point   = clipper->convertToNodeSpace(Director::getInstance()->screenToWorld(event->getScreenLocation()));
+    auto point   = clipper->convertToNodeSpace(event->getWorldPoint());
     Vec2 diff    = point - _lastPoint;
     auto content = clipper->getChildByTag(kTagContentNode);
     content->setPosition(content->getPosition() + diff);
@@ -385,14 +385,14 @@ NewCullingTest::NewCullingTest()
 
 bool NewCullingTest::onPointerDown(PointerEvent* event)
 {
-    auto pos = event->getLocation();
+    auto pos = event->getWorldPoint();
     _lastPos = pos;
     return true;
 }
 
 void NewCullingTest::onPointerMove(PointerEvent* event)
 {
-    auto pos = event->getLocation();
+    auto pos = event->getWorldPoint();
 
     auto offset = pos - _lastPos;
 

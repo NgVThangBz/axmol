@@ -34,6 +34,8 @@ THE SOFTWARE.
 #include "axmol/base/text_utils.h"
 #include "axmol/platform/StdC.h"
 
+#include <cmath>
+#include <limits>
 #include <vector>
 
 using namespace std;
@@ -45,6 +47,35 @@ enum
 {
     kDefaultPadding = 5,
 };
+
+static bool hitTestNodeWithPointer(PointerEvent* event, Node* node, Vec3* outWorldHit)
+{
+    if (!event || !node)
+        return false;
+
+    Rect rect;
+    rect.size = node->getContentSize();
+    if (rect.size.width <= 0.0f || rect.size.height <= 0.0f)
+        return false;
+
+    Ray localRay(event->getRay());
+    localRay.transform(node->getWorldToNodeTransform());
+
+    if (std::abs(localRay.direction.z) <= std::numeric_limits<float>::epsilon())
+        return false;
+
+    const float t = -localRay.origin.z / localRay.direction.z;
+    if (t < 0.0f)
+        return false;
+
+    Vec3 localHit = localRay.origin + t * localRay.direction;
+    if (!rect.containsPoint(Vec2(localHit.x, localHit.y)))
+        return false;
+
+    if (outWorldHit)
+        node->getNodeToWorldTransform().transformPoint(localHit, outWorldHit);
+    return true;
+}
 
 //
 // CCMenu
@@ -223,12 +254,13 @@ void Menu::removeChild(Node* child, bool cleanup)
 
 // Menu - Events
 
-bool Menu::onPointerHitTest(PointerEvent* event, const Camera* camera, Vec3* outHitPoint)
+bool Menu::onPointerHitTest(PointerEvent* event, Vec3* outHitPoint)
 {
-    if (!event || !camera)
+    if (!event)
         return false;
 
-    if (!event->isPrimaryPressed())
+    const bool isControllerRay = event->getPointerType() == PointerType::Controller;
+    if (!event->isPrimaryPressed() && !isControllerRay)
         return false;
 
     if (_state != Menu::State::WAITING || !_visible || !_enabled)
@@ -240,7 +272,7 @@ bool Menu::onPointerHitTest(PointerEvent* event, const Camera* camera, Vec3* out
             return false;
     }
 
-    _pressedItem = this->hitTestItem(event, camera, outHitPoint);
+    _pressedItem = this->hitTestItem(event, outHitPoint);
     return _pressedItem != nullptr;
 }
 
@@ -271,10 +303,10 @@ bool Menu::onPointerDown(PointerEvent* event)
 
 void Menu::onPointerMove(PointerEvent* event)
 {
-    if (_state != Menu::State::TRACKING_TOUCH || !_selectedWithCamera || !_pressedItem)
+    if (_state != Menu::State::TRACKING_TOUCH || !_pressedItem)
         return;
 
-    MenuItem* currentItem = this->hitTestItem(event, _selectedWithCamera, nullptr);
+    MenuItem* currentItem = this->hitTestItem(event, nullptr);
 
     if (currentItem == _pressedItem)
     {
@@ -574,9 +606,8 @@ void Menu::alignItemsInRowsWithArray(const ValueVector& columns)
     }
 }
 
-MenuItem* Menu::hitTestItem(PointerEvent* event, const Camera* camera, Vec3* outHitPoint)
+MenuItem* Menu::hitTestItem(PointerEvent* event, Vec3* outHitPoint)
 {
-    Vec2 touchLocation = event->getLocation();
     for (const auto& item : _children)
     {
         MenuItem* child = dynamic_cast<MenuItem*>(item);
@@ -584,9 +615,8 @@ MenuItem* Menu::hitTestItem(PointerEvent* event, const Camera* camera, Vec3* out
         {
             continue;
         }
-        Rect rect;
-        rect.size = child->getContentSize();
-        if (camera->isWorldPointInRect(touchLocation, child->getWorldToNodeTransform(), rect, outHitPoint))
+
+        if (hitTestNodeWithPointer(event, child, outHitPoint))
         {
             return child;
         }

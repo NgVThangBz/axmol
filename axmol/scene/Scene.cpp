@@ -34,10 +34,10 @@ THE SOFTWARE.
 #include "axmol/base/Director.h"
 #include "axmol/scene/Camera.h"
 #include "axmol/base/EventDispatcher.h"
-#include "axmol/base/CustomEventListener.h"
 #include "axmol/base/text_utils.h"
 #include "axmol/renderer/Renderer.h"
-#include "axmol/scene/SceneRenderer.h"
+#include "axmol/scene/SceneCompositor.h"
+#include "axmol/base/Profiling.h"
 
 #if defined(AX_ENABLE_PHYSICS_2D)
 #    include "axmol/physics/2d/PhysicsWorld2D.h"
@@ -64,10 +64,6 @@ bool camera_cmp(const Camera* a, const Camera* b)
 
 Scene::Scene()
 {
-    _event = (_director->getEventDispatcher()->addCustomEventListener(
-        Director::EVENT_PROJECTION_CHANGED, std::bind(&Scene::onProjectionChanged, this, std::placeholders::_1)));
-    _event->retain();
-
     _ignoreAnchorPointForPosition = true;
     setAnchorPoint(Vec2(0.5f, 0.5f));
 
@@ -88,8 +84,6 @@ Scene::~Scene()
 #if defined(AX_ENABLE_NAVMESH)
     AX_SAFE_RELEASE(_navMesh);
 #endif
-    _director->getEventDispatcher()->removeEventListener(_event);
-    AX_SAFE_RELEASE(_event);
 
 #if defined(AX_ENABLE_PHYSICS_2D)
     delete _physicsWorld2D;
@@ -133,7 +127,7 @@ void Scene::initDefaultCamera()
 {
     if (!_defaultCamera)
     {
-        _defaultCamera = Camera::create();
+        _defaultCamera = Camera::create(getDefaultCameraMode());
         addChild(_defaultCamera);
     }
 }
@@ -178,14 +172,6 @@ std::string Scene::getDescription() const
     return fmt::format("<Scene | tag = {}>", _tag);
 }
 
-void Scene::onProjectionChanged(CustomEvent* /*event*/)
-{
-    if (_defaultCamera)
-    {
-        _defaultCamera->initDefault();
-    }
-}
-
 void Scene::registerCamera(Camera* camera)
 {
     if (!camera)
@@ -226,6 +212,7 @@ void Scene::setDebugCamera(Camera* camera)
 
 void Scene::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
 {
+    AX_PROFILER_ZONE_SCOPED;
     Node::visit(renderer, parentTransform, parentFlags);
 }
 
@@ -302,6 +289,8 @@ void Scene::setFixedDeltaTime(float fixedStep)
 
 void Scene::tick(float deltaTime)
 {
+    AX_PROFILER_ZONE_SCOPED;
+
     if (_fixedUpdateEnabled)
     {
         // apply time scale and clamp to avoid huge dt spikes

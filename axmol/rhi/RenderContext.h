@@ -40,14 +40,9 @@
 #include <memory>
 #include <vector>
 
-namespace ax
-{
-struct PipelineDesc;
-}
-
 namespace ax::rhi
 {
-
+struct PipelineDesc;
 class RenderPass;
 class RenderPipeline;
 class Buffer;
@@ -210,6 +205,12 @@ public:
      * Present a drawable and commit a command buffer so it can be executed as soon as possible.
      */
     virtual void endFrame() = 0;
+
+    /**
+     * Submit currently encoded frame commands without presenting the default surface.
+     * External runtimes such as OpenXR call this before releasing acquired swapchain images.
+     */
+    virtual void submitCurrentFrameCommands(bool waitForCompletion);
 
     /**
      * Fixed-function state

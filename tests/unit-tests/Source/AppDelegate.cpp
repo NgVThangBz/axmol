@@ -33,7 +33,7 @@ using namespace ax;
 
 static Vec2 gWindowSize = Vec2(1024, 768);
 
-void AppDelegate::initContextAttrs()
+void AppDelegate::applicationWillLaunch()
 {
     // set context attributes: red,green,blue,alpha,depth,stencil
     ContextAttrs contextAttrs = {8, 8, 8, 8, 24, 8, 0};
@@ -80,12 +80,12 @@ bool AppDelegate::applicationDidFinishLaunching()
 
 void AppDelegate::applicationDidEnterBackground()
 {
-    Director::getInstance()->stopAnimation();
+    Director::getInstance()->deactivate();
 }
 
 void AppDelegate::applicationWillEnterForeground()
 {
-    Director::getInstance()->startAnimation();
+    Director::getInstance()->activate();
 }
 
 int AppDelegate::run(int argc, char** argv)

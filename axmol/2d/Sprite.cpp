@@ -43,7 +43,8 @@ THE SOFTWARE.
 #include "axmol/platform/FileUtils.h"
 #include "axmol/renderer/Shaders.h"
 #include "axmol/rhi/ProgramState.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
+#include "axmol/base/Profiling.h"
 
 namespace ax
 {
@@ -1069,6 +1070,8 @@ void Sprite::updateTransform()
 // draw
 void Sprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
+    AX_PROFILER_ZONE_SCOPED;
+
     if (_texture == nullptr || _texture->getRHITexture() == nullptr)
         return;
 
@@ -1318,7 +1321,7 @@ void Sprite::setScaleX(float scaleX)
 
 void Sprite::setScaleY(float scaleY)
 {
-    if (rhi::DriverContext::isMetal())
+    if (rhi::GraphicsCore::isMetal())
     {
         if (_texture && _texture->isRenderTarget())
             scaleY = std::abs(scaleY);

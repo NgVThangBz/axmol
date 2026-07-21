@@ -86,8 +86,8 @@ void TerrainSimple::onPointerMove(ax::PointerEvent* event)
 
     event->stopPropagation();
     float delta           = Director::getInstance()->getDeltaTime();
-    auto location         = event->getLocation();
-    auto PreviousLocation = event->getPreviousLocation();
+    auto location         = event->getWorldPoint();
+    auto PreviousLocation = event->getPrevWorldPoint();
     Point newPos          = PreviousLocation - location;
 
     Vec3 cameraDir;
@@ -116,11 +116,6 @@ std::string TerrainWalkThru::subtitle() const
 
 TerrainWalkThru::TerrainWalkThru()
 {
-    auto listener           = PointerEventListener::create();
-    listener->onPointerDown = AX_CALLBACK_1(TerrainWalkThru::onPointerDown, this);
-    listener->onPointerUp   = AX_CALLBACK_1(TerrainWalkThru::onTouchesEnd, this);
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-
     Size visibleSize = Director::getInstance()->getVisibleSize();
 
     // use custom camera
@@ -170,6 +165,11 @@ TerrainWalkThru::TerrainWalkThru()
 
     addChild(_player);
     addChild(_terrain);
+
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = AX_CALLBACK_1(TerrainWalkThru::onPointerDown, this);
+    listener->onPointerUp   = AX_CALLBACK_1(TerrainWalkThru::onTouchesEnd, this);
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, _terrain);
 }
 
 bool TerrainWalkThru::onPointerDown(ax::PointerEvent* event)
@@ -180,28 +180,23 @@ bool TerrainWalkThru::onPointerDown(ax::PointerEvent* event)
 
 void TerrainWalkThru::onTouchesEnd(ax::PointerEvent* event)
 {
-    _dragging     = false;
-    auto location = event->getScreenLocation();
-    if (_camera)
+    _dragging = false;
+    if (_player)
     {
-        if (_player)
+        if (!event->hasHitResult())
         {
-            auto ray = _camera->screenToRay(location);
-            Vec3 collisionPoint(-999, -999, -999);
-            bool isInTerrain = _terrain->getIntersectionPoint(ray, collisionPoint);
-            if (!isInTerrain)
-            {
-                _player->idle();
-                return;
-            }
-            auto dir = collisionPoint - _player->getPosition3D();
-            dir.y    = 0;
-            dir.normalize();
-            _player->_headingAngle = -1 * acos(dir.dot(Vec3(0, 0, -1)));
-            dir.cross(dir, Vec3(0, 0, -1), &_player->_headingAxis);
-            _player->_targetPos = collisionPoint;
-            _player->forward();
+            _player->idle();
+            return;
         }
+
+        const Vec3 collisionPoint = event->getHitResult().worldPoint;
+        auto dir                  = collisionPoint - _player->getPosition3D();
+        dir.y                     = 0;
+        dir.normalize();
+        _player->_headingAngle = -1 * acos(dir.dot(Vec3(0, 0, -1)));
+        dir.cross(dir, Vec3(0, 0, -1), &_player->_headingAxis);
+        _player->_targetPos = collisionPoint;
+        _player->forward();
     }
 }
 
@@ -382,8 +377,8 @@ void TerrainWithLightMap::onPointerMove(ax::PointerEvent* event)
     event->stopPropagation();
     float delta           = Director::getInstance()->getDeltaTime();
     auto touch            = event;
-    auto location         = touch->getLocation();
-    auto PreviousLocation = touch->getPreviousLocation();
+    auto location         = touch->getWorldPoint();
+    auto PreviousLocation = touch->getPrevWorldPoint();
     Point newPos          = PreviousLocation - location;
 
     Vec3 cameraDir;

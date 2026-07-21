@@ -146,3 +146,9 @@ extern bool kProfilerCategoryParticles;
 /// @}
 
 }  // namespace ax
+
+#if defined(AX_PROFILER_BACKEND_TRACY)
+#    include "axmol/base/ProfilingBackendTracy.h"
+#else  // Fallback no-op if no valid profiler backend specified
+#    include "axmol/base/ProfilingBackendNoop.h"
+#endif

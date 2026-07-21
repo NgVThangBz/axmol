@@ -23,7 +23,7 @@
  ****************************************************************************/
 #include "axmol/rhi/d3d11/Program11.h"
 #include "axmol/rhi/d3d11/Buffer11.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/ShaderCache.h"
 
 namespace ax::rhi::d3d11
@@ -46,9 +46,9 @@ ProgramImpl ::~ProgramImpl()
     _uniformBuffers.clear();
 }
 
-ID3DBlob* ProgramImpl::getVSBlob() const
+std::span<uint8_t> ProgramImpl::getVSBlob() const
 {
-    return static_cast<ShaderModuleImpl*>(_vsModule)->getShaderBlob();
+    return static_cast<ShaderModuleImpl*>(_vsModule)->getBlob();
 }
 
 void ProgramImpl::bindUniformBuffers(ID3D11DeviceContext* context, const uint8_t* buffer, size_t bufferSize)

@@ -115,9 +115,12 @@ bool NavMeshBaseTestDemo::onPointerDown(ax::PointerEvent* event)
 
 void NavMeshBaseTestDemo::onPointerMove(ax::PointerEvent* event)
 {
+    if (!event->isCaptured())
+        return;
+
     if (_camera)
     {
-        auto delta = event->getDelta();
+        auto delta = (event->getWorldPoint() - event->getPrevWorldPoint());
 
         _angle -= AX_DEGREES_TO_RADIANS(delta.x);
         _camera->setPosition3D(Vec3(100.0f * sinf(_angle), 50.0f, 100.0f * cosf(_angle)));
@@ -129,8 +132,6 @@ void NavMeshBaseTestDemo::onPointerMove(ax::PointerEvent* event)
         }
     }
     touchesMoved(event);
-
-    return;
 }
 
 void NavMeshBaseTestDemo::onPointerUp(ax::PointerEvent* event)
@@ -281,7 +282,7 @@ void NavMeshBasicTestDemo::touchesEnded(ax::PointerEvent* event)
     if (!_needMoveAgents)
         return;
 
-    auto location = event->getScreenLocation();
+    auto location = event->getPoint();
     Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
     nearP = _camera->deprojectScreenToWorld(nearP);
@@ -413,7 +414,7 @@ void NavMeshAdvanceTestDemo::touchesEnded(ax::PointerEvent* event)
     if (!_needMoveAgents)
         return;
     {
-        auto location = event->getScreenLocation();
+        auto location = event->getPoint();
         Vec3 nearP(location.x, location.y, 0.0f), farP(location.x, location.y, 1.0f);
 
         nearP = _camera->deprojectScreenToWorld(nearP);

@@ -28,6 +28,11 @@ THE SOFTWARE.
 #include "axmol/platform/ApplicationCore.h"
 #include "axmol/base/Director.h"
 #include "axmol/platform/CommandLineArgs.h"
+#include "axmol/rhi/GraphicsCore.h"
+
+#if defined(AX_ENABLE_OPENXR)
+#    include "axmol/vr/OpenXRDriver.h"
+#endif
 
 namespace ax
 {
@@ -85,7 +90,7 @@ int ApplicationCore::launch(int argc, tchar_t** argv)
     CommandLineArgs args;
     args.buildFromArgv(argc, argv);
     auto driverPreference = parseDriverPreference(args.views());
-    DriverContext::setDriverPreference(driverPreference);
+    GraphicsCore::setDriverPreference(driverPreference);
 
     return this->run();
 }
@@ -106,6 +111,25 @@ void ApplicationCore::setContextAttrs(const ContextAttrs& attrs)
         s_contextAttrs.renderScaleMode = RenderScaleMode::Logical;
 #endif
 }
+
+bool ApplicationCore::registerVulkanInterop(std::string_view appName)
+{
+#if defined(AX_ENABLE_OPENXR) && AX_ENABLE_VK
+    if (_openxrDriver)
+        return _openxrDriver->registerVulkanInterop();
+    _openxrDriver = std::make_unique<OpenXRDriver>(appName);
+    return _openxrDriver->registerVulkanInterop();
+#else
+    return false;
+#endif
+}
+
+#if defined(AX_ENABLE_OPENXR)
+std::unique_ptr<OpenXRDriver> ApplicationCore::releaseXRDriver()
+{
+    return std::move(_openxrDriver);
+}
+#endif
 
 }  // namespace ax
 

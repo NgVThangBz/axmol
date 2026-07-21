@@ -35,8 +35,8 @@ THE SOFTWARE.
 #include "axmol/renderer/GroupCommand.h"
 #include "axmol/renderer/RenderState.h"
 #include "axmol/rhi/ProgramState.h"
-#include "axmol/3d/AABB.h"
-#include "axmol/3d/Ray.h"
+#include "axmol/math/AABB.h"
+#include "axmol/math/Ray.h"
 #include "axmol/base/CustomEventListener.h"
 #include "axmol/base/EventDispatcher.h"
 
@@ -100,7 +100,7 @@ public:
         INCREASE_LOWER,
     };
 
-    /* must match in shader terrain.frag
+    /* must match in shader terrain_fs.hlsl
         layout(binding = 0) uniform sampler2D u_details[4]; // will take slot 0~3
         layout(binding = 4) uniform sampler2D u_alphaMap;
         layout(binding = 5) uniform sampler2D u_lightMap;
@@ -415,6 +415,8 @@ public:
 
     // Overrides, internal use only
     void draw(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
+    bool onPointerHitTest(PointerEvent* event, Vec3* outHitPoint) override;
+
     /**
      * Ray-Terrain intersection.
      * @return the intersection point

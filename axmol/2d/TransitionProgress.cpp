@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "axmol/base/Director.h"
 #include "axmol/renderer/RenderTexturePass.h"
 #include "axmol/renderer/RenderTexture.h"
+#include "axmol/renderer/Renderer.h"
 #include "axmol/2d/ProgressTimer.h"
 #include "axmol/2d/Sprite.h"
 #include "axmol/2d/ActionInstant.h"
@@ -79,7 +80,7 @@ void TransitionProgress::onEnter()
     sprite->setAnchorPoint(Vec2(0.5f, 0.5f));
 
     // render outScene to its texturebuffer
-    auto camera = Camera::createCanvasOrthographic(-1024, 1024);
+    auto camera = Camera::createOrthographicView(_director->getCanvasSize(), -1024, 1024);
 
     {
         RefPtr<RenderTexturePass> pass(RenderTexturePass::obtain(texture), tlx::adopt_object);

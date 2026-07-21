@@ -462,6 +462,23 @@ void InputSystem::handlePointerScroll(Vec2 point, Vec2 scollDelat, const Pointer
     dispatchEvent(&_scrollEvent);
 }
 
+PointerHitResult InputSystem::handleVRPointerScroll(Vec2 point,
+                                                    Vec2 scrollDelta,
+                                                    const Ray& ray,
+                                                    const PointerInputState& state)
+{
+    if (!_interactive)
+        return {};
+
+    return dispatchVRPointerScroll(point, scrollDelta, ray, state);
+}
+
+void InputSystem::handleXRInput(const XRInputEvent::State& state)
+{
+    XRInputEvent event(state);
+    dispatchEvent(&event);
+}
+
 void InputSystem::setInteractive(bool interactive)
 {
     if (_interactive == interactive)
@@ -484,7 +501,7 @@ void InputSystem::setInteractive(bool interactive)
         state.pressedButtons = event->getPressedButtons();
         state.type           = event->getPointerType();
 
-        event->setPointerInfo(InputPhase::PointerCancel, event->getScreenLocation(), state);
+        event->setPointerInfo(InputPhase::PointerCancel, event->getPoint(), state);
         dispatchEvent(event);
         AX_SAFE_RELEASE(event);
     }
@@ -579,6 +596,95 @@ void InputSystem::dispatchPointerEvent(InputPhase phase, Vec2 point, const Point
     dispatchEvent(event);
 }
 
+PointerHitResult InputSystem::handleVRPointerEvent(InputPhase phase,
+                                                   Vec2 point,
+                                                   const Ray& ray,
+                                                   const PointerInputState& state)
+{
+    if (!_interactive)
+        return {};
+
+    return dispatchVRPointerEvent(phase, point, ray, state);
+}
+
+PointerHitResult InputSystem::hitTestVRPointer(Vec2 point, const Ray& ray, const PointerInputState& state)
+{
+    if (!_interactive)
+        return {};
+
+    // Reticle refresh needs a pure "currently under the ray" hit-test.
+    // PointerMove hit-tests may intentionally return the previous hovered widget
+    // to emit hover-exit events, and that path can report no fresh hit point.
+    _isolatedMoveEvent.setPointerInfo(InputPhase::PointerScroll, nativeToScreen(point), state);
+    _isolatedMoveEvent.setRay(ray);
+    return _eventDispatcher->hitTestPointerEvent(&_isolatedMoveEvent);
+}
+
+PointerHitResult InputSystem::dispatchVRPointerEvent(InputPhase phase,
+                                                     Vec2 point,
+                                                     const Ray& ray,
+                                                     const PointerInputState& state)
+{
+    _lastPointerPosition = point;
+
+    PointerEvent* event = nullptr;
+
+    if (phase == InputPhase::PointerDown)
+    {
+        event = fetchPointerEvent(state.id);
+        event->setPrimary(_pointerEvents.size() <= 1);
+    }
+    else
+    {
+        event = findPointerEvent(state.id);
+        if (!event)
+        {
+            if (phase == InputPhase::PointerMove)
+            {
+                event = &_isolatedMoveEvent;
+            }
+            else
+            {
+                AXLOGD("[InputSystem] Orphan VR pointer terminal event discarded: phase={}, id={}.",
+                       static_cast<int>(phase), state.id);
+                return {};
+            }
+        }
+    }
+
+    event->setPointerInfo(phase, nativeToScreen(point), state);
+    event->setRay(ray);
+    dispatchEvent(event);
+
+    auto result = event->getHitResult();
+
+    if (phase == InputPhase::PointerUp)
+    {
+        auto remainingButtons = state.pressedButtons;
+        if (state.button >= 0)
+            remainingButtons &= ~(1u << state.button);
+        if (remainingButtons == 0)
+            removePointerEvent(state.id);
+    }
+
+    return result;
+}
+
+PointerHitResult InputSystem::dispatchVRPointerScroll(Vec2 point,
+                                                      Vec2 scrollDelta,
+                                                      const Ray& ray,
+                                                      const PointerInputState& state)
+{
+    _lastPointerPosition = point;
+
+    _scrollEvent.setPointerInfo(InputPhase::PointerScroll, nativeToScreen(point), state);
+    _scrollEvent.setScrollData(scrollDelta);
+    _scrollEvent.setRay(ray);
+    dispatchEvent(&_scrollEvent);
+
+    return _scrollEvent.getHitResult();
+}
+
 void InputSystem::resetInput()
 {
     if (_pointerEvents.empty())
@@ -624,14 +730,16 @@ void InputSystem::onPlatformKeyboardWillShow(float rawX, float rawY, float rawWi
         keyboardPos  = nativeToScreen(keyboardPos);
 
         // Transform the relative screen size vector into World Space dimensions
-        ax::Vec2 worldSize = director->screenToWorld(keyboardSize) - director->screenToWorld(ax::Vec2::zero);
-        float worldW       = std::abs(worldSize.x);
-        float worldH       = std::abs(worldSize.y);
+        auto camera          = Camera::getDefaultCamera();
+        Vec3 nearWorldSize   = camera->deprojectScreenToWorld(Vec3(keyboardSize.x, keyboardSize.y, 0.0f));
+        Vec3 nearWorldOrigin = camera->deprojectScreenToWorld(Vec3(0.0f, 0.0f, 0.0f));
+        float worldW         = std::abs(nearWorldSize.x - nearWorldOrigin.x);
+        float worldH         = std::abs(nearWorldSize.y - nearWorldOrigin.y);
 
         // Transform the screen position to World Space and shift from Top-Left to Bottom-Left orientation
-        ax::Vec2 worldPos = director->screenToWorld(keyboardPos);
-        float worldX      = worldPos.x;
-        float worldY      = worldPos.y - worldH;
+        Vec3 nearWorldPos = camera->deprojectScreenToWorld(Vec3(keyboardPos.x, keyboardPos.y, 0.0f));
+        float worldX      = nearWorldPos.x;
+        float worldY      = nearWorldPos.y - worldH;
 
         return ax::Rect(worldX, worldY, worldW, worldH);
     };

@@ -28,6 +28,7 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "axmol/2d/Transition.h"
+#include "axmol/renderer/Renderer.h"
 #include "axmol/renderer/RenderTexturePass.h"
 #include "axmol/2d/ActionInterval.h"
 #include "axmol/2d/ActionInstant.h"
@@ -40,6 +41,7 @@ THE SOFTWARE.
 #include "axmol/2d/NodeGrid.h"
 #include "axmol/base/Director.h"
 #include "axmol/base/EventDispatcher.h"
+#include "axmol/platform/RenderView.h"
 #include "axmol/scene/Camera.h"
 #include "axmol/scene/Scene.h"
 
@@ -1124,7 +1126,7 @@ void TransitionCrossFade::onEnter()
     Vec2 size         = _director->getCanvasSize();
     LayerColor* layer = LayerColor::create(color);
 
-    auto camera = Camera::createCanvasOrthographic(-1024, 1024);
+    auto camera = Camera::createOrthographicView(_director->getCanvasSize(), -1024, 1024);
 
     // create the first render texture for inScene
     RenderTexture* inTexture =
@@ -1398,6 +1400,7 @@ void TransitionFadeTR::onEnter()
     TransitionScene::onEnter();
 
     _outSceneProxy->setTarget(_outScene);
+    _outSceneProxy->setProjectGridBlitToVisitingCamera(_director->getRenderView()->isVRActive());
     _outSceneProxy->onEnter();
 
     Vec2 s       = _director->getCanvasSize();

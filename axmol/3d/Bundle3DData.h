@@ -29,13 +29,13 @@
 #include "axmol/base/Object.h"
 #include "axmol/base/Types.h"
 #include "axmol/math/Math.h"
-#include "axmol/3d/AABB.h"
+#include "axmol/math/AABB.h"
 
 #include <vector>
 #include <map>
 #include <string>
 
-#include "axmol/3d/shaderinfos.h"
+#include "axmol/3d/MeshVertexAttribute.h"
 #include "axmol/rhi/IndexArray.h"
 
 namespace ax
@@ -50,8 +50,8 @@ using IndexArray  = rhi::IndexArray;
  */
 struct AX_DLL MeshVertexAttrib
 {
-    rhi::VertexFormat type;
-    shaderinfos::VertexKey vertexAttrib;
+    rhi::VertexElementType type;
+    MeshVertexAttribute vertexAttrib;
     int getAttribSizeBytes() const;
 };
 

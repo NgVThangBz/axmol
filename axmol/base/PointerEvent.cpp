@@ -46,29 +46,68 @@ void PointerEvent::setPointerInfo(InputPhase phase, Vec2 point, const PointerInp
     _pointerId      = state.id;
     _pressedButtons = state.pressedButtons;
 
-    _point    = point;
-    _pressure = state.pressure;
+    _point            = point;
+    _pressure         = state.pressure;
+    _previousRay      = _ray;
+    _ray              = Ray{};
+    _previousHitPoint = _hitResult.hit ? std::optional<Vec3>(_hitResult.worldPoint) : std::nullopt;
+    _hitResult        = {};
     if (!_startPointCaptured)
     {
         _startPoint         = _point;
         _startPointCaptured = true;
         _prevPoint          = _point;
+        _previousRay        = Ray{};
+        _previousHitPoint.reset();
+        _startHitPoint.reset();
     }
 }
 
-Vec2 PointerEvent::getScreenLocation() const
+Vec2 PointerEvent::getPoint() const
 {
     return _point;
 }
 
-Vec2 PointerEvent::getPreviousScreenLocation() const
+Vec2 PointerEvent::getPrevPoint() const
 {
     return _prevPoint;
 }
 
-Vec2 PointerEvent::getStartScreenLocation() const
+Vec2 PointerEvent::getStartPoint() const
 {
     return _startPoint;
+}
+
+Vec2 PointerEvent::getWorldPoint() const
+{
+    if (_hitResult.hit)
+        return Vec2(_hitResult.worldPoint.x, _hitResult.worldPoint.y);
+
+    if (_ray.direction.z == 0.0f)
+        return Vec2();
+    float t = -_ray.origin.z / _ray.direction.z;
+    return Vec2(_ray.origin.x + t * _ray.direction.x, _ray.origin.y + t * _ray.direction.y);
+}
+
+Vec2 PointerEvent::getPrevWorldPoint() const
+{
+    if (_previousHitPoint.has_value())
+        return Vec2(_previousHitPoint->x, _previousHitPoint->y);
+
+    if (_previousRay.direction.z == 0.0f)
+        return Vec2();
+    float t = -_previousRay.origin.z / _previousRay.direction.z;
+    return Vec2(_previousRay.origin.x + t * _previousRay.direction.x,
+                _previousRay.origin.y + t * _previousRay.direction.y);
+}
+
+Vec2 PointerEvent::getStartWorldPoint() const
+{
+    if (_startHitPoint.has_value())
+        return Vec2(_startHitPoint->x, _startHitPoint->y);
+
+    // startHitPoint is set by setHitResult during PointerDown dispatch
+    return getWorldPoint();
 }
 
 bool PointerEvent::isButtonPressed(int buttonIndex) const
@@ -82,24 +121,20 @@ bool PointerEvent::isPrimaryPressed() const
            ((_pointerType == PointerType::Touch && _primary) || isButtonPressed(InputButton::Primary));
 }
 
-Vec2 PointerEvent::getLocation() const
+void PointerEvent::setHitResult(const Vec3& worldPoint, const Camera* camera, const Node* target)
 {
-    return Director::getInstance()->screenToWorld(_point);
+    _hitResult.hit        = true;
+    _hitResult.worldPoint = worldPoint;
+    _hitResult.camera     = camera;
+    _hitResult.target     = target;
+
+    if (!_startHitPoint.has_value())
+        _startHitPoint = worldPoint;
 }
 
-Vec2 PointerEvent::getPreviousLocation() const
+void PointerEvent::clearHitResult()
 {
-    return Director::getInstance()->screenToWorld(_prevPoint);
-}
-
-Vec2 PointerEvent::getStartLocation() const
-{
-    return Director::getInstance()->screenToWorld(_startPoint);
-}
-
-Vec2 PointerEvent::getDelta() const
-{
-    return getLocation() - getPreviousLocation();
+    _hitResult = {};
 }
 
 }  // namespace ax

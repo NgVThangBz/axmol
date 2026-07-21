@@ -23,7 +23,7 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/DXUtils.h"
 #include "axmol/rhi/DriverFactory.h"
 #include <d3d11.h>
@@ -76,6 +76,7 @@ public:
      * @return A Texture object.
      */
     Texture* createTexture(const TextureDesc& descriptor, std::optional<Color> clearColorHint = std::nullopt) override;
+    Texture* createTextureFromNativeHandle(const ExternalTextureDesc& descriptor) override;
 
     RenderTarget* createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment) override;
 
@@ -141,6 +142,7 @@ public:
     const ComPtr<IDXGIAdapter>& getDXGIAdapter() const { return _dxgiAdapter; }
 
     IUnknown* compileShader(std::span<uint8_t> shaderCode, ShaderStage stage, ID3DBlob*& outBlob);
+    IUnknown* createShaderFromBytecode(std::span<uint8_t> bytecode, ShaderStage stage);
 
 protected:
     /**

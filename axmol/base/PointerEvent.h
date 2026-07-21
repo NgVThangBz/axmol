@@ -26,9 +26,12 @@
 
 #pragma once
 
+#include <optional>
+
 #include "axmol/base/Event.h"
 #include "axmol/base/Object.h"
 #include "axmol/math/Math.h"
+#include "axmol/math/Ray.h"
 
 /**
  * @addtogroup base
@@ -40,6 +43,15 @@ namespace ax
 
 class InputSystem;
 class Camera;
+class Node;
+
+struct AX_DLL PointerHitResult
+{
+    bool hit{false};
+    Vec3 worldPoint{Vec3::zero};
+    const Camera* camera{nullptr};
+    const Node* target{nullptr};
+};
 
 /** @class PointerEvent
  * @brief Pointer event.
@@ -62,48 +74,35 @@ public:
      */
     PointerEvent();
 
-    /** Returns the current touch location in Axmol world 2d-coordinates.
-     *
-     * @return The current touch location in Axmol coordinates.
-     */
-    Vec2 getLocation() const;
-
-    /** Returns the previous touch location in Axmol world 2d-coordinates.
-     *
-     * @return The previous touch location in Axmol world 2d-coordinates.
-     */
-    Vec2 getPreviousLocation() const;
-
-    /** Returns the start touch location in Axmol world 2d-coordinates.
-     *
-     * @return The start touch location in Axmol world 2d-coordinates.
-     */
-    Vec2 getStartLocation() const;
-
-    /** Returns the delta of 2 current touches locations in Axmol world 2d-coordinates
-     *
-     * @return The delta position between the current location and the previous location in Axmol world
-     * 2d-coordinates
-     */
-    Vec2 getDelta() const;
-
     /** Returns the current touch location in screen coordinates.
      *
      * @return The current touch location in screen coordinates.
      */
-    Vec2 getScreenLocation() const;
+    Vec2 getPoint() const;
 
     /** Returns the previous touch location in screen coordinates.
      *
      * @return The previous touch location in screen coordinates.
      */
-    Vec2 getPreviousScreenLocation() const;
+    Vec2 getPrevPoint() const;
 
     /** Returns the start touch location in screen coordinates.
      *
      * @return The start touch location in screen coordinates.
      */
-    Vec2 getStartScreenLocation() const;
+    Vec2 getStartPoint() const;
+
+    /** Returns the current pointer position in world space.
+     *  Uses the per-camera ray (set by EventDispatcher) to compute the correct
+     *  world point for the camera that performed the hit-test.
+     */
+    Vec2 getWorldPoint() const;
+
+    /** Returns the previous pointer position in world space. */
+    Vec2 getPrevWorldPoint() const;
+
+    /** Returns the start pointer position in world space. */
+    Vec2 getStartWorldPoint() const;
 
     /** Get mouse scroll data of axis.
      *
@@ -255,11 +254,25 @@ public:
 
     const Camera* getCamera() const { return _camera; }
 
+    [[internal]] void setRay(const Ray& ray) { _ray = ray; }
+    const Ray& getRay() const { return _ray; }
+    const Ray& getPreviousRay() const { return _previousRay; }
+
+    [[internal]] void setHitResult(const Vec3& worldPoint, const Camera* camera, const Node* target);
+    [[internal]] void clearHitResult();
+    bool hasHitResult() const { return _hitResult.hit; }
+    const PointerHitResult& getHitResult() const { return _hitResult; }
+
 protected:
     void setPhase(InputPhase phase) { _phase = phase; }
 
     void setPrimary(bool bval) { _primary = bval; }
     const Camera* _camera{nullptr};
+    Ray _ray;
+    Ray _previousRay;
+    PointerHitResult _hitResult;
+    std::optional<Vec3> _previousHitPoint;
+    std::optional<Vec3> _startHitPoint;
     intptr_t _pointerId{-1};
     InputPhase _phase{InputPhase::PointerDown};
     PointerType _pointerType{PointerType::Mouse};

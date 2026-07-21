@@ -31,6 +31,11 @@ THE SOFTWARE.
 #include "axmol/ui/ScrollViewBar.h"
 #include "axmol/2d/TweenFunction.h"
 #include "axmol/scene/Camera.h"
+#include "axmol/scene/Node.h"
+
+#include <cmath>
+#include <limits>
+
 namespace ax
 {
 
@@ -47,6 +52,30 @@ float convertDistanceFromPointToInch(const Vec2& dis)
     int dpi         = Device::getDPI();
     float distance  = Vec2(dis.x * renderView->getScaleX() / dpi, dis.y * renderView->getScaleY() / dpi).getLength();
     return distance;
+}
+
+bool calculateRayPlaneHitInNode(const Ray& worldRay, Node* node, Vec3* outLocalHit)
+{
+    if (!node || !outLocalHit)
+        return false;
+
+    Ray localRay(worldRay);
+    localRay.transform(node->getWorldToNodeTransform());
+    if (std::abs(localRay.direction.z) <= std::numeric_limits<float>::epsilon())
+        return false;
+
+    const float t = -localRay.origin.z / localRay.direction.z;
+    if (t < 0.0f)
+        return false;
+
+    Vec3 localHit = localRay.origin + t * localRay.direction;
+    Rect rect;
+    rect.size = node->getContentSize();
+    if (!rect.containsPoint(Vec2(localHit.x, localHit.y)))
+        return false;
+
+    *outLocalHit = localHit;
+    return true;
 }
 }  // namespace
 
@@ -926,12 +955,16 @@ void ScrollView::jumpToPercentBothDirection(const Vec2& percent)
 
 bool ScrollView::calculateCurrAndPrevPoints(PointerEvent* event, Vec3* currPt, Vec3* prevPt)
 {
-    if (nullptr == _hittedByCamera || false == hitTestSelf(event->getLocation(), _hittedByCamera, currPt) ||
-        false == hitTestSelf(event->getPreviousLocation(), _hittedByCamera, prevPt))
-    {
+    if (!event)
         return false;
-    }
-    return true;
+
+    const Ray& currRay = event->getRay();
+    const Ray& prevRay = event->getPreviousRay();
+
+    if (prevRay.direction == Vec3())
+        return false;
+
+    return calculateRayPlaneHitInNode(currRay, this, currPt) && calculateRayPlaneHitInNode(prevRay, this, prevPt);
 }
 
 void ScrollView::gatherTouchMove(const Vec2& delta)
@@ -1124,19 +1157,19 @@ void ScrollView::interceptPointerEvent(Widget* sender, PointerEvent* event)
     }
     if (_direction == Direction::NONE)
         return;
-    Vec2 touchPoint = event->getLocation();
+    Vec2 touchPoint = event->getWorldPoint();
     switch (event->getPhase())
     {
     case InputPhase::PointerDown:
     {
         _isInterceptTouch    = true;
-        _pointerDownPosition = event->getLocation();
+        _pointerDownPosition = event->getWorldPoint();
         handlePressLogic(event);
     }
     break;
     case InputPhase::PointerMove:
     {
-        _pointerMovePosition = event->getLocation();
+        _pointerMovePosition = event->getWorldPoint();
         // calculates move offset in points
         float offsetInInch = 0;
         switch (_direction)
@@ -1166,7 +1199,7 @@ void ScrollView::interceptPointerEvent(Widget* sender, PointerEvent* event)
     case InputPhase::PointerCancel:
     case InputPhase::PointerUp:
     {
-        _pointerUpPosition = event->getLocation();
+        _pointerUpPosition = event->getWorldPoint();
         handleReleaseLogic(event);
         _isInterceptTouch = false;
     }

@@ -26,6 +26,8 @@
 #include "axmol/base/EventDispatcher.h"
 #include <algorithm>
 #include <bit>
+#include <cmath>
+#include <limits>
 
 #include "axmol/base/CustomEvent.h"
 #include "axmol/base/PointerEventListener.h"
@@ -33,6 +35,7 @@
 #include "axmol/base/KeyboardEventListener.h"
 #include "axmol/base/CustomEventListener.h"
 #include "axmol/base/FocusEventListener.h"
+#include "axmol/base/XRInputEventListener.h"
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID || AX_TARGET_PLATFORM == AX_PLATFORM_IOS || \
      AX_TARGET_PLATFORM == AX_PLATFORM_MAC || AX_TARGET_PLATFORM == AX_PLATFORM_LINUX ||   \
      AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
@@ -42,7 +45,9 @@
 #include "axmol/base/Director.h"
 #include "axmol/base/EventType.h"
 #include "axmol/scene/Camera.h"
+#include "axmol/scene/Node.h"
 #include "axmol/2d/ProtectedNode.h"
+#include "axmol/base/Profiling.h"
 
 #define DUMP_LISTENER_ITEM_PRIORITY_INFO 0
 
@@ -108,6 +113,35 @@ static PointerEvent::CaptureBits makePointerCaptureBits(PointerEvent* event)
     }
     return bits;
 }
+
+static bool pointerHitTest(PointerEvent* event, const Camera* camera, PointerEventListener* listener, Node* target)
+{
+    event->setCamera(camera);
+
+    if (camera && event->getPointerType() != PointerType::Controller)
+        event->setRay(camera->screenToRay(event->getPoint()));
+
+    Vec3 hitPoint;
+    bool hitted{false};
+    if (listener->onPointerHitTest)
+    {
+        hitted = listener->onPointerHitTest(event, &hitPoint);
+    }
+    else
+    {
+        if (target)
+            hitted = target->onPointerHitTest(event, &hitPoint);
+        else
+            AXLOGW("fixed priority pointer listener should have onPointerHitTest callback");
+    }
+
+    if (hitted)
+        event->setHitResult(hitPoint, camera, target);
+    else
+        event->clearHitResult();
+
+    return hitted;
+}
 }  // namespace
 
 static EventListener::ListenerID __getListenerID(Event* event)
@@ -129,6 +163,9 @@ static EventListener::ListenerID __getListenerID(Event* event)
         break;
     case Event::Type::FOCUS:
         ret = FocusEventListener::LISTENER_ID;
+        break;
+    case Event::Type::XR_INPUT:
+        ret = XRInputEventListener::LISTENER_ID;
         break;
     case Event::Type::POINTER:
         // Touch listener is very special, it contains two kinds of listeners, PointerEventListener and
@@ -910,6 +947,8 @@ void EventDispatcher::dispatchEventToListeners(EventListenerVector* listeners,
 
 void EventDispatcher::dispatchEvent(Event* event, bool forced)
 {
+    AX_PROFILER_ZONE_SCOPED;
+
     if (!_isEnabled && !forced)
         return;
 
@@ -965,9 +1004,12 @@ bool EventDispatcher::dispatchCapturedPointerEvent(PointerEvent* event)
         if (!listener || !listener->isAttached())
             return false;
 
-        event->setCurrentTarget(listener->getAssociatedNode());
-        event->setCamera(entry.camera.get());
+        auto target = listener->getAssociatedNode();
+        auto camera = entry.camera.get();
+        event->setCurrentTarget(target);
+        event->setCamera(camera);
         event->setCaptureBits(entry.captureBits);
+        pointerHitTest(event, camera, listener, target);
 
         switch (event->getPhase())
         {
@@ -1623,6 +1665,10 @@ void EventDispatcher::removeEventListenersForType(EventListener::Type listenerTy
     {
         removeEventListenersForListenerID(KeyboardEventListener::LISTENER_ID);
     }
+    else if (listenerType == EventListener::Type::XR_INPUT)
+    {
+        removeEventListenersForListenerID(XRInputEventListener::LISTENER_ID);
+    }
     else
     {
         AXASSERT(false, "Invalid listener type!");
@@ -1810,9 +1856,11 @@ const Camera* EventDispatcher::findHitCameraForListener(PointerEvent* event,
     if (!event || !listener)
         return nullptr;
 
-    auto* target = listener->getAssociatedNode();
+    auto target = listener->getAssociatedNode();
     if (!target)
         return nullptr;
+
+    event->clearHitResult();
 
     for (auto rit = cameras.rbegin(), ritEnd = cameras.rend(); rit != ritEnd; ++rit)
     {
@@ -1825,24 +1873,56 @@ const Camera* EventDispatcher::findHitCameraForListener(PointerEvent* event,
             continue;
 
         Vec3 hitPoint;
-
-        if (listener->onPointerHitTest)
-        {
-            if (!listener->onPointerHitTest(event, camera, &hitPoint))
-                continue;
-        }
-        else
-        {
-            if (!target->onPointerHitTest(event, camera, &hitPoint))
-                continue;
-        }
-
-        // TOOD: store hit point to event
+        if (!pointerHitTest(event, camera, listener, target))
+            continue;
 
         return camera;
     }
 
     return nullptr;
+}
+
+PointerHitResult EventDispatcher::hitTestPointerEvent(PointerEvent* event)
+{
+    if (!event)
+        return {};
+
+    event->clearHitResult();
+    event->setCamera(nullptr);
+
+    sortEventListeners(PointerEventListener::LISTENER_ID);
+
+    auto listeners = getListeners(PointerEventListener::LISTENER_ID);
+    auto scene     = Director::getInstance()->getRunningScene();
+    if (!listeners || !scene)
+        return {};
+
+    auto sceneGraphPriorityListeners = listeners->getSceneGraphPriorityListeners();
+    if (!sceneGraphPriorityListeners)
+        return {};
+
+    auto cameras = scene->getCameras();
+    for (auto&& listener : *sceneGraphPriorityListeners)
+    {
+        if (!listener || !listener->isEnabled() || listener->isPaused() || !listener->isAttached())
+            continue;
+
+        auto target = listener->getAssociatedNode();
+        if (!target || _nodePriorityMap.find(target) == _nodePriorityMap.end())
+            continue;
+
+        auto pointerListener = static_cast<PointerEventListener*>(listener);
+        if (!findHitCameraForListener(event, pointerListener, cameras))
+            continue;
+
+        auto result = event->getHitResult();
+        event->setCamera(nullptr);
+        return result;
+    }
+
+    event->clearHitResult();
+    event->setCamera(nullptr);
+    return {};
 }
 
 }  // namespace ax

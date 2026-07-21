@@ -40,6 +40,7 @@ namespace ax
 
 class Camera;
 class CustomEventListener;
+class Director;
 
 /**
  * @brief RenderTexture is a render target resource, inheriting from Texture2D.
@@ -66,7 +67,7 @@ class CustomEventListener;
  *
  * If you access `getRenderTarget()` directly and manage the rendering pipeline
  * yourself (e.g., Live2D CubismRenderer), you must check
- * `rhi::DriverContext::isOpenGL()` and flip the Y-axis manually.
+ * `rhi::GraphicsCore::isOpenGL()` and flip the Y-axis manually.
  *
  * If you render through RenderTexturePass, call
  * `RenderTexturePass::setAutoFlipY(false)` to preserve the raw backend-native

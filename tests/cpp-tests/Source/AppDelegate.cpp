@@ -31,7 +31,7 @@
 #include "controller.h"
 #include "BaseTest.h"
 #include "extensions/axmol-ext.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/tlx/charconv.hpp"
 #include "axmol/platform/CommandLineArgs.h"
 #include <system_error>
@@ -47,18 +47,25 @@ AppDelegate::~AppDelegate()
 
 // if you want a different context, modify the value of contextAttrs
 // it will affect all platforms
-void AppDelegate::initContextAttrs()
+void AppDelegate::applicationWillLaunch()
 {
+    // Enable logging output colored text style and prefix timestamp
+    setLogFmtFlag(ax::LogFmtFlag::Full);
+
+    // Register Vulkan interop for OpenXR support, if available. This allows the engine to share Vulkan resources with
+    // external APIs. if AX_ENABLE_OPENXR or AX_ENABLE_VK is not defined, this call is no-op.
+    registerVulkanInterop("Cpp Tests"sv);
+
     // set vulkan min android api level, 31 for Android 12
     // refer: https://developer.android.com/tools/releases/platforms
-    DriverContext::setVulkanMinAndroidApiLevel(31);
+    GraphicsCore::setVulkanMinAndroidApiLevel(31);
 
     // Overrides any command-line driver preference (default is Auto).
-    // DriverContext::setDriverPreference(DriverPreference::Auto);
+    // GraphicsCore::setDriverPreference(DriverPreference::Auto);
 
     // set app context attributes: red,green,blue,alpha,depth,stencil,multisamplesCount
     // powerPreference only affect when RHI backend is D3D11, D3D12, Vulkan
-    ContextAttrs contextAttrs = {.debugLayerEnabled = false, .powerPreference = PowerPreference::HighPerformance};
+    ContextAttrs contextAttrs = {.debugLayerEnabled = true, .powerPreference = PowerPreference::HighPerformance};
 
     // V-Sync is enabled by default since axmol 2.2.
     // Uncomment to disable V-Sync and unlock FPS.
@@ -76,9 +83,6 @@ void AppDelegate::initContextAttrs()
 
 bool AppDelegate::applicationDidFinishLaunching()
 {
-    // Enable logging output colored text style and prefix timestamp
-    ax::setLogFmtFlag(ax::LogFmtFlag::Full);
-
     // whether enable global SDF font render support, since axmol-2.0.1
     FontFreeType::setGlobalSDFEnabled(true);
 
@@ -147,10 +151,6 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     director->postTask([] { AXLOGI("##### run in frame boundary"); }, Director::TaskTiming::FrameBoundary);
 
-    // Enable Remote Console
-    auto console = director->getConsole();
-    console->listenOnTCP(5678);
-
     _testController = TestController::getInstance();
 
     const char* const autotest_env = std::getenv("AXMOL_START_AUTOTEST");
@@ -178,7 +178,7 @@ void AppDelegate::applicationDidEnterBackground()
         //        _testController->onEnterBackground();
     }
 
-    Director::getInstance()->stopAnimation();
+    Director::getInstance()->deactivate();
 }
 
 // this function will be called when the app is active again
@@ -189,7 +189,7 @@ void AppDelegate::applicationWillEnterForeground()
         //        _testController->onEnterForeground();
     }
 
-    Director::getInstance()->startAnimation();
+    Director::getInstance()->activate();
 }
 
 void AppDelegate::applicationWillQuit()

@@ -24,6 +24,7 @@
  ****************************************************************************/
 
 #include "axmol/rhi/opengl/DriverGL.h"
+#include "axmol/platform/Common.h"
 #include "axmol/rhi/opengl/RenderPipelineGL.h"
 #include "axmol/rhi/opengl/BufferGL.h"
 #include "axmol/rhi/opengl/ShaderModuleGL.h"
@@ -206,6 +207,17 @@ Texture* DriverImpl::createTexture(const TextureDesc& desc, std::optional<Color>
     return new TextureImpl(desc);
 }
 
+Texture* DriverImpl::createTextureFromNativeHandle(const ExternalTextureDesc& descriptor)
+{
+    auto nativeTexture = static_cast<GLuint>(descriptor.nativeTexture.u64);
+    if (!nativeTexture)
+        return nullptr;
+
+    auto texture = new TextureImpl(nativeTexture, descriptor.desc.width, descriptor.desc.height);
+    texture->updateTextureDesc(descriptor.desc);
+    return texture;
+}
+
 RenderTarget* DriverImpl::createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment)
 {
     auto rtGL = new RenderTargetImpl(this, false);
@@ -338,6 +350,8 @@ SamplerHandle DriverImpl::createSampler(const SamplerDesc& desc)
         GLfloat aniso = std::clamp(static_cast<GLfloat>(desc.anisotropy + 1), 1.0f, _cap.maxAnisotropy);
         glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
     }
+
+    CHECK_GL_ERROR_DEBUG();
 
     return static_cast<uint64_t>(sampler);
 }

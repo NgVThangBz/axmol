@@ -599,7 +599,7 @@ function(ax_setup_app_config app_name)
 
   # auto looking app shaders source dir and add to axslcc compile-list
   get_target_property(_APP_SOURCE_DIR ${app_name} SOURCE_DIR)
-  set(app_shaders_dir "${_APP_SOURCE_DIR}/Source/shaders")
+  set(app_shaders_dir "${_APP_SOURCE_DIR}/Source/Shaders")
 
   ax_find_shaders(${app_shaders_dir} app_shaders RECURSE)
 
@@ -609,7 +609,7 @@ function(ax_setup_app_config app_name)
 
     # add non-builtin shader build target, will output to: ${CMAKE_BINARY_DIR}/runtime/axslc/custom/
     ax_add_shader_target_for(${app_name} FILES ${app_shaders})
-    source_group("Source Files/Source/shaders" FILES ${app_shaders})
+    source_group("Source Files/Source/Shaders" FILES ${app_shaders})
   endif()
 
   if(IS_DIRECTORY ${AXSLCC_OUT_DIR})
@@ -934,6 +934,18 @@ macro(ax_config_pred1 target_name pred)
     target_compile_definitions(${target_name} PUBLIC ${pred}=1)
   else()
     target_compile_definitions(${target_name} PUBLIC ${pred}=0)
+  endif()
+endmacro()
+
+# The axmol profiler backend config helper macro.
+# Unlike ax_config_pred/ax_config_pred1 (boolean on/off), AX_PROFILER_BACKEND
+# is a string enum (NONE|TRACY), so it needs its own dedicated macro rather
+# than reusing ax_config_pred.
+macro(ax_apply_profiler_backend target_name scope)
+  if(AX_PROFILER_BACKEND STREQUAL "TRACY")
+    target_compile_definitions(${target_name} ${scope} AX_PROFILER_BACKEND_TRACY)
+  elseif(NOT AX_PROFILER_BACKEND STREQUAL "NONE")
+    message(FATAL_ERROR "Unknown AX_PROFILER_BACKEND: ${AX_PROFILER_BACKEND}")
   endif()
 endmacro()
 

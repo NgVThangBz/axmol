@@ -40,6 +40,8 @@ using namespace ax;
 
 MeshRendererTests::MeshRendererTests()
 {
+    ADD_TEST_CASE(MeshRendererLightMapTest);
+
     ADD_TEST_CASE(MeshRendererBasicTest);
     ADD_TEST_CASE(MeshRendererStaticInstancingBasicTest);
     ADD_TEST_CASE(MeshRendererDynamicInstancingBasicTest);
@@ -213,7 +215,7 @@ void MeshRendererBasicTest::addNewMeshWithCoords(Vec2 p)
 
 void MeshRendererBasicTest::onPointerUp(PointerEvent* event)
 {
-    auto location = event->getLocation();
+    auto location = event->getWorldPoint();
 
     addNewMeshWithCoords(location);
 }
@@ -683,7 +685,7 @@ void MeshRendererFakeShadowTest::onPointerMove(ax::PointerEvent* event)
 void MeshRendererFakeShadowTest::onPointerUp(ax::PointerEvent* event)
 {
     {
-        auto location = event->getScreenLocation();
+        auto location = event->getPoint();
         if (_camera)
         {
             if (_orc)
@@ -815,8 +817,8 @@ void MeshRendererLightMapTest::onPointerMove(ax::PointerEvent* event)
     if (!event->isPrimaryPressed())
         return;
     float delta           = Director::getInstance()->getDeltaTime();
-    auto location         = event->getLocation();
-    auto PreviousLocation = event->getPreviousLocation();
+    auto location         = event->getWorldPoint();
+    auto PreviousLocation = event->getPrevWorldPoint();
     Point newPos          = PreviousLocation - location;
 
     Vec3 cameraDir;
@@ -870,9 +872,9 @@ MeshRendererHitTest::MeshRendererHitTest()
         auto target = static_cast<MeshRenderer*>(event->getCurrentTarget());
 
         Rect rect = target->getBoundingBox();
-        if (rect.containsPoint(event->getLocation()))
+        if (rect.containsPoint(event->getWorldPoint()))
         {
-            AXLOGD("mesh3d began... x = {}, y = {}", event->getLocation().x, event->getLocation().y);
+            AXLOGD("mesh3d began... x = {}, y = {}", event->getWorldPoint().x, event->getWorldPoint().y);
             target->setOpacity(100);
             return true;
         }
@@ -881,7 +883,7 @@ MeshRendererHitTest::MeshRendererHitTest()
 
     listener1->onPointerMove = [](PointerEvent* event) {
         auto target = static_cast<MeshRenderer*>(event->getCurrentTarget());
-        target->setPosition(target->getPosition() + event->getDelta());
+        target->setPosition(target->getPosition() + (event->getWorldPoint() - event->getPrevWorldPoint()));
         return true;
     };
 
@@ -979,7 +981,7 @@ void MeshRendererEffectTest::addNewMeshWithCoords(Vec2 p)
 
 void MeshRendererEffectTest::onPointerUp(PointerEvent* event)
 {
-    auto location = event->getLocation();
+    auto location = event->getWorldPoint();
 
     addNewMeshWithCoords(location);
 }
@@ -1145,7 +1147,7 @@ void MeshRendererWithSkinTest::switchAnimationQualityCallback(Object* sender)
 
 void MeshRendererWithSkinTest::onPointerUp(PointerEvent* event)
 {
-    auto location = event->getLocation();
+    auto location = event->getWorldPoint();
 
     addNewMeshWithCoords(location);
 }
@@ -1225,7 +1227,7 @@ void MeshRendererWithSkinOutlineTest::addNewMeshWithCoords(Vec2 p)
 
 void MeshRendererWithSkinOutlineTest::onPointerUp(PointerEvent* event)
 {
-    auto location = event->getLocation();
+    auto location = event->getWorldPoint();
 
     addNewMeshWithCoords(location);
 }
@@ -1338,7 +1340,7 @@ void Animate3DTest::renewCallBack()
 void Animate3DTest::onPointerUp(PointerEvent* event)
 {
     {
-        auto location = event->getLocation();
+        auto location = event->getWorldPoint();
 
         if (_mesh)
         {
@@ -1596,7 +1598,7 @@ void MeshRendererWithOBBPerformanceTest::addNewOBBWithCoords(Vec2 p)
 bool MeshRendererWithOBBPerformanceTest::onPointerDown(PointerEvent* event)
 {
     {
-        auto location = event->getScreenLocation();
+        auto location = event->getPoint();
         auto obbSize  = _obb.size();
         if (obbSize)
         {
@@ -1621,7 +1623,7 @@ void MeshRendererWithOBBPerformanceTest::onPointerUp(PointerEvent* event) {}
 
 void MeshRendererWithOBBPerformanceTest::onPointerMove(PointerEvent* event)
 {
-    auto location = event->getLocation();
+    auto location = event->getWorldPoint();
     auto obbSize  = _obb.size();
 
     for (decltype(obbSize) i = 0; i < obbSize; i++)
@@ -2180,7 +2182,7 @@ void NodeAnimationTest::addNewMeshWithCoords(Vec2 p)
     _meshes.emplace_back(mesh);
 }
 
-MeshRendererCubeMapTest::MeshRendererCubeMapTest() : _textureCube(nullptr), _skyBox(nullptr), _teapot(nullptr)
+MeshRendererCubeMapTest::MeshRendererCubeMapTest() : _textureCube(nullptr), _teapot(nullptr)
 {
     auto s = Director::getInstance()->getCanvasSize();
     addNewMeshWithCoords(Vec2(s.width / 2, s.height / 2));
@@ -2193,7 +2195,6 @@ MeshRendererCubeMapTest::~MeshRendererCubeMapTest()
 #endif
 
     _teapot->release();
-    _skyBox->release();
     _textureCube->release();
 }
 
@@ -2249,17 +2250,14 @@ void MeshRendererCubeMapTest::addNewMeshWithCoords(Vec2 p)
 
     addChild(_teapot);
 
-    {
-        // config skybox
-        _skyBox = Skybox::create();
-        _skyBox->retain();
-
-        _skyBox->setTexture(_textureCube);
-        addChild(_skyBox);
-    }
-
     addChild(_camera);
     setCameraMask(2);
+
+    // config skybox brush on camera
+    auto skyboxBrush = CameraBackgroundSkyBoxBrush::create();
+    skyboxBrush->setTexture(_textureCube);
+    _camera->setBackgroundBrush(skyboxBrush);
+
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     _backToForegroundListener = CustomEventListener::create(EVENT_COME_TO_FOREGROUND, [this](CustomEvent*) {
         AX_SAFE_RELEASE(_textureCube);
@@ -2275,7 +2273,9 @@ void MeshRendererCubeMapTest::addNewMeshWithCoords(Vec2 p)
         auto mat   = MeshMaterial::createWithFilename("MeshRendererTest/CubeMap.material");
         auto state = mat->getTechniqueByIndex(0)->getPassByIndex(0)->getProgramState();
         _teapot->setMaterial(mat);
-        _skyBox->setTexture(_textureCube);
+        // update skybox brush texture
+        if (auto brush = static_cast<CameraBackgroundSkyBoxBrush*>(_camera->getBackgroundBrush()))
+            brush->setTexture(_textureCube);
         // pass the texture sampler to our custom shader
         auto cubeTexLoc = state->getUniformLocation("u_cubeTex");
         state->setTexture(cubeTexLoc, 0, _textureCube->getRHITexture());
@@ -2286,7 +2286,9 @@ void MeshRendererCubeMapTest::addNewMeshWithCoords(Vec2 p)
 
 void MeshRendererCubeMapTest::onPointerMove(ax::PointerEvent* event)
 {
-    auto delta = event->getDelta();
+    if (!event->isPrimaryPressed())
+        return;
+    auto delta = (event->getWorldPoint() - event->getPrevWorldPoint());
 
     static float _angle = 0.f;
     _angle -= AX_DEGREES_TO_RADIANS(delta.x);

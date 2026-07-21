@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <stddef.h>// offsetof
 
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/renderer/Shaders.h"
 #include "axmol/base/Director.h"
 #include "axmol/base/EventDispatcher.h"
@@ -163,20 +163,20 @@ namespace spine {
 		_locPMatrix = _twoColorProgramState->getUniformLocation("u_PMatrix");
 		_locTexture = _twoColorProgramState->getUniformLocation("u_tex0");
 
-		auto locPosition = _twoColorProgramState->getVertexInputDesc("a_position");
-		auto locTexcoord = _twoColorProgramState->getVertexInputDesc("a_texCoord");
-		auto locColor = _twoColorProgramState->getVertexInputDesc("a_color");
-		auto locColor2 = _twoColorProgramState->getVertexInputDesc("a_color2");
+		auto locPosition = _twoColorProgramState->getVertexInputDesc(rhi::VertexSemantic::POSITION);
+		auto locTexcoord = _twoColorProgramState->getVertexInputDesc(rhi::VertexSemantic::TEXCOORD0);
+		auto locColor = _twoColorProgramState->getVertexInputDesc(rhi::VertexSemantic::COLOR0);
+		auto locColor2 = _twoColorProgramState->getVertexInputDesc(rhi::VertexSemantic::COLOR1);
 
 		auto layoutDesc = axvlm->allocateVertexLayoutDesc();
 		layoutDesc.startLayout(4);
-		layoutDesc.addAttrib("a_position", locPosition, rhi::VertexFormat::FLOAT3,
+		layoutDesc.addAttrib(locPosition, rhi::VertexElementType::FLOAT3,
 							 offsetof(spine::V3F_C4B_C4B_T2F, position), false);
-		layoutDesc.addAttrib("a_color", locColor, rhi::VertexFormat::UBYTE4,
+		layoutDesc.addAttrib(locColor, rhi::VertexElementType::UBYTE4,
 							 offsetof(spine::V3F_C4B_C4B_T2F, color), true);
-		layoutDesc.addAttrib("a_color2", locColor2, rhi::VertexFormat::UBYTE4,
+		layoutDesc.addAttrib(locColor2, rhi::VertexElementType::UBYTE4,
 							 offsetof(spine::V3F_C4B_C4B_T2F, color2), true);
-		layoutDesc.addAttrib("a_texCoord", locTexcoord, rhi::VertexFormat::FLOAT2,
+		layoutDesc.addAttrib(locTexcoord, rhi::VertexElementType::FLOAT2,
 							 offsetof(spine::V3F_C4B_C4B_T2F, texCoord), false);
 		layoutDesc.endLayout();
 

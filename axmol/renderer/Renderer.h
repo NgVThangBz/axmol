@@ -55,6 +55,7 @@ class RenderPass;
 class Texture;
 class RenderTarget;
 struct PixelBufferDesc;
+struct PipelineDesc;
 }  // namespace rhi
 
 class CustomEventListener;
@@ -62,7 +63,6 @@ class TrianglesCommand;
 class MeshCommand;
 class GroupCommand;
 class CallbackCommand;
-struct PipelineDesc;
 class Texture2D;
 class RenderView;
 class Scene;
@@ -174,6 +174,9 @@ public:
 
     /** Renders into the RenderView all the queued `RenderCommand` objects */
     void render();
+
+    /** Submit currently encoded RHI commands without presenting the default surface. */
+    void submitCurrentFrameCommands(bool waitForCompletion);
 
     /** Cleans all `RenderCommand`s in the queue */
     void clean();

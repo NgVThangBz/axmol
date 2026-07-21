@@ -29,21 +29,23 @@ THE SOFTWARE.
 using namespace ax;
 #include <stdlib.h>
 #include <float.h>
+#include <limits>
 #include <set>
 #include <stddef.h>  // offsetof
 #include "axmol/renderer/Renderer.h"
 #include "axmol/renderer/Shaders.h"
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/Program.h"
 #include "axmol/rhi/Buffer.h"
 #include "axmol/base/Director.h"
 #include "axmol/base/Types.h"
+#include "axmol/base/PointerEvent.h"
 #include "axmol/tlx/vector.hpp"
 #include "axmol/tlx/utility.hpp"
 #include "axmol/base/EventType.h"
 #include "axmol/scene/Camera.h"
 #include "axmol/platform/Image.h"
-#include "axmol/3d/shaderinfos.h"
+#include "axmol/3d/MeshVertexAttribute.h"
 #include "axmol/base/Utils.h"
 
 namespace ax
@@ -507,11 +509,44 @@ ax::Vec3 Terrain::getIntersectionPoint(const Ray& ray) const
     }
 }
 
+bool Terrain::onPointerHitTest(PointerEvent* event, Vec3* outHitPoint)
+{
+    if (!event || !isVisible())
+        return false;
+
+    Ray ray = event->getRay();
+
+    if (event->getPointerType() == PointerType::Controller)
+    {
+        // The current VR ray is generated in the default camera space; terrain hit testing runs in the hit camera
+        // space.
+        const auto sourceCamera = Camera::getDefaultCamera();
+        const auto hitCamera    = event->getCamera();
+        if (sourceCamera && hitCamera && sourceCamera != hitCamera)
+        {
+            ray.transform(sourceCamera->getWorldToNodeTransform());
+            ray.transform(hitCamera->getNodeToWorldTransform());
+        }
+    }
+    Vec3 hitPoint;
+
+    bool hitted = getIntersectionPoint(ray, hitPoint);
+    if (!hitted)
+        return false;
+
+    if (outHitPoint)
+    {
+        getNodeToWorldTransform().transformPoint(hitPoint, outHitPoint);
+    }
+
+    return true;
+}
+
 bool Terrain::getIntersectionPoint(const Ray& ray_, Vec3& intersectionPoint) const
 {
     // convert ray from world space to local space
     Ray ray(ray_);
-    getWorldToNodeTransform().transformPoint(&(ray.origin));
+    ray.transform(getWorldToNodeTransform());
 
     std::set<Chunk*> closeList;
     Vec2 start = Vec2(ray_.origin.x, ray_.origin.z);
@@ -525,6 +560,8 @@ bool Terrain::getIntersectionPoint(const Ray& ray_, Vec3& intersectionPoint) con
     bool hasIntersect      = false;
     float intersectionDist = FLT_MAX;
     Vec3 tmpIntersectionPoint;
+    const bool isVerticalRay = dir.lengthSquared() <= 0.000001f;
+
     for (;;)
     {
         int x1 = floorf(start.x);
@@ -554,6 +591,10 @@ bool Terrain::getIntersectionPoint(const Ray& ray_, Vec3& intersectionPoint) con
                     }
                 }
             }
+        }
+        if (isVerticalRay)
+        {
+            break;
         }
         if ((delta.x > 0 && start.x > width) || (delta.x < 0 && start.x < 0))
         {

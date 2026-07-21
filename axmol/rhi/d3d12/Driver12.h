@@ -23,7 +23,7 @@
  ****************************************************************************/
 #pragma once
 
-#include "axmol/rhi/DriverContext.h"
+#include "axmol/rhi/GraphicsCore.h"
 #include "axmol/rhi/d3d12/DescriptorHeapAllocator12.h"
 #include "axmol/rhi/d3d12/UploadBufferAllocator12.h"
 #include "axmol/rhi/d3d12/ShaderModule12.h"
@@ -123,6 +123,7 @@ public:
     RenderContext* createRenderContext(SurfaceHandle surface) override;
     Buffer* createBuffer(size_t size, BufferType type, BufferUsage usage, const void* initial) override;
     Texture* createTexture(const TextureDesc& descriptor, std::optional<Color> clearColorHint = std::nullopt) override;
+    Texture* createTextureFromNativeHandle(const ExternalTextureDesc& descriptor) override;
     RenderTarget* createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment) override;
     DepthStencilState* createDepthStencilState() override;
     RenderPipeline* createRenderPipeline() override;
@@ -141,6 +142,9 @@ public:
     bool checkForFeatureSupported(FeatureType feature) override;
 
     void destroyStaleResources() override;
+
+    // Writes a sampler descriptor into an existing D3D12 descriptor slot.
+    void writeSamplerDescriptor(const SamplerDesc& desc, D3D12_CPU_DESCRIPTOR_HANDLE destination);
 
     ID3D12Device* getDevice() const { return _device.Get(); }
     ID3D12CommandQueue* getGraphicsQueue() const { return _gfxQueue.Get(); }
@@ -165,6 +169,7 @@ public:
         return _srvAllocator->getDescriptorHeap(h);
     }
     ID3D12DescriptorHeap* getSamplerHeap() const { return _samplerAllocator->getDescriptorHeapByIndex(0); }
+    DescriptorHeapAllocator* getSamplerAllocator() const { return _samplerAllocator.get(); }
     ID3D12DescriptorHeap* getRtvHeap(const DescriptorHandle* h) const { return _rtvAllocator->getDescriptorHeap(h); }
     ID3D12DescriptorHeap* getDsvHeap(const DescriptorHandle* h) const { return _dsvAllocator->getDescriptorHeap(h); }
 
@@ -172,8 +177,9 @@ public:
 
     UINT getSrvDescriptorStride() const { return _srvDescriptorStride; }
     UINT getSamplerDescriptorStride() const { return _samplerDescriptorStride; }
+    D3D12_RESOURCE_BINDING_TIER getResourceBindingTier() const { return _resourceBindingTier; }
 
-    bool compileShader(std::span<uint8_t> shaderCode, ShaderStage stage, D3D12BlobHandle& outHandle);
+    ComPtr<IUnknown> compileShader(std::span<uint8_t> shaderCode, ShaderStage stage, std::span<uint8_t>& blobView);
 
     void queueDisposal(ID3D12Resource*, uint64_t fenceValue);
     void queueDisposal(DescriptorHandle* handle, DisposableResource::Type type, uint64_t fenceValue);
@@ -229,6 +235,7 @@ private:
     std::vector<DisposableResource> _disposalQueue;
 
     D3D_FEATURE_LEVEL _featureLevel{D3D_FEATURE_LEVEL_11_0};
+    D3D12_RESOURCE_BINDING_TIER _resourceBindingTier{D3D12_RESOURCE_BINDING_TIER_1};
     DXGI_ADAPTER_DESC _adapterDesc{};
     std::optional<LARGE_INTEGER> _driverVersion;
 

@@ -75,8 +75,11 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
   ax_config_pred(${APP_NAME} AX_ENABLE_NAVMESH)
   ax_config_pred(${APP_NAME} AX_ENABLE_VIDEO)
   ax_config_pred(${APP_NAME} AX_ENABLE_AUDIO)
-  ax_config_pred(${APP_NAME} AX_ENABLE_CONSOLE)
-
+  ax_config_pred(${APP_NAME} AX_ENABLE_VR)
+  ax_config_pred(${APP_NAME} AX_ENABLE_OPENXR)
+  # compile defines can't inherit when link prebuilts, so need to apply the
+  # profiler backend define manually — mirrors the logic in axmol/CMakeLists.txt
+  ax_apply_profiler_backend(${APP_NAME} PRIVATE)
   if(AX_ISA_SIMD MATCHES "sse")
     target_compile_definitions(${APP_NAME} PRIVATE AX_SSE_INTRINSICS=1)
   endif()
@@ -190,6 +193,7 @@ function(ax_link_cxx_prebuilt APP_NAME AX_ROOT_DIR AX_PREBUILT_DIR)
   ax_link_pred(AX_ENABLE_EXT_PHYSICS_NODE "physics-nodes" "${AX_ROOT_DIR}/extensions/physics-nodes/src")
   ax_link_pred(AX_ENABLE_NAVMESH "recast" "${AX_ROOT_DIR}/3rdparty/recast")
   ax_link_pred(AX_ENABLE_PHYSICS_3D "Jolt" "${AX_ROOT_DIR}/3rdparty/jolt")
+  ax_link_pred(AX_ENABLE_OPENXR "openxr_loader" "${OPENXR_SOURCE_DIR}/include")
 
   ax_link_pred(AX_ENABLE_EXT_IMGUI "ImGui"
     "${AX_ROOT_DIR}/extensions/ImGui/src" "${AX_ROOT_DIR}/extensions/ImGui/src/ImGui/imgui"

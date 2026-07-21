@@ -41,10 +41,6 @@ THE SOFTWARE.
 #include "axmol/math/Math.h"
 #include "axmol/platform/RenderViewCore.h"
 #include "concurrentqueue/concurrentqueue.h"
-#ifdef AX_ENABLE_CONSOLE
-#    include "axmol/base/Console.h"
-#endif
-
 #include "axmol/base/JobSystem.h"
 
 extern void _axmolPerformFrameBoundaryTasks();
@@ -58,6 +54,7 @@ namespace ax
  */
 
 /* Forward declarations. */
+class Label;
 class LabelAtlas;
 class DirectorDelegate;
 class Node;
@@ -69,7 +66,7 @@ class CustomEventListener;
 class TextureCache;
 class Renderer;
 class Camera;
-class SceneRenderer;
+class SceneCompositor;
 class Application;
 class ApplicationCore;
 class PoolManager;
@@ -96,8 +93,6 @@ public:
     /** Director will trigger an event after set next scene. */
     static std::string_view EVENT_AFTER_SET_NEXT_SCENE;
 
-    /** Director will trigger an event when projection type is changed. */
-    static std::string_view EVENT_PROJECTION_CHANGED;
     /** Director will trigger an event before Schedule::update() is invoked. */
     static std::string_view EVENT_BEFORE_UPDATE;
     /** Director will trigger an event after Schedule::update() is invoked. */
@@ -120,24 +115,6 @@ public:
     static std::string_view EVENT_BEFORE_GFX_DROP;
     /** Director will trigger an event after dropping the graphics subsystem */
     static std::string_view EVENT_AFTER_GFX_DROP;
-
-    /**
-     * @brief Possible projection types used by the director.
-     */
-    enum class Projection
-    {
-        /// Sets a 2D projection (orthogonal projection).
-        _2D,
-
-        /// Sets a 3D projection with a fovy=60, znear=0.5f and zfar=1500.
-        _3D,
-
-        /// It calls "updateProjection" on the projection delegate.
-        CUSTOM,
-
-        /// Default projection is 3D projection.
-        DEFAULT = _3D,
-    };
 
     /**
      * @brief Defines the execution timing for asynchronous tasks dispatched to the main execution thread.
@@ -232,14 +209,6 @@ public:
     /** How many frames were called since the director started */
     unsigned int getTotalFrames() { return _totalFrames; }
 
-    /** Gets an projection.
-     * @since v0.8.2
-     * @lua NA
-     */
-    Projection getProjection() { return _projection; }
-    /** Sets projection. */
-    void setProjection(Projection projection);
-
     /** Sets the viewport.*/
     void setViewport();
 
@@ -279,6 +248,9 @@ public:
     /** Returns the size of the render view in pixels. */
     Vec2 getCanvasSizeInPixels() const;
 
+    /** Converts a screen point (top-left origin) to canvas point (bottom-left origin). */
+    Vec2 screenToCanvas(const Vec2& screenPoint) const;
+
     /**
      * Returns visible size of the render view in points.
      * The value is equal to `Director::getCanvasSize()` if don't invoke `RenderView::setDesignResolutionSize()`.
@@ -294,19 +266,6 @@ public:
     Rect getSafeAreaRect() const;
 
     /**
-     * Converts a point from screen coordinates to the rendering 2d-coordinate system.
-     * Useful for mapping (multi)touch input to the current scene layout,
-     * taking into account orientation (portrait or landscape) and viewport settings.
-     */
-    Vec2 screenToWorld(const Vec2& point);
-
-    /**
-     * Converts an rendering 2d-coordinate to a screen coordinate.
-     * Useful to convert node points to window points for calls such as glScissor.
-     */
-    Vec2 worldToScreen(const Vec2& point);
-
-    /**
      * Gets the distance between camera and near clipping frame.
      * It is correct for default camera that near clipping frame is same as the screen.
      */
@@ -319,7 +278,7 @@ public:
      * Call it to run only your FIRST scene.
      * Don't call it if there is already a running scene.
      *
-     * It will call pushScene: and then it will call startAnimation
+     * It will call pushScene: and then it will call activate
      */
     void runWithScene(Scene* scene);
 
@@ -389,16 +348,30 @@ public:
      */
     void restart();
 
-    /** Stops the animation. Nothing will be drawn. The main loop won't be triggered anymore.
-     * If you don't want to pause your animation call [pause] instead.
+    /**
+     * @brief Deactivates the Director, suspending logic updates and rendering.
+     *
+     * When deactivated, `renderFrame()` will skip all internal logic updates
+     * and rendering processes (saving CPU/GPU resources), while still allowing
+     * the OS event pump to run. This is typically invoked when the application
+     * enters the background or loses window focus.
+     *
+     * @note Unlike `pause()`, which only stops the logic updates but continues to render
+     * the current frame, `deactivate()` completely freezes the engine's world.
+     * @note This safely replaces the legacy `stopAnimation()` method.
      */
-    void stopAnimation();
+    void deactivate();
 
-    /** The main loop is triggered again.
-     * Call this function only if [stopAnimation] was called earlier.
-     * @warning Don't call this function to start the main loop. To run the main loop call runWithScene.
+    /**
+     * @brief Activates the Director, enabling the main frame processing loop.
+     *
+     * When activated, the Director will process game logic, update the scheduler,
+     * and render the scene during each `renderFrame()` call. It also resets the
+     * delta time to prevent physics or animation spikes upon resuming.
+     *
+     * @note This safely replaces the legacy `startAnimation()` method.
      */
-    void startAnimation();
+    void activate();
 
     // Memory Helper
 
@@ -424,12 +397,29 @@ public:
     void setClearColor(const Color& clearColor);
     const Color& getClearColor() const { return _clearColor; }
 
-    [[internal]] void stepFrame();
-    /** Invoke frame step with delta time. Then `calculateDeltaTime` can just use the delta time directly.
-     * The delta time passed may include vsync time. See issue #17806
-     * @since 3.16
+    /**
+     * @brief Drives the execution of a single engine frame.
+     *
+     * This is the core function of the engine's main loop. In a single call, it:
+     * 1. Polls underlying OS events to keep the application responsive.
+     * 2. Handles pending Director lifecycle states (e.g., restart or cleanup).
+     * 3. If the Director is active (`isActive() == true`):
+     *    - Advances the scheduler and game logic (if not paused).
+     *    - Submits render commands via the RHI and swaps buffers.
+     *
+     * @note This method should be called continuously by the platform-specific application loop.
+     * @note This replaces the legacy `stepFrame()` and `processFrame()` methods.
      */
-    [[internal]] void stepFrame(float dt);
+    [[internal]] void renderFrame();
+    /**
+     * @brief Drives the execution of a single engine frame with a caller-provided delta time.
+     *
+     * This overload allows the platform layer to pass in a custom delta time (e.g., from a display link),
+     * bypassing `calculateDeltaTime()`. The delta passed may include vsync time. See issue #17806.
+     *
+     * @note This replaces the legacy `stepFrame(float dt)` method.
+     */
+    [[internal]] void renderFrame(float dt);
 
     /** The size in pixels of the surface. It could be different than the screen size.
      * High-res devices might have a higher surface size than the screen size.
@@ -500,27 +490,8 @@ public:
      */
     Renderer* getRenderer() const { return _renderer; }
 
-    SceneRenderer* getSceneRenderer() const { return _sceneRenderer.get(); }
-
     Camera* getOffscreenCamera();
 
-    /** Replaces the active scene renderer.
-     *  Pass nullptr to restore the default SceneRenderer.
-     *  The new renderer's onRenderViewChanged is called immediately if a render view exists.
-     *  The previous renderer is destroyed synchronously.
-     *  @param impl  New renderer, or nullptr for default.
-     *  @note The default implementation renders all cameras in the scene.
-     *        A VR renderer (VRGenericRenderer) renders each eye into an
-     *        offscreen texture and applies barrel distortion.
-     */
-    void setSceneRenderer(std::unique_ptr<SceneRenderer>&& impl);
-
-#ifdef AX_ENABLE_CONSOLE
-    /** Returns the Console associated with this director.
-     * @since v3.0
-     */
-    Console* getConsole() const { return _console; }
-#endif
     /* Gets delta time since last tick to main loop. */
     float getDeltaTime() const;
 
@@ -578,27 +549,10 @@ public:
      */
     void clearPendingTasks(TaskTiming timing = TaskTiming::NextUpdate);
 
-    /**
-     * returns whether or not the Director is in a valid state
-     */
-    bool isValid() const { return !_invalid; }
+    /** @brief Checks whether the Director is currently active and processing frames. */
+    bool isActive() const { return _active; }
 
 protected:
-    /**
-     * Process one frame of the engine loop.
-     *
-     * This method is invoked automatically once per frame by the Director.
-     * It drives both the game logic update and the rendering pipeline:
-     *   - Calculates delta time
-     *   - Updates scheduler, actions, and scene logic
-     *   - Handles scene transitions
-     *   - Executes rendering of the current scene and overlay nodes
-     *   - Updates performance statistics and swaps buffers
-     *
-     * Do not call this method manually.
-     */
-    [[internal]] void processFrame();
-
     static void performFrameTasks(FrameTaskQueue& frameTasks);
 
     void performFrameBoundaryTasks();
@@ -612,7 +566,7 @@ protected:
      */
     void setCanvasSize(const Vec2& canvasSize);
 
-    virtual void startAnimation(SetIntervalReason reason);
+    virtual void activate(SetIntervalReason reason);
     virtual void setAnimationInterval(float interval, SetIntervalReason reason);
 
     void cleanupDirector();
@@ -634,6 +588,9 @@ protected:
     void calculateMPF();
     void getFPSImageData(unsigned char** datapointer, ssize_t* length);
 #endif
+
+    /** Shows VR mode active indicator when a VR scene compositor is active. */
+    void showVRModeIndicator();
 
     /** calculates delta time since last time it was called */
     void calculateDeltaTime();
@@ -658,7 +615,6 @@ protected:
      @since v3.0
      */
     EventDispatcher* _eventDispatcher    = nullptr;
-    CustomEvent* _eventProjectionChanged = nullptr;
     CustomEvent* _eventBeforeDraw        = nullptr;
     CustomEvent* _eventAfterDraw         = nullptr;
     CustomEvent* _eventAfterVisit        = nullptr;
@@ -694,6 +650,7 @@ protected:
     LabelAtlas* _FPSLabel           = nullptr;
     LabelAtlas* _drawnBatchesLabel  = nullptr;
     LabelAtlas* _drawnVerticesLabel = nullptr;
+    Label* _VRModeLabel             = nullptr;
 
     /** Whether or not the Director is paused */
     bool _paused = false;
@@ -722,9 +679,6 @@ protected:
     /* whether or not the next delta time will be zero */
     bool _nextDeltaTimeZero = false;
 
-    /* projection used */
-    Projection _projection = Projection::DEFAULT;
-
     /* canvas size in points */
     Vec2 _canvasSizeInPoints = Vec2::zero;
 
@@ -742,17 +696,11 @@ protected:
     Camera* _overlayCamera   = nullptr;  // retained
     Camera* _offscreenCamera = nullptr;  // retained
 
-    std::unique_ptr<SceneRenderer> _sceneRenderer;
-
-    Color _clearColor = {0, 0, 0, 1};
-#ifdef AX_ENABLE_CONSOLE
-    /* Console for the director */
-    Console* _console = nullptr;
-#endif
+    Color _clearColor          = {0, 0, 0, 1};
     bool _isStatusLabelUpdated = true;
 
     /* whether or not the director is in a valid state */
-    bool _invalid = false;
+    bool _active = false;
 
     bool _childrenIndexerEnabled = false;
 
