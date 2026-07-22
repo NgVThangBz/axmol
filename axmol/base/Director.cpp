@@ -375,7 +375,7 @@ void Director::setCanvasSize(const Vec2& canvasSize)
     if (_runningScene)
     {
         if (auto* camera = _runningScene->getDefaultCamera())
-            camera->updateTransform();
+            camera->onCanvasSizeChanged(canvasSize);
     }
 }
 
@@ -433,10 +433,10 @@ Camera* Director::getOffscreenCamera()
 
 void Director::updateOverlayCamera()
 {
-    if (_canvasSizeInPoints.width <= 0 || _canvasSizeInPoints.height <= 0 || !_offscreenCamera)
+    if (_canvasSizeInPoints.width <= 0 || _canvasSizeInPoints.height <= 0 || !_overlayCamera)
         return;
 
-    _overlayCamera->initOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
+    _overlayCamera->configureOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
 }
 
 void Director::updateOffscreenCamera()
@@ -444,7 +444,7 @@ void Director::updateOffscreenCamera()
     if (_canvasSizeInPoints.width <= 0 || _canvasSizeInPoints.height <= 0 || !_offscreenCamera)
         return;
 
-    _offscreenCamera->initOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
+    _offscreenCamera->configureOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
 }
 
 void Director::setNextDeltaTimeZero(bool nextDeltaTimeZero)
