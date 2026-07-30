@@ -155,7 +155,7 @@ FontAtlas::FontAtlas(Font* theFont, int atlasWidth, int atlasHeight, float scale
 
         if (_fontFreeType->isDistanceFieldEnabled())
         {
-            _letterPadding += 2 * FontFreeType::DistanceMapSpread * AX_CONTENT_SCALE_FACTOR();
+            _letterPadding += 2 * FontFreeType::DistanceMapSpread;
         }
 
 #if AX_ENABLE_CONTEXT_LOSS_RECOVERY
