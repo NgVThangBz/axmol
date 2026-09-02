@@ -205,6 +205,63 @@ void EditBoxImplWasm::updateNativeFrame(const Rect& rect)
     },
     rect.origin.x, rect.origin.y, rect.size.x, rect.size.y);
     // clang-format on
+    float designH = _editBox ? _editBox->getContentSize().height : 0.f;
+    float scale   = (designH > 0.f) ? (rect.size.y / designH) : 1.f;
+    int fontPx    = _fontSize > 0 ? static_cast<int>(_fontSize * scale + 0.5f) : 0;
+    int phPx      = _placeholderFontSize > 0 ? static_cast<int>(_placeholderFontSize * scale + 0.5f) : fontPx;
+    this->applyNativeStyle(fontPx, phPx, static_cast<int>(rect.size.y + 0.5f));
+}
+
+void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, int boxHeightPx)
+{
+    uint32_t tc = ((uint32_t)_colText.r << 24) | ((uint32_t)_colText.g << 16) | ((uint32_t)_colText.b << 8) |
+                  (uint32_t)_colText.a;
+    uint32_t pc = ((uint32_t)_colPlaceHolder.r << 24) | ((uint32_t)_colPlaceHolder.g << 16) |
+                  ((uint32_t)_colPlaceHolder.b << 8) | (uint32_t)_colPlaceHolder.a;
+
+    Color32 bg   = _editBox ? _editBox->getColor() : Color32::white;
+    uint8_t bgA  = _editBox ? _editBox->getDisplayedOpacity() : 255;
+    uint32_t bgc = ((uint32_t)bg.r << 24) | ((uint32_t)bg.g << 16) | ((uint32_t)bg.b << 8) | (uint32_t)bgA;
+
+    if (fontSizePx == _appliedFontPx && placeholderSizePx == _appliedPlaceholderPx && boxHeightPx == _appliedBoxPx &&
+        tc == _appliedTextColor && pc == _appliedPlaceholderColor && bgc == _appliedBgColor)
+        return;
+    _appliedFontPx            = fontSizePx;
+    _appliedPlaceholderPx     = placeholderSizePx;
+    _appliedBoxPx             = boxHeightPx;
+    _appliedTextColor         = tc;
+    _appliedPlaceholderColor  = pc;
+    _appliedBgColor           = bgc;
+
+    EM_ASM({
+        var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
+        if ($0 > 0)
+            input.style.fontSize = $0 + "px";
+        input.style.boxSizing = "border-box";
+        input.style.border    = "0";
+        input.style.padding   = "0";
+        if ($10 > 0)
+            input.style.lineHeight = $10 + "px";
+        input.style.color           = "rgba(" + $1 + "," + $2 + "," + $3 + "," + ($4 / 255) + ")";
+        input.style.backgroundColor = "rgba(" + $11 + "," + $12 + "," + $13 + "," + ($14 / 255) + ")";
+        var style = document.getElementById("axmol_editbox_style");
+        if (!style)
+        {
+            style    = document.createElement("style");
+            style.id = "axmol_editbox_style";
+            (document.head || document.body).appendChild(style);
+        }
+        var ph = $5 > 0 ? ("font-size:" + $5 + "px;") : "";
+        style.textContent = "#axmol_editbox_input::placeholder{color:rgba(" + $6 + "," + $7 + "," + $8 + "," +
+                            ($9 / 255) + ");" + ph + "opacity:1;}";
+    },
+    fontSizePx,
+    (int)_colText.r, (int)_colText.g, (int)_colText.b, (int)_colText.a,
+    placeholderSizePx,
+    (int)_colPlaceHolder.r, (int)_colPlaceHolder.g, (int)_colPlaceHolder.b, (int)_colPlaceHolder.a,
+    boxHeightPx,
+    (int)bg.r, (int)bg.g, (int)bg.b, (int)bgA);
+    // clang-format on
 }
 
 void EditBoxImplWasm::nativeOpenKeyboard()
@@ -235,6 +292,7 @@ void EditBoxImplWasm::lazyInit()
     // clang-format off
     EM_ASM({
         var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
+        input.id = "axmol_editbox_input";
         // set input type
         input.type = "text";
         // set input style

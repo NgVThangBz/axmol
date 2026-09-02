@@ -68,6 +68,15 @@ public:
 private:
     void createEditCtrl(EditBox::InputMode inputMode);
 
+    void applyNativeStyle(int fontSizePx, int placeholderSizePx, int boxHeightPx);
+
+    int _appliedFontPx           = -1;
+    int _appliedPlaceholderPx    = -1;
+    int _appliedBoxPx            = -1;
+    uint32_t _appliedTextColor   = 0;
+    uint32_t _appliedPlaceholderColor = 0;
+    uint32_t _appliedBgColor     = 1;
+
     static bool s_isInitialized;
     static int s_editboxChildID;
     static void lazyInit();
