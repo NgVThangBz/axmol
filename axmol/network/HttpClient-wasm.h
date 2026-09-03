@@ -175,7 +175,13 @@ private:
     virtual ~HttpClient();
 
     void processResponse(HttpResponse* response, bool isAlone);
-    static void onRequestComplete(emscripten_fetch_t* fetch);
+
+public:
+    // Invoked from the JS XHR completion (see HttpClient-wasm.cpp). `userData` is an opaque
+    // fetchUserData*; `data`/`len` is the response body (may be empty on network error).
+    static void onRequestComplete(void* userData, int status, const char* data, int len);
+
+private:
     void increaseThreadCount();
     void decreaseThreadCountAndMayDeleteThis();
 

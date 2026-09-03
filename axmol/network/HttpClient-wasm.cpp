@@ -28,6 +28,7 @@
 
 #include "axmol/network/HttpClient-wasm.h"
 #include <queue>
+#include <cstdint>
 #include "axmol/base/Director.h"
 #include "axmol/platform/FileUtils.h"
 #include "yasio/tlx/string_view.hpp"
@@ -160,103 +161,93 @@ void HttpClient::processResponse(HttpResponse* response, bool isAlone)
     }
 
     auto request = response->getHttpRequest();
-    emscripten_fetch_attr_t attr;
-    emscripten_fetch_attr_init(&attr);
 
-    // set http method
-    bool usePostData = false;
+    const char* method = "GET";
     switch (request->getRequestType())
     {
-    case HttpRequest::Type::GET:
-        strcpy(attr.requestMethod, "GET");
-        break;
-
-    case HttpRequest::Type::PATCH:
-        strcpy(attr.requestMethod, "PATCH");
-        usePostData = true;
-        break;
-
-    case HttpRequest::Type::POST:
-        strcpy(attr.requestMethod, "POST");
-        usePostData = true;
-        break;
-
-    case HttpRequest::Type::PUT:
-        strcpy(attr.requestMethod, "PUT");
-        usePostData = true;
-        break;
-
-    case HttpRequest::Type::DELETE:
-        strcpy(attr.requestMethod, "DELETE");
-        break;
-
+    case HttpRequest::Type::GET:    method = "GET";    break;
+    case HttpRequest::Type::PATCH:  method = "PATCH";  break;
+    case HttpRequest::Type::POST:   method = "POST";   break;
+    case HttpRequest::Type::PUT:    method = "PUT";    break;
+    case HttpRequest::Type::DELETE: method = "DELETE"; break;
     default:
         AXASSERT(false, "HttpClient: unknown request type, only GET, PATCH, POST, PUT or DELETE is supported");
         break;
     }
 
-    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-
     auto userData      = new (std::nothrow) fetchUserData();
     userData->isAlone  = isAlone;
     userData->response = response;
 
-    // set header
-    std::vector<std::string> headers;
+    // "key:value\n..." (skip user-agent, which the browser forbids setting)
+    std::string headerBlob;
     for (std::string_view header : request->getHeaders())
     {
-        size_t pos = header.find(":");
-        if (pos != std::string::npos)
-        {
-            if (tlx::ic::starts_with(header, "user-agent"))
-            {
-                AXLOGW("Ignore user-agent for wasm to avoid cause error: Refused to set unsafe header \"User-Agent\"");
-                continue;
+        if (tlx::ic::starts_with(header, "user-agent"))
+            continue;
+        if (header.find(":") == std::string_view::npos)
+            continue;
+        headerBlob.append(header);
+        headerBlob.push_back('\n');
+    }
+
+    const char* body = request->getRequestDataSize() ? request->getRequestData() : "";
+    int bodyLen      = static_cast<int>(request->getRequestDataSize());
+    int timeoutMs    = (getTimeoutForConnect() + getTimeoutForRead()) * 1000;
+    std::string url{request->getUrl()};
+
+    // Direct async XHR. axmol's emscripten_fetch path routes through a Fetch worker under
+    // -sFETCH+pthreads that can stall and never fire its callback, hanging every request.
+    // clang-format off
+    EM_ASM({
+        var userData = $0;
+        var timeout = $6;
+        var xhr = new XMLHttpRequest();
+        xhr.open(UTF8ToString($1), UTF8ToString($2), true);
+        xhr.responseType = 'arraybuffer';
+        if (timeout > 0) xhr.timeout = timeout;
+        UTF8ToString($3).split('\n').forEach(function(h) {
+            var i = h.indexOf(':');
+            if (i < 0) return;
+            try { xhr.setRequestHeader(h.substring(0, i).trim(), h.substring(i + 1).trim()); } catch (e) {}
+        });
+        function done(status) {
+            var ptr = 0;
+            var len = 0;
+            if (xhr.response) {
+                var bytes = new Uint8Array(xhr.response);
+                len = bytes.length;
+                if (len > 0) { ptr = _malloc(len); HEAPU8.set(bytes, ptr); }
             }
-            auto key   = header.substr(0, pos);
-            auto value = header.substr(pos + 1);
-            headers.push_back(std::string{key});
-            headers.push_back(std::string{value});
+            _axmol_http_oncomplete(userData, status, ptr, len);
+            if (ptr) _free(ptr);
         }
-    }
-
-    std::vector<const char*> headersCharptr;
-    headersCharptr.reserve(headers.size() + 1);
-    for (auto& header : headers)
-    {
-        headersCharptr.push_back(header.c_str());
-    }
-    headersCharptr.push_back(0);
-    attr.requestHeaders = &headersCharptr[0];
-
-    // post data
-    if (request->getRequestDataSize())
-    {
-        attr.requestData     = request->getRequestData();
-        attr.requestDataSize = request->getRequestDataSize();
-    }
-
-    attr.onsuccess = onRequestComplete;
-    attr.onerror   = onRequestComplete;
-    attr.timeoutMSecs =
-        (HttpClient::getInstance()->getTimeoutForConnect() + HttpClient::getInstance()->getTimeoutForRead()) * 1000;
-    std::string_view url      = response->getHttpRequest()->getUrl();
-    emscripten_fetch_t* fetch = emscripten_fetch(&attr, url.data());
-    fetch->userData           = userData;
+        xhr.onload    = function() { done(xhr.status); };
+        xhr.onerror   = function() { done(0); };
+        xhr.ontimeout = function() { done(0); };
+        try {
+            xhr.send($5 > 0 ? new Uint8Array(HEAPU8.subarray($4, $4 + $5)) : null);
+        } catch (e) { done(0); }
+    },
+    userData, method, url.c_str(), headerBlob.c_str(), body, bodyLen, timeoutMs);
+    // clang-format on
 }
 
-void HttpClient::onRequestComplete(emscripten_fetch_t* fetch)
+extern "C" EMSCRIPTEN_KEEPALIVE void axmol_http_oncomplete(int userData, int status, int data, int len)
 {
-    fetchUserData* userData = reinterpret_cast<fetchUserData*>(fetch->userData);
+    HttpClient::onRequestComplete(reinterpret_cast<void*>(static_cast<intptr_t>(userData)), status,
+                                  reinterpret_cast<const char*>(static_cast<intptr_t>(data)), len);
+}
+
+void HttpClient::onRequestComplete(void* userDataPtr, int status, const char* data, int len)
+{
+    fetchUserData* userData = reinterpret_cast<fetchUserData*>(userDataPtr);
     tlx::retain_ptr<HttpResponse> response{userData->response, tlx::adopt_object};
     HttpRequest* request = response->getHttpRequest();
 
-    // get response
-    response->setResponseCode(fetch->status);
-    // response->setErrorBuffer(fetch->statusText);
-    response->getResponseData()->assign(reinterpret_cast<const char*>(fetch->data),
-                                        reinterpret_cast<const char*>(fetch->data) + fetch->numBytes);
-    emscripten_fetch_close(fetch);
+    response->setResponseCode(status);
+    if (data && len > 0)
+        response->getResponseData()->assign(data, data + len);
 
     // write cookie back
     auto cookieFilename = HttpClient::getInstance()->getCookieFilename();

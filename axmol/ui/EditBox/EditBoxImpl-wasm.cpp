@@ -60,6 +60,12 @@ EMSCRIPTEN_KEEPALIVE void axmol_editbox_textchange(const char* pszText, int leng
         _activeEditBox->editBoxEditingChanged(text);
     }
 }
+
+// True while an EditBox is being edited; lets the app suppress hotkeys during text input.
+EMSCRIPTEN_KEEPALIVE int axmol_is_editbox_editing()
+{
+    return _activeEditBox != nullptr ? 1 : 0;
+}
 }
 
 bool EditBoxImplWasm::s_isInitialized = false;
@@ -306,6 +312,13 @@ void EditBoxImplWasm::lazyInit()
         // document.body.appendChild(input);
         input.addEventListener(
             "keydown", function(event) {
+                if (event.key === "Enter")
+                {
+                    // end editing so the engine fires the RETURN action (native "Done" behavior)
+                    event.preventDefault();
+                    input.blur();
+                    return;
+                }
                 if (event.key === "Backspace")
                 {
                     // allow delete chars by key  backward
