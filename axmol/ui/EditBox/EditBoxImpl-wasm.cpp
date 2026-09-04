@@ -272,6 +272,12 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
 
 void EditBoxImplWasm::nativeOpenKeyboard()
 {
+    if (_activeEditBox && _activeEditBox != this)
+    {
+        _activeEditBox->_editingMode = false;
+        _activeEditBox->refreshInactiveText();
+    }
+
     _activeEditBox = this;
 
     this->editBoxEditingDidBegin();
@@ -285,6 +291,16 @@ void EditBoxImplWasm::nativeOpenKeyboard()
         input.value     = UTF8ToString($0, $1);
         input.maxlength = $2 != -1 ? $2 : undefined;
         input.focus();
+        // put the caret at the end (some browsers focus at position 0)
+        try {
+            var len = input.value.length;
+            input.setSelectionRange(len, len);
+        } catch (e) {
+            // type=number doesn't support setSelectionRange; re-assign to move caret to end
+            var v = input.value;
+            input.value = '';
+            input.value = v;
+        }
     },
     text.data(), (int)text.size(), (int)_maxLength);
     // clang-format on
