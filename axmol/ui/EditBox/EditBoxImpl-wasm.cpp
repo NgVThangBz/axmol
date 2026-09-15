@@ -141,6 +141,8 @@ void EditBoxImplWasm::setNativeTextHorizontalAlignment(TextHAlignment alignment)
 
 void EditBoxImplWasm::setNativeText(std::string_view text)
 {
+    if (_activeEditBox != this)
+        return;
     // clang-format off
     EM_ASM({
         var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
@@ -283,13 +285,14 @@ void EditBoxImplWasm::nativeOpenKeyboard()
     this->editBoxEditingDidBegin();
 
     auto text = this->getText();
+    auto ph   = this->getPlaceHolder();
 
     // clang-format off
     EM_ASM({
         var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
-        // sync input value from native and focus
-        input.value     = UTF8ToString($0, $1);
-        input.maxlength = $2 != -1 ? $2 : undefined;
+        input.value       = UTF8ToString($0, $1);
+        input.placeholder = UTF8ToString($3, $4);
+        input.maxlength   = $2 != -1 ? $2 : undefined;
         input.focus();
         // put the caret at the end (some browsers focus at position 0)
         try {
@@ -302,7 +305,7 @@ void EditBoxImplWasm::nativeOpenKeyboard()
             input.value = v;
         }
     },
-    text.data(), (int)text.size(), (int)_maxLength);
+    text.data(), (int)text.size(), (int)_maxLength, ph.data(), (int)ph.size());
     // clang-format on
 
     auto rect = ui::Helper::getNodeNativeWindowRect(_editBox);
@@ -335,6 +338,11 @@ void EditBoxImplWasm::lazyInit()
                     input.blur();
                     return;
                 }
+                if (event.key === "Tab")
+                {
+                    event.preventDefault();
+                    return;
+                }
                 if (event.key === "Backspace")
                 {
                     // allow delete chars by key  backward
@@ -360,11 +368,11 @@ void EditBoxImplWasm::lazyInit()
                 }
             });
         input.addEventListener(
-            'change', function() {
-                // handle focus lost
+            'input', function() {
                 var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
                 var result = Module.stringToUTF8WithLen(input.value);
                 _axmol_editbox_textchange(result.ptr, result.length);
+                _free(result.ptr);
             });
         input.addEventListener(
             'blur', function() {
@@ -390,6 +398,8 @@ void EditBoxImplWasm::createEditCtrl(EditBox::InputMode inputMode)
 
 void EditBoxImplWasm::setNativePlaceHolder(std::string_view text)
 {
+    if (_activeEditBox != this)
+        return;
     EM_ASM(
         {
             var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
