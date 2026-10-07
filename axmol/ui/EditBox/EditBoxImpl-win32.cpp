@@ -323,6 +323,18 @@ void EditBoxImplWin::setNativeMaxLength(int maxLength)
     ::SendMessageW(_hwndEdit, EM_LIMITTEXT, maxLength, 0);
 }
 
+void EditBoxImplWin::hideAndRestoreFocus()
+{
+    const HWND editWnd = s_previousFocusWnd;
+    ::ShowWindow(editWnd, SW_HIDE);
+    // Hiding ends editing synchronously, the delegate may have already moved focus to another EditBox.
+    if (s_previousFocusWnd == editWnd)
+    {
+        ::SendMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)editWnd, 0);
+        s_previousFocusWnd = s_hwndAxmol;
+    }
+}
+
 LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
@@ -336,9 +348,7 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
             _hasFocus  = false;
             _endAction = EditBoxDelegate::EditBoxEndAction::RETURN;
-            ::ShowWindow(s_previousFocusWnd, SW_HIDE);
-            ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
-            s_previousFocusWnd = s_hwndCocos;
+            hideAndRestoreFocus();
         }
         if (_hasFocus && wParam == VK_TAB && _editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
         {
@@ -346,9 +356,7 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
             _endAction = shiftDown ? EditBoxDelegate::EditBoxEndAction::TAB_TO_PREVIOUS
                                    : EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
             _hasFocus  = false;
-            ::ShowWindow(s_previousFocusWnd, SW_HIDE);
-            ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
-            s_previousFocusWnd = s_hwndCocos;
+            hideAndRestoreFocus();
         }
         break; 
     case WM_CHAR:
@@ -382,9 +390,7 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
                         _endAction = EditBoxDelegate::EditBoxEndAction::UNKNOWN;
                         break;
                     }
-                    ::ShowWindow(s_previousFocusWnd, SW_HIDE);
-                    ::SendMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
-                    s_previousFocusWnd = s_hwndAxmol;
+                    hideAndRestoreFocus();
                 }
             }
             else if (s_previousFocusWnd != s_hwndAxmol)
@@ -433,6 +439,11 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         break;
     case WM_KILLFOCUS:
         _hasFocus = false;
+        // focus moved straight to another EditBox, hide this one so its editing ends
+        if (const HWND nextWnd = (HWND)wParam; nextWnd && nextWnd != hwnd && ::GetParent(nextWnd) == s_hwndAxmol)
+        {
+            ::ShowWindow(hwnd, SW_HIDE);
+        }
         // when app enter background, this message also be called.
         if (this->_editingMode && !::IsWindowVisible(hwnd))
         {
@@ -480,21 +491,26 @@ LRESULT EditBoxImplWin::hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
     case WM_LBUTTONDOWN:
         if (s_previousFocusWnd != s_hwndAxmol)
         {
-            ::ShowWindow(s_previousFocusWnd, SW_HIDE);
+            const HWND editWnd    = s_previousFocusWnd;
+            EditBoxImplWin* pThis = (EditBoxImplWin*)GetWindowLongPtrW(editWnd, GWLP_USERDATA);
+            ::ShowWindow(editWnd, SW_HIDE);
 
-            EditBoxImplWin* pThis = (EditBoxImplWin*)GetWindowLongPtrW(s_previousFocusWnd, GWLP_USERDATA);
             if (pThis != nullptr && !pThis->_hasFocus)
             {
-                if (pThis->_editingMode && !IsWindowVisible(s_previousFocusWnd))
+                if (pThis->_editingMode && !IsWindowVisible(editWnd))
                 {
                     pThis->editBoxEditingDidEnd(pThis->getNativeText());
                 }
             }
             else
             {
-                ::PostMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
+                ::PostMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)editWnd, 0);
             }
-            s_previousFocusWnd = s_hwndAxmol;
+            // the delegate may have already moved focus to another EditBox
+            if (s_previousFocusWnd == editWnd)
+            {
+                s_previousFocusWnd = s_hwndAxmol;
+            }
         }
 
         break;

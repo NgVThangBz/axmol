@@ -23,15 +23,27 @@ namespace ui
 {
 EditBoxImplWasm* _activeEditBox = nullptr;
 extern "C" {
-EMSCRIPTEN_KEEPALIVE void axmol_editbox_endediting(const char* pszText, int length)
+// action: 0 = RETURN, 1 = TAB_TO_NEXT, 2 = TAB_TO_PREVIOUS
+EMSCRIPTEN_KEEPALIVE void axmol_editbox_endediting(const char* pszText, int length, int action)
 {
     std::string_view text{pszText, static_cast<size_t>(length)};
     AXLOGD("text {} ", text);
     if (_activeEditBox)
     {
-        if (_activeEditBox->isEditingMode())
-            _activeEditBox->editBoxEditingDidEnd(text, EditBoxDelegate::EditBoxEndAction::RETURN);
+        auto endAction = EditBoxDelegate::EditBoxEndAction::RETURN;
+        if (action == 1)
+            endAction = EditBoxDelegate::EditBoxEndAction::TAB_TO_NEXT;
+        else if (action == 2)
+            endAction = EditBoxDelegate::EditBoxEndAction::TAB_TO_PREVIOUS;
+
+        auto ended     = _activeEditBox;
         _activeEditBox = nullptr;
+        if (ended->isEditingMode())
+            ended->editBoxEditingDidEnd(text, endAction);
+
+        // the delegate may have opened another EditBox (tab navigation); ending the previous one hid the shared <input>
+        if (_activeEditBox)
+            _activeEditBox->refocusNative();
     }
 }
 
@@ -225,6 +237,7 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
     _appliedPlaceholderColor  = pc;
     _appliedBgColor           = bgc;
 
+    // clang-format off
     EM_ASM({
         var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
         if ($0 > 0)
@@ -256,12 +269,30 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
     // clang-format on
 }
 
+void EditBoxImplWasm::refocusNative()
+{
+    this->setNativeVisible(true);
+    // clang-format off
+    EM_ASM({
+        var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
+        input.focus();
+        try {
+            var len = input.value.length;
+            input.setSelectionRange(len, len);
+        } catch (e) {}
+    });
+    // clang-format on
+}
+
 void EditBoxImplWasm::nativeOpenKeyboard()
 {
     if (_activeEditBox && _activeEditBox != this)
     {
-        _activeEditBox->_editingMode = false;
-        _activeEditBox->refreshInactiveText();
+        auto previous  = _activeEditBox;
+        _activeEditBox = nullptr;
+        previous->editBoxEditingDidEnd(std::string{previous->_text}, EditBoxDelegate::EditBoxEndAction::RETURN);
+        // ending the previous box hides the shared <input>
+        this->setNativeVisible(true);
     }
 
     _activeEditBox = this;
@@ -324,24 +355,26 @@ void EditBoxImplWasm::lazyInit()
                 }
                 if (event.key === "Tab")
                 {
+                    // end editing with a tab action so the delegate can move to the next/previous EditBox
                     event.preventDefault();
+                    Module.axmol_editbox_endAction = event.shiftKey ? 2 : 1;
+                    input.blur();
                     return;
                 }
                 if (event.key === "Backspace")
                 {
-                    // allow delete chars by key  backward
-                    var cursorPosition = input.selectionStart;
-                    if (cursorPosition > 0)
+                    // the engine's window-level key handler suppresses the browser's default backspace, delete manually
+                    var start = input.selectionStart;
+                    var end   = input.selectionEnd;
+                    if (start === end)
                     {
-                        var value = input.value;
-                        // del last char
-                        // const newValue = value.slice(0, -1);
-                        var newValue = value.slice(0, cursorPosition - 1) + value.slice(cursorPosition);
-                        // update input value
-                        input.value = newValue;
-                        input.setSelectionRange(cursorPosition - 1, cursorPosition - 1);
-                        // input.selectionStart = ;
+                        if (start === 0)
+                            return;
+                        start -= 1;
                     }
+                    input.setRangeText("", start, end, "end");
+                    // programmatic edits don't fire 'input', notify the engine ourselves
+                    input.dispatchEvent(new Event("input"));
                     return;
                 }
 
@@ -364,8 +397,11 @@ void EditBoxImplWasm::lazyInit()
                 var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
                 input.style.display                 = "none";
 
+                var action = Module.axmol_editbox_endAction || 0;
+                Module.axmol_editbox_endAction = 0;
+
                 var result = Module.stringToUTF8WithLen(input.value);
-                _axmol_editbox_endediting(result.ptr, result.length);
+                _axmol_editbox_endediting(result.ptr, result.length, action);
                 _free(result.ptr)
             });
     });

@@ -48,6 +48,7 @@ public:
     void setNativeMaxLength(int maxLength) override;
     // EditBoxDelegate::EditBoxEndAction _endAction;
     bool isEditingMode() const { return _editingMode; }
+    void refocusNative();
 
 private:
     void createEditCtrl(EditBox::InputMode inputMode);

@@ -55,6 +55,7 @@ private:
     void cleanupFont();
     std::string getNativeText() const;
     LRESULT _WindowProc(HWND, UINT, WPARAM, LPARAM);
+    void hideAndRestoreFocus();
 
     WNDPROC _prevWndProc;
 
