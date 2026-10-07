@@ -1,31 +1,17 @@
 /****************************************************************************
 
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include <doctest.h>
 #include "axmol/base/WeakPtr.h"
 #include "axmol/base/RefPtr.h"
 #include "axmol/base/Object.h"
+
+#include <type_traits>
 
 using namespace ax;
 
@@ -151,5 +137,25 @@ TEST_SUITE("base/WeakPtr")
         CHECK(weakValidInDispose == false);
         CHECK(lockWasNullInDispose == true);
         CHECK(weak.expired());
+    }
+}
+
+static_assert(!std::is_copy_constructible_v<Object>);
+static_assert(!std::is_copy_assignable_v<Object>);
+static_assert(!std::is_move_constructible_v<Object>);
+static_assert(!std::is_move_assignable_v<Object>);
+
+TEST_SUITE("base/Object")
+{
+    TEST_CASE("DiagnosticID")
+    {
+        Character first;
+        const auto firstID = first.getObjectID();
+        Character second;
+
+        CHECK(firstID != 0);
+        CHECK(first.getObjectID() == firstID);
+        CHECK(second.getObjectID() != 0);
+        CHECK(second.getObjectID() > firstID);
     }
 }

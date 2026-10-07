@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/physics/3d/PhysicsDebugDraw3D.h"
@@ -218,9 +202,9 @@ void PhysicsDebugDraw3D::DrawText3D(JPH::RVec3Arg inPosition,
     //        (float)inPosition.GetZ(), inString);
 }
 
-void PhysicsDebugDraw3D::draw(ax::Renderer* renderer)
+void PhysicsDebugDraw3D::draw(const ax::SceneRenderState& state)
 {
-    const auto& transform = Camera::getVisitingViewProjectionMatrix();
+    const auto& transform = state.getViewProjectionMatrix();
 
     auto& blend                  = _lineCommand.blendDesc();
     blend.blendEnabled           = true;
@@ -231,14 +215,14 @@ void PhysicsDebugDraw3D::draw(ax::Renderer* renderer)
     if (_dirtyLines && !_lineBuffer.empty())
     {
         _lineCommand.unsafePS()->setUniform(_locMVP, transform.m, sizeof(transform.m));
-        _lineCommand.init(0, Mat4::identity, 0);
+        _lineCommand.init(0, Mat4::identity, 0, state.getView());
 
         _lineCommand.setPrimitiveType(CustomCommand::PrimitiveType::LINE);
         _lineCommand.createVertexBuffer(sizeof(_lineBuffer[0]), _lineBuffer.size(),
                                         CustomCommand::BufferUsage::DYNAMIC);
         _lineCommand.updateVertexBuffer(_lineBuffer.data(), _lineBuffer.size() * sizeof(_lineBuffer[0]));
         _lineCommand.setVertexDrawInfo(0, _lineBuffer.size());
-        renderer->addCommand(&_lineCommand);
+        state.getRenderer()->addCommand(&_lineCommand);
         _dirtyLines = false;
     }
 
@@ -246,13 +230,13 @@ void PhysicsDebugDraw3D::draw(ax::Renderer* renderer)
     if (_dirtyTris && !_triBuffer.empty())
     {
         _triCommand.unsafePS()->setUniform(_locMVP, transform.m, sizeof(transform.m));
-        _triCommand.init(0, Mat4::identity, 0);
+        _triCommand.init(0, Mat4::identity, 0, state.getView());
 
         _triCommand.setPrimitiveType(CustomCommand::PrimitiveType::TRIANGLE);
         _triCommand.createVertexBuffer(sizeof(_triBuffer[0]), _triBuffer.size(), CustomCommand::BufferUsage::DYNAMIC);
         _triCommand.updateVertexBuffer(_triBuffer.data(), _triBuffer.size() * sizeof(_triBuffer[0]));
         _triCommand.setVertexDrawInfo(0, _triBuffer.size());
-        renderer->addCommand(&_triCommand);
+        state.getRenderer()->addCommand(&_triCommand);
         _dirtyTris = false;
     }
 

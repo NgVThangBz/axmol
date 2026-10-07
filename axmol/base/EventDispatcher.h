@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #pragma once
@@ -69,6 +53,8 @@ dispatched.
 */
 class AX_DLL EventDispatcher : public Object
 {
+    using PointerCaptureId = uint64_t;
+
 public:
     // Adds event listener.
 
@@ -299,8 +285,8 @@ protected:
     /** Dispatches event to listeners with a specified listener type */
     void dispatchEventToListeners(EventListenerVector* listeners, const std::function<bool(EventListener*)>& onEvent);
 
-    void removeCapturedPointerListener(EventListener* listener);
-    void removeCapturedPointerListenersForTarget(Node* target);
+    void removeClaimedPointerListener(EventListener* listener);
+    void removeClaimedPointerListenersForTarget(Node* target);
 
     void releaseListener(EventListener* listener);
 
@@ -327,16 +313,27 @@ protected:
     /** Remove all listeners in _toRemoveListeners list and cleanup */
     void cleanToRemovedListeners();
 
-    using PointerCaptureId = uint64_t;
-    struct PointerCaptureEntry
+    bool dispatchClaimedPointerEvent(PointerEvent* event);
+    void dispatchUnclaimedPointerEvent(PointerEvent* event, PointerCaptureId captureId);
+
+    struct PointerClaimDispatchEntry
     {
         WeakPtr<PointerEventListener> listener{nullptr};
         PointerEvent::CaptureBits captureBits{PointerEvent::CAPTURE_NONE};
-        WeakPtr<Camera> camera{nullptr};
+        WeakPtr<const Camera> camera{nullptr};
     };
 
-    bool dispatchCapturedPointerEvent(PointerEvent* event);
-    void dispatchUncapturedPointerEvent(PointerEvent* event, PointerCaptureId captureId);
+    struct PointerClaimTarget
+    {
+        WeakPtr<PointerEventListener> listener{nullptr};
+        WeakPtr<const Camera> camera{nullptr};
+    };
+
+    struct PointerClaimEntry
+    {
+        tlx::inlined_vector<PointerClaimTarget, 4> targets;
+        PointerEvent::CaptureBits captureBits{PointerEvent::CAPTURE_NONE};
+    };
 
     /** Listeners map */
     tlx::string_map<EventListenerVector*> _listenerMap;
@@ -353,7 +350,7 @@ protected:
     /** key: Global Z Order, value: Sorted Nodes */
     tlx::hash_map<float, std::vector<Node*>> _globalZOrderNodeMap;
 
-    tlx::hash_map<PointerCaptureId, PointerCaptureEntry> _capturedPointerListeners;
+    tlx::hash_map<PointerCaptureId, PointerClaimEntry> _claimedPointerListeners;
 
     /** The listeners to be added after dispatching event */
     std::vector<EventListener*> _toAddedListeners;

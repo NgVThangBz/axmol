@@ -1,27 +1,11 @@
 /****************************************************************************
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/ui/LayoutGroup.h"
@@ -199,7 +183,7 @@ bool LayoutGroup::isClippingEnabled() const
     return _clippingEnabled;
 }
 
-void LayoutGroup::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void LayoutGroup::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (!_visible)
     {
@@ -217,10 +201,10 @@ void LayoutGroup::visit(Renderer* renderer, const Mat4& parentTransform, uint32_
         switch (_clippingType)
         {
         case ClippingType::STENCIL:
-            stencilClippingVisit(renderer, parentTransform, parentFlags);
+            stencilClippingVisit(state, parentTransform, parentFlags);
             break;
         case ClippingType::SCISSOR:
-            scissorClippingVisit(renderer, parentTransform, parentFlags);
+            scissorClippingVisit(state, parentTransform, parentFlags);
             break;
         default:
             break;
@@ -229,35 +213,35 @@ void LayoutGroup::visit(Renderer* renderer, const Mat4& parentTransform, uint32_
     else
     {
         // no need to adapt render again
-        ProtectedNode::visit(renderer, parentTransform, parentFlags);
+        ProtectedNode::visit(state, parentTransform, parentFlags);
     }
 }
 
-void LayoutGroup::stencilClippingVisit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void LayoutGroup::stencilClippingVisit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (!_visible)
         return;
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
     // Add group command
 
-    auto* groupCommand = renderer->getNextGroupCommand();
+    auto* groupCommand = state.getRenderer()->getNextGroupCommand();
     groupCommand->init(_globalZOrder);
-    renderer->addCommand(groupCommand);
-    renderer->pushGroup(groupCommand->getRenderQueueID());
+    state.getRenderer()->addCommand(groupCommand);
+    state.getRenderer()->pushGroup(groupCommand->getRenderQueueID());
 
     //    _beforeVisitCmdStencil.init(_globalZOrder);
     //    _beforeVisitCmdStencil.func = AX_CALLBACK_0(StencilStateManager::onBeforeVisit, _stencilStateManager);
-    //    renderer->addCommand(&_beforeVisitCmdStencil);
+    //    state.getRenderer()->addCommand(&_beforeVisitCmdStencil);
     _stencilStateManager->onBeforeVisit(_globalZOrder);
 
-    _clippingStencil->visit(renderer, _modelViewTransform, flags);
+    _clippingStencil->visit(state, _modelViewTransform, flags);
 
-    auto afterDrawStencilCmd = renderer->nextCallbackCommand();
+    auto afterDrawStencilCmd = state.getRenderer()->nextCallbackCommand();
     afterDrawStencilCmd->init(_globalZOrder);
     afterDrawStencilCmd->func = AX_CALLBACK_0(StencilStateManager::onAfterDrawStencil, _stencilStateManager);
-    renderer->addCommand(afterDrawStencilCmd);
+    state.getRenderer()->addCommand(afterDrawStencilCmd);
 
     int i = 0;  // used by _children
     int j = 0;  // used by _protectedChildren
@@ -273,7 +257,7 @@ void LayoutGroup::stencilClippingVisit(Renderer* renderer, const Mat4& parentTra
         auto node = _children.at(i);
 
         if (node && node->getLocalZOrder() < 0)
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(state, _modelViewTransform, flags);
         else
             break;
     }
@@ -283,7 +267,7 @@ void LayoutGroup::stencilClippingVisit(Renderer* renderer, const Mat4& parentTra
         auto node = _protectedChildren.at(j);
 
         if (node && node->getLocalZOrder() < 0)
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(state, _modelViewTransform, flags);
         else
             break;
     }
@@ -291,23 +275,23 @@ void LayoutGroup::stencilClippingVisit(Renderer* renderer, const Mat4& parentTra
     //
     // draw self
     //
-    this->draw(renderer, _modelViewTransform, flags);
+    this->draw(state, _modelViewTransform, flags);
 
     //
     // draw children and protectedChildren zOrder >= 0
     //
     for (auto it = _protectedChildren.cbegin() + j, itCend = _protectedChildren.cend(); it != itCend; ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(state, _modelViewTransform, flags);
 
     for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(state, _modelViewTransform, flags);
 
-    auto afterVisitCmdStencil = renderer->nextCallbackCommand();
+    auto afterVisitCmdStencil = state.getRenderer()->nextCallbackCommand();
     afterVisitCmdStencil->init(_globalZOrder);
     afterVisitCmdStencil->func = AX_CALLBACK_0(StencilStateManager::onAfterVisit, _stencilStateManager);
-    renderer->addCommand(afterVisitCmdStencil);
+    state.getRenderer()->addCommand(afterVisitCmdStencil);
 
-    renderer->popGroup();
+    state.getRenderer()->popGroup();
 }
 
 void LayoutGroup::onBeforeVisitScissor()
@@ -351,31 +335,31 @@ void LayoutGroup::onAfterVisitScissor()
     }
 }
 
-void LayoutGroup::scissorClippingVisit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void LayoutGroup::scissorClippingVisit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (parentFlags & FLAGS_DIRTY_MASK)
     {
         _clippingRectDirty = true;
     }
 
-    auto* groupCommand = renderer->getNextGroupCommand();
+    auto* groupCommand = state.getRenderer()->getNextGroupCommand();
     groupCommand->init(_globalZOrder);
-    renderer->addCommand(groupCommand);
-    renderer->pushGroup(groupCommand->getRenderQueueID());
+    state.getRenderer()->addCommand(groupCommand);
+    state.getRenderer()->pushGroup(groupCommand->getRenderQueueID());
 
-    auto beforeVisitCmdScissor = renderer->nextCallbackCommand();
+    auto beforeVisitCmdScissor = state.getRenderer()->nextCallbackCommand();
     beforeVisitCmdScissor->init(_globalZOrder);
     beforeVisitCmdScissor->func = AX_CALLBACK_0(LayoutGroup::onBeforeVisitScissor, this);
-    renderer->addCommand(beforeVisitCmdScissor);
+    state.getRenderer()->addCommand(beforeVisitCmdScissor);
 
-    ProtectedNode::visit(renderer, parentTransform, parentFlags);
+    ProtectedNode::visit(state, parentTransform, parentFlags);
 
-    auto afterVisitCmdScissor = renderer->nextCallbackCommand();
+    auto afterVisitCmdScissor = state.getRenderer()->nextCallbackCommand();
     afterVisitCmdScissor->init(_globalZOrder);
     afterVisitCmdScissor->func = AX_CALLBACK_0(LayoutGroup::onAfterVisitScissor, this);
-    renderer->addCommand(afterVisitCmdScissor);
+    state.getRenderer()->addCommand(afterVisitCmdScissor);
 
-    renderer->popGroup();
+    state.getRenderer()->popGroup();
 }
 
 void LayoutGroup::setClippingEnabled(bool able)

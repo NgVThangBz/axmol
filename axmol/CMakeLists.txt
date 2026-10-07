@@ -2,30 +2,14 @@
 # Copyright (c) 2013 cocos2d-x.org
 # Copyright (c) 2014 martell malone
 # Copyright (c) 2015-2017 Chukong Technologies Inc.
-# Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+# Copyright (c) 2019-present Simdsoft Limited.
 #
 # https://axmol.dev/
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# SPDX-License-Identifier: MIT
 # ****************************************************************************/
 
-# this CMakeLists is to generate Axmol Engine Library
+# this CMakeLists is to generate Axmol Library
 # build ax
 # build axlua if AX_ENABLE_EXT_LUA=ON
 
@@ -35,7 +19,7 @@
 set(_AX_VERSION 3.0)
 
 if(NOT DEFINED _AX_CORE_LIB)
-  set(_AX_CORE_LIB axmol CACHE INTERNAL "The axmol engine lib name")
+  set(_AX_CORE_LIB axmol CACHE INTERNAL "The axmol lib name")
 endif()
 
 cmake_policy(SET CMP0127 NEW)
@@ -95,12 +79,18 @@ endif()
 if(AX_RENDER_API STREQUAL "auto")
   if(APPLE)
     set(AX_RENDER_API "mtl" CACHE STRING "" FORCE)
-  else()
+  elseif(ANDROID OR LINUX)
+    set(AX_RENDER_API "vk;gl" CACHE STRING "" FORCE)
+  elseif(WINRT)
+    set(AX_RENDER_API "d3d11;d3d12;gl" CACHE STRING "" FORCE)
+  elseif(WIN32)
+    set(AX_RENDER_API "d3d11;d3d12;vk;gl" CACHE STRING "" FORCE)
+  else() # WebAssembly and other platforms default to OpenGL
     set(AX_RENDER_API "gl" CACHE STRING "" FORCE)
   endif()
 endif()
 
-string(REPLACE "," " " AX_RENDER_API_LIST "${AX_RENDER_API}")
+string(REPLACE ";" " " AX_RENDER_API_LIST "${AX_RENDER_API}")
 separate_arguments(AX_RENDER_API_LIST)
 
 # Remove duplicates
@@ -177,7 +167,7 @@ cmake_dependent_option(AX_ENABLE_VLC_MEDIA "Enabling vlc media" OFF "(WIN32 AND 
 cmake_dependent_option(AX_ENABLE_WAYLAND "Enabling linux wayland" OFF "LINUX" OFF)
 
 option(AX_ENABLE_PHYSICS_2D "Build Physics2D support" ON)
-cmake_dependent_option(AX_ENABLE_VIDEO "Build video support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID" OFF)
+cmake_dependent_option(AX_ENABLE_VIDEO "Build video support" ON "AX_ENABLE_MFMEDIA OR AX_ENABLE_VLC_MEDIA OR APPLE OR ANDROID OR WASM" OFF)
 option(AX_ENABLE_AUDIO "Build audio support" ON)
 option(AX_ENABLE_OPUS "Build with opus support" ON)
 
@@ -207,8 +197,8 @@ option(AX_ENABLE_EXT_DRAGONBONES "Build extension DragonBones" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_SCENEIO "Build extension sceneio (aka cocostudio)" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_FAIRYGUI "Build extension FairyGUI" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_IMGUI "Build extension ImGui" ${AX_EXT_HINT})
+option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" ${AX_EXT_HINT})
 option(AX_ENABLE_EXT_LIVE2D "Build extension Live2D" OFF)
-option(AX_ENABLE_EXT_EFFEKSEER "Build extension Effekseer" OFF)
 
 cmake_dependent_option(AX_ENABLE_OPENXR "Build OpenXR support" OFF "AX_ENABLE_VR;NOT IOS;NOT WASM" OFF)
 cmake_dependent_option(AX_ENABLE_EXT_PARTICLE3D "Build extension Particle3D" ${AX_EXT_HINT} "AX_ENABLE_3D" OFF)
@@ -217,6 +207,7 @@ cmake_dependent_option(AX_ENABLE_EXT_INSPECTOR "Build extension Inspector" ${AX_
 cmake_dependent_option(AX_ENABLE_EXT_SDFGEN "Build extension SDFGen" ${AX_EXT_HINT} "AX_ENABLE_EXT_IMGUI" OFF)
 
 option(AX_ENABLE_EXT_JSONDEFAULT "Build extension JSONDefault" ${AX_EXT_HINT})
+option(AX_ENABLE_EXT_SVG "Build extension SVG" OFF)
 set(_AX_THIRDPARTY_NAME "3rdparty" CACHE INTERNAL "")
 
 if(WIN32)
@@ -373,6 +364,12 @@ add_library(${_AX_CORE_LIB} ${_AX_SRC})
 
 if(APPLE)
   set_xcode_property(${_AX_CORE_LIB} CLANG_ENABLE_OBJC_WEAK "YES")
+  # Keep the Xcode project setting visible while also covering non-Xcode
+  # Apple generators.
+  set_xcode_property(${_AX_CORE_LIB} CLANG_ENABLE_OBJC_ARC "YES")
+  target_compile_options(${_AX_CORE_LIB} PRIVATE
+    "$<$<COMPILE_LANGUAGE:OBJC>:-fobjc-arc>"
+    "$<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>")
 endif()
 
 if(WASM)
@@ -434,6 +431,13 @@ set_source_files_properties(
   ${_AX_ROOT}/axmol/renderer/shaders/positionNormalTexture_vs.hlsl
   ${_AX_ROOT}/axmol/renderer/shaders/skinPositionNormalTexture_vs.hlsl
   PROPERTIES AXSLCC_VARIANT_DEFINES "USE_NORMAL_MAPPING=1"
+)
+set_source_files_properties(
+  ${_AX_ROOT}/axmol/renderer/shaders/label_normal_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/label_outline_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/positionTextureColor_fs.hlsl
+  ${_AX_ROOT}/axmol/renderer/shaders/dualSampler_fs.hlsl
+  PROPERTIES AXSLCC_VARIANT_DEFINES "USE_POINT_SAMPLER=1"
 )
 ax_add_shader_target_for(${_AX_CORE_LIB} FILES ${_builtin_shaders} BUILTIN)
 
@@ -639,13 +643,17 @@ endif()
 if(BUILD_ENGINE_BEGAN)
     add_custom_target(axmol-sdk)
 
-    add_dependencies(axmol-sdk axmol ${_AX_EXTENSION_LIBS})
-
+    set(_sdk_exts ${_AX_EXTENSION_LIBS})
+    if(AX_ENABLE_EXT_LUA)
+      list(APPEND _sdk_exts axlua)
+    endif()
+    add_dependencies(axmol-sdk axmol ${_sdk_exts})
+   
     # Automatically gather only the necessary libraries (Core + 3rdparty + Extensions)
     ax_collect_sdk_targets(${CMAKE_SOURCE_DIR} _axmol_libs)
 
     # Export the clean library target map
     export(TARGETS ${_axmol_libs} FILE "${CMAKE_BINARY_DIR}/AxmolTargets.cmake")
 
-    message(STATUS "🔧 Created target 'axmol-sdk' (included extensions: ${_AX_EXTENSION_LIBS}) and exported clean SDK library map (Tests excluded).")
+    message(STATUS "🔧 Created target 'axmol-sdk' (included extensions: ${_sdk_exts}) and exported clean SDK library map (Tests excluded).")
 endif()

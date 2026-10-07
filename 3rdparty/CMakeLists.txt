@@ -111,21 +111,7 @@ function(ax_add_3rd source_dir)
       add_dependencies(3rdparty ${tgt})
     endif()
 
-    if(NOT (tgt_type STREQUAL "INTERFACE_LIBRARY"))
-      set_target_properties(${tgt} PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # Windows/Linux/macOS, .a, .lib
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # Windows .dll, .exe
-        FOLDER "3rdparty"
-      )
-
-      get_target_property(_apple_framework ${tgt} MACOSX_FRAMEWORK_NAME)
-      if(NOT _apple_framework)
-        set_target_properties(${tgt} PROPERTIES
-          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # .so, .dylib, windows imported .lib
-        )
-      endif()
-    endif()
-
+    ax_configure_target_output(${tgt} ${tgt_type} "3rdparty")
   endforeach()
 endfunction()
 
@@ -255,10 +241,9 @@ endif()
 # use lua/js specific libs by property to prevent conflict
 if(AX_ENABLE_EXT_LUA)
   add_subdirectory(lua/${AX_LUA_ENGINE})
-  add_subdirectory(lua/tolua)
   add_subdirectory(lua/lua-cjson)
   set_property(TARGET 3rdparty APPEND PROPERTY
-    AX_LUA_DEPEND ${AX_LUA_ENGINE} tolua lua-cjson
+    AX_LUA_DEPEND ${AX_LUA_ENGINE} lua-cjson
   )
 
   if(AX_USE_LUAJIT)
@@ -437,6 +422,20 @@ if(AX_WITH_TRACY)
   set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
   set(TRACY_ON_DEMAND ON CACHE BOOL "" FORCE)
   ax_add_3rd(${tracy_SOURCE_DIR} TARGETS TracyClient)
+endif()
+
+# SVG
+if(AX_ENABLE_EXT_SVG)
+  _1kfetch(lunasvg)
+  ax_add_3rd(${lunasvg_SOURCE_DIR}
+    TARGETS lunasvg
+    OPTIONS
+      "USE_SYSTEM_PLUTOVG OFF"
+      "LUNASVG_BUILD_EXAMPLES OFF"
+  )
+  if(TARGET plutovg)
+    set_property(TARGET plutovg PROPERTY AX_SKIP_SDK_EXPORT ON)
+  endif()
 endif()
 
 # yasio

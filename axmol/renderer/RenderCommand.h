@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #pragma once
 
@@ -36,6 +20,8 @@
 
 namespace ax
 {
+
+struct SceneViewData;
 
 /** Base class of the `RenderCommand` hierarchy.
 *
@@ -78,7 +64,7 @@ public:
      @param modelViewTransform Modelview matrix when submitting the render command.
      @param flags Flag used to indicate whether the command should be draw at 3D mode or not.
      */
-    void init(float globalZOrder, const Mat4& modelViewTransform, unsigned int flags);
+    void init(float globalZOrder, const Mat4& modelViewTransform, unsigned int flags, const SceneViewData& view);
 
     /** Get global Z order. */
     float getGlobalOrder() const { return _globalOrder; }
@@ -103,6 +89,8 @@ public:
     void set3D(bool value) { _is3D = value; }
     /**Get the depth by current model view matrix.*/
     float getDepth() const { return _depth; }
+    /**Get the view-projection matrix captured when the command was submitted.*/
+    const Mat4& getViewProjectionMatrix() const { return _viewProjection; }
     /**Whether the command should be rendered in wireframe mode.*/
     bool isWireframe() const { return _isWireframe; }
     /**Set wireframe render mode for this command.*/
@@ -153,6 +141,9 @@ protected:
 
     /** Depth from the model view matrix. */
     float _depth = 0.f;
+
+    /** View-projection matrix from the scene render state when this command was submitted. */
+    Mat4 _viewProjection = Mat4::identity;
 
     /** Polygon render mode set to LINE, which represents wireframe mode. */
     bool _isWireframe = false;

@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013 cocos2d-x.org
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "RendererTest.h"
@@ -107,9 +91,6 @@ std::string MultiSceneTest::subtitle() const
 
 NewSpriteTest::NewSpriteTest()
 {
-    auto touchListener         = PointerEventListener::create();
-    touchListener->onPointerUp = AX_CALLBACK_1(NewSpriteTest::onPointerUp, this);
-
     createSpriteTest();
     createNewSpriteTest();
 }
@@ -178,8 +159,6 @@ void NewSpriteTest::createNewSpriteTest()
     addChild(parent);
 }
 
-void NewSpriteTest::onPointerUp(PointerEvent* event) {}
-
 std::string NewSpriteTest::title() const
 {
     return "Renderer";
@@ -195,7 +174,7 @@ class SpriteInGroupCommand : public Sprite
 public:
     static SpriteInGroupCommand* create(std::string_view filename);
 
-    virtual void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    virtual void draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags) override;
 };
 
 SpriteInGroupCommand* SpriteInGroupCommand::create(std::string_view filename)
@@ -206,15 +185,15 @@ SpriteInGroupCommand* SpriteInGroupCommand::create(std::string_view filename)
     return sprite;
 }
 
-void SpriteInGroupCommand::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void SpriteInGroupCommand::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
-    AXASSERT(renderer, "Render is null");
-    auto* spriteWrapperCommand = renderer->getNextGroupCommand();
+    AXASSERT(state.getRenderer(), "Renderer is null");
+    auto* spriteWrapperCommand = state.getRenderer()->getNextGroupCommand();
     spriteWrapperCommand->init(_globalZOrder);
-    renderer->addCommand(spriteWrapperCommand);
-    renderer->pushGroup(spriteWrapperCommand->getRenderQueueID());
-    Sprite::draw(renderer, transform, flags);
-    renderer->popGroup();
+    state.getRenderer()->addCommand(spriteWrapperCommand);
+    state.getRenderer()->pushGroup(spriteWrapperCommand->getRenderQueueID());
+    Sprite::draw(state, transform, flags);
+    state.getRenderer()->popGroup();
 }
 
 GroupCommandTest::GroupCommandTest()

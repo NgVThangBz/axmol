@@ -1,26 +1,9 @@
-# Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md)
+# Copyright (c) 2019-present Simdsoft Limited.
 #
 #   https://axmol.dev/
 #
-# The MIT License (MIT)
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# SPDX-License-Identifier: MIT
 #
 #
 # The 1k/1kiss.ps1, the core script of project 1kiss(1k)
@@ -250,6 +233,7 @@ $cmdlinetools_revs = @{
     '12.0' = '11076708'
     '19.0' = '13114758'
     '20.0' = '14742923'
+    '22.0' = '15859902' # since 22.0 macos-x86_64 and macos-arm64 are separated
 }
 
 $ndk_r23d_rev = '12186248'
@@ -378,6 +362,7 @@ $Global:is_win_family = $Global:is_winrt -or $Global:is_win32
 $Global:is_darwin_embed_family = $Global:is_ios -or $Global:is_tvos -or $Global:is_watchos
 $Global:is_darwin_family = $Global:is_mac -or $Global:is_darwin_embed_family
 $Global:is_gh_act = "$env:GITHUB_ACTIONS" -eq 'true'
+$Global:xcode_ver = $null
 
 $Script:cmake_ver = ''
 
@@ -1519,6 +1504,10 @@ function setup_emsdk() {
     else {
         $1k.println("Using emcc: $emcc_prog, version: $emcc_ver")
     }
+
+    # Emscripten 6.0.1 accepts the standard -m64 spelling for wasm64.
+    # Keep the legacy spelling for older emsdk releases supported by Axmol.
+    $Global:EMSCRIPTEN_VERSION = $emcc_ver
 }
 
 function setup_msvc() {
@@ -1576,6 +1565,7 @@ function setup_xcode() {
     if (!$xcode_prog) {
         throw "The command 'xcodebuild' not work, if you confirm Xcode was installed on this computer, please execute 'sudo xcode-select -switch /Applications/Xcode.app' and try again"
     }
+    return $xcode_ver
 }
 
 # google gn build system, current windows only for build angleproject/dawn on windows
@@ -1767,10 +1757,12 @@ function preprocess_osx() {
         $arch = 'x86_64'
     }
 
-    $outputOptions += "-DCMAKE_OSX_ARCHITECTURES=$arch"
     if ($Global:target_minsdk) {
         $outputOptions += "-DCMAKE_OSX_DEPLOYMENT_TARGET=$Global:target_minsdk"
     }
+
+    $outputOptions += "-DCMAKE_OSX_ARCHITECTURES=$arch"
+    
     return , $outputOptions
 }
 
@@ -1911,6 +1903,16 @@ elseif ($Global:is_wasm) {
     $ninja_prog = setup_ninja
     . setup_emsdk
 }
+elseif ($Global:is_darwin_family) {
+    $Global:xcode_ver = setup_xcode
+    if (([VersionEx]$xcode_ver -ge [VersionEx]'27.0') -and ([VersionEx]$Global:target_minsdk -lt [VersionEx]'12.0')) {
+        if ($Global:is_mac) {
+            $old_min_sdk = $Global:target_minsdk
+            $Global:target_minsdk = '12.0'
+            $1k.println("Xcode $xcode_ver is >= 27.0, forcing target_minsdk from $old_min_sdk to $Global:target_minsdk")
+        }
+    }
+}
 
 $is_host_target = $Global:is_win32 -or $Global:is_linux -or $Global:is_mac
 $is_host_cpu = $HOST_CPU -eq $TARGET_CPU
@@ -2000,8 +2002,14 @@ if (!$setupOnly) {
         if (!$is_win_family) {
             $cm_cflags = '-fPIC'
             if ($TARGET_OS -eq 'wasm64') {
-                $cm_cflags += ' -sMEMORY64'
-                $CONFIG_ALL_OPTIONS += '-DEMSCRIPTEN_SYSTEM_PROCESSOR=x86_64', '-DCMAKE_CXX_FLAGS=-sMEMORY64'
+                if (version_ge $Global:EMSCRIPTEN_VERSION '6.0.1') {
+                    $wasm64_flag = '-m64'
+                }
+                else {
+                    $wasm64_flag = '-sMEMORY64'
+                }
+                $cm_cflags += " $wasm64_flag"
+                $CONFIG_ALL_OPTIONS += '-DEMSCRIPTEN_SYSTEM_PROCESSOR=x86_64', "-DCMAKE_CXX_FLAGS=$wasm64_flag"
             }
 
             $CONFIG_ALL_OPTIONS += "-DCMAKE_C_FLAGS=$cm_cflags"
@@ -2085,10 +2093,6 @@ if (!$setupOnly) {
 
                 if ($using_ninja -and $Global:is_android) {
                     $CONFIG_ALL_OPTIONS += "-DCMAKE_MAKE_PROGRAM=$ninja_prog"
-                }
-
-                if ($cmake_generator -eq 'Xcode') {
-                    setup_xcode
                 }
             }
 

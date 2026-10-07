@@ -2,25 +2,9 @@
  * Copyright (c) 2012 cocos2d-x.org
  * Copyright (c) 2013-2016 Chukong Technologies Inc.
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ * Copyright (c) 2019-present Simdsoft Limited.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * SPDX-License-Identifier: MIT
  */
 
 /*
@@ -60,22 +44,29 @@ public:
      *
      *.
      */
-    enum DrawMode
+    enum class DrawMode
     {
         Fill,
         Outline,
         Line,
         Semi,
+        FillWithLine,
     };
 
-    enum PointType
+    enum class CornerMode
+    {
+        Round,
+        Bevel,
+    };
+
+    enum class PointStyle
     {
         Circle,
         Rect,
     };
 
     // See also example on https://www.angusj.com/clipper2/Docs/Units/Clipper/Types/EndType.htm
-    enum EndType
+    enum class EndStyle
     {
         Square,
         Round,
@@ -98,7 +89,7 @@ public:
     void drawPoint(const Vec2& point,
                    const float pointSize,
                    const Color& color,
-                   DrawNode::PointType pointType = DrawNode::PointType::Rect);
+                   DrawNode::PointStyle pointType = DrawNode::PointStyle::Rect);
 
     /** Draw a group point.
      *
@@ -109,7 +100,7 @@ public:
     void drawPoints(const Vec2* position,
                     unsigned int numberOfPoints,
                     const Color& color,
-                    DrawNode::PointType pointType = DrawNode::PointType::Rect);
+                    DrawNode::PointStyle pointType = DrawNode::PointStyle::Rect);
 
     /** Draw a group point.
      *
@@ -122,7 +113,7 @@ public:
                     unsigned int numberOfPoints,
                     const float pointSize,
                     const Color& color,
-                    DrawNode::PointType pointType = DrawNode::PointType::Rect);
+                    DrawNode::PointStyle pointType = DrawNode::PointStyle::Rect);
 
     /** Draw an line from origin to destination with color.
      *
@@ -133,9 +124,9 @@ public:
     void drawLine(const Vec2& origin,
                   const Vec2& destination,
                   const Color& color,
-                  float thickness           = 1.0f,
-                  DrawNode::EndType etStart = DrawNode::EndType::Round,
-                  DrawNode::EndType etEnd   = DrawNode::EndType::Round);
+                  float thickness            = 1.0f,
+                  DrawNode::EndStyle etStart = DrawNode::EndStyle::Round,
+                  DrawNode::EndStyle etEnd   = DrawNode::EndStyle::Round);
 
     /** Draws a rectangle given the origin and destination point measured in points.
      * The origin and the destination can not have the same x and y coordinate.
@@ -315,6 +306,7 @@ public:
      * @param p3 The rectangle vertex point.
      * @param p4 The rectangle vertex point.
      * @param color The rectangle color.
+     * @param thickness The rectangle thickness.
      */
     void drawRect(const Vec2& p1,
                   const Vec2& p2,
@@ -322,6 +314,52 @@ public:
                   const Vec2& p4,
                   const Color& color,
                   float thickness = 1.0f);
+
+    /** Draws a rectangle with 4 rounded corners.
+     *
+     * @param origin The rectangle vertex point.
+     * @param destination The rectangle vertex point.
+     * @param color The rectangle color. Alpha != 0.0 || alpha != 1.0 is not supported
+     * @param thickness The rectangle thickness.
+     * @param crLB The radius of the left-bottom corner.
+     * @param crLT The radius of the left-top corner.
+     * @param crRT The radius of the right-top corner.
+     * @param crRB The radius of the right-bottom corner.
+     * @param mode The mode for drawing the corners.
+     */
+    void drawCornerRect(const Vec2& origin,
+                        const Vec2& destination,
+                        const Color& color,
+                        float thickness = 1.0f,
+                        float crLB      = 5.0f,
+                        float crLT      = 5.0f,
+                        float crRT      = 5.0f,
+                        float crRB      = 5.0f,
+                        CornerMode mode = CornerMode::Round);
+
+    /** Draws a solid rectangle with 4 rounded corners.
+     *
+     * @param origin The rectangle vertex point.
+     * @param destination The rectangle vertex point.
+     * @param fillColor The fill color of the rectangle.  Alpha != 0.0 || alpha != 1.0 is not supported
+     * @param borderColor The border color of the rectangle.  Alpha != 0.0 || alpha != 1.0 is not supported
+     * @param thickness The rectangle thickness.
+     * @param crLB The radius of the left-bottom corner.
+     * @param crLT The radius of the left-top corner.
+     * @param crRT The radius of the right-top corner.
+     * @param crRB The radius of the right-bottom corner.
+     * @param mode The mode for drawing the corners.
+     */
+    void drawSolidCornerRect(const Vec2& origin,
+                             const Vec2& destination,
+                             const Color& fillColor,
+                             const Color& borderColor,
+                             float thickness = 1.0f,
+                             float crLB      = 5.0f,
+                             float crLT      = 5.0f,
+                             float crRT      = 5.0f,
+                             float crRB      = 5.0f,
+                             CornerMode mode = CornerMode::Round);
 
     /** Draws a solid rectangle given the origin and destination point measured in points.
      * The origin and the destination can not have the same x and y coordinate.
@@ -464,8 +502,8 @@ public:
                      const Vec2& to,
                      float radius,
                      const Color& color,
-                     DrawNode::EndType etStart = DrawNode::EndType::Round,
-                     DrawNode::EndType etEnd   = DrawNode::EndType::Round);
+                     DrawNode::EndStyle etStart = DrawNode::EndStyle::Round,
+                     DrawNode::EndStyle etEnd   = DrawNode::EndStyle::Round);
 
     /** draw a polygon with a fill color and line color
      * @code
@@ -536,9 +574,9 @@ public:
     void setBlendFunc(const BlendFunc& blendFunc) override;
 
     // Overrides
-    void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    void draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags) override;
 
-    void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
+    void visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags) override;
 
     /**
      * When isolated is set, the position of the node is no longer affected by parent nodes.
@@ -562,7 +600,7 @@ protected:
     void freeShaderInternal(CustomCommand& cmd);
 
     void updateBlendState(CustomCommand& cmd);
-    void updateUniforms(const Mat4& transform, CustomCommand& cmd);
+    void updateUniforms(const SceneRenderState& state, const Mat4& transform, CustomCommand& cmd);
 
     bool _trianglesDirty : 1 = false;
     bool _pointsDirty : 1    = false;
@@ -587,14 +625,14 @@ private:
     void _drawPoint(const Vec2& position,
                     const float pointSize,
                     const Color& color,
-                    const DrawNode::PointType pointType);
+                    const DrawNode::PointStyle pointType);
 
     // Internal function _drawPoints
     void _drawPoints(const Vec2* position,
                      unsigned int numberOfPoints,
                      const float pointSize,
                      const Color& color,
-                     const DrawNode::PointType pointType);
+                     const DrawNode::PointStyle pointType);
 
     // Internal function _drawDot
     void _drawDot(const Vec2& pos, float radius, const Color& color);
@@ -636,6 +674,29 @@ private:
     // Internal function _drawRect
     void _drawRect(const Vec2& origin, const Vec2& destination, const Color& color, float thickness = 1.0f);
 
+    // Internal function _drawCornerRect
+    void _drawCornerRect(const Vec2& origin,
+                         const Vec2& destination,
+                         const Color& color,
+                         float thickness = 1.0f,
+                         float crLB      = 5.0f,
+                         float crLT      = 5.0f,
+                         float crRT      = 5.0f,
+                         float crRB      = 5.0f,
+                         CornerMode mode = CornerMode::Round);
+
+    // Internal function _drawSolidCornerRect
+    void _drawSolidCornerRect(const Vec2& origin,
+                              const Vec2& destination,
+                              const Color& color,
+                              const Color& borderColor,
+                              float thickness = 1.0f,
+                              float crLB      = 5.0f,
+                              float crLT      = 5.0f,
+                              float crRT      = 5.0f,
+                              float crRB      = 5.0f,
+                              CornerMode mode = CornerMode::Round);
+
     // Internal function _drawFilledRect
     void _drawFilledRect(const Vec2& origin, const Vec2& destination, const Color& color);
 
@@ -643,9 +704,9 @@ private:
     void _drawSegment(const Vec2& origin,
                       const Vec2& destination,
                       const Color& color,
-                      float thickness           = 1.0f,
-                      DrawNode::EndType etStart = DrawNode::EndType::Square,
-                      DrawNode::EndType etEnd   = DrawNode::EndType::Square);
+                      float thickness            = 1.0f,
+                      DrawNode::EndStyle etStart = DrawNode::EndStyle::Square,
+                      DrawNode::EndStyle etEnd   = DrawNode::EndStyle::Square);
 
     // Internal function _drawCircle
     void _drawCircle(const Vec2& center,

@@ -1,8 +1,6 @@
 local visibleRect = ax.Director:getInstance():getRenderView():getVisibleRect()
 local centerPos   = ax.p(visibleRect.x + visibleRect.width / 2,visibleRect.y + visibleRect.height /2)
 
-axui.VideoPlayer = axui.MediaPlayer
-
 local function VideoPlayerTest()
     local layer = ax.Layer:create() --createTestLayer("VideoPlayerTest", "")
     titleLabel = ax.Label:createWithTTF("VideoPlayerTest", s_arialPath, 28)
@@ -20,18 +18,20 @@ local function VideoPlayerTest()
     layer:addChild(videoStateLabel)
 
     local function onVideoEventCallback(sener, eventType)
-        if eventType == ccui.VideoPlayerEvent.PLAYING then
+        if eventType == axui.VideoPlayer.EventType.PLAYING then
             videoStateLabel:setString("PLAYING")
-        elseif eventType == ccui.VideoPlayerEvent.PAUSED then
+        elseif eventType == axui.VideoPlayer.EventType.PAUSED then
             videoStateLabel:setString("PAUSED")
-        elseif eventType == ccui.VideoPlayerEvent.STOPPED then
+        elseif eventType == axui.VideoPlayer.EventType.STOPPED then
             videoStateLabel:setString("STOPPED")
-        elseif eventType == ccui.VideoPlayerEvent.COMPLETED then
+        elseif eventType == axui.VideoPlayer.EventType.COMPLETED then
             videoStateLabel:setString("COMPLETED")
+        elseif eventType == axui.VideoPlayer.EventType.ERROR then
+            videoStateLabel:setString("ERROR")
         end
     end
     local widgetSize = widget:getContentSize()
-    local videoPlayer = ccui.VideoPlayer:create()
+    local videoPlayer = axui.VideoPlayer:create()
     videoPlayer:setPosition(centerPos)
     videoPlayer:setAnchorPoint(ax.p(0.5, 0.5))
     videoPlayer:setContentSize(ax.size(widgetSize.width * 0.4,widgetSize.height * 0.4))
@@ -44,7 +44,7 @@ local function VideoPlayerTest()
 
     local function menuFullScreenCallback(tag, sender)
         if nil  ~= videoPlayer then
-            videoPlayer:setFullScreenEnabled(not videoPlayer:isFullScreenEnabled())
+            videoPlayer:setFullscreen(not videoPlayer:isFullscreen())
         end
     end
     local fullSwitch = ax.MenuItemFont:create("FullScreenSwitch")
@@ -121,7 +121,7 @@ local function VideoPlayerTest()
 
     local function menuRatioCallback(tag, sender)
         if nil ~= videoPlayer then
-            videoPlayer:setKeepAspectRatioEnabled(not videoPlayer:isKeepAspectRatioEnabled())
+            videoPlayer:setKeepAspectRatio(not videoPlayer:isKeepAspectRatio())
         end
     end
     local ratioSwitch = ax.MenuItemFont:create("KeepRatioSwitch")
@@ -129,7 +129,16 @@ local function VideoPlayerTest()
     ratioSwitch:setPosition(ax.p(visibleRect.x + visibleRect.width - 10,visibleRect.y + 150))
     ratioSwitch:registerScriptTapHandler(menuRatioCallback)
 
-    local menu = ax.Menu:create(fullSwitch, pauseItem, resumeItem, stopItem, hintItem, resourceVideo, onlineVideo, ratioSwitch)
+    local loopSwitch = ax.MenuItemFont:create(videoPlayer:isLooping() and "Loop: ON" or "Loop: OFF")
+    loopSwitch:setAnchorPoint(ax.p(1, 0.5))
+    loopSwitch:setPosition(ax.p(visibleRect.x + visibleRect.width - 10,visibleRect.y + 250))
+    local function menuLoopCallback(tag, sender)
+        videoPlayer:setLooping(not videoPlayer:isLooping())
+        loopSwitch:setString(videoPlayer:isLooping() and "Loop: ON" or "Loop: OFF")
+    end
+    loopSwitch:registerScriptTapHandler(menuLoopCallback)
+
+    local menu = ax.Menu:create(fullSwitch, pauseItem, resumeItem, stopItem, hintItem, resourceVideo, onlineVideo, ratioSwitch, loopSwitch)
     menu:setPosition(ax.p(0.0, 0.0))
     layer:addChild(menu)
 

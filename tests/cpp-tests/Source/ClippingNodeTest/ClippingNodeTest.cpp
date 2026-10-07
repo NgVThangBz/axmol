@@ -1,26 +1,10 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 //
@@ -565,12 +549,10 @@ void RawStencilBufferTest::initCommands()
     //    _disableStencilCallback.func = [=]() { renderer->setStencilTest(false); };
     //    _disableStencilCallback.init(_globalZOrder);
 
-    auto program              = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_UCOLOR);
-    _programState             = new rhi::ProgramState(program);
-    _locColor                 = _programState->getProgram()->getUniformLocation("u_color");
-    _locMVPMatrix             = _programState->getProgram()->getUniformLocation("u_MVPMatrix");
-    const auto& projectionMat = Camera::getVisitingViewProjectionMatrix();
-    _programState->setUniform(_locMVPMatrix, projectionMat.m, sizeof(projectionMat.m));
+    auto program  = axpm->getBuiltinProgram(rhi::ProgramType::POSITION_UCOLOR);
+    _programState = new rhi::ProgramState(program);
+    _locColor     = _programState->getProgram()->getUniformLocation("u_color");
+    _locMVPMatrix = _programState->getProgram()->getUniformLocation("u_MVPMatrix");
 
     Object::assign(_vertexLayout, _programState->getVertexLayout());
 
@@ -611,12 +593,15 @@ void RawStencilBufferTest::initCommands()
     }
 }
 
-void RawStencilBufferTest::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void RawStencilBufferTest::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
+    const auto& projectionMat = state.getViewProjectionMatrix();
+    _programState->setUniform(_locMVPMatrix, projectionMat.m, sizeof(projectionMat.m));
+
     auto winPoint  = Vec2(Director::getInstance()->getCanvasSize());
     auto planeSize = winPoint * (1.0 / _planeCount);
 
-    renderer->addCallbackCommand([=]() { renderer->setStencilTest(true); }, _globalZOrder);
+    state.getRenderer()->addCallbackCommand([=]() { state.getRenderer()->setStencilTest(true); }, _globalZOrder);
 
     for (int i = 0, cmdIndex = 0; i < _planeCount; i++)
     {
@@ -626,22 +611,22 @@ void RawStencilBufferTest::draw(Renderer* renderer, const Mat4& transform, uint3
         _sprites.at(i)->setPosition(spritePoint);
         _spritesStencil.at(i)->setPosition(spritePoint);
 
-        renderer->clear(ClearFlag::STENCIL, Color::black, 0.f, 0x0, _globalZOrder);
+        state.getRenderer()->clear(ClearFlag::STENCIL, Color::black, 0.f, 0x0, _globalZOrder);
 
-        renderer->addCommand(&_renderCmds[cmdIndex]);
+        state.getRenderer()->addCommand(&_renderCmds[cmdIndex]);
         cmdIndex++;
 
         _modelViewTransform = this->transform(transform);
-        _spritesStencil.at(i)->visit(renderer, _modelViewTransform, flags);
+        _spritesStencil.at(i)->visit(state, _modelViewTransform, flags);
 
-        renderer->addCommand(&_renderCmds[cmdIndex]);
+        state.getRenderer()->addCommand(&_renderCmds[cmdIndex]);
         cmdIndex++;
 
         _modelViewTransform = this->transform(transform);
-        _sprites.at(i)->visit(renderer, _modelViewTransform, flags);
+        _sprites.at(i)->visit(state, _modelViewTransform, flags);
     }
 
-    renderer->addCallbackCommand([=]() { renderer->setStencilTest(false); }, _globalZOrder);
+    state.getRenderer()->addCallbackCommand([=]() { state.getRenderer()->setStencilTest(false); }, _globalZOrder);
 }
 
 void RawStencilBufferTest::onBeforeDrawClip(int planeIndex)
@@ -936,7 +921,8 @@ void ClippingToRenderTextureTest::reproduceBug()
     {
         auto scope = RefPtr<RenderTexturePass>(RenderTexturePass::obtain(rt), tlx::adopt_object);
         scope->begin();
-        container->visit();
+        SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
+        container->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
         scope->end();
     }
 }

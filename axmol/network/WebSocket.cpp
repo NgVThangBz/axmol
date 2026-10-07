@@ -1,26 +1,10 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "yasio/yasio.hpp"
@@ -184,9 +168,9 @@ struct WebSocketProtocol
         if (fin)
             flags |= WS_FIN;
         auto frame_size = websocket_calc_frame_size((websocket_flags)flags, len);
-        tlx::sbyte_buffer sb;
+        tlx::byte_buffer sb;
         sb.resize(frame_size);
-        websocket_build_frame(sb.data(), (websocket_flags)flags, mask, buf, len);
+        websocket_build_frame(sb.as_chars().data(), (websocket_flags)flags, mask, buf, len);
         return ws._service->write(ws._transport, std::move(sb));  // write(sendbuf_.base, frame_size);
     }
 };
@@ -398,7 +382,7 @@ int WebSocket::on_frame_end(websocket_parser* parser)
             break;
         case WS_OP_PING:
             AXLOGD("WS: control frame: PING");
-            WebSocketProtocol::sendFrame(*ws, ws->_receivedData.data(), ws->_receivedData.size(),
+            WebSocketProtocol::sendFrame(*ws, ws->_receivedData.as_chars().data(), ws->_receivedData.size(),
                                          ws::detail::opcode::pong);
             break;
         case WS_OP_PONG:
@@ -458,7 +442,8 @@ void WebSocket::close(uint16_t code, std::string_view reason)
             obs.write(_closeCode);
             obs.write_bytes(reason);
 
-            WebSocketProtocol::sendFrame(*this, obs.data(), obs.length(), ws::detail::opcode::close);
+            WebSocketProtocol::sendFrame(*this, reinterpret_cast<const char*>(obs.data()), obs.length(),
+                                         ws::detail::opcode::close);
 
             _service->close(0);
 
@@ -524,7 +509,7 @@ void WebSocket::handleNetworkEvent(yasio::io_event* event)
         if (_state == State::CONNECTING)
         {
             auto&& pkt = event->packet_view();
-            this->do_handshake(pkt.data(), pkt.size());
+            this->do_handshake(reinterpret_cast<const char*>(pkt.data()), pkt.size());
             if (_handshakeFinished)
             {
                 ErrorCode error = ErrorCode::OK;
@@ -574,7 +559,8 @@ void WebSocket::handleNetworkEvent(yasio::io_event* event)
         else if (_state == State::OPEN)
         {
             auto&& pkt = event->packet_view();
-            websocket_parser_execute(&_wsParser, &_wsParserSettings, pkt.data(), pkt.size());
+            websocket_parser_execute(&_wsParser, &_wsParserSettings, std::bit_cast<const char*>(pkt.data()),
+                                     pkt.size());
         }  // else unreachable
         break;
     case YEK_ON_OPEN:

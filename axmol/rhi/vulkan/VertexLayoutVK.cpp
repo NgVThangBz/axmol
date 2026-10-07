@@ -1,28 +1,12 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/rhi/vulkan/VertexLayoutVK.h"
-#include "axmol/rhi/vulkan/RenderContextVK.h"
+#include "axmol/rhi/vulkan/GraphicsContextVK.h"
 #include "axmol/base/Logging.h"
 
 namespace ax::rhi::vk
@@ -76,8 +60,8 @@ VertexLayoutImpl::VertexLayoutImpl(VertexLayoutDesc&& desc) : VertexLayout(std::
     for (auto& inputDesc : bindingsDesc)
     {
         VkVertexInputBindingDescription binding{};
-        binding.binding   = inputDesc.instanceStepRate ? RenderContextImpl::VI_INSTANCING_BINDING_INDEX
-                                                       : RenderContextImpl::VI_BINDING_INDEX;
+        binding.binding   = inputDesc.instanceStepRate ? GraphicsContextImpl::VI_INSTANCING_BINDING_INDEX
+                                                       : GraphicsContextImpl::VI_BINDING_INDEX;
         binding.stride    = inputDesc.instanceStepRate ? static_cast<uint32_t>(getInstanceStride())
                                                        : static_cast<uint32_t>(getStride());
         binding.inputRate = inputDesc.instanceStepRate ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;

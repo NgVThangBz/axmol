@@ -1,27 +1,11 @@
 /****************************************************************************
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/ui/Slider.h"
@@ -123,6 +107,20 @@ bool Slider::init()
     return false;
 }
 
+void Slider::setGlobalZOrder(float globalZOrder)
+{
+    Widget::setGlobalZOrder(globalZOrder);
+
+    if (_slidBallNormalRenderer)
+        _slidBallNormalRenderer->setGlobalZOrder(globalZOrder);
+
+    if (_slidBallPressedRenderer)
+        _slidBallPressedRenderer->setGlobalZOrder(globalZOrder);
+
+    if (_slidBallDisabledRenderer)
+        _slidBallDisabledRenderer->setGlobalZOrder(globalZOrder);
+}
+
 void Slider::initRenderNode()
 {
     _barRenderer         = Scale9Sprite::create();
@@ -135,11 +133,18 @@ void Slider::initRenderNode()
     addProtectedChild(_barRenderer, BASEBAR_RENDERER_Z, -1);
     addProtectedChild(_progressBarRenderer, PROGRESSBAR_RENDERER_Z, -1);
 
-    _slidBallNormalRenderer  = Sprite::create();
+    const auto globalZOrder = getGlobalZOrder();
+
+    _slidBallNormalRenderer = Sprite::create();
+    _slidBallNormalRenderer->setGlobalZOrder(globalZOrder);
+
     _slidBallPressedRenderer = Sprite::create();
     _slidBallPressedRenderer->setVisible(false);
+    _slidBallPressedRenderer->setGlobalZOrder(globalZOrder);
+
     _slidBallDisabledRenderer = Sprite::create();
     _slidBallDisabledRenderer->setVisible(false);
+    _slidBallDisabledRenderer->setGlobalZOrder(globalZOrder);
 
     _slidBallRenderer = Node::create();
 
@@ -499,46 +504,33 @@ bool Slider::hitTestSelf(const ax::Vec2& pt, const Camera* camera, Vec3* /*p*/) 
     return camera->isWorldPointInRect(pt, w2l, rect) || camera->isWorldPointInRect(pt, barW2l, sliderBarRect);
 }
 
-bool Slider::onPointerHitTest(PointerEvent* event, Vec3* outHitPoint)
+bool Slider::hitTestSelf(PointerEvent* event, Vec3* outHitPoint)
 {
     if (!event)
         return false;
 
-    const Ray& ray = event->getRay();
-
-    // Test slid ball
-    {
+    const Ray& ray       = event->getRay();
+    auto hitTestRenderer = [&ray, outHitPoint](Node* renderer) {
         Ray localRay(ray);
-        localRay.transform(_slidBallNormalRenderer->getWorldToNodeTransform());
-        if (localRay.direction.z != 0.0f)
-        {
-            float t = -localRay.origin.z / localRay.direction.z;
-            if (t >= 0.0f)
-            {
-                Vec3 hitPt = localRay.origin + t * localRay.direction;
-                if (Rect(Vec2(), _slidBallNormalRenderer->getContentSize()).containsPoint(Vec2(hitPt.x, hitPt.y)))
-                    return Widget::onPointerHitTest(event, outHitPoint);
-            }
-        }
-    }
+        localRay.transform(renderer->getWorldToNodeTransform());
+        if (localRay.direction.z == 0.0f)
+            return false;
 
-    // Test bar
-    {
-        Ray localRay(ray);
-        localRay.transform(_barRenderer->getWorldToNodeTransform());
-        if (localRay.direction.z != 0.0f)
-        {
-            float t = -localRay.origin.z / localRay.direction.z;
-            if (t >= 0.0f)
-            {
-                Vec3 hitPt = localRay.origin + t * localRay.direction;
-                if (Rect(Vec2(), _barRenderer->getContentSize()).containsPoint(Vec2(hitPt.x, hitPt.y)))
-                    return Widget::onPointerHitTest(event, outHitPoint);
-            }
-        }
-    }
+        float t = -localRay.origin.z / localRay.direction.z;
+        if (t < 0.0f)
+            return false;
 
-    return false;
+        Vec3 hitPoint = localRay.origin + t * localRay.direction;
+        if (!Rect(Vec2(), renderer->getContentSize()).containsPoint(Vec2(hitPoint.x, hitPoint.y)))
+            return false;
+
+        if (outHitPoint)
+            renderer->getNodeToWorldTransform().transformPoint(hitPoint, outHitPoint);
+
+        return true;
+    };
+
+    return hitTestRenderer(_slidBallNormalRenderer) || hitTestRenderer(_barRenderer);
 }
 
 bool Slider::onPointerDown(PointerEvent* event)

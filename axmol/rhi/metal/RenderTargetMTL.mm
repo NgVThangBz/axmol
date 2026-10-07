@@ -1,8 +1,8 @@
 #include "axmol/rhi/metal/RenderTargetMTL.h"
 #include "axmol/rhi/metal/UtilsMTL.h"
 #include "axmol/rhi/metal/TextureMTL.h"
-#include "axmol/rhi/metal/RenderContextMTL.h"
-#include "axmol/rhi/metal/DriverMTL.h"
+#include "axmol/rhi/metal/GraphicsContextMTL.h"
+#include "axmol/rhi/metal/GraphicsDeviceMTL.h"
 #include "axmol/tlx/hash.hpp"
 
 namespace ax::rhi::mtl
@@ -34,7 +34,7 @@ static MTLStoreAction getStoreAction(const RenderPassDesc& params, TargetBufferF
 }
 
 RenderTargetImpl::RenderTargetImpl() : RenderTarget(false) {}
-RenderTargetImpl::RenderTargetImpl(RenderContextImpl* context) : RenderTarget(true), _context(context)
+RenderTargetImpl::RenderTargetImpl(GraphicsContextImpl* context) : RenderTarget(true), _context(context)
 {
     _dirtyFlags = TargetBufferFlags::ALL;
 }
@@ -132,7 +132,7 @@ void RenderTargetImpl::rebuildSwapchainAttachments()
     depthDesc.pixelFormat  = PixelFormat::D24S8;
     depthDesc.textureUsage = TextureUsage::RENDER_TARGET;
 
-    auto mtlDevice = static_cast<DriverImpl*>(axdrv)->getMTLDevice();
+    auto mtlDevice = static_cast<GraphicsDeviceImpl*>(axdrv)->getMTLDevice();
     auto tex       = new TextureImpl(mtlDevice, depthDesc);
     // ensure native texture
     tex->updateData(nullptr, width, height, 0);
@@ -162,9 +162,9 @@ RenderTargetImpl::Attachment RenderTargetImpl::getDepthStencilAttachment() const
 PixelFormat RenderTargetImpl::getColorAttachmentPixelFormat(int index) const
 {
     // !!!important
-    // the default framebuffer pixel format is: MTLPixelFormatBGRA8Unorm
+    // the default framebuffer pixel format controlled by UtilsMTL::getDefaultColorAttachmentPixelFormat()
     if (isDefaultRenderTarget())
-        return index == 0 ? PixelFormat::BGRA8 : PixelFormat::NONE;
+        return index == 0 ? UtilsMTL::getDefaultColorAttachmentPixelFormat() : PixelFormat::NONE;
     auto& rb = this->_color[index];
     return rb ? rb.texture->getPixelFormat() : PixelFormat::NONE;
 }

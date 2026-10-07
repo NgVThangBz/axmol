@@ -2,27 +2,11 @@
  Copyright (c) 2016 Google Inc.
  Copyright (c) 2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 // IMPORTANT
@@ -161,7 +145,7 @@ static Mat4 getRotateEulerMatrix(float x, float y, float z)
 VRGenericHeadTracker::VRGenericHeadTracker() : _localPosition(Vec3::zero)
 {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS)
-    _motionMgr = [[CMMotionManager alloc] init];
+    _motionMgr = (__bridge_retained void*)[[CMMotionManager alloc] init];
 #endif
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS) || \
@@ -178,14 +162,16 @@ VRGenericHeadTracker::~VRGenericHeadTracker()
 #endif
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS)
-    [(CMMotionManager*)_motionMgr release];
+    id motionMgr = (__bridge_transfer id)_motionMgr;
+    (void)motionMgr;
+    _motionMgr = nullptr;
 #endif
 }
 
 void VRGenericHeadTracker::startTracking()
 {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS)
-    CMMotionManager* motionMgr = (CMMotionManager*)_motionMgr;
+    CMMotionManager* motionMgr = (__bridge CMMotionManager*)_motionMgr;
     if (motionMgr.isDeviceMotionAvailable && !motionMgr.isDeviceMotionActive)
     {
         [motionMgr startDeviceMotionUpdatesUsingReferenceFrame:CMAttitudeReferenceFrameXArbitraryZVertical];
@@ -214,7 +200,7 @@ void VRGenericHeadTracker::startTracking()
 void VRGenericHeadTracker::stopTracking()
 {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS)
-    [(CMMotionManager*)_motionMgr stopDeviceMotionUpdates];
+    [(__bridge CMMotionManager*)_motionMgr stopDeviceMotionUpdates];
 #elif (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     Device::setAccelerometerEnabled(false);
 #endif
@@ -228,7 +214,7 @@ Vec3 VRGenericHeadTracker::getLocalPosition()
 Mat4 VRGenericHeadTracker::getLocalRotation()
 {
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS) && !defined(AX_TARGET_OS_TVOS)
-    CMMotionManager* motionMgr = (CMMotionManager*)_motionMgr;
+    CMMotionManager* motionMgr = (__bridge CMMotionManager*)_motionMgr;
     CMDeviceMotion* motion     = motionMgr.deviceMotion;
 
     if (motion)

@@ -6,27 +6,11 @@
  * Copyright (c) 2011      Marco Tillemans
  * Copyright (c) 2013-2016 Chukong Technologies Inc.
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ * Copyright (c) 2019-present Simdsoft Limited.
  *
  * https://axmol.dev/
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  */
 #include "axmol/2d/ParticleBatchNode.h"
@@ -131,7 +115,7 @@ bool ParticleBatchNode::initWithFile(std::string_view fileImage, int capacity)
 
 // override visit.
 // Don't call visit on it's children
-void ParticleBatchNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void ParticleBatchNode::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     // CAREFUL:
     // This visit is almost identical to Node#visit
@@ -145,11 +129,11 @@ void ParticleBatchNode::visit(Renderer* renderer, const Mat4& parentTransform, u
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
-    if (isVisitableByVisitingCamera())
+    if (isVisitableByCamera(state.cameraFlag))
     {
-        draw(renderer, _modelViewTransform, flags);
+        draw(state, _modelViewTransform, flags);
     }
 }
 
@@ -418,7 +402,7 @@ void ParticleBatchNode::removeAllChildrenWithCleanup(bool doCleanup)
     _textureAtlas->removeAllQuads();
 }
 
-void ParticleBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void ParticleBatchNode::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     AX_PROFILER_START("CCParticleBatchNode - draw");
 
@@ -428,7 +412,7 @@ void ParticleBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t
     _customCommand.init(_globalZOrder, _blendFunc);
 
     // Texture is set in TextureAtlas.
-    const ax::Mat4& projectionMat = Camera::getVisitingViewProjectionMatrix();
+    const ax::Mat4& projectionMat = state.getViewProjectionMatrix();
     Mat4 finalMat                 = projectionMat * transform;
     auto programState             = _customCommand.unsafePS();
     programState->setUniform(_mvpMatrixLocaiton, finalMat.m, sizeof(finalMat.m));
@@ -447,7 +431,7 @@ void ParticleBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t
         _customCommand.updateIndexBuffer(indices, sizeof(indices[0]) * capacity * 6);
     }
 
-    renderer->addCommand(&_customCommand);
+    state.getRenderer()->addCommand(&_customCommand);
 
     AX_PROFILER_STOP("CCParticleBatchNode - draw");
 }

@@ -2,27 +2,11 @@
  Copyright (c) 2013      Zynga Inc.
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #pragma once
@@ -177,7 +161,7 @@ public:
      * Allocates and initializes a Label, base on platform-dependent API.
      *
      * @param text The initial text.
-     * @param font A font file or a font family name.
+     * @param font A font family name.
      * @param fontSize The font size. This value must be > 0.
      * @param dimensions
      * @param hAlignment The text horizontal alignment.
@@ -392,7 +376,7 @@ public:
     /**
      * Sets a new system font to Label.
      *
-     * @param font A font file or a font family name.
+     * @param font A font family name.
      * @warning
      */
     virtual void setSystemFontName(std::string_view font);
@@ -731,8 +715,8 @@ public:
     const Vec2& getContentSize() const override;
     Rect getBoundingBox() const override;
 
-    void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
-    void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    void visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags) override;
+    void draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags) override;
 
     void setCameraMask(unsigned short mask, bool applyChildren = true) override;
 
@@ -802,7 +786,7 @@ protected:
 
     void computeStringNumLines();
 
-    void drawSelf(bool visibleByCamera, Renderer* renderer, uint32_t flags);
+    void drawSelf(bool visibleByCamera, const SceneRenderState& state, uint32_t flags);
 
     bool multilineTextWrapByChar(bool ignoreOverflow = false);
     bool multilineTextWrapByWord(bool ignoreOverflow = false);
@@ -832,6 +816,7 @@ protected:
     void createShadowSpriteForSystemFont(const FontDefinition& fontDef);
 
     virtual void updateShaderProgram();
+    uint32_t getBuiltinProgramType();
     virtual void updateFontScale();
 
     void scaleFontSize(float fontSize);
@@ -855,7 +840,7 @@ protected:
     void updateBlendState();
     void updateEffectUniforms(BatchCommand& batch,
                               TextureAtlas* textureAtlas,
-                              Renderer* renderer,
+                              const SceneRenderState& state,
                               const Mat4& transform);
     void updateBuffer(TextureAtlas* textureAtlas, CustomCommand& customCommand);
 
@@ -864,6 +849,7 @@ protected:
     bool _contentDirty;
     bool _useDistanceField;
     bool _useA8Shader;
+    bool _usesBuiltinLabelProgram;
     bool _shadowDirty;
 
     bool _shadowEnabled;

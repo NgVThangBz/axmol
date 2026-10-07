@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2019 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
 
  Code based GamePlay3D's Camera: http://gameplay3d.org
 
@@ -30,6 +14,7 @@
 #include "axmol/scene/CameraBackgroundBrush.h"
 #include "axmol/platform/RenderView.h"
 #include "axmol/scene/Scene.h"
+#include "axmol/base/Director.h"
 #include "axmol/renderer/Renderer.h"
 #include "axmol/renderer/QuadCommand.h"
 #include "axmol/renderer/RenderTexture.h"
@@ -37,65 +22,46 @@
 namespace ax
 {
 
-Camera* Camera::_visitingCamera = nullptr;
 Viewport Camera::_defaultViewport;
 
 // start static methods
 
+Camera* Camera::create()
+{
+    auto ret = new Camera();
+    ret->autorelease();
+    return ret;
+}
+
 Camera* Camera::create(CameraMode mode)
 {
-    auto& size = Director::getInstance()->getCanvasSize();
+    auto& canvasSize = Director::getInstance()->getCanvasSize();
     switch (mode)
     {
     case CameraMode::Ortho:
     {
-        auto cam = Camera::createOrthographicView(size, -1024.0f, 1024.0f);
+        auto cam = Camera::create();
+        cam->configureOrthographicView(canvasSize, -1024.0f, 1024.0f);
         return cam;
     }
     case CameraMode::Perspective:
     {
-        auto cam = Camera::createPerspective(60.0f, size.width / size.height, 0.3f, 1000.0f);
+        auto cam = Camera::create();
+        cam->configurePerspective(60.0f, canvasSize.width / canvasSize.height, 0.3f, 1000.0f);
         cam->setPosition3D(Vec3(0.0f, 1.5f, 5.0f));
         cam->lookAt(Vec3(0, 0, 0));
         return cam;
     }
     case CameraMode::Classic:
     {
-        Camera* camera = new Camera();
-        camera->initClassic();
-        camera->autorelease();
-        return camera;
+        auto cam = Camera::create();
+        cam->configureClassicView(canvasSize);
+        cam->setDepth(0);
+        return cam;
     }
     }
     AXASSERT(false, "Invalid CameraMode");
     return nullptr;
-}
-
-Camera* Camera::createPerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane)
-{
-    auto ret         = new Camera();
-    ret->_cameraMode = CameraMode::Perspective;
-    ret->configurePerspective(fieldOfView, aspectRatio, nearPlane, farPlane);
-    ret->autorelease();
-    return ret;
-}
-
-Camera* Camera::createOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane)
-{
-    auto ret         = new Camera();
-    ret->_cameraMode = CameraMode::Ortho;
-    ret->configureOrthographic(zoomX, zoomY, nearPlane, farPlane);
-    ret->autorelease();
-    return ret;
-}
-
-Camera* Camera::createOrthographicView(const Vec2& size, float nearPlane, float farPlane)
-{
-    auto ret         = new Camera();
-    ret->_cameraMode = CameraMode::Ortho;
-    ret->configureOrthographicView(size, nearPlane, farPlane);
-    ret->autorelease();
-    return ret;
 }
 
 Camera* Camera::getDefaultCamera()
@@ -114,12 +80,6 @@ const Viewport& Camera::getDefaultViewport()
     return _defaultViewport;
 }
 
-const Mat4& Camera::getVisitingViewProjectionMatrix()
-{
-    AXASSERT(_visitingCamera, "Camera::getVisitingViewProjectionMatrix() requires a visiting camera");
-    return _visitingCamera ? _visitingCamera->getViewProjectionMatrix() : Mat4::identity;
-}
-
 void Camera::setDefaultViewport(const Viewport& vp)
 {
     _defaultViewport = vp;
@@ -128,15 +88,7 @@ void Camera::setDefaultViewport(const Viewport& vp)
 // end static methods
 
 Camera::Camera()
-    : _eyeZdistance(1)
-    , _zoomFactor(1)
-    , _nearPlane(-1024)
-    , _farPlane(1024)
-    , _zoomFactorNearPlane(10)
-    , _zoomFactorFarPlane(1024)
 {
-    // minggo comment
-    // _frustum.setClipZ(true);
     _renderView = _director->getRenderView();
 }
 
@@ -218,12 +170,6 @@ const Mat4& Camera::getViewProjectionMatrix() const
     return _viewProjection;
 }
 
-void Camera::setAdditionalProjection(const Mat4& mat)
-{
-    _projection = mat * _projection;
-    getViewProjectionMatrix();
-}
-
 void Camera::updateProjection()
 {
     switch (_cameraMode)
@@ -236,6 +182,8 @@ void Camera::updateProjection()
     case CameraMode::Classic:
         Mat4::createPerspective(_fieldOfView, _aspectRatio, _nearPlane, _farPlane, &_projection);
         break;
+    case CameraMode::None:
+        break;
     }
 
     _viewProjectionDirty = true;
@@ -244,19 +192,13 @@ void Camera::updateProjection()
 
 void Camera::configureClassicView(const Vec2& canvasSize)
 {
-    const float zeye = _director->getZEye();
+    const float zeye     = _director->getZEye();
+    const float farPlane = zeye + canvasSize.height * 0.5f;
 
-    _aspectRatio        = canvasSize.width / canvasSize.height;
-    _farPlane           = zeye + canvasSize.height * 0.5f;
-    _zoomFactorFarPlane = _farPlane;
+    configureClassic(canvasSize.width / canvasSize.height, 0.5f, farPlane);
 
-    updateProjection();
-
-    const Vec3 eye(canvasSize.width * 0.5f, canvasSize.height * 0.5f, zeye);
-    const Vec3 center(canvasSize.width * 0.5f, canvasSize.height * 0.5f, 0.0f);
-
-    setPosition3D(eye);
-    lookAt(center, Vec3::yAxis);
+    setPosition3D(Vec3(canvasSize.width * 0.5f, canvasSize.height * 0.5f, zeye));
+    lookAt(Vec3(canvasSize.width * 0.5f, canvasSize.height * 0.5f, 0.0f), Vec3::yAxis);
     _eyeZdistance = zeye;
 
     if (_zoomFactor != 1.0f)
@@ -282,34 +224,33 @@ void Camera::onCanvasSizeChanged(const Vec2& canvasSize)
         _aspectRatio = canvasSize.width / canvasSize.height;
         updateProjection();
         break;
+    case CameraMode::None:
+        break;
     }
 }
 
-void Camera::initClassic()
+void Camera::configureClassic(float aspectRatio, float nearPlane, float farPlane)
 {
-    _cameraMode  = CameraMode::Classic;
-    _fieldOfView = 60.0F;
-    _nearPlane   = 0.5F;
-    configureClassicView(_director->getCanvasSize());
-    setDepth(0);
-}
-
-void Camera::updateTransform()
-{
+    _cameraMode          = CameraMode::Classic;
+    _fieldOfView         = 60.0F;
+    _aspectRatio         = aspectRatio;
+    _nearPlane           = nearPlane;
+    _farPlane            = farPlane;
+    _zoomFactorNearPlane = _nearPlane;
+    _zoomFactorFarPlane  = _farPlane;
     updateProjection();
 }
 
 bool Camera::configurePerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane)
 {
+    _cameraMode  = CameraMode::Perspective;
     _fieldOfView = fieldOfView;
     _aspectRatio = aspectRatio;
     _nearPlane   = nearPlane;
     _farPlane    = farPlane;
 
-    if (_zoomFactorFarPlane == 1024)
-        _zoomFactorFarPlane = farPlane;
-    if (_zoomFactorNearPlane == 10)
-        _zoomFactorNearPlane = nearPlane;
+    _zoomFactorNearPlane = nearPlane;
+    _zoomFactorFarPlane  = farPlane;
 
     updateProjection();
     return true;
@@ -317,10 +258,11 @@ bool Camera::configurePerspective(float fieldOfView, float aspectRatio, float ne
 
 bool Camera::configureOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane)
 {
-    _zoom[0]   = zoomX;
-    _zoom[1]   = zoomY;
-    _nearPlane = nearPlane;
-    _farPlane  = farPlane;
+    _cameraMode = CameraMode::Ortho;
+    _zoom[0]    = zoomX;
+    _zoom[1]    = zoomY;
+    _nearPlane  = nearPlane;
+    _farPlane   = farPlane;
 
     updateProjection();
     return true;
@@ -541,7 +483,16 @@ void Camera::clearBackground()
 {
     if (_clearBrush)
     {
-        _clearBrush->drawBackground(this);
+        SceneRenderState state(Director::getInstance()->getRenderer(), this);
+        _clearBrush->drawBackground(state);
+    }
+}
+
+void Camera::clearBackground(const SceneRenderState& state)
+{
+    if (_clearBrush)
+    {
+        _clearBrush->drawBackground(state);
     }
 }
 
@@ -583,10 +534,10 @@ void Camera::setNearPlane(float nearPlane)
     updateProjection();
 }
 
-void Camera::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void Camera::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     _viewProjectionUpdated = _transformUpdated;
-    return Node::visit(renderer, parentTransform, parentFlags);
+    return Node::visit(state, parentTransform, parentFlags);
 }
 
 void Camera::setBackgroundBrush(CameraBackgroundBrush* clearBrush)

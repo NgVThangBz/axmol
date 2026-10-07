@@ -2,27 +2,11 @@
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "NodeTest.h"
@@ -751,8 +735,9 @@ std::string CameraCenterTest::subtitle() const
 //------------------------------------------------------------------
 ConvertToNode::ConvertToNode()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(ConvertToNode::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(ConvertToNode::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto s = Director::getInstance()->getCanvasSize();
@@ -933,7 +918,7 @@ public:
         return sprite;
     }
     bool setProgramState(rhi::ProgramState* programState, bool ownPS = false) override;
-    virtual void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    virtual void draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags) override;
 
 protected:
     CustomCommand _customCommand;
@@ -954,13 +939,13 @@ bool MySprite::setProgramState(rhi::ProgramState* programState, bool ownPS /* = 
     return false;
 }
 
-void MySprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void MySprite::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
-    const auto& projectionMat = Camera::getVisitingViewProjectionMatrix();
+    const auto& projectionMat = state.getViewProjectionMatrix();
     auto mvpMatrix            = projectionMat * transform;
     _customCommand.unsafePS()->setUniform(_mvpMatrixLocation, mvpMatrix.m, sizeof(mvpMatrix.m));
-    _customCommand.init(_globalZOrder, transform, flags);
-    renderer->addCommand(&_customCommand);
+    _customCommand.init(_globalZOrder, transform, flags, state.getView());
+    state.getRenderer()->addCommand(&_customCommand);
 }
 
 //------------------------------------------------------------------
@@ -1403,7 +1388,8 @@ void Issue16100Test::onEnter()
 
     auto delay = DelayTime::create(0.1f);
     auto f     = CallFunc::create([this, s]() {
-        auto camera = Camera::createOrthographic(s.width * 2, s.height * 2, -1024, 1024);
+        auto camera = Camera::create();
+        camera->configureOrthographic(s.width * 2, s.height * 2, -1024, 1024);
         camera->setCameraFlag(CameraFlag::USER1);
         addChild(camera);
     });

@@ -1,25 +1,9 @@
 /****************************************************************************
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/renderer/RenderTexturePass.h"
 
@@ -118,24 +102,20 @@ void RenderTexturePass::begin(const Camera* camera)
 
     if (_cameraOverrideEnabled)
     {
-        // Fallback chain: explicit camera -> visiting camera -> default camera -> offscreen camera
+        // Fallback chain: explicit camera -> default camera -> offscreen camera
         if (!camera)
         {
-            camera = Camera::getVisitingCamera();
-            if (!camera)
-                camera = Camera::getDefaultCamera();
+            auto scene = Director::getInstance()->getRunningScene();
+            camera     = scene ? scene->getDefaultCamera() : nullptr;
             if (!camera)
                 camera = Director::getInstance()->getOffscreenCamera();
         }
-
-        // Save visiting camera
-        _savedCamera = Camera::getVisitingCamera();
-        Camera::setVisitingCamera(const_cast<Camera*>(camera));
+        _activeCamera = camera;
 
         // Save and flip visiting camera's projection on OpenGL to keep texture upright
         if (_autoFlipY && rhi::GraphicsCore::isOpenGL())
         {
-            auto cam = const_cast<Camera*>(Camera::getVisitingCamera());
+            auto cam = const_cast<Camera*>(_activeCamera);
             if (cam)
             {
                 _savedProjection = cam->getProjectionMatrix();
@@ -205,15 +185,12 @@ void RenderTexturePass::end()
     // Restore visiting camera's projection immediately
     if (_savedProjection.has_value())
     {
-        auto cam = const_cast<Camera*>(Camera::getVisitingCamera());
+        auto cam = const_cast<Camera*>(_activeCamera);
         if (cam)
             cam->setProjectionMatrix(*_savedProjection);
         _savedProjection.reset();
     }
-
-    // Restore visiting camera immediately
-    if (_savedCamera)
-        Camera::setVisitingCamera(const_cast<Camera*>(_savedCamera));
+    _activeCamera = nullptr;
 
     _active = false;
 }

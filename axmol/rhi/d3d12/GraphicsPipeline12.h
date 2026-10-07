@@ -1,0 +1,109 @@
+/****************************************************************************
+ Copyright (c) 2019-present Simdsoft Limited.
+
+ https://axmol.dev/
+
+ SPDX-License-Identifier: MIT
+ ****************************************************************************/
+#pragma once
+
+#include "axmol/rhi/GraphicsPipeline.h"
+#include "axmol/rhi/DXUtils.h"
+#include "axmol/rhi/d3d12/SamplerBatchCache12.h"
+#include "axmol/tlx/hlookup.hpp"
+#include <d3d12.h>
+#include <unordered_map>
+
+namespace ax::rhi
+{
+class ProgramState;
+}
+
+namespace ax::rhi::d3d12
+{
+class DepthStencilStateImpl;
+class VertexLayoutImpl;
+class ProgramImpl;
+class GraphicsDeviceImpl;
+struct DescriptorHandle;
+
+struct RootSignatureEntry
+{
+    RootSignatureEntry()                                = default;
+    RootSignatureEntry(RootSignatureEntry&&)            = default;
+    RootSignatureEntry& operator=(RootSignatureEntry&&) = default;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSig;
+
+    // RootParameter indices
+    UINT srvRootIndex           = UINT_MAX;
+    UINT samplerRootIndex       = UINT_MAX;
+    UINT customSamplerRootIndex = UINT_MAX;
+
+    SamplerBatchCache customSamplerBatches;
+};
+
+/**
+ * @brief D3D12-based graphics pipeline implementation
+ *
+ * Manage PSO And RootSignature
+ */
+class GraphicsPipelineImpl : public GraphicsPipeline
+{
+public:
+    static constexpr int MAX_DESCRIPTOR_SETS      = 2;
+    static constexpr int SET_INDEX_UBO            = 0;
+    static constexpr int SET_INDEX_SAMPLER        = 1;
+    static constexpr int SET_INDEX_CUSTOM_SAMPLER = 2;
+    static constexpr int SET_INDEX_SRV            = 1;
+    static constexpr int SAMPLER_ROOT_INDEX       = 0;
+
+    explicit GraphicsPipelineImpl(GraphicsDeviceImpl* driver);
+    ~GraphicsPipelineImpl();
+
+    void prepareUpdate(DepthStencilStateImpl* ds,
+                       D3D12_CULL_MODE cullMode,
+                       BOOL frontCCW,
+                       PrimitiveGroup primitiveGroup)
+    {
+        _dsState                          = ds;
+        _rasterDesc.CullMode              = cullMode;
+        _rasterDesc.FrontCounterClockwise = frontCCW;
+        _primitiveGroup                   = primitiveGroup;
+    }
+
+    void update(const RenderTarget*, const PipelineDesc& desc);
+
+    ID3D12PipelineState* getPipelineState() const { return _activePSO.Get(); }
+    RootSignatureEntry* getRootSignature() const { return _activeRootSignature; }
+    const DescriptorHandle* getCustomSamplerBatch(const ::ax::rhi::ProgramState* programState);
+
+    void removeCachedObjects(Program* key);
+
+private:
+    void initializePipelineDefaults();
+
+    void updateBlendState(const BlendDesc& blendDesc);
+    void updateRootSignature(ProgramImpl* program);
+    void updateGraphicsPipeline(const PipelineDesc& desc, ProgramImpl* program);
+
+private:
+    GraphicsDeviceImpl* _driver{nullptr};
+
+    const DepthStencilStateImpl* _dsState{nullptr};
+
+    PrimitiveGroup _primitiveGroup{};
+
+    D3D12_BLEND_DESC _blendDesc{};
+    D3D12_RASTERIZER_DESC _rasterDesc{};
+    D3D12_INPUT_LAYOUT_DESC _inputLayout{};
+
+    RootSignatureEntry* _activeRootSignature{nullptr};
+    ComPtr<ID3D12PipelineState> _activePSO;
+
+    tlx::hash_map<uintptr_t, ComPtr<ID3D12PipelineState>> _psoCache;
+    tlx::hash_map<uint64_t, RootSignatureEntry> _rootSigCache;
+
+    tlx::hash_map<uint64_t, uintptr_t> _programToPSOMap;
+};
+
+}  // namespace ax::rhi::d3d12

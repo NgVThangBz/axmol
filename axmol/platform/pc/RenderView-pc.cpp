@@ -2,27 +2,11 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 
 The RenderView for win32,linux,macos,wasm
 
@@ -50,16 +34,16 @@ The RenderView for win32,linux,macos,wasm
 
 #if AX_ENABLE_MTL
 #    include <Metal/Metal.h>
-#    include "axmol/rhi/metal/DriverMTL.h"
+#    include "axmol/rhi/metal/GraphicsDeviceMTL.h"
 #    include "axmol/rhi/metal/UtilsMTL.h"
 #endif
 #if AX_ENABLE_GL
-#    include "axmol/rhi/opengl/DriverGL.h"
+#    include "axmol/rhi/opengl/GraphicsDeviceGL.h"
 #    include "axmol/rhi/opengl/MacrosGL.h"
 #    include "axmol/rhi/opengl/OpenGLState.h"
 #endif
 #if AX_ENABLE_VK
-#    include "axmol/rhi/vulkan/DriverVK.h"
+#    include "axmol/rhi/vulkan/GraphicsDeviceVK.h"
 #endif  // #if (AX_TARGET_PLATFORM == AX_PLATFORM_MAC)
 
 #include "axmol/rhi/GraphicsCore.h"
@@ -401,6 +385,48 @@ static constexpr KeyCodeItem s_keyCodeItems[] = {
     {GLFW_KEY_MENU, KeyboardEvent::KeyCode::KEY_MENU},
     {GLFW_KEY_LAST, KeyboardEvent::KeyCode::KEY_NONE}};
 
+static uint32_t mapModifiers(int glfwMods)
+{
+    if (glfwMods == 0)
+        return 0;
+
+    uint32_t result = 0;
+
+    if ((glfwMods & GLFW_MOD_CONTROL) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::CONTROL;
+    }
+
+    if ((glfwMods & GLFW_MOD_ALT) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::ALT;
+    }
+
+    if ((glfwMods & GLFW_MOD_SHIFT) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::SHIFT;
+    }
+
+    if ((glfwMods & GLFW_MOD_SUPER) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::SUPER;
+    }
+
+    // GLFW_MOD_CAPS_LOCK and GLFW_MOD_NUM_LOCK require
+    // GLFW_LOCK_KEY_MODS input mode to be set
+    if ((glfwMods & GLFW_MOD_CAPS_LOCK) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::CAPS_LOCK;
+    }
+
+    if ((glfwMods & GLFW_MOD_NUM_LOCK) != 0)
+    {
+        result |= EventKeyboard::KeyModifier::NUM_LOCK;
+    }
+
+    return result;
+}
+
 // wasm input bridge
 #if defined(__EMSCRIPTEN__)
 extern "C" {
@@ -449,6 +475,12 @@ axmol_onwebpointerevent(int type, int id, float x, float y, float pressure, int 
     else if (button == 2)
         button = 1;  // Axmol Right
 
+    // Touch contacts carry no mouse-style button index. Match Android's touch stream:
+    // down/up use InputButton::None (-1) so the captured touch-move lookup in
+    // EventDispatcher (keyed on InputButton::None) finds the listener.
+    if (mappedType == ax::PointerType::Touch)
+        button = ax::InputButton::None;
+
     // Assemble the modernized cohesive PointerInputState
     // W3C Pointer Events button values are aligned with both GLFW mouse button indices and Axmol’s InputButton
     // enumeration.
@@ -487,7 +519,7 @@ axmol_onwebpointerevent(int type, int id, float x, float y, float pressure, int 
 // Parameters:
 //   id        - pointer id (if available from the browser), otherwise 0 for mouse
 //   x, y      - canvas-local coordinates (pixels)
-//   deltaX/Y  - normalized scroll delta in pixels (bridge should normalize deltaMode)
+//   deltaX/Y  - normalized logical scroll offsets, approximately one unit per wheel tick
 //   pointerType - 0=mouse,1=touch,2=pen
 //   buttons   - current buttons bitmask (W3C 'buttons' bitmask)
 EMSCRIPTEN_KEEPALIVE void
@@ -553,6 +585,7 @@ static void initWebInputBridge()
         canvas.style.outline = "none";
         canvas.style.boxShadow = "none"; // Guards against some specific WebKit/Safari shadows
         canvas.style.webkitTapHighlightColor = "rgba(0,0,0,0)"; // Disables flash on mobile touch
+        canvas.style.touchAction = "none";
 
         // Centralized event translator and forwarder
         // Centralized event translator and forwarder
@@ -570,10 +603,10 @@ static void initWebInputBridge()
                 }
             }
 
-            // Keep preventDefault() active for general canvas clicks to guard the game
-            // against webpage zooming, scrolling, and blue highlight selections.
+            // Suppress cancelable default behaviors such as text selection and
+            // compatibility mouse actions. Touch panning and zooming are controlled
+            // by the canvas CSS touch-action property.
             if (e.cancelable) {
-                // Suppress browser default behaviors (such as pinch-to-zoom, rubber-banding, or scrolling)
                 e.preventDefault();
             }
 
@@ -602,6 +635,19 @@ static void initWebInputBridge()
             // Cross the WebAssembly boundary to shoot the telemetry directly into C++ core
             // Appended parameters: ptrType (device type), e.button (triggering button), e.buttons (active button bitmask)
             Module._axmol_onwebpointerevent(eventType, pointerId, canvasX, canvasY, rawPressure, ptrType, e.button, e.buttons || 0);
+        }
+
+        // Normalize browser wheel units to GLFW-like logical scroll offsets.
+        // Approximately one unit represents one conventional mouse-wheel tick,
+        // while fractional values preserve high-resolution trackpad scrolling.
+        function normalizeWheelDelta(delta, deltaMode) {
+            if (deltaMode === WheelEvent.DOM_DELTA_PIXEL)
+                return delta / 100.0;
+
+            if (deltaMode === WheelEvent.DOM_DELTA_LINE)
+                return delta / 3.0;
+
+            return delta;
         }
 
         // Bind Down Event: Triggers pointer locking/capturing for boundary-proof dragging
@@ -671,19 +717,8 @@ static void initWebInputBridge()
             var canvasX = (e.clientX - rect.left);
             var canvasY = (e.clientY - rect.top);
 
-            // Normalize deltaMode to pixels:
-            // 0 = DOM_DELTA_PIXEL, 1 = DOM_DELTA_LINE, 2 = DOM_DELTA_PAGE
-            // Use reasonable fallbacks: line -> 16px, page -> viewport height.
-            var deltaX = e.deltaX;
-            var deltaY = e.deltaY;
-            if (e.deltaMode === 1) { // lines
-                var LINE_HEIGHT = 16; // conservative default line height in pixels
-                deltaX *= LINE_HEIGHT;
-                deltaY *= LINE_HEIGHT;
-            } else if (e.deltaMode === 2) { // pages
-                deltaX *= window.innerHeight;
-                deltaY *= window.innerHeight;
-            }
+            var deltaX = normalizeWheelDelta(e.deltaX, e.deltaMode);
+            var deltaY = normalizeWheelDelta(e.deltaY, e.deltaMode);
 
             // Determine pointerId if available (some browsers include pointerId on wheel events)
             var pid = (typeof e.pointerId !== 'undefined') ? e.pointerId : 0;
@@ -844,7 +879,7 @@ void* RenderView::getNativeWindow() const
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
     return glfwGetWin32Window(_mainWindow);
 #elif AX_TARGET_PLATFORM == AX_PLATFORM_MAC
-    return (void*)glfwGetCocoaWindow(_mainWindow);
+    return (__bridge void*)glfwGetCocoaWindow(_mainWindow);
 #elif AX_TARGET_PLATFORM == AX_PLATFORM_LINUX
 #    if defined(AX_ENABLE_WAYLAND)
     int platform = glfwGetPlatform();
@@ -860,16 +895,15 @@ void* RenderView::getNativeWindow() const
 
 SurfaceHandle RenderView::getNativeDisplay() const
 {
-    auto driverType = GraphicsCore::currentDriverType();
-    if (driverType == DriverType::Vulkan)
+    auto driverType = GraphicsCore::backend();
+    if (driverType == rhi::GraphicsBackend::Vulkan)
         return _vkSurface;
 
 #if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
     return glfwGetWin32Window(_mainWindow);
 #elif AX_TARGET_PLATFORM == AX_PLATFORM_MAC
-    return driverType == DriverType::Metal ? (void*)glfwGetCocoaView(_mainWindow)
-                                           : (void*)glfwGetNSGLContext(_mainWindow);
-    return (void*)glfwGetNSGLContext(_mainWindow);
+    return driverType == rhi::GraphicsBackend::Metal ? (__bridge void*)glfwGetCocoaView(_mainWindow)
+                                                     : (__bridge void*)glfwGetNSGLContext(_mainWindow);
 #elif AX_TARGET_PLATFORM == AX_PLATFORM_LINUX
 #    if defined(AX_ENABLE_WAYLAND)
     int platform = glfwGetPlatform();
@@ -967,18 +1001,31 @@ bool RenderView::initWithRect(std::string_view viewName, const ax::Rect& rect, f
     // If any of the high-performance APIs (D3D11/D3D12/Vulkan/Metal) are enabled,
     // the runtime will attempt initialization in the default priority order.
     // If all attempts fail, OpenGL will then be explicitly selected as the fallback.
-    GraphicsCore::makeCurrentDriver();
+    GraphicsCore::initialize();
     const auto fallbackGL = GraphicsCore::isOpenGL();
     if (fallbackGL)
     {
 #if AX_GLES_PROFILE
         glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
         glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+#    if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
+        // Prefer GLES 3.1 for compute and fall back to the engine minimum.
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#    else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, AX_GLES_PROFILE / AX_GLES_PROFILE_DEN);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, (AX_GLES_PROFILE % AX_GLES_PROFILE_DEN) / 10);
+#    endif
 #else
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // We want OpenGL 3.3
+#    if AX_TARGET_PLATFORM == AX_PLATFORM_WIN32 || AX_TARGET_PLATFORM == AX_PLATFORM_LINUX
+        // Prefer a compute-capable context. Window creation retries with the
+        // engine minimum (GL 3.3) below when GL 4.3 is unavailable.
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#    else
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#    endif
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // We don't want the old OpenGL
 #endif
     }
@@ -1015,9 +1062,33 @@ bool RenderView::initWithRect(std::string_view viewName, const ax::Rect& rect, f
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, _renderScaleMode == RenderScaleMode::Physical ? GLFW_TRUE : GLFW_FALSE);
 #endif
 
-    _mainWindow =
-        glfwCreateWindow(static_cast<int>(std::lround(requestWinSize.width)),
-                         static_cast<int>(std::lround(requestWinSize.height)), _viewName.c_str(), _monitor, nullptr);
+    const auto createMainWindow = [&]() {
+        return glfwCreateWindow(static_cast<int>(std::lround(requestWinSize.width)),
+                                static_cast<int>(std::lround(requestWinSize.height)), _viewName.c_str(), _monitor,
+                                nullptr);
+    };
+
+    _mainWindow = createMainWindow();
+#if AX_ENABLE_GL && !AX_GLES_PROFILE && \
+    (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32 || AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
+    if (!_mainWindow && fallbackGL)
+    {
+        AXLOGD("OpenGL 4.3 context is unavailable; falling back to OpenGL 3.3");
+        _glfwError.clear();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        _mainWindow = createMainWindow();
+    }
+#elif AX_ENABLE_GL && AX_GLES_PROFILE && AX_TARGET_PLATFORM == AX_PLATFORM_WIN32
+    if (!_mainWindow && fallbackGL)
+    {
+        AXLOGD("OpenGL ES 3.1 context is unavailable; falling back to OpenGL ES 3.0");
+        _glfwError.clear();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        _mainWindow = createMainWindow();
+    }
+#endif
     if (_mainWindow == nullptr)
     {
         std::string message = "Can't create window";
@@ -1038,7 +1109,7 @@ bool RenderView::initWithRect(std::string_view viewName, const ax::Rect& rect, f
     if (fallbackGL)
     {
         glfwMakeContextCurrent(_mainWindow);
-        GraphicsCore::activateCurrentDriver();
+        GraphicsCore::activate();
 
         glfwSetWindowUserPointer(_mainWindow, gl::__state);
     }
@@ -1068,7 +1139,7 @@ bool RenderView::initWithRect(std::string_view viewName, const ax::Rect& rect, f
         auto _createSurface = [](VkInstance inst, void* window, VkSurfaceKHR* surface) {
             return glfwCreateWindowSurface(inst, static_cast<GLFWwindow*>(window), nullptr, surface);
         };
-        auto driver = static_cast<vk::DriverImpl*>(axdrv);
+        auto driver = static_cast<vk::GraphicsDeviceImpl*>(axdrv);
         const vk::SurfaceCreateInfo createInfo{
             .window = _mainWindow, .width = fbWidth, .height = fbHeight, .createFunc = _createSurface};
         bool ok = driver->recreateSurface(createInfo);
@@ -1707,9 +1778,11 @@ void RenderView::onGLFWMouseScrollCallback(GLFWwindow* window, double x, double 
 }
 #endif
 
-void RenderView::onGLFWKeyCallback(GLFWwindow* /*window*/, int key, int /*scancode*/, int action, int /*mods*/)
+void RenderView::onGLFWKeyCallback(GLFWwindow* /*window*/, int key, int /*scancode*/, int action, int mods)
 {
-    auto keyCode = _keyCodeMap[key];
+    auto keyCode         = _keyCodeMap[key];
+    auto mappedModifiers = mapModifiers(mods);
+
 #if defined(__EMSCRIPTEN__)
     if (isWebInputFieldProxyFocused() && keyCode == KeyboardEvent::KeyCode::KEY_BACKSPACE)
         return;
@@ -1729,7 +1802,7 @@ void RenderView::onGLFWKeyCallback(GLFWwindow* /*window*/, int key, int /*scanco
         break;
     }
 
-    InputSystem::getInstance()->handleKeyEvent(keyCode, phase);
+    InputSystem::getInstance()->handleKeyEvent(keyCode, phase, mappedModifiers);
 }
 
 void RenderView::onGLFWCharCallback(GLFWwindow* /*window*/, unsigned int charCode)

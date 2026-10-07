@@ -1,25 +1,8 @@
 /****************************************************************************
 Copyright (c) 2015 fairygui.com
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "GGraph.h"
@@ -142,7 +125,13 @@ void GGraph::updateShape()
     {
     case 1:
     {
-        if (_lineSize > 0)
+        if (_cornerRadius != nullptr)
+        {
+            _shape->drawSolidCornerRect(Vec2::zero, Vec2(_size.width, _size.height), _fillColor, _lineColor,
+                                         (float)_lineSize, _cornerRadius[2], _cornerRadius[0], _cornerRadius[1],
+                                         _cornerRadius[3]);
+        }
+        else if (_lineSize > 0)
         {
             float wl = _size.width - _lineSize;
             float hl = _size.height - _lineSize;

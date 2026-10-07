@@ -2,30 +2,16 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2017 Chukong Technologies
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/base/Object.h"
+
+#include <atomic>
 #include "axmol/base/AutoreleasePool.h"
 #include "axmol/base/Macros.h"
 #include "axmol/base/ScriptSupport.h"
@@ -46,16 +32,10 @@ static void trackRef(Object* ref);
 static void untrackRef(Object* ref);
 #endif
 
-Object::Object()
-    : _referenceCount(1)  // when the Object is created, the reference count of it is 1
-#if AX_ENABLE_SCRIPT_BINDING
-    , _luaID(0)
-#endif
+Object::Object() : _referenceCount(1), _ID(0)  // when the Object is created, the reference count of it is 1
 {
-#if AX_ENABLE_SCRIPT_BINDING
-    static unsigned int uObjectCount = 0;
-    _ID                              = ++uObjectCount;
-#endif
+    static std::atomic<uint64_t> uObjectCount{0};
+    _ID = uObjectCount.fetch_add(1, std::memory_order_relaxed) + 1;
 
 #if AX_OBJECT_LEAK_DETECTION
     trackRef(this);
@@ -67,11 +47,15 @@ Object::~Object()
     AXASSERT(_internalIndex == -1, "Weak-tracked Object must be destroyed through release().");
 
 #if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineProtocol* pEngine = ScriptEngineManager::getInstance()->getScriptEngine();
-    if (pEngine != nullptr && _luaID)
+    if (hasScriptBindingExposure())
     {
-        // if the object is referenced by Lua engine, remove it
-        pEngine->removeScriptObjectByObject(this);
+        ScriptEngineProtocol* pEngine = ScriptEngineManager::getScriptEngineIfExists();
+        if (pEngine != nullptr)
+        {
+            // The script backend owns the canonical-object registry and must
+            // be notified independently of the diagnostic object ID.
+            pEngine->invalidateScriptObject(this);
+        }
     }
 #endif  // AX_ENABLE_SCRIPT_BINDING
 

@@ -4,27 +4,11 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/2d/Sprite.h"
 #include <algorithm>
@@ -1068,7 +1052,7 @@ void Sprite::updateTransform()
 }
 
 // draw
-void Sprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void Sprite::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     AX_PROFILER_ZONE_SCOPED;
 
@@ -1076,27 +1060,23 @@ void Sprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
         return;
 
     // TODO: arnold: current camera can be a non-default one.
-    setMVPMatrixUniform();
+    setMVPMatrixUniform(state);
 
 #if AX_USE_CULLING
     // Don't calculate the culling if the transform was not updated
-    auto visitingCamera = Camera::getVisitingCamera();
-    auto defaultCamera  = Camera::getDefaultCamera();
+    auto visitingCamera = state.getCamera();
     if (visitingCamera == nullptr)
         _insideBounds = true;
-    else if (visitingCamera == defaultCamera)
-        _insideBounds = ((flags & FLAGS_TRANSFORM_DIRTY) || visitingCamera->isViewProjectionUpdated())
-                            ? renderer->checkVisibility(transform, _contentSize)
-                            : _insideBounds;
     else
-        // XXX: this always return true since
-        _insideBounds = renderer->checkVisibility(transform, _contentSize);
+        _insideBounds =
+            state.requiresVisibilityUpdate(flags) ? state.checkVisibility(transform, _contentSize) : _insideBounds;
 
     if (_insideBounds)
 #endif
     {
-        _trianglesCommand.init(_globalZOrder, _texture, _blendFunc, _polyInfo.triangles, transform, flags);
-        renderer->addCommand(&_trianglesCommand);
+        _trianglesCommand.init(_globalZOrder, _texture, _blendFunc, _polyInfo.triangles, transform, flags,
+                               state.getView());
+        state.getRenderer()->addCommand(&_trianglesCommand);
 
 #if AX_SPRITE_DEBUG_DRAW
         _debugDrawNode->clear();
@@ -1719,9 +1699,9 @@ void Sprite::setPolygonInfo(const PolygonInfo& info)
     _renderMode = RenderMode::POLYGON;
 }
 
-void Sprite::setMVPMatrixUniform()
+void Sprite::setMVPMatrixUniform(const SceneRenderState& state)
 {
-    const auto& projectionMat = Camera::getVisitingViewProjectionMatrix();
+    const auto& projectionMat = state.getViewProjectionMatrix();
     auto programState         = _trianglesCommand.unsafePS();
     if (programState && _mvpMatrixLocation)
         programState->setUniform(_mvpMatrixLocation, projectionMat.m, sizeof(projectionMat.m));

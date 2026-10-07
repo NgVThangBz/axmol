@@ -2,27 +2,11 @@
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "Physics3DTest.h"
@@ -88,7 +72,8 @@ bool Physics3DTestDemo::init()
 
         physicsScene = this;
         Size size    = Director::getInstance()->getCanvasSize();
-        _camera      = Camera::createPerspective(30.0f, size.width / size.height, 1.0f, 1000.0f);
+        _camera      = Camera::create();
+        _camera->configurePerspective(30.0f, size.width / size.height, 1.0f, 1000.0f);
         _camera->setPosition3D(Vec3(0.0f, 50.0f, 100.0f));
         _camera->lookAt(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f));
         _camera->setCameraFlag(CameraFlag::USER1);
@@ -163,8 +148,15 @@ void Physics3DTestDemo::onPointerUp(ax::PointerEvent* event)
     if (!_needShootBox)
         return;
 
-    auto ray = _camera->screenToRay(event->getPoint());
-    shootBox(_camera->getPosition3D() + ray.direction * 10.0f);
+    if (event->resolveRayForCamera(_camera))
+    {
+        shootBox(event->getRay());
+    }
+    else
+    {
+        auto ray = _camera->screenToRay(event->getPoint());
+        shootBox(Ray(_camera->getPosition3D(), ray.direction));
+    }
     event->stopPropagation();
 }
 
@@ -176,14 +168,19 @@ Physics3DTestDemo::~Physics3DTestDemo() {}
 
 void Physics3DTestDemo::shootBox(const ax::Vec3& des)
 {
-    Vec3 linearVel = des - _camera->getPosition3D();
+    shootBox(Ray(_camera->getPosition3D(), des - _camera->getPosition3D()));
+}
+
+void Physics3DTestDemo::shootBox(const ax::Ray& ray)
+{
+    Vec3 linearVel = ray.direction;
     linearVel.normalize();
     linearVel *= 100.0f;
     auto mesh = MeshRenderer::create("MeshRendererTest/box.c3t");
     mesh->setTexture("Images/Icon.png");
 
     this->addChild(mesh);
-    mesh->setPosition3D(_camera->getPosition3D());
+    mesh->setPosition3D(ray.origin);
     mesh->setScale(0.5f);
 
     // In Bullet, shootBox used a BoxCollider3D with CCD swept sphere radius.
@@ -826,27 +823,27 @@ bool Physics3DCollisionCallbackDemo::init()
 
         auto contactListener            = ContactEventListener3D::create();
         contactListener->onCollisionHit = [this](ContactEvent3D* contactEvent) {
+            const auto& info = contactEvent->getContactInfo();
+
+            if (!info.points.empty())
+            {
+                const auto& point = info.points[0];
+
+                if (point.sideA.velocity && point.sideB.velocity)
+                {
+                    float impactSpeed = (*point.sideA.velocity - *point.sideB.velocity).dot(info.normal);
+                    AXLOGD("CollisionHit impact speed: {:.2f} (point {})", impactSpeed, info.points.size());
+                }
+            }
+
             auto ps = PUParticleSystem3D::create("Particle3D/scripts/mp_hit_04.pu");
-            ps->setPosition3D(contactEvent->getContactInfo().points[0].pointB);
+            ps->setPosition3D(contactEvent->getContactInfo().points[0].sideB.point);
             ps->setScale(0.05f);
             ps->startParticleSystem();
             ps->setCameraMask(2);
             this->addChild(ps);
             ps->runAction(Sequence::create(DelayTime::create(1.0f), CallFunc::create([=]() { ps->removeFromParent(); }),
                                            nullptr));
-
-            // AXLOGD("------------BoxB Collision Info------------");
-            // AXLOGD("Collision Point Num: {}", ci.collisionPointList.size());
-            // for (auto&& iter : ci.collisionPointList){
-            //	AXLOGD("Collision Position On A: ({:.2},{:.2}, {:.2})", iter.worldPositionOnA.x,
-            // iter.worldPositionOnA.y,
-            // iter.worldPositionOnA.z); 	AXLOGD("Collision Position On B: ({:.2}, {:.2}, {:.2})",
-            // iter.worldPositionOnB.x, iter.worldPositionOnB.y, iter.worldPositionOnB.z); AXLOGD("Collision
-            // Normal
-            // On B: ({:.2}, {:.2}, {:.2})", iter.worldNormalOnB.x, iter.worldNormalOnB.y,
-            // iter.worldNormalOnB.z);
-            // }
-            // AXLOGD("------------BoxB Collision Info------------");
         };
         _eventDispatcher->addEventListenerWithSceneGraphPriority(contactListener, this);
     }

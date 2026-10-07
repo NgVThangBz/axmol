@@ -2,27 +2,11 @@
  Copyright (c) 2010-2012 cocos2d-x.org
  Copyright (c) 2013-2016 zilongshanren
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #import "axmol/ui/EditBox/Mac/EditBoxMac.h"
@@ -57,21 +41,21 @@
 
 - (void)createSingleLineTextField
 {
-    AxmolSingleLineTextField* textField = [[[AxmolSingleLineTextField alloc] initWithFrame:self.frameRect] autorelease];
+    AxmolSingleLineTextField* textField = [[AxmolSingleLineTextField alloc] initWithFrame:self.frameRect];
 
     self.textInput = textField;
 }
 
 - (void)createMultiLineTextField
 {
-    AxmolMultilineTextField* textView = [[[AxmolMultilineTextField alloc] initWithFrame:self.frameRect] autorelease];
+    AxmolMultilineTextField* textView = [[AxmolMultilineTextField alloc] initWithFrame:self.frameRect];
     [textView setVerticallyResizable:NO];
     self.textInput = textView;
 }
 
 - (void)createPasswordTextField
 {
-    AxmolPasswordTextField* textField = [[[AxmolPasswordTextField alloc] initWithFrame:self.frameRect] autorelease];
+    AxmolPasswordTextField* textField = [[AxmolPasswordTextField alloc] initWithFrame:self.frameRect];
 
     self.textInput = textField;
 }
@@ -85,8 +69,6 @@
     _textInput                       = textInput;
     if (_textInput != nil)
     {
-        [_textInput retain];  // retain new input view
-
         // migrate properties from old input if available
         _textInput.axui_alignment   = oldInput.axui_alignment;
         _textInput.axui_textColor   = oldInput.axui_textColor ?: [NSColor whiteColor];
@@ -115,7 +97,6 @@
     if (oldInput != nil)
     {
         [oldInput removeFromSuperview];  // detach old view
-        [oldInput release];              // release old view
     }
 }
 
@@ -133,14 +114,12 @@
 - (void)dealloc
 {
     self.textInput = nil;
-
-    [super dealloc];
 }
 
 - (NSWindow*)window
 {
     auto renderView = ax::Director::getInstance()->getRenderView();
-    return (NSWindow*)renderView->getNativeWindow();
+    return (__bridge NSWindow*)renderView->getNativeWindow();
 }
 
 - (void)openKeyboard

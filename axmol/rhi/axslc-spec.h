@@ -161,6 +161,7 @@ struct sc_chunk_refl
     uint32_t num_storage_buffers;
     uint16_t flatten_ubo;
     uint16_t debug_info;
+    uint16_t compute_local_size[3];  // compute stage local workgroup size, else 0
 
     // inputs: sc_refl_input[num_inputs]
     // uniform-buffers: sc_refl_uniformbuffer[num_uniform_buffers]
@@ -209,23 +210,21 @@ struct sc_refl_sampler
     // Sampler variable name as declared in the source shader.
     char name[SC_NAME_LEN];
 
-    // Logical sampler register index inside descriptor_set.
+    // Backend sampler binding reflected for this target.
     //
     // Built-in sampler:
     //   descriptor_set == kPresetSamplerDescriptorSet
-    //   binding == preset_index
-    //   valid range: [0, SamplerPreset::Count)
+    //   preset_index stores the stable logical preset id
+    //   binding is the backend-visible sampler slot / descriptor binding
     //
     // Custom sampler:
     //   descriptor_set == kCustomSamplerDescriptorSet
-    //   binding is the Program-local custom sampler index
-    //   valid range: [0, custom_sampler_count)
+    //   binding is the backend-visible sampler slot / descriptor binding
     //
     // This value is not:
     //   - a SamplerRegistry SamplerId;
-    //   - a D3D12 sampler heap slot;
     //   - a Vulkan implementation-specific descriptor index;
-    //   - a Metal or D3D11 backend sampler slot.
+    //   - a D3D12 sampler heap slot.
     int32_t binding;
 
     // HLSL register space (logical shader namespace).
@@ -246,7 +245,7 @@ struct sc_refl_sampler
     //
     // Built-in sampler:
     //   preset_index >= 0
-    //   binding must equal preset_index.
+    //   preset_index is stable even when backend binding is remapped.
     //
     // Custom sampler:
     //   preset_index == kInvalidSamplerPreset.
@@ -265,12 +264,21 @@ struct sc_refl_sampler
     uint8_t reserved;
 };
 
+enum SCBufferAccess : uint8_t
+{
+    SC_BUFFER_ACCESS_READ_ONLY  = 0,
+    SC_BUFFER_ACCESS_READ_WRITE = 1,
+};
+
 struct sc_refl_buffer
 {
     char name[32];
-    int32_t binding;
+    int32_t binding;  // unified logical resource slot, also the backend binding
     uint32_t size_bytes;
     uint32_t array_stride;
+    uint16_t descriptor_set;
+    uint8_t access;  // SCBufferAccess
+    uint8_t reserved;
 };
 
 typedef struct sc_refl_uniformbuffer

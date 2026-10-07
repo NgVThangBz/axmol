@@ -2,7 +2,7 @@
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  Copyright (c) 2014 GamePlay3D team
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
@@ -240,6 +240,21 @@ public:
     };
 
     StateBlock& getStateBlock() const;
+
+    // Object is intentionally non-copyable. RenderState still needs value
+    // assignment when materials, techniques, and passes clone their state;
+    // copy only RenderState's own data and preserve the target Object state.
+    RenderState& operator=(const RenderState& other)
+    {
+        if (this != &other)
+        {
+            _hash      = other._hash;
+            _hashDirty = other._hashDirty;
+            _state     = other._state;
+            _name      = other._name;
+        }
+        return *this;
+    }
 
 protected:
     RenderState() = default;

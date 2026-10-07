@@ -1,31 +1,15 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "lua_test_bindings.h"
 #include "axmol/axmol.h"
-#include "lua-bindings/manual/LuaBasicConversions.h"
+#include "lua-bindings/runtime/axlua_conversions.h"
 
 namespace ax
 {
@@ -78,7 +62,7 @@ public:
     void setBlendFunc(const BlendFunc& blendFunc);
 
     // Overrides
-    virtual void draw(Renderer* renderer, const Mat4& transform, uint32_t flags) override;
+    virtual void draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags) override;
 
     DrawNode3D();
     virtual ~DrawNode3D();
@@ -189,11 +173,11 @@ bool DrawNode3D::init()
     return true;
 }
 
-void DrawNode3D::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void DrawNode3D::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     _customCommand.init(_globalZOrder);
     // update mvp matrix
-    const auto& matrixP = Camera::getVisitingViewProjectionMatrix();
+    const auto& matrixP = state.getViewProjectionMatrix();
     auto mvp            = matrixP * transform;
     _programState->setUniform(_locMVPMatrix, mvp.m, sizeof(mvp.m));
 
@@ -214,7 +198,7 @@ void DrawNode3D::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 
     if (!_buffer.empty())
     {
-        renderer->addCommand(&_customCommand);
+        state.getRenderer()->addCommand(&_customCommand);
     }
 }
 
@@ -335,20 +319,20 @@ int axlua_DrawNode3D_getBlendFunc(lua_State* L)
     bool ok             = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertype(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
-    obj = (ax::DrawNode3D*)tolua_tousertype(L, 1, 0);
+    obj = (ax::DrawNode3D*)axlua::adapter::to_usertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!obj)
     {
-        tolua_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_getBlendFunc'", nullptr);
+        axlua::adapter::raise_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_getBlendFunc'", nullptr);
         return 0;
     }
 #endif
@@ -366,8 +350,8 @@ int axlua_DrawNode3D_getBlendFunc(lua_State* L)
     return 0;
 
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_getBlendFunc'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_getBlendFunc'.", &conversionError);
 #endif
 
     return 0;
@@ -380,20 +364,20 @@ int axlua_DrawNode3D_setBlendFunc(lua_State* L)
     bool ok             = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertype(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
-    obj = (ax::DrawNode3D*)tolua_tousertype(L, 1, 0);
+    obj = (ax::DrawNode3D*)axlua::adapter::to_usertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!obj)
     {
-        tolua_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_setBlendFunc'", nullptr);
+        axlua::adapter::raise_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_setBlendFunc'", nullptr);
         return 0;
     }
 #endif
@@ -406,7 +390,7 @@ int axlua_DrawNode3D_setBlendFunc(lua_State* L)
         ok &= luaval_to_blendfunc(L, 2, &arg0, "ax.Sprite3D:setBlendFunc");
         if (!ok)
         {
-            tolua_error(L, "invalid arguments in function 'axlua_DrawNode3D_setBlendFunc'", nullptr);
+            axlua::adapter::raise_error(L, "invalid arguments in function 'axlua_DrawNode3D_setBlendFunc'", nullptr);
             return 0;
         }
         obj->setBlendFunc(arg0);
@@ -417,8 +401,8 @@ int axlua_DrawNode3D_setBlendFunc(lua_State* L)
     return 0;
 
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_setBlendFunc'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_setBlendFunc'.", &conversionError);
 #endif
 
     return 0;
@@ -431,20 +415,20 @@ int axlua_DrawNode3D_drawLine(lua_State* L)
     bool ok             = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertype(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
-    obj = (ax::DrawNode3D*)tolua_tousertype(L, 1, 0);
+    obj = (ax::DrawNode3D*)axlua::adapter::to_usertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!obj)
     {
-        tolua_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_drawLine'", nullptr);
+        axlua::adapter::raise_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_drawLine'", nullptr);
         return 0;
     }
 #endif
@@ -470,8 +454,8 @@ int axlua_DrawNode3D_drawLine(lua_State* L)
     return 0;
 
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_drawLine'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_drawLine'.", &conversionError);
 #endif
 
     return 0;
@@ -484,20 +468,20 @@ int axlua_DrawNode3D_clear(lua_State* L)
     bool ok             = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertype(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
-    obj = (ax::DrawNode3D*)tolua_tousertype(L, 1, 0);
+    obj = (ax::DrawNode3D*)axlua::adapter::to_usertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!obj)
     {
-        tolua_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_clear'", nullptr);
+        axlua::adapter::raise_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_clear'", nullptr);
         return 0;
     }
 #endif
@@ -514,8 +498,8 @@ int axlua_DrawNode3D_clear(lua_State* L)
     return 0;
 
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_clear'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_clear'.", &conversionError);
 #endif
 
     return 0;
@@ -528,20 +512,20 @@ int axlua_DrawNode3D_drawCube(lua_State* L)
     bool ok             = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertype(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertype(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
-    obj = (ax::DrawNode3D*)tolua_tousertype(L, 1, 0);
+    obj = (ax::DrawNode3D*)axlua::adapter::to_usertype(L, 1, 0);
 
 #if _AX_DEBUG >= 1
     if (!obj)
     {
-        tolua_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_drawCube'", nullptr);
+        axlua::adapter::raise_error(L, "invalid 'obj' in function 'axlua_DrawNode3D_drawCube'", nullptr);
         return 0;
     }
 #endif
@@ -553,8 +537,8 @@ int axlua_DrawNode3D_drawCube(lua_State* L)
         ax::Color arg1;
         Vec3 vec3;
 #if _AX_DEBUG >= 1
-        if (!tolua_istable(L, 2, 0, &tolua_err))
-            goto tolua_lerror;
+        if (!axlua::adapter::is_table(L, 2, 0, &conversionError))
+            goto argumentError;
 #endif
         size_t size = lua_objlen(L, 2);
         for (int i = 0; i < size; i++)
@@ -562,10 +546,10 @@ int axlua_DrawNode3D_drawCube(lua_State* L)
             lua_pushnumber(L, i + 1);
             lua_gettable(L, 2);
 #if _AX_DEBUG >= 1
-            if (!tolua_istable(L, -1, 0, &tolua_err))
+            if (!axlua::adapter::is_table(L, -1, 0, &conversionError))
             {
                 lua_pop(L, 1);
-                goto tolua_lerror;
+                goto argumentError;
             }
 #endif
             ok &= luaval_to_vec3(L, lua_gettop(L), &vec3);
@@ -574,7 +558,7 @@ int axlua_DrawNode3D_drawCube(lua_State* L)
             if (!ok)
             {
                 lua_pop(L, 1);
-                goto tolua_lerror;
+                goto argumentError;
             }
 #endif
             // arg0[i] = vec3;
@@ -592,8 +576,8 @@ int axlua_DrawNode3D_drawCube(lua_State* L)
     return 0;
 
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_drawCube'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_drawCube'.", &conversionError);
 #endif
 
     return 0;
@@ -605,12 +589,12 @@ int axlua_DrawNode3D_create(lua_State* L)
     bool ok  = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertable(L, 1, "ax.DrawNode3D", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertable(L, 1, "ax.DrawNode3D", 0, &conversionError))
+        goto argumentError;
 #endif
 
     argc = lua_gettop(L) - 1;
@@ -626,27 +610,25 @@ int axlua_DrawNode3D_create(lua_State* L)
     AXLOGD("{} has wrong number of arguments: {}, was expecting {}\n ", "ax.DrawNode3D:create", argc, 0);
     return 0;
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_DrawNode3D_create'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_DrawNode3D_create'.", &conversionError);
 #endif
     return 0;
 }
 
 int lua_register_cocos2dx_DrawNode3D(lua_State* L)
 {
-    tolua_usertype(L, "ax.DrawNode3D");
-    tolua_cclass(L, "DrawNode3D", "ax.DrawNode3D", "ax.Node", nullptr);
+    axlua::adapter::register_usertype(L, "ax.DrawNode3D");
+    axlua::adapter::register_class(L, "DrawNode3D", "ax.DrawNode3D", "ax.Node", nullptr);
 
-    tolua_beginmodule(L, "DrawNode3D");
-    tolua_function(L, "getBlendFunc", axlua_DrawNode3D_getBlendFunc);
-    tolua_function(L, "drawLine", axlua_DrawNode3D_drawLine);
-    tolua_function(L, "clear", axlua_DrawNode3D_clear);
-    tolua_function(L, "drawCube", axlua_DrawNode3D_drawCube);
-    tolua_function(L, "create", axlua_DrawNode3D_create);
-    tolua_endmodule(L);
-    auto typeName                                    = typeid(ax::DrawNode3D).name();
-    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "ax.DrawNode3D";
-    g_typeCast[typeName]                             = "ax.DrawNode3D";
+    axlua::adapter::begin_module(L, "DrawNode3D");
+    axlua::adapter::set_function(L, "getBlendFunc", axlua_DrawNode3D_getBlendFunc);
+    axlua::adapter::set_function(L, "drawLine", axlua_DrawNode3D_drawLine);
+    axlua::adapter::set_function(L, "clear", axlua_DrawNode3D_clear);
+    axlua::adapter::set_function(L, "drawCube", axlua_DrawNode3D_drawCube);
+    axlua::adapter::set_function(L, "create", axlua_DrawNode3D_create);
+    axlua::adapter::end_module(L);
+    axlua::register_native_type_name(typeid(ax::DrawNode3D), "ax.DrawNode3D");
     return 1;
 }
 
@@ -656,12 +638,12 @@ int axlua_ValueTypeJudgeInTable_create(lua_State* L)
     bool ok  = true;
 
 #if _AX_DEBUG >= 1
-    tolua_Error tolua_err;
+    axlua::adapter::Error conversionError;
 #endif
 
 #if _AX_DEBUG >= 1
-    if (!tolua_isusertable(L, 1, "ax.ValueTypeJudgeInTable", 0, &tolua_err))
-        goto tolua_lerror;
+    if (!axlua::adapter::is_usertable(L, 1, "ax.ValueTypeJudgeInTable", 0, &conversionError))
+        goto argumentError;
 #endif
 
     argc = lua_gettop(L) - 1;
@@ -679,33 +661,31 @@ int axlua_ValueTypeJudgeInTable_create(lua_State* L)
     AXLOGD("{} has wrong number of arguments: {}, was expecting {}\n ", "ax.ValueTypeJudgeInTable:create", argc, 1);
     return 0;
 #if _AX_DEBUG >= 1
-tolua_lerror:
-    tolua_error(L, "#ferror in function 'axlua_ValueTypeJudgeInTable_create'.", &tolua_err);
+argumentError:
+    axlua::adapter::raise_error(L, "#ferror in function 'axlua_ValueTypeJudgeInTable_create'.", &conversionError);
 #endif
     return 0;
 }
 
 int lua_register_cocos2dx_ValueTypeJudgeInTable(lua_State* L)
 {
-    tolua_usertype(L, "ax.ValueTypeJudgeInTable");
-    tolua_cclass(L, "ValueTypeJudgeInTable", "ax.ValueTypeJudgeInTable", "ax.Node", nullptr);
+    axlua::adapter::register_usertype(L, "ax.ValueTypeJudgeInTable");
+    axlua::adapter::register_class(L, "ValueTypeJudgeInTable", "ax.ValueTypeJudgeInTable", "ax.Node", nullptr);
 
-    tolua_beginmodule(L, "ValueTypeJudgeInTable");
-    tolua_function(L, "create", axlua_ValueTypeJudgeInTable_create);
-    tolua_endmodule(L);
-    auto typeName                                    = typeid(ax::ValueTypeJudgeInTable).name();
-    g_luaType[reinterpret_cast<uintptr_t>(typeName)] = "ax.ValueTypeJudgeInTable";
-    g_typeCast[typeName]                             = "ax.ValueTypeJudgeInTable";
+    axlua::adapter::begin_module(L, "ValueTypeJudgeInTable");
+    axlua::adapter::set_function(L, "create", axlua_ValueTypeJudgeInTable_create);
+    axlua::adapter::end_module(L);
+    axlua::register_native_type_name(typeid(ax::ValueTypeJudgeInTable), "ax.ValueTypeJudgeInTable");
     return 1;
 }
 
 int register_test_binding(lua_State* L)
 {
-    tolua_open(L);
-    tolua_module(L, "ax", 0);
-    tolua_beginmodule(L, "ax");
+    axlua::adapter::open(L);
+    axlua::adapter::module(L, "ax", 0);
+    axlua::adapter::begin_module(L, "ax");
     lua_register_cocos2dx_DrawNode3D(L);
     lua_register_cocos2dx_ValueTypeJudgeInTable(L);
-    tolua_endmodule(L);
+    axlua::adapter::end_module(L);
     return 0;
 }

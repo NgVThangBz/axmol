@@ -1,27 +1,11 @@
 /****************************************************************************
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/ui/Widget.h"
@@ -240,12 +224,12 @@ void Widget::onExit()
     ProtectedNode::onExit();
 }
 
-void Widget::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void Widget::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (_visible)
     {
         updateLayout();
-        ProtectedNode::visit(renderer, parentTransform, parentFlags);
+        ProtectedNode::visit(state, parentTransform, parentFlags);
     }
 }
 
@@ -743,6 +727,9 @@ bool Widget::onPointerDown(PointerEvent* event)
     }
 
     pushDownEvent();
+
+    event->stopPropagation();
+
     return true;
 }
 
@@ -873,10 +860,7 @@ void Widget::onPointerCancel(PointerEvent* event)
     }
 }
 
-bool Widget::onPointerScroll(PointerEvent* pointerEvent)
-{
-    return false;
-}
+void Widget::onPointerScroll(PointerEvent* pointerEvent) {}
 
 void Widget::pushDownEvent()
 {
@@ -1044,7 +1028,7 @@ bool Widget::isPointerInside(PointerEvent* event, Vec3* outHitPoint)
     if (!isVisible() || !isEnabled() || !isAncestorsEnabled() || !isAncestorsVisible(this))
         return false;
 
-    if (!Node::onPointerHitTest(event, outHitPoint))
+    if (!hitTestSelf(event, outHitPoint))
         return false;
 
     if (!isClippingParentContainsPoint(event))
@@ -1063,6 +1047,11 @@ bool Widget::hitTestSelf(const Vec2& pt, const Camera* camera, Vec3* p) const
     bool ret  = camera->isWorldPointInRect(pt, getWorldToNodeTransform(), rect, p);
 
     return ret;
+}
+
+bool Widget::hitTestSelf(PointerEvent* event, Vec3* outHitPoint)
+{
+    return Node::onPointerHitTest(event, outHitPoint);
 }
 
 bool Widget::isClippingParentContainsPoint(PointerEvent* event)

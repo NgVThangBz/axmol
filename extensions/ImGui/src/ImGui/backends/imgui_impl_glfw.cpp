@@ -261,7 +261,7 @@ struct ImGui_ImplGlfw_Data
     bool                    IsWayland;
     bool                    InstalledCallbacks;
     bool                    CallbacksChainForAllWindows;
-    char                    BackendPlatformName[32];
+    char                    BackendPlatformName[40];
 #ifdef EMSCRIPTEN_USE_EMBEDDED_GLFW3
     const char*             CanvasSelector;
 #endif
@@ -753,7 +753,13 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
 
     // Setup backend capabilities flags
     ImGui_ImplGlfw_Data* bd = IM_NEW(ImGui_ImplGlfw_Data)();
-    snprintf(bd->BackendPlatformName, sizeof(bd->BackendPlatformName), "imgui_impl_glfw (%d)", GLFW_VERSION_COMBINED);
+    bd->Context = ImGui::GetCurrentContext();
+    bd->Window = window;
+    bd->Time = 0.0;
+    bd->IsWayland = ImGui_ImplGlfw_IsWayland();
+    ImGui_ImplGlfw_ContextMap_Add(window, bd->Context);
+
+    snprintf(bd->BackendPlatformName, sizeof(bd->BackendPlatformName), "imgui_impl_glfw (%d)%s", GLFW_VERSION_COMBINED, bd->IsWayland ? " (Wayland)" : "");
     io.BackendPlatformUserData = (void*)bd;
     io.BackendPlatformName = bd->BackendPlatformName;
 #if GLFW_HAS_CREATECURSOR
@@ -774,12 +780,6 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
 #if GLFW_HAS_MOUSE_PASSTHROUGH || GLFW_HAS_WINDOW_HOVERED
     io.BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can call io.AddMouseViewportEvent() with correct data (optional)
 #endif
-
-    bd->Context = ImGui::GetCurrentContext();
-    bd->Window = window;
-    bd->Time = 0.0;
-    bd->IsWayland = ImGui_ImplGlfw_IsWayland();
-    ImGui_ImplGlfw_ContextMap_Add(window, bd->Context);
 
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 #if GLFW_VERSION_COMBINED < 3300
@@ -1771,20 +1771,20 @@ static LRESULT CALLBACK ImGui_ImplGlfw_WndProc(HWND hWnd, UINT msg, WPARAM wPara
 IMGUI_IMPL_API bool ImGui_ImplGlfw_InitForAxmol(GLFWwindow* window, bool install_callbacks)
 {
     bool initialized = false;
-    auto driverType = ax::rhi::GraphicsCore::currentDriverType();
+    auto driverType = ax::rhi::GraphicsCore::backend();
     switch (driverType)
     {
-    case ax::rhi::DriverType::OpenGL:
+    case ax::rhi::GraphicsBackend::OpenGL:
         initialized = ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_OpenGL);
         break;
-    case ax::rhi::DriverType::Metal:
+    case ax::rhi::GraphicsBackend::Metal:
         initialized = ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_Metal);
         break;
-    case ax::rhi::DriverType::D3D12:
-    case ax::rhi::DriverType::D3D11:
+    case ax::rhi::GraphicsBackend::D3D12:
+    case ax::rhi::GraphicsBackend::D3D11:
         initialized = ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_D3D);
         break;
-    case ax::rhi::DriverType::Vulkan:
+    case ax::rhi::GraphicsBackend::Vulkan:
         initialized = ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_Vulkan);
         break;
     default:

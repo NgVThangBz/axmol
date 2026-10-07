@@ -3,27 +3,11 @@
  Copyright (c) 2012 James Chen
  Copyright (c) 2013-2015 zilongshanren
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/ui/EditBox/EditBoxImpl-ios.h"
 
@@ -58,7 +42,6 @@ EditBoxImplIOS::EditBoxImplIOS(EditBox* pEditText) : EditBoxImplCommon(pEditText
 
 EditBoxImplIOS::~EditBoxImplIOS()
 {
-    [_systemControl release];
     _systemControl = nil;
 }
 
@@ -172,7 +155,7 @@ void EditBoxImplIOS::setNativeVisible(bool visible)
 void EditBoxImplIOS::updateNativeFrame(const Rect& rect)
 {
     auto renderView = ax::Director::getInstance()->getRenderView();
-    auto hostView   = (__bridge RenderHostView*)renderView->getNativeDisplay();
+    auto hostView   = (__bridge RenderHostView*)renderView->getNativeDisplay().ptr;
 
     float factor = 1.0f;  // hostView.contentScaleFactor;
 
@@ -199,15 +182,13 @@ void EditBoxImplIOS::nativeCloseKeyboard()
 UIFont* EditBoxImplIOS::createNativeFont(std::string_view fontName, int fontSize)
 {
     AXASSERT(!fontName.empty(), "fontName can't be nullptr");
-    auto hostView      = static_cast<RenderHostView*>(ax::Director::getInstance()->getRenderView()->getNativeDisplay());
+    auto hostView      = (__bridge RenderHostView*)ax::Director::getInstance()->getRenderView()->getNativeDisplay().ptr;
     float retinaFactor = hostView.contentScaleFactor;
     NSString* fntName  = [[NSString alloc] initWithBytes:fontName.data()
                                                  length:fontName.length()
                                                encoding:NSUTF8StringEncoding];
-    fntName            = [[fntName lastPathComponent] stringByDeletingPathExtension];
-
-    auto renderView   = ax::Director::getInstance()->getRenderView();
-    float scaleFactor = renderView->getScaleX();
+    auto renderView    = ax::Director::getInstance()->getRenderView();
+    float scaleFactor  = renderView->getScaleX();
 
     if (fontSize == -1)
     {

@@ -1,0 +1,218 @@
+/****************************************************************************
+ Copyright (c) 2019-present Simdsoft Limited.
+
+ https://axmol.dev/
+
+ SPDX-License-Identifier: MIT
+ ****************************************************************************/
+#pragma once
+
+#include "axmol/rhi/GraphicsPipeline.h"
+#include "axmol/tlx/hlookup.hpp"
+#include <glad/vulkan.h>
+#include <unordered_map>
+#include "axmol/tlx/vector.hpp"
+#include "yasio/object_pool.hpp"
+
+namespace ax::rhi::vk
+{
+class DepthStencilStateImpl;
+class VertexLayoutImpl;
+class ProgramImpl;
+class GraphicsDeviceImpl;
+
+static constexpr int MAX_DESCRIPTOR_SETS      = 3;
+static constexpr int SET_INDEX_UBO            = 0;
+static constexpr int SET_INDEX_RESOURCE       = 1;  // image + built-in preset samplers
+static constexpr int SET_INDEX_CUSTOM_SAMPLER = 2;  // program-local custom samplers
+
+static constexpr uint32_t DESCRIPTOR_POOL_MAX_SETS           = 128;
+static constexpr uint32_t DESCRIPTOR_POOL_UNIFORM_MULTIPLIER = 2;
+static constexpr uint32_t DESCRIPTOR_POOL_SAMPLER_MULTIPLIER = 2;
+
+struct ExtendedDynamicState
+{
+    VkCullModeFlags cullMode : 4              = VK_CULL_MODE_NONE;
+    VkFrontFace frontFace : 4                 = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    VkPrimitiveTopology primitiveTopology : 8 = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    uint32_t reserved : 16                    = 0;
+};
+
+using VkDescriptorSetArray       = std::array<VkDescriptorSet, MAX_DESCRIPTOR_SETS>;
+using VkDescriptorSetLayoutArray = std::array<VkDescriptorSetLayout, MAX_DESCRIPTOR_SETS>;
+
+class DescriptorPool;
+class DescriptorAllocator;
+class ComputePipelineImpl;
+struct DescriptorState
+{
+    DescriptorPool* pool{nullptr};
+    VkDescriptorSetArray sets{};  // Allocated VkDescriptorSets
+    uint8_t descriptorSetCount{0};
+    uint64_t progId{0};                             // progId associated with this descriptor set
+    ComputePipelineImpl* computePipeline{nullptr};  // owning compute pipeline (compute path)
+    uint16_t uniformDescriptorCount{0};
+    uint16_t imageDescriptorCount{0};
+    uint16_t samplerDescriptorCount{0};
+    uint16_t combinedDescriptorCount{0};
+    uint16_t storageDescriptorCount{0};
+};
+
+using DescriptorList = tlx::pod_vector<DescriptorState*>;
+
+struct PipelineLayoutState
+{
+    VkPipelineLayout layout{VK_NULL_HANDLE};
+    VkDescriptorSetLayoutArray descriptorSetLayouts{VK_NULL_HANDLE};
+
+    uint32_t descriptorSetLayoutCount{0};
+    uint32_t imageDescriptorCount{0};
+    uint32_t samplerDescriptorCount{0};
+    uint32_t combinedDescriptorCount{0};
+    uint32_t uniformDescriptorCount{0};
+    uint32_t storageDescriptorCount{0};
+
+    DescriptorList descriptorFreeList;  // recycled descriptor sets
+};
+
+class DescriptorAllocator;
+class DescriptorPool
+{
+public:
+    void init(DescriptorAllocator* allocator, std::span<const VkDescriptorPoolSize> poolSizes);
+    void dispose();
+
+    bool canAllocate(const PipelineLayoutState* layoutState)
+    {
+        return _freeSetCount >= layoutState->descriptorSetLayoutCount &&
+               _freeUniformDescriptorCount >= layoutState->uniformDescriptorCount &&
+               _freeImageDescriptorCount >= layoutState->imageDescriptorCount &&
+               _freeSamplerDescriptorCount >= layoutState->samplerDescriptorCount &&
+               _freeCombinedDescriptorCount >= layoutState->combinedDescriptorCount &&
+               _freeStorageDescriptorCount >= layoutState->storageDescriptorCount;
+    }
+    int available() const { return _freeSetCount > 0; }
+    void allocateDescriptorSets(const PipelineLayoutState* layoutState, DescriptorState* descriptorState);
+    void freeDescriptorSets(uint32_t descriptorSetCount, DescriptorState* descriptorState);
+
+    DescriptorAllocator* getAllocator() { return _allocator; }
+
+protected:
+    DescriptorAllocator* _allocator{nullptr};
+    VkDescriptorPool _pool{VK_NULL_HANDLE};
+
+    int _maxSetCount{0};
+    int _freeSetCount{0};
+
+    int _maxUniformDescriptorCount{0};
+    int _freeUniformDescriptorCount{0};
+
+    int _maxSamplerDescriptorCount{0};
+    int _freeSamplerDescriptorCount{0};
+    int _maxImageDescriptorCount{0};
+    int _freeImageDescriptorCount{0};
+    int _maxCombinedDescriptorCount{0};
+    int _freeCombinedDescriptorCount{0};
+    int _maxStorageDescriptorCount{0};
+    int _freeStorageDescriptorCount{0};
+};
+
+class DescriptorAllocator
+{
+public:
+    void init(VkDevice device, std::span<const VkDescriptorPoolSize> poolSizes);
+    void dispose();
+
+    void allocateDescriptorSets(const PipelineLayoutState* layoutState, DescriptorState* descriptorState);
+    void freeDescriptorSets(DescriptorState* descriptorState);
+
+    void sortPools();
+
+    VkDevice getDevice() const { return _device; }
+    const tlx::pod_vector<VkDescriptorPoolSize>& getPoolSizes() const { return _poolSizes; }
+
+protected:
+    DescriptorPool* spawnPool();
+
+    VkDevice _device{VK_NULL_HANDLE};
+    tlx::pod_vector<VkDescriptorPoolSize> _poolSizes;
+    tlx::pod_vector<DescriptorPool*> _pools;
+};
+
+/**
+ * @brief Vulkan-based graphics pipeline implementation
+ *
+ * This class manages pipeline creation and caching for Vulkan.
+ * It converts Axmol's PipelineDesc into Vulkan pipeline states,
+ * and caches intermediate objects (blend, depth-stencil, rasterizer, etc.)
+ * to avoid redundant Vulkan object creation.
+ */
+
+class GraphicsPipelineImpl : public GraphicsPipeline
+{
+public:
+    explicit GraphicsPipelineImpl(GraphicsDeviceImpl* driver);
+    ~GraphicsPipelineImpl();
+
+    void prepareUpdate(DepthStencilStateImpl* ds) { _dsState = ds; }
+
+    void update(const RenderTarget*, const PipelineDesc& desc, const ExtendedDynamicState& state);
+
+    VkPipeline getVkPipeline() const { return _activePipeline; }
+    PipelineLayoutState* getPipelineLayoutState() const { return _activeLayoutState; }
+
+    DescriptorState* acquireDescriptorState();
+    void recycleDescriptorStates(std::span<DescriptorState*> descriptorStates, bool needResort);
+
+    void removeCachedObjects(VkRenderPass key);
+    void removeCachedObjects(Program* key);
+
+private:
+    void initializePipelineDefaults(GraphicsDeviceImpl* driver);
+
+    void updateBlendState(const BlendDesc& blendDesc, uint32_t colorAttachmentCount);
+    void updatePipelineLayoutState(ProgramImpl* program);
+    void updateGraphicsPipeline(ProgramImpl* program,
+                                const PipelineDesc& desc,
+                                const ExtendedDynamicState& states,
+                                VkRenderPass renderPass);
+
+    // free descriptor sets associated with the given descriptorStates to driver: VkDescriptorPool
+    void freeDescriptorStates(DescriptorAllocator& allocator, DescriptorList& descriptorStates, bool needResortPools);
+
+private:
+    GraphicsDeviceImpl* _driver{nullptr};
+    VkDevice _device{VK_NULL_HANDLE};
+
+    const DepthStencilStateImpl* _dsState{nullptr};
+
+    VkPipelineInputAssemblyStateCreateInfo _iaState{};
+
+#pragma region pipeline constant states
+    VkPipelineViewportStateCreateInfo _vpState{};
+    VkPipelineRasterizationStateCreateInfo _rasterState{};
+    VkPipelineMultisampleStateCreateInfo _msState{};
+    VkPipelineDynamicStateCreateInfo _dynState{};
+#pragma endregion
+
+    tlx::pod_vector<VkPipelineColorBlendAttachmentState> _activeBlendAttachmentStates{};
+    VkPipelineColorBlendStateCreateInfo _activeBlendState{};
+
+    uint64_t _activeProgId{0};
+
+    PipelineLayoutState* _activeLayoutState{nullptr};
+    VkPipeline _activePipeline{VK_NULL_HANDLE};
+
+    tlx::hash_map<uint64_t, PipelineLayoutState> _pipelineLayoutCache;  // progId -> PipelineLayoutState
+
+    tlx::hash_map<uintptr_t, VkPipeline> _pipelineCache;  // PSO cache
+
+    std::multimap<uint64_t, uintptr_t> _programToPipelineMap;         // progId -> PSO id
+    std::multimap<VkRenderPass, uintptr_t> _renderPassToPipelineMap;  // renderPass -> PSO id
+
+    DescriptorAllocator _descriptorAllocator1;  // ubo descriptor allocator
+    DescriptorAllocator _descriptorAllocator2;  // ubo + sampler descriptor allocator
+
+    yasio::object_pool<DescriptorState> _descriptorStatePool;
+};
+}  // namespace ax::rhi::vk

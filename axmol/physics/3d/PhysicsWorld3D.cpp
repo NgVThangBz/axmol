@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2015-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/physics/3d/PhysicsWorld3D.h"
@@ -49,7 +33,7 @@
 #    include <Jolt/Physics/Collision/ShapeCast.h>
 #    include <Jolt/RegisterTypes.h>
 
-#    include <cstdarg>
+#    include <stdarg.h>
 #    include <iterator>
 #    include <mutex>
 #    include <utility>
@@ -101,6 +85,9 @@ static Collider3D* asSensorCollider(PhysicsActor* actor)
     return collider && collider->isSensor() ? collider : nullptr;
 }
 
+// If both actors are sensors, actorA ends up being whichever one Jolt
+// reports first -- not guaranteed consistent across contacts of the same
+// pair. Compare against a known actor pointer, don't assume actorA == self.
 static ContactInfo3D reorderSensorContactInfo(const ContactInfo3D& info)
 {
     if (asSensorCollider(info.actorA) || !asSensorCollider(info.actorB))
@@ -109,19 +96,33 @@ static ContactInfo3D reorderSensorContactInfo(const ContactInfo3D& info)
     ContactInfo3D reordered = info;
     std::swap(reordered.actorA, reordered.actorB);
     reordered.normal = -reordered.normal;
+    for (auto& point : reordered.points)
+        std::swap(point.sideA, point.sideB);
     return reordered;
 }
 
-static void fillContactPoints(ContactInfo3D& info, const JPH::ContactManifold& manifold)
+static void fillContactPoints(ContactInfo3D& info,
+                              const JPH::Body& body1,
+                              const JPH::Body& body2,
+                              const JPH::ContactManifold& manifold,
+                              bool includeVelocity)
 {
     info.normal = jphutil::cast(manifold.mWorldSpaceNormal);
     info.points.clear();
     for (uint32_t i = 0; i < manifold.mRelativeContactPointsOn1.size(); ++i)
     {
-        Vec3 worldA = jphutil::cast(manifold.GetWorldSpaceContactPointOn1(i));
-        Vec3 worldB = jphutil::cast(manifold.GetWorldSpaceContactPointOn2(i));
+        JPH::RVec3 worldA = manifold.GetWorldSpaceContactPointOn1(i);
+        JPH::RVec3 worldB = manifold.GetWorldSpaceContactPointOn2(i);
 
-        info.points.push_back(ContactInfo3D::ContactPoint{worldA, worldB});
+        ContactInfo3D::ContactPoint point;
+        point.sideA.point = jphutil::cast(worldA);
+        point.sideB.point = jphutil::cast(worldB);
+        if (includeVelocity)
+        {
+            point.sideA.velocity = jphutil::cast(body1.GetPointVelocity(worldA));
+            point.sideB.velocity = jphutil::cast(body2.GetPointVelocity(worldB));
+        }
+        info.points.push_back(point);
     }
 }
 
@@ -339,7 +340,7 @@ bool PhysicsWorld3D::isDebugDrawEnabled() const
     return !!_debugDrawer;
 }
 
-void PhysicsWorld3D::debugDraw(Renderer* renderer)
+void PhysicsWorld3D::debugDraw(const SceneRenderState& state)
 {
     if (_debugDrawer)
     {
@@ -349,7 +350,7 @@ void PhysicsWorld3D::debugDraw(Renderer* renderer)
         _physicsSystem.DrawBodies(drawSettings, JPH::DebugRenderer::sInstance);
         _physicsSystem.DrawConstraints(JPH::DebugRenderer::sInstance);
         _physicsSystem.DrawConstraintLimits(JPH::DebugRenderer::sInstance);
-        _debugDrawer->draw(renderer);
+        _debugDrawer->draw(state);
     }
 }
 
@@ -540,7 +541,7 @@ JPH::ValidateResult PhysicsWorld3D::OnContactValidate(const JPH::Body& body1,
     const Vec3 normal = jphutil::cast(-collisionResult.mPenetrationAxis.Normalized());
 
     ContactInfo3D info{.actorA = actorA, .actorB = actorB, .normal = normal};
-    info.points.push_back({worldA, worldB});
+    info.points.push_back({.sideA = {.point = worldA}, .sideB = {.point = worldB}});
 
     if (!_preSolveCallback || _preSolveCallback(info))
         return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
@@ -558,7 +559,13 @@ void PhysicsWorld3D::OnContactAdded(const JPH::Body& body1,
     if (!info.actorA || !info.actorB)
         return;
 
-    fillContactPoints(info, manifold);
+    const bool isSensor = body1.IsSensor() || body2.IsSensor();
+
+    const bool hitEventEnabled =
+        !isSensor && isGlobalEventEnabled(ContactEventBits::Hit) &&
+        (info.actorA->isEventEnabled(ContactEventBits::Hit) || info.actorB->isEventEnabled(ContactEventBits::Hit));
+
+    fillContactPoints(info, body1, body2, manifold, hitEventEnabled);
 
     const uint64_t pairKey = makeBodyPairKey(body1.GetID(), body2.GetID());
     {
@@ -566,17 +573,14 @@ void PhysicsWorld3D::OnContactAdded(const JPH::Body& body1,
         _pairContacts[pairKey] = info;
     }
 
-    const bool isSensor = body1.IsSensor() || body2.IsSensor();
     if (isSensor)
     {
-        ContactInfo3D sensorInfo = reorderSensorContactInfo(info);
-        if (checkSensorEvent(sensorInfo))
-            queueContactEvent(std::move(sensorInfo), ContactEvent3D::EventCode::SensorBegin);
+        if (checkSensorEvent(info))
+            queueContactEvent(reorderSensorContactInfo(info), ContactEvent3D::EventCode::SensorBegin);
         return;
     }
 
-    if (isGlobalEventEnabled(ContactEventBits::Hit) &&
-        (info.actorA->isEventEnabled(ContactEventBits::Hit) || info.actorB->isEventEnabled(ContactEventBits::Hit)))
+    if (hitEventEnabled)
     {
         Vec3 normal         = jphutil::cast(manifold.mWorldSpaceNormal);
         Vec3 velA           = jphutil::cast(body1.GetLinearVelocity());
@@ -584,9 +588,7 @@ void PhysicsWorld3D::OnContactAdded(const JPH::Body& body1,
         float approachSpeed = (velA - velB).dot(normal);
 
         if (approachSpeed > 0.0f && manifold.mPenetrationDepth < 1)
-        {
             queueContactEvent(ContactInfo3D(info), ContactEvent3D::EventCode::CollisionHit);
-        }
     }
 
     if (isGlobalEventEnabled(ContactEventBits::Contact) && (info.actorA->isEventEnabled(ContactEventBits::Contact) ||
@@ -626,9 +628,8 @@ void PhysicsWorld3D::OnContactRemoved(const JPH::SubShapeIDPair& subShapePair)
 
     if (isSensor)
     {
-        ContactInfo3D sensorInfo = reorderSensorContactInfo(info);
-        if (checkSensorEvent(sensorInfo))
-            queueContactEvent(std::move(sensorInfo), ContactEvent3D::EventCode::SensorEnd);
+        if (checkSensorEvent(info))
+            queueContactEvent(reorderSensorContactInfo(info), ContactEvent3D::EventCode::SensorEnd);
         return;
     }
 

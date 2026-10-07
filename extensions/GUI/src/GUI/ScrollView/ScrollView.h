@@ -233,7 +233,7 @@ public:
     virtual void onPointerMove(PointerEvent*);
     virtual void onPointerUp(PointerEvent*);
     virtual void onPointerCancel(PointerEvent*);
-    virtual bool onPointerScroll(PointerEvent*);
+    virtual void onPointerScroll(PointerEvent*);
 
     // Overrides
     void setContentSize(const Size& size) override;
@@ -241,7 +241,7 @@ public:
     /**
      * @lua NA
      */
-    void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
+    void visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags) override;
 
     using Node::addChild;
     void addChild(Node* child, int zOrder, int tag) override;

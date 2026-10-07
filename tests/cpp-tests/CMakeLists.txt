@@ -4,6 +4,15 @@ set(APP_NAME cpp-tests)
 
 project(${APP_NAME})
 
+# Compute dispatch test shaders read storage buffers and need compute-capable GLSL/ESSL profiles.
+set_source_files_properties(
+  "${CMAKE_CURRENT_SOURCE_DIR}/Source/Shaders/compute_dispatch_cs.hlsl"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Source/Shaders/compute_dispatch_vs.hlsl"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Source/Shaders/compute_dispatch_ps.hlsl"
+  PROPERTIES
+    AXSLCC_TARGETS "gl-430;gles-310;d3d11;d3d12;vk;mtl"
+)
+
 if(NOT DEFINED BUILD_ENGINE_DONE)
   if(XCODE)
     set(CMAKE_XCODE_GENERATE_TOP_LEVEL_PROJECT_ONLY TRUE)
@@ -216,6 +225,7 @@ list(APPEND GAME_HEADER
   Source/testResource.h
   Source/ShaderTest/ShaderTest.h
   Source/ShaderTest/ShaderTest2.h
+  Source/ShaderTest/ComputeShaderTest.h
   Source/RendererTest/RendererTest.h
   Source/SpritePolygonTest/SpritePolygonTest.h
   Source/TexturePackerEncryptionTest/TextureAtlasEncryptionTest.h
@@ -302,6 +312,7 @@ list(APPEND GAME_SOURCE
   Source/SchedulerTest/SchedulerTest.cpp
   Source/ShaderTest/ShaderTest.cpp
   Source/ShaderTest/ShaderTest2.cpp
+  Source/ShaderTest/ComputeShaderTest.cpp
   Source/SpineTest/SpineTest.cpp
   Source/Scene3DTest/Scene3DTest.cpp
   Source/MeshRendererTest/DrawNode3D.cpp
@@ -349,6 +360,15 @@ list(APPEND GAME_SOURCE
   Source/controller.cpp
   Source/ZipTest/ZipTests.cpp
 )
+
+if(AX_ENABLE_EXT_SVG)
+  list(APPEND GAME_HEADER
+    Source/SVGTest/SVGTest.h
+  )
+  list(APPEND GAME_SOURCE
+    Source/SVGTest/SVGTest.cpp
+  )
+endif()
 
 if(AX_ENABLE_VIDEO)
   list(APPEND GAME_HEADER
@@ -450,8 +470,16 @@ target_link_libraries(${APP_NAME} ${_AX_CORE_LIB})
 
 target_include_directories(${APP_NAME} PRIVATE ${GAME_INC_DIRS})
 
+if(AX_ENABLE_EXT_SVG)
+  target_compile_definitions(${APP_NAME} PRIVATE AX_ENABLE_EXT_SVG=1)
+endif()
+
 if(AX_ENABLE_EXT_EFFEKSEER)
   target_compile_definitions(${APP_NAME} PRIVATE AX_ENABLE_EXT_EFFEKSEER=1)
+  target_link_libraries(${APP_NAME} EffekseerAxmol)
+  target_include_directories(${APP_NAME} PRIVATE
+    ${_AX_ROOT}/extensions/Effekseer
+  )
 endif()
 
 # mark app resources

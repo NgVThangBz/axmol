@@ -1,25 +1,9 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #pragma once
@@ -31,6 +15,7 @@
 #include "axmol/math/Ray.h"
 #include "axmol/base/RefPtr.h"
 #include "axmol/math/Mat4.h"
+#include "axmol/math/Quat.h"
 #include "axmol/math/Vec2.h"
 #include "axmol/platform/PlatformMacros.h"
 
@@ -57,7 +42,7 @@ inline namespace experimental
  *
  * OpenXRDriver owns OpenXR instance/session/space/swapchain/action state and
  * wraps swapchain images for the active RHI backend. It is not a per-frame data
- * object and is intentionally separate from axmol's RHI RenderContext types.
+ * object and is intentionally separate from axmol's RHI GraphicsContext types.
  * `pollEvents()` is the single pre-update entry point; it handles OpenXR events,
  * waits frame timing, and syncs frame-bound input. `_inFrame` tracks only the
  * xrBeginFrame/xrEndFrame pairing state.
@@ -97,16 +82,26 @@ public:
         bool thumbstickActivePrevious{false};
         bool posePrevious{false};
 
+        XrPosef rawAimPose{};
+        XrPosef rawGripPose{};
+        XrTime rawAimSampleTime{0};
+        XrTime lastStabilizedSampleTime{0};
+        bool rawAimPoseUpdated{false};
+        bool aimTracked{false};
+        bool rawGripPoseValid{false};
+        Ray rawTrackingRay;
+        Ray stabilizedTrackingRay;
+        bool stabilizedRayValid{false};
+        float stabilizationReferenceDistance{50.0f};
+        uint8_t invalidPoseFrameCount{0};
+
+        // rawWorldRay, currentRay, and rayHitPoint are expressed in scene world space.
+        Ray rawWorldRay;
+        bool rawWorldRayValid{false};
         Ray currentRay;
-        Ray lastPointerEventRay;
-        Vec3 visualRayOrigin{Vec3::zero};
-        Vec3 visualRayStart{Vec3::zero};
         Vec3 rayHitPoint{Vec3::zero};
-        bool visualRayOriginValid{false};
-        bool visualRayStartValid{false};
         bool rayHitValid{false};
         bool poseValid{false};
-        bool lastPointerEventRayValid{false};
         intptr_t pointerId{-1};
         std::string interactionProfile;
     };
@@ -131,7 +126,7 @@ public:
      * via GraphicsCore::setVulkanInterop() so that the Vulkan driver can query required
      * extensions and physical device selection from the OpenXR runtime.
      *
-     * Must be called before GraphicsCore::makeCurrentDriver().
+     * Must be called before GraphicsCore::initialize().
      */
     bool registerVulkanInterop();
 
@@ -154,15 +149,14 @@ public:
     const XrFrameState& getFrameState() const { return _frameState; }
     const std::vector<XrView>& getViews() const { return _views; }
     const ControllerState* getControllers() const { return _controllers; }
-    Mat4 getPointerViewTransform() const { return _headViewTransform; }
-    bool isPointerViewTransformValid() const { return _headViewTransformValid; }
-    void setPointerRayTransform(const Mat4& transform);
-    void clearPointerRayTransform();
+    const Mat4& getHeadPoseTransform() const { return _headPoseTransform; }
+    bool isHeadPoseTransformValid() const { return _headPoseTransformValid; }
     void setCompositorAlive(bool alive) { _compositorAlive = alive; }
     bool isCompositorAlive() const { return _compositorAlive; }
 
     void setXrToSceneScale(float scale) { _xrToSceneScale = scale > 0.0f ? scale : 1.0f; }
     float getXrToSceneScale() const { return _xrToSceneScale; }
+    void resolveControllerPointers(const Mat4& trackingToWorld, float sceneRayMaxDistance);
 
     static Mat4 xrPoseToMat4(const XrPosef& pose);
     static Mat4 xrFovToProjection(const XrFovf& fov, float nearZ, float farZ);
@@ -190,7 +184,7 @@ private:
 
     bool initXrActions();
     void pollXrActions(XrTime predictedDisplayTime);
-    void updatePointerViewTransform(uint32_t viewCount);
+    void updateHeadPoseTransform(uint32_t viewCount);
     void shutdownXrActions();
     bool xrPollEvents();
     void logXrInteractionProfiles();
@@ -249,10 +243,8 @@ private:
     bool _compositorAlive{false};
     float _xrToSceneScale{1.0f};
 
-    Mat4 _headViewTransform{Mat4::identity};
-    bool _headViewTransformValid{false};
-    Mat4 _pointerRayTransform{Mat4::identity};
-    bool _pointerRayTransformValid{false};
+    Mat4 _headPoseTransform{Mat4::identity};
+    bool _headPoseTransformValid{false};
 
     void* _graphicsBindingStorage{nullptr};
 

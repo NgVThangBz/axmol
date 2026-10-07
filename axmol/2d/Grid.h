@@ -3,27 +3,11 @@ Copyright (c) 2009      On-Core
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #pragma once
 
@@ -42,6 +26,7 @@ class Texture2D;
 class Node;
 class NodeGrid;
 class RenderTexturePass;
+struct SceneRenderState;
 
 namespace rhi
 {
@@ -72,7 +57,7 @@ public:
     /**@}*/
 
     /**Interface used to blit the texture with grid to screen.*/
-    virtual void blit() = 0;
+    virtual void blit(const SceneRenderState& state) = 0;
     /**Interface, Reuse the grid vertices.*/
     virtual void reuse() = 0;
     /**Interface, Calculate the vertices used for the blit.*/
@@ -122,7 +107,7 @@ public:
      Init and reset the status when render effects by using the grid.
      */
     void beforeDraw();
-    void afterDraw(Node* target);
+    void afterDraw(Node* target, const SceneRenderState& state);
     /**@}*/
 
     /**
@@ -220,7 +205,7 @@ public:
      */
     void beforeBlit() override;
     void afterBlit() override;
-    void blit() override;
+    void blit(const SceneRenderState& state) override;
     void reuse() override;
     void calculateVertexPoints() override;
     /**@}*/
@@ -264,7 +249,7 @@ public:
     /**@{
      Implementations for interfaces in base class.
      */
-    void blit() override;
+    void blit(const SceneRenderState& state) override;
     void reuse() override;
     void calculateVertexPoints() override;
     /**@}*/

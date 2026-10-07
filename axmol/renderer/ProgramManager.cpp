@@ -1,26 +1,10 @@
 /****************************************************************************
  Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/renderer/ProgramManager.h"
@@ -114,6 +98,14 @@ void ProgramManager::init()
                     VertexLayoutKind::Sprite);
     registerProgram(ProgramType::LABEL_NORMAL, positionTextureColor_vs, label_normal_fs, VertexLayoutKind::Sprite);
     registerProgram(ProgramType::LABLE_OUTLINE, positionTextureColor_vs, label_outline_fs, VertexLayoutKind::Sprite);
+    registerProgram(ProgramType::LABEL_NORMAL_ALIAS, positionTextureColor_vs, label_normal_fs_1,
+                    VertexLayoutKind::Sprite);
+    registerProgram(ProgramType::LABLE_OUTLINE_ALIAS, positionTextureColor_vs, label_outline_fs_1,
+                    VertexLayoutKind::Sprite);
+    registerProgram(ProgramType::POSITION_TEXTURE_COLOR_ALIAS, positionTextureColor_vs, positionTextureColor_fs_1,
+                    VertexLayoutKind::Sprite);
+    registerProgram(ProgramType::DUAL_SAMPLER_ALIAS, positionTextureColor_vs, dualSampler_fs_1,
+                    VertexLayoutKind::Sprite);
     registerProgram(ProgramType::LABEL_DISTANCE_OUTLINE, positionTextureColor_vs, label_distanceOutline_fs,
                     VertexLayoutKind::Sprite);
     registerProgram(ProgramType::LABLE_DISTANCE_GLOW, positionTextureColor_vs, label_distanceGlow_fs,

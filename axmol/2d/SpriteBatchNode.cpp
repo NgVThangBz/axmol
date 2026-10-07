@@ -5,27 +5,11 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/2d/SpriteBatchNode.h"
 #include <stddef.h>  // offsetof
@@ -166,7 +150,7 @@ SpriteBatchNode::~SpriteBatchNode()
 
 // override visit
 // don't call visit on it's children
-void SpriteBatchNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void SpriteBatchNode::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     AX_PROFILER_START_CATEGORY(kProfilerCategoryBatchSprite, "CCSpriteBatchNode - visit");
 
@@ -184,11 +168,11 @@ void SpriteBatchNode::visit(Renderer* renderer, const Mat4& parentTransform, uin
 
     sortAllChildren();
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
-    if (isVisitableByVisitingCamera())
+    if (isVisitableByCamera(state.cameraFlag))
     {
-        draw(renderer, _modelViewTransform, flags);
+        draw(state, _modelViewTransform, flags);
         // FIX ME: Why need to set _orderOfArrival to 0??
         // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
         //    setOrderOfArrival(0);
@@ -405,7 +389,7 @@ void SpriteBatchNode::reorderBatch(bool reorder)
     _reorderChildDirty = reorder;
 }
 
-void SpriteBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void SpriteBatchNode::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     // Optimization: Fast Dispatch
     if (_textureAtlas->getTotalQuads() == 0)
@@ -418,12 +402,12 @@ void SpriteBatchNode::draw(Renderer* renderer, const Mat4& transform, uint32_t f
         child->updateTransform();
     }
 
-    const auto& matrixProjection = Camera::getVisitingViewProjectionMatrix();
+    const auto& matrixProjection = state.getViewProjectionMatrix();
     auto programState            = _quadCommand.unsafePS();
     programState->setUniform(_mvpMatrixLocaiton, matrixProjection.m, sizeof(matrixProjection.m));
     _quadCommand.init(_globalZOrder, _textureAtlas->getTexture(), _blendFunc, _textureAtlas->getQuads(),
-                      _textureAtlas->getTotalQuads(), transform, flags);
-    renderer->addCommand(&_quadCommand);
+                      _textureAtlas->getTotalQuads(), transform, flags, state.getView());
+    state.getRenderer()->addCommand(&_quadCommand);
 }
 
 void SpriteBatchNode::increaseAtlasCapacity()

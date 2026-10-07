@@ -2,27 +2,11 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/platform/Device.h"
 #include <string.h>
@@ -30,8 +14,6 @@ THE SOFTWARE.
 #include <jni.h>
 #include "axmol/base/Types.h"
 #include "axmol/platform/android/jni/JniHelper.h"
-#include "axmol/platform/FileUtils.h"
-#include "yasio/tlx/string_view.hpp"
 
 static const char* deviceHelperClassName = "dev.axmol.lib.AxmolEngine";
 
@@ -110,22 +92,6 @@ public:
             return false;
         }
 
-        // Do a full lookup for the font path using FileUtils in case the given font name is a relative path to a font
-        // file asset, or the path has been mapped to a different location in the app package:
-        std::string fullPathOrFontName = textDefinition._fontName;
-        if (FileUtils::getInstance()->isFileExist(fullPathOrFontName))
-        {
-            fullPathOrFontName = FileUtils::getInstance()->fullPathForFilename(textDefinition._fontName);
-            // If the path name returned includes the 'assets' dir then that needs to be removed, because the
-            // android.content.Context requires this portion of the path to be omitted for assets inside the app
-            // package.
-            if (tlx::starts_with(std::string_view{fullPathOrFontName}, "assets/"sv))
-            {
-                fullPathOrFontName =
-                    fullPathOrFontName.substr(sizeof("assets/") - 1);  // Chop out the 'assets/' portion of the path.
-            }
-        }
-
         /**create bitmap
          * this method call Cococs2dx.createBitmap()(java code) to create the bitmap, the java code
          * will call Java_dev_axmol_lib_BitmapHelper_nativeInitBitmapDC() to init the width, height
@@ -135,7 +101,7 @@ public:
         int count           = static_cast<int>(text.length());
         jbyteArray strArray = methodInfo.env->NewByteArray(count);
         methodInfo.env->SetByteArrayRegion(strArray, 0, count, reinterpret_cast<const jbyte*>(text.data()));
-        jstring jstrFont = methodInfo.env->NewStringUTF(fullPathOrFontName.c_str());
+        jstring jstrFont = methodInfo.env->NewStringUTF(textDefinition._fontName.c_str());
 
         if (!methodInfo.env->CallStaticBooleanMethod(
                 methodInfo.classID, methodInfo.methodID, strArray, jstrFont, textDefinition._fontSize,

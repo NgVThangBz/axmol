@@ -3,27 +3,11 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013 Jozef Pridavok
 Copyright (c) 2013-2017 zilongshanren
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/ui/EditBox/EditBoxImpl-win32.h"
 
@@ -50,21 +34,21 @@ namespace ui
 bool EditBoxImplWin::s_isInitialized       = false;
 HMENU EditBoxImplWin::s_editboxChildID     = (HMENU)100;
 HWND EditBoxImplWin::s_previousFocusWnd    = 0;
-WNDPROC EditBoxImplWin::s_prevCocosWndProc = 0;
+WNDPROC EditBoxImplWin::s_prevAxmolWndProc = 0;
 HINSTANCE EditBoxImplWin::s_hInstance      = 0;
-HWND EditBoxImplWin::s_hwndCocos           = 0;
+HWND EditBoxImplWin::s_hwndAxmol           = 0;
 
 void EditBoxImplWin::lazyInit()
 {
-    s_hwndCocos = (HWND)ax::Director::getInstance()->getRenderView()->getNativeWindow();
-    LONG style  = ::GetWindowLongW(s_hwndCocos, GWL_STYLE);
-    ::SetWindowLongW(s_hwndCocos, GWL_STYLE, style | WS_CLIPCHILDREN);
+    s_hwndAxmol = (HWND)ax::Director::getInstance()->getRenderView()->getNativeWindow();
+    LONG style  = ::GetWindowLongW(s_hwndAxmol, GWL_STYLE);
+    ::SetWindowLongW(s_hwndAxmol, GWL_STYLE, style | WS_CLIPCHILDREN);
     s_isInitialized    = true;
-    s_previousFocusWnd = s_hwndCocos;
+    s_previousFocusWnd = s_hwndAxmol;
 
     s_hInstance = ::GetModuleHandleW(nullptr);
 
-    s_prevCocosWndProc = (WNDPROC)SetWindowLongPtrW(s_hwndCocos, GWLP_WNDPROC, (LONG_PTR)hookGLFWWindowProc);
+    s_prevAxmolWndProc = (WNDPROC)SetWindowLongPtrW(s_hwndAxmol, GWLP_WNDPROC, (LONG_PTR)hookGLFWWindowProc);
 }
 
 EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
@@ -90,13 +74,18 @@ EditBoxImplWin::~EditBoxImplWin()
 
 bool EditBoxImplWin::isEditing()
 {
-    return false;
+    return _editingMode;
 }
 
 void EditBoxImplWin::cleanupEditCtrl()
 {
     if (_hwndEdit)
     {
+        if (s_previousFocusWnd == _hwndEdit)
+        {
+            s_previousFocusWnd = s_hwndAxmol;
+        }
+
         SetWindowLongPtrW(_hwndEdit, GWLP_WNDPROC, (LONG_PTR)_prevWndProc);
         ::DestroyWindow(_hwndEdit);
         _hasFocus            = false;
@@ -115,11 +104,11 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
     {
         _hwndEdit = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT",  // predefined class
                                       NULL,                       // no window title
-                                      WS_CHILD | ES_LEFT | WS_BORDER | WS_EX_TRANSPARENT | WS_TABSTOP | ES_AUTOHSCROLL |
+                                      WS_CHILD | ES_LEFT | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL |
                                           (singleLine ? 0 : ES_AUTOVSCROLL | ES_MULTILINE),
                                       0, 0, 0,
                                       0,                 // set size in WM_SIZE message
-                                      s_hwndCocos,       // parent window
+                                      s_hwndAxmol,       // parent window
                                       s_editboxChildID,  // edit control ID
                                       s_hInstance,
                                       this);  // pointer not needed
@@ -128,7 +117,7 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
         _prevWndProc = (WNDPROC)SetWindowLongPtrW(_hwndEdit, GWLP_WNDPROC, (LONG_PTR)WindowProc);
 
         ::SendMessageW(_hwndEdit, EM_LIMITTEXT, this->_maxLength, 0);
-        s_previousFocusWnd = s_hwndCocos;
+
         this->setNativeFont(this->getNativeDefaultFontName(), this->_fontSize);
         this->setNativeText(this->_text);
     }
@@ -260,8 +249,13 @@ void EditBoxImplWin::setNativeText(std::string_view text)
 {
     std::u16string utf16Result;
     ax::text_utils::UTF8ToUTF16(text, utf16Result);
-    this->_changedTextManually = true;
+    const bool previousChangedTextManually = _changedTextManually;
+    _changedTextManually                   = true;
+
     ::SetWindowTextW(_hwndEdit, (LPCWSTR)utf16Result.c_str());
+
+    _changedTextManually = previousChangedTextManually;
+
     int textLen = text.size();
     ::SendMessageW(_hwndEdit, EM_SETSEL, textLen, textLen);
 
@@ -280,7 +274,7 @@ void EditBoxImplWin::setNativeVisible(bool visible)
 {
     if (visible)
     {
-        ::ShowWindow(_hwndEdit, SW_SHOW);
+        ::ShowWindow(_hwndEdit, SW_SHOWNOACTIVATE);
     }
     else
     {
@@ -291,7 +285,8 @@ void EditBoxImplWin::setNativeVisible(bool visible)
 void EditBoxImplWin::updateNativeFrame(const Rect& rect)
 {
     ::SetWindowPos(_hwndEdit, HWND_NOTOPMOST, static_cast<int>(rect.origin.x), static_cast<int>(rect.origin.y),
-                   static_cast<int>(rect.size.width), static_cast<int>(rect.size.height), SWP_NOZORDER);
+                   static_cast<int>(rect.size.width), static_cast<int>(rect.size.height),
+                   SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 std::string_view EditBoxImplWin::getNativeDefaultFontName()
@@ -301,12 +296,21 @@ std::string_view EditBoxImplWin::getNativeDefaultFontName()
 
 void EditBoxImplWin::nativeOpenKeyboard()
 {
-    ::PostMessageW(_hwndEdit, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
-    //        s_previousFocusWnd = hwndEdit;
+    auto* renderView   = static_cast<RenderView*>(Director::getInstance()->getRenderView());
+    GLFWwindow* window = renderView->getWindow();
+
+    const int previousAutoIconify = glfwGetWindowAttrib(window, GLFW_AUTO_ICONIFY);
+
+    glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, GLFW_FALSE);
+
     this->editBoxEditingDidBegin();
 
     auto rect = ui::Helper::getNodeNativeWindowRect(_editBox);
     this->updateNativeFrame(rect);
+
+    ::SetFocus(_hwndEdit);
+
+    glfwSetWindowAttrib(window, GLFW_AUTO_ICONIFY, previousAutoIconify);
 }
 
 void EditBoxImplWin::nativeCloseKeyboard()
@@ -319,7 +323,7 @@ void EditBoxImplWin::setNativeMaxLength(int maxLength)
     ::SendMessageW(_hwndEdit, EM_LIMITTEXT, maxLength, 0);
 }
 
-void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -352,7 +356,7 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
         {
             if (_editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
             {
-                if (s_previousFocusWnd != s_hwndCocos)
+                if (s_previousFocusWnd != s_hwndAxmol)
                 {
                     switch (_keyboardReturnType)
                     {
@@ -379,16 +383,28 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                         break;
                     }
                     ::ShowWindow(s_previousFocusWnd, SW_HIDE);
-                    ::SendMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
-                    s_previousFocusWnd = s_hwndCocos;
+                    ::SendMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
+                    s_previousFocusWnd = s_hwndAxmol;
+                }
+            }
+            else if (s_previousFocusWnd != s_hwndAxmol)
+            {
+                const auto currentLength = ::GetWindowTextLengthW(s_previousFocusWnd);
+                const auto maxLength     = ::SendMessageW(s_previousFocusWnd, EM_GETLIMITTEXT, 0, 0);
+
+                // A Return key needs 2 character spaces (\r\n)
+                if (currentLength + 2 > maxLength)
+                {
+                    return 0;  // Ignore this input
                 }
             }
         }
         break;
     case WM_SETFOCUS:
+        _hasFocus = true;
+
         if (hwnd != s_previousFocusWnd)
         {
-            ::PostMessageW(hwnd, WM_ACTIVATE, (WPARAM)s_previousFocusWnd, 0);
             ::PostMessageW(hwnd, WM_SETCURSOR, (WPARAM)s_previousFocusWnd, 0);
 
             if (_initialFocus && _editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
@@ -412,7 +428,6 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             }
             _endAction                 = EditBoxDelegate::EditBoxEndAction::UNKNOWN;
             s_previousFocusWnd         = _hwndEdit;
-            _hasFocus                  = true;
             this->_changedTextManually = false;
         }
         break;
@@ -427,6 +442,8 @@ void EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     default:
         break;
     }
+
+    return ::CallWindowProcW(_prevWndProc, hwnd, uMsg, wParam, lParam);
 }
 
 std::string EditBoxImplWin::getNativeText() const
@@ -457,12 +474,11 @@ LRESULT EditBoxImplWin::hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             if (pThis && !pThis->_changedTextManually)
             {
                 pThis->editBoxEditingChanged(pThis->getNativeText());
-                pThis->_changedTextManually = false;
             }
         }
         break;
     case WM_LBUTTONDOWN:
-        if (s_previousFocusWnd != s_hwndCocos)
+        if (s_previousFocusWnd != s_hwndAxmol)
         {
             ::ShowWindow(s_previousFocusWnd, SW_HIDE);
 
@@ -476,9 +492,9 @@ LRESULT EditBoxImplWin::hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             }
             else
             {
-                ::PostMessageW(s_hwndCocos, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
+                ::PostMessageW(s_hwndAxmol, WM_SETFOCUS, (WPARAM)s_previousFocusWnd, 0);
             }
-            s_previousFocusWnd = s_hwndCocos;
+            s_previousFocusWnd = s_hwndAxmol;
         }
 
         break;
@@ -486,7 +502,7 @@ LRESULT EditBoxImplWin::hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         break;
     }
 
-    return ::CallWindowProcW(s_prevCocosWndProc, hwnd, uMsg, wParam, lParam);
+    return ::CallWindowProcW(s_prevAxmolWndProc, hwnd, uMsg, wParam, lParam);
 }
 
 LRESULT EditBoxImplWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -494,7 +510,7 @@ LRESULT EditBoxImplWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
     EditBoxImplWin* pThis = (EditBoxImplWin*)GetWindowLongPtrW(hwnd, GWLP_USERDATA);
     if (pThis)
     {
-        pThis->_WindowProc(hwnd, uMsg, wParam, lParam);
+        return pThis->_WindowProc(hwnd, uMsg, wParam, lParam);
     }
 
     return ::CallWindowProcW(pThis->_prevWndProc, hwnd, uMsg, wParam, lParam);

@@ -2,27 +2,11 @@
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/platform/ApplicationCore.h"
@@ -42,7 +26,7 @@ ContextAttrs ApplicationCore::s_contextAttrs = ContextAttrs{};
 Application* ApplicationCore::s_axmolApp = nullptr;
 Director* ApplicationCore::s_director    = nullptr;
 
-static DriverPreference parseDriverPreference(std::span<const std::string_view> args)
+static rhi::GraphicsBackend parsePreferredBackend(std::span<const std::string_view> args)
 {
     for (int i = 1; i < args.size(); ++i)
     {
@@ -51,18 +35,18 @@ static DriverPreference parseDriverPreference(std::span<const std::string_view> 
         {
             std::string_view backend = arg.substr(8);
             if (backend == "opengl"sv || backend == "gl"sv || backend == "gles"sv)
-                return DriverPreference::OpenGL;
+                return rhi::GraphicsBackend::OpenGL;
             if (backend == "d3d11"sv)
-                return DriverPreference::D3D11;
+                return rhi::GraphicsBackend::D3D11;
             if (backend == "d3d12"sv)
-                return DriverPreference::D3D12;
+                return rhi::GraphicsBackend::D3D12;
             if (backend == "vulkan"sv || backend == "vk"sv)
-                return DriverPreference::Vulkan;
+                return rhi::GraphicsBackend::Vulkan;
             if (backend == "metal"sv || backend == "mtl"sv)
-                return DriverPreference::Metal;
+                return rhi::GraphicsBackend::Metal;
         }
     }
-    return DriverPreference::Auto;
+    return rhi::GraphicsBackend::Auto;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,8 +73,8 @@ int ApplicationCore::launch(int argc, tchar_t** argv)
 {
     CommandLineArgs args;
     args.buildFromArgv(argc, argv);
-    auto driverPreference = parseDriverPreference(args.views());
-    GraphicsCore::setDriverPreference(driverPreference);
+    auto preferredBackend = parsePreferredBackend(args.views());
+    GraphicsCore::setPreferredBackend(preferredBackend);
 
     return this->run();
 }

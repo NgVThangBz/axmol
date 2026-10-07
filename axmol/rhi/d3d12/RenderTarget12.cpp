@@ -1,34 +1,18 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/rhi/d3d12/RenderTarget12.h"
-#include "axmol/rhi/d3d12/RenderContext12.h"
+#include "axmol/rhi/d3d12/GraphicsContext12.h"
 #include "axmol/base/Logging.h"
 
 namespace ax::rhi::d3d12
 {
 
-RenderTargetImpl::RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget)
+RenderTargetImpl::RenderTargetImpl(GraphicsDeviceImpl* driver, bool defaultRenderTarget)
     : RenderTarget(defaultRenderTarget), _driver(driver)
 {
     if (_defaultRenderTarget)
@@ -248,7 +232,7 @@ bool RenderTargetImpl::rebuildSwapchainBuffers(IDXGISwapChain4* swapchain,
         return false;
     }
 
-    static_assert(INITIAL_COLOR_CAPACITY >= RenderContextImpl::SWAPCHAIN_BUFFER_COUNT,
+    static_assert(INITIAL_COLOR_CAPACITY >= GraphicsContextImpl::SWAPCHAIN_BUFFER_COUNT,
                   "RenderTargetImpl color attachment array too small for swapchain buffers");
 
     // Release references to the swapchain back buffer for we can ResizeBuffers
@@ -257,7 +241,7 @@ bool RenderTargetImpl::rebuildSwapchainBuffers(IDXGISwapChain4* swapchain,
     if (swapchainFlags)
     {
         _driver->destroyStaleResources();
-        auto hr = swapchain->ResizeBuffers(RenderContextImpl::SWAPCHAIN_BUFFER_COUNT, width, height,
+        auto hr = swapchain->ResizeBuffers(GraphicsContextImpl::SWAPCHAIN_BUFFER_COUNT, width, height,
                                            DEFAULT_SWAPCHAIN_FORMAT, swapchainFlags.value());
         if (FAILED(hr))
         {
@@ -267,7 +251,7 @@ bool RenderTargetImpl::rebuildSwapchainBuffers(IDXGISwapChain4* swapchain,
     }
 
     // Create color attachments wrapping swapchain buffers
-    const UINT colorAttachmentCount = RenderContextImpl::SWAPCHAIN_BUFFER_COUNT;
+    const UINT colorAttachmentCount = GraphicsContextImpl::SWAPCHAIN_BUFFER_COUNT;
     _color.resize(colorAttachmentCount);
     _rtvsDescriptors.resize(colorAttachmentCount);
     _rtvHandles.resize(colorAttachmentCount);

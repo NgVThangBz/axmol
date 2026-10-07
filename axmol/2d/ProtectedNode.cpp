@@ -5,27 +5,11 @@
  Copyright (c) 2011      Zynga Inc.
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/2d/ProtectedNode.h"
@@ -271,7 +255,7 @@ void ProtectedNode::reorderProtectedChild(ax::Node* child, int localZOrder)
     child->setLocalZOrder(localZOrder);
 }
 
-void ProtectedNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void ProtectedNode::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     // quick return if not visible. children won't be drawn.
     if (!_visible)
@@ -279,7 +263,7 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4& parentTransform, uint3
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
     int i = 0;  // used by _children
     int j = 0;  // used by _protectedChildren
@@ -295,7 +279,7 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4& parentTransform, uint3
         auto node = _children.at(i);
 
         if (node && node->getLocalZOrder() < 0)
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(state, _modelViewTransform, flags);
         else
             break;
     }
@@ -305,7 +289,7 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4& parentTransform, uint3
         auto node = _protectedChildren.at(j);
 
         if (node && node->getLocalZOrder() < 0)
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(state, _modelViewTransform, flags);
         else
             break;
     }
@@ -313,17 +297,17 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4& parentTransform, uint3
     //
     // draw self
     //
-    if (isVisitableByVisitingCamera())
-        this->draw(renderer, _modelViewTransform, flags);
+    if (isVisitableByCamera(state.cameraFlag))
+        this->draw(state, _modelViewTransform, flags);
 
     //
     // draw children and protectedChildren zOrder >= 0
     //
     for (auto it = _protectedChildren.cbegin() + j, itCend = _protectedChildren.cend(); it != itCend; ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(state, _modelViewTransform, flags);
 
     for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(state, _modelViewTransform, flags);
 
     // FIX ME: Why need to set _orderOfArrival to 0??
     // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920

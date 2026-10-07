@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
 
  ****************************************************************************/
 
@@ -220,13 +204,30 @@ public:
         KEY_PLAY
     };
 
+    enum KeyModifier : uint16_t
+    {
+        SHIFT     = 1,
+        CONTROL   = 2,
+        ALT       = 4,
+        SUPER     = 8,
+        CAPS_LOCK = 16,
+        NUM_LOCK  = 32
+    };
+
     /** Constructor.
      *
      * @param keyCode A given keycode.
-     * @param isKeyDown whether is key down event
-     * @param isRepeat whether key down repeat
+     * @param phase Input phase
      */
     KeyboardEvent(KeyCode keyCode, InputPhase phase);
+
+    /** Constructor.
+     *
+     * @param keyCode A given keycode.
+     * @param phase Input phase
+     * @param modifiers identifies any modifier keys that are active
+     */
+    KeyboardEvent(KeyCode keyCode, InputPhase phase, uint32_t modifiers);
 
     /**
      * @brief Get the key code.
@@ -252,9 +253,20 @@ public:
      */
     InputPhase getPhase() const { return _phase; }
 
+    /**
+     * @brief Retrieve the modifiers of this keyboard event.
+     *
+     * Returns the modifier keys
+     *
+     * @return uint32_t bitmasked value of modifier keys as
+     * declared in KeyModifier
+     */
+    uint32_t getModifiers() const { return _modifiers; }
+
 private:
     KeyCode _keyCode;
     InputPhase _phase{InputPhase::KeyDown};
+    uint32_t _modifiers;
 
     friend class KeyboardEventListener;
 };

@@ -1,29 +1,13 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/rhi/opengl/VertexLayoutGL.h"
 #include "axmol/rhi/opengl/ProgramGL.h"
-#include "axmol/rhi/opengl/DriverGL.h"
+#include "axmol/rhi/opengl/GraphicsDeviceGL.h"
 #include "axmol/rhi/opengl/UtilsGL.h"
 #include "axmol/rhi/opengl/MacrosGL.h"
 #include "axmol/rhi/opengl/BufferGL.h"
@@ -112,10 +96,10 @@ void VertexLayoutImpl::apply(BufferImpl* vertexBuffer, BufferImpl* instanceBuffe
     glBindVertexArray(_vao);
 
     const auto& desc = getDesc();
-    glBindVertexBuffer(DriverImpl::VBO_BINDING_INDEX, vertexBuffer->internalHandle(), 0, desc.getStride());
+    glBindVertexBuffer(GraphicsDeviceImpl::VBO_BINDING_INDEX, vertexBuffer->internalHandle(), 0, desc.getStride());
 
     if (instanceBuffer)
-        glBindVertexBuffer(DriverImpl::VBO_INSTANCING_BINDING_INDEX, instanceBuffer->internalHandle(), 0,
+        glBindVertexBuffer(GraphicsDeviceImpl::VBO_INSTANCING_BINDING_INDEX, instanceBuffer->internalHandle(), 0,
                            desc.getInstanceStride());
 
     // usedBits = _usedBits;
@@ -137,8 +121,8 @@ void VertexLayoutImpl::setupVAO()
 
     for (const auto& inputDesc : bindings)
     {
-        GLuint bindingIndex =
-            inputDesc.instanceStepRate ? DriverImpl::VBO_INSTANCING_BINDING_INDEX : DriverImpl::VBO_BINDING_INDEX;
+        GLuint bindingIndex = inputDesc.instanceStepRate ? GraphicsDeviceImpl::VBO_INSTANCING_BINDING_INDEX
+                                                         : GraphicsDeviceImpl::VBO_BINDING_INDEX;
 
         GLuint attribIndex = inputDesc.index;
         if (!inputDesc.instanceStepRate)

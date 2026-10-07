@@ -1,26 +1,10 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "controller.h"
@@ -47,7 +31,7 @@ public:
     {
 #if defined(AX_ENABLE_EXT_EFFEKSEER)
 #    pragma message("The optional extension Effekseer is enabled.")
-        addTest("Effekseer", []() { return new EffekseerTests(); });
+        addTest("Particles(Effekseer)", []() { return new EffekseerTests(); });
 #endif
         addTest("Scene3D", []() { return new Scene3DTests(); });
 #if AX_ENABLE_EXT_IMGUI
@@ -100,7 +84,7 @@ public:
         addTest("Node", []() { return new NodeTests(); });
         addTest("Parallax", []() { return new ParallaxTests(); });
         addTest("Particles2D", []() { return new ParticleTests(); });
-        addTest("Particle3D", []() { return new Particle3DTests(); });
+        addTest("Particles(PU)", []() { return new Particle3DTests(); });
 #if defined(AX_ENABLE_PHYSICS_2D)
         addTest("Physics2D", []() { return new PhysicsTests(); });
 #endif
@@ -111,6 +95,9 @@ public:
         addTest("Scene", []() { return new SceneTests(); });
         addTest("Spine", []() { return new SpineTests(); });
         addTest("Sprite", []() { return new SpriteTests(); });
+#ifdef AX_ENABLE_EXT_SVG
+        addTest("Sprite - from SVG", []() { return new SVGTests(); });
+#endif
         addTest("MeshRenderer", []() { return new MeshRendererTests(); });
         addTest("SpritePolygon", []() { return new SpritePolygonTest(); });
         addTest("Terrain", []() { return new TerrainTests(); });
@@ -124,6 +111,7 @@ public:
         addTest("Scheduler", []() { return new SchedulerTests(); });
         addTest("Shader - Basic", []() { return new ShaderTests(); });
         addTest("Shader - Sprite", []() { return new Shader2Tests(); });
+        addTest("Shader - Compute", []() { return new ComputeShaderTests(); });
         addTest("TextureCache", []() { return new TextureCacheTests(); });
         addTest("TexturePacker Encryption", []() { return new TextureAtlasEncryptionTests(); });
         addTest("Touches", []() { return new TouchesTests(); });
@@ -134,8 +122,6 @@ public:
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS || AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
         addTest("Vibrate", []() { return new VibrateTests(); });
 #endif
-        //       addTest("Zwoptex Deprecrated, will be removed in release axmol-2.2.0 (see #1602)", []() { return new
-        //       ZwoptexTests(); });
         addTest("SpriteFrameCache", []() { return new SpriteFrameCacheTests(); });  // TODO
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_MAC || AX_TARGET_PLATFORM == AX_PLATFORM_WIN32 || \
      AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
@@ -445,9 +431,13 @@ void TestController::destroyInstance()
     disableCrashCatch();
 }
 
-bool TestController::blockTouchBegan(PointerEvent* /*event*/)
+bool TestController::blockTouchBegan(PointerEvent* event)
 {
-    return !_stopAutoTest;
+    if (_stopAutoTest)
+        return false;
+
+    event->stopPropagation();
+    return true;
 }
 
 //==================================================================================================

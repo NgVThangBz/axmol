@@ -1,26 +1,10 @@
 /****************************************************************************
 
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
 
  A simple JsonWriter implementation like dotnet Utf8JsonWriter API.
 
@@ -57,7 +41,10 @@ public:
 
     void setOptions(const JsonWriterOptions& options) { _options = options; }
 
-    explicit operator std::string_view() const { return std::string_view{_buffer.data(), _buffer.size()}; }
+    explicit operator std::string_view() const
+    {
+        return std::string_view{reinterpret_cast<const char*>(_buffer.data()), _buffer.size()};
+    }
 
 #pragma region write values
     void writeBoolValue(bool value) { writeUnquoteValue(value); }
@@ -141,11 +128,11 @@ public:
             fillIndentChars();
             _pendingValue = true;
         }
-        _buffer += '"';
+        _buffer.push_back('"');
         _buffer += propertyName;
         _buffer += "\":"sv;
         if constexpr (_Pretty)
-            _buffer += _options.indentChar;
+            _buffer.push_back(_options.indentChar);
     }
 
 protected:
@@ -155,11 +142,11 @@ protected:
             if (!_pendingValue)
                 fillIndentChars();
 
-        _buffer += '"';
+        _buffer.push_back('"');
         _buffer += value;
         _buffer += "\","sv;
         if constexpr (_Pretty)
-            _buffer += '\n';
+            _buffer.push_back('\n');
 
         _pendingValue = false;
     }
@@ -172,7 +159,7 @@ protected:
 
         fmt::vformat_to(std::back_inserter(_buffer), "{},", fmt::make_format_args(value));
         if constexpr (_Pretty)
-            _buffer += '\n';
+            _buffer.push_back('\n');
 
         _pendingValue = false;
     }
@@ -185,9 +172,9 @@ protected:
 
         ++_level;
 
-        _buffer += startChar;
+        _buffer.push_back(startChar);
         if constexpr (_Pretty)
-            _buffer += '\n';
+            _buffer.push_back('\n');
 
         _pendingValue = false;
     }
@@ -208,15 +195,15 @@ protected:
             _buffer.pop_back();
         if constexpr (_Pretty)
         {
-            _buffer += '\n';
+            _buffer.push_back('\n');
             fillIndentChars();
         }
-        _buffer += termChar;
+        _buffer.push_back(termChar);
 
         if (_level != 0)
-            _buffer += ',';
+            _buffer.push_back(',');
         if constexpr (_Pretty)
-            _buffer += '\n';
+            _buffer.push_back('\n');
     }
 
     void fillIndentChars()
@@ -226,7 +213,7 @@ protected:
                 _buffer.extend(_level * _options.indentCharCount, _options.indentChar);
     }
 
-    tlx::sbyte_buffer _buffer;
+    tlx::byte_buffer _buffer;
     uint16_t _level{0};
     bool _pendingValue{false};
     JsonWriterOptions _options;

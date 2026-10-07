@@ -325,7 +325,7 @@ bool InputProcessor::onPointerDown(ax::PointerEvent* event)
         return false;
     }
     
-    auto camera = Camera::getVisitingCamera();
+    auto camera     = event->getCamera();
     Vec2 pt         = event->getWorldPoint();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
@@ -351,12 +351,13 @@ bool InputProcessor::onPointerDown(ax::PointerEvent* event)
 
     _activeProcessor = nullptr;
 
+    event->stopPropagation();
     return true;
 }
 
 void InputProcessor::onPointerMove(ax::PointerEvent* event)
 {
-    auto camera = Camera::getVisitingCamera();
+    auto camera     = event->getCamera();
     Vec2 pt         = event->getWorldPoint();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
@@ -401,7 +402,7 @@ void InputProcessor::onPointerMove(ax::PointerEvent* event)
 
 void InputProcessor::onPointerUp(ax::PointerEvent* event)
 {
-    auto camera = Camera::getVisitingCamera();
+    auto camera     = event->getCamera();
     Vec2 pt         = event->getWorldPoint();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
@@ -511,9 +512,9 @@ void InputProcessor::onPointerCancel(ax::PointerEvent* event)
     _activeProcessor = nullptr;
 }
 
-bool InputProcessor::onPointerScroll(ax::PointerEvent* event)
+void InputProcessor::onPointerScroll(ax::PointerEvent* event)
 {
-    auto camera = Camera::getVisitingCamera();
+    auto camera = event->getCamera();
     Vec2 pt = event->getWorldPoint();
     GObject* target = _owner->hitTest(pt, camera);
     if (!target)
@@ -532,7 +533,7 @@ bool InputProcessor::onPointerScroll(ax::PointerEvent* event)
 
     _activeProcessor = nullptr;
 
-    return true;
+    event->stopPropagation();
 }
 
 void InputProcessor::onKeyDown(ax::KeyboardEvent* event)

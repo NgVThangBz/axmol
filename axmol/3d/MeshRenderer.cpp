@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/3d/MeshRenderer.h"
@@ -812,7 +796,7 @@ void MeshRenderer::removeAllAttachNode()
     _attachments.clear();
 }
 
-void MeshRenderer::visit(ax::Renderer* renderer, const ax::Mat4& parentTransform, uint32_t parentFlags)
+void MeshRenderer::visit(const ax::SceneRenderState& state, const ax::Mat4& parentTransform, uint32_t parentFlags)
 {
     // quick return if not visible. children won't be drawn.
     if (!_visible)
@@ -820,10 +804,10 @@ void MeshRenderer::visit(ax::Renderer* renderer, const ax::Mat4& parentTransform
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
     flags |= FLAGS_RENDER_AS_3D;
 
-    bool visibleByCamera = isVisitableByVisitingCamera();
+    bool visibleByCamera = isVisitableByCamera(state.cameraFlag);
 
     int i = 0;
 
@@ -836,30 +820,30 @@ void MeshRenderer::visit(ax::Renderer* renderer, const ax::Mat4& parentTransform
             auto node = _children.at(i);
 
             if (node && node->getLocalZOrder() < 0)
-                node->visit(renderer, _modelViewTransform, flags);
+                node->visit(state, _modelViewTransform, flags);
             else
                 break;
         }
         // self draw
         if (visibleByCamera)
-            this->draw(renderer, _modelViewTransform, flags);
+            this->draw(state, _modelViewTransform, flags);
 
         for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
-            (*it)->visit(renderer, _modelViewTransform, flags);
+            (*it)->visit(state, _modelViewTransform, flags);
     }
     else if (visibleByCamera)
     {
-        this->draw(renderer, _modelViewTransform, flags);
+        this->draw(state, _modelViewTransform, flags);
     }
 }
 
-void MeshRenderer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void MeshRenderer::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
 #if AX_USE_CULLING
-    // TODO new-renderer: interface isVisibleInFrustum removal
+    // TODO new-state: interface isVisibleInFrustum removal
     //  camera clipping
-    // if(_children.empty() && Camera::getVisitingCamera() &&
-    // !Camera::getVisitingCamera()->isVisibleInFrustum(&getAABB()))
+    // if(_children.empty() && state.getCamera() &&
+    // !state.getCamera()->isVisibleInFrustum(&getAABB()))
     //     return;
 #endif
 
@@ -891,7 +875,7 @@ void MeshRenderer::draw(Renderer* renderer, const Mat4& transform, uint32_t flag
 
     for (auto&& mesh : _meshes)
     {
-        mesh->draw(renderer, _globalZOrder, transform, flags, _lightMask, Vec4(color.r, color.g, color.b, color.a),
+        mesh->draw(state, _globalZOrder, transform, flags, _lightMask, Vec4(color.r, color.g, color.b, color.a),
                    _forceDepthWrite, _wireframe);
     }
 }

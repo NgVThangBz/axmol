@@ -1,30 +1,14 @@
 ///****************************************************************************
 // Copyright (c) 2014 cocos2d-x.org
 // Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-// Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+// Copyright (c) 2019-present Simdsoft Limited.
 //
 // https://axmol.dev/
 //
 //* Portions Copyright (c) Microsoft Open Technologies, Inc.
 //* All Rights Reserved
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// SPDX-License-Identifier: MIT
 //****************************************************************************/
 
 #include "axmol/platform/PlatformConfig.h"
@@ -33,7 +17,6 @@
 #    include "axmol/ui/UIHelper.h"
 #    include "axmol/platform/winrt/WinRTUtils.h"
 #    include "axmol/platform/winrt/RenderView-winrt.h"
-#    include "axmol/2d/FontFreeType.h"
 
 #    include <winrt/Windows.UI.Xaml.Input.h>
 #    include <winrt/Windows.UI.ViewManagement.h>
@@ -488,13 +471,7 @@ void UIEditBoxImplWinrt::setNativeFont(std::string_view fontName, int fontSize)
     transform.getScale(&scale);
     _system_control->setFontSize(_fontSize * ax::Director::getInstance()->getRenderView()->getScaleY() /** scale.y*/);
 
-    // fontFamily
-    auto font = ax::FontFreeType::create(fontName, fontSize, ax::GlyphCollection::DYNAMIC, ""sv);
-    if (font != nullptr)
-    {
-        std::string family = fmt::format("ms-appx:///Content/{}#{}", fontName, font->getFontFamily());
-        _system_control->setFontFamily(PlatformStringFromString(family));
-    }
+    _system_control->setFontFamily(PlatformStringFromString(fontName));
 }
 
 void UIEditBoxImplWinrt::setNativeFontColor(const Color32& color)

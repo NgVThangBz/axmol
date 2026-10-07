@@ -3,27 +3,11 @@
  * Copyright (c) 2012      cocos2d-x.org
  * Copyright (c) 2013-2016 Chukong Technologies Inc.
  * Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- * Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ * Copyright (c) 2019-present Simdsoft Limited.
  *
  * https://axmol.dev/
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * SPDX-License-Identifier: MIT
  *
  */
 #include "axmol/2d/ClippingNode.h"
@@ -134,26 +118,26 @@ void ClippingNode::onExit()
     Node::onExit();
 }
 
-void ClippingNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void ClippingNode::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (!_visible || !hasContent())
         return;
 
     AXASSERT(_stencil, "No stencil set");
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
     // Add group command
 
-    auto* groupCommandStencil = renderer->getNextGroupCommand();
+    auto* groupCommandStencil = state.getRenderer()->getNextGroupCommand();
     groupCommandStencil->init(_globalZOrder);
-    renderer->addCommand(groupCommandStencil);
+    state.getRenderer()->addCommand(groupCommandStencil);
 
-    renderer->pushGroup(groupCommandStencil->getRenderQueueID());
+    state.getRenderer()->pushGroup(groupCommandStencil->getRenderQueueID());
 
     // _beforeVisitCmd.init(_globalZOrder);
     // _beforeVisitCmd.func = AX_CALLBACK_0(StencilStateManager::onBeforeVisit, _stencilStateManager);
-    // renderer->addCommand(&_beforeVisitCmd);
+    // state.getRenderer()->addCommand(&_beforeVisitCmd);
     _stencilStateManager->onBeforeVisit(_globalZOrder);
 
     auto alphaThreshold = this->getAlphaThreshold();
@@ -167,23 +151,23 @@ void ClippingNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32
 
         AX_SAFE_RELEASE_NULL(programState);
     }
-    _stencil->visit(renderer, _modelViewTransform, flags);
+    _stencil->visit(state, _modelViewTransform, flags);
 
-    auto afterDrawStencilCmd = renderer->nextCallbackCommand();
+    auto afterDrawStencilCmd = state.getRenderer()->nextCallbackCommand();
     afterDrawStencilCmd->init(_globalZOrder);
     afterDrawStencilCmd->func = AX_CALLBACK_0(StencilStateManager::onAfterDrawStencil, _stencilStateManager);
-    renderer->addCommand(afterDrawStencilCmd);
+    state.getRenderer()->addCommand(afterDrawStencilCmd);
 
-    bool visibleByCamera = isVisitableByVisitingCamera();
+    bool visibleByCamera = isVisitableByCamera(state.cameraFlag);
 
     // `_groupCommandChildren` is used as a barrier
     // to ensure commands above be executed before children nodes
-    auto* groupCommandChildren = renderer->getNextGroupCommand();
+    auto* groupCommandChildren = state.getRenderer()->getNextGroupCommand();
 
     groupCommandChildren->init(_globalZOrder);
-    renderer->addCommand(groupCommandChildren);
+    state.getRenderer()->addCommand(groupCommandChildren);
 
-    renderer->pushGroup(groupCommandChildren->getRenderQueueID());
+    state.getRenderer()->pushGroup(groupCommandChildren->getRenderQueueID());
 
     if (!_children.empty())
     {
@@ -195,30 +179,30 @@ void ClippingNode::visit(Renderer* renderer, const Mat4& parentTransform, uint32
             auto node = _children.at(i);
 
             if (node && node->getLocalZOrder() < 0)
-                node->visit(renderer, _modelViewTransform, flags);
+                node->visit(state, _modelViewTransform, flags);
             else
                 break;
         }
         // self draw
         if (visibleByCamera)
-            this->draw(renderer, _modelViewTransform, flags);
+            this->draw(state, _modelViewTransform, flags);
 
         for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
-            (*it)->visit(renderer, _modelViewTransform, flags);
+            (*it)->visit(state, _modelViewTransform, flags);
     }
     else if (visibleByCamera)
     {
-        this->draw(renderer, _modelViewTransform, flags);
+        this->draw(state, _modelViewTransform, flags);
     }
 
-    renderer->popGroup();
+    state.getRenderer()->popGroup();
 
-    auto _afterVisitCmd = renderer->nextCallbackCommand();
+    auto _afterVisitCmd = state.getRenderer()->nextCallbackCommand();
     _afterVisitCmd->init(_globalZOrder);
     _afterVisitCmd->func = AX_CALLBACK_0(StencilStateManager::onAfterVisit, _stencilStateManager);
-    renderer->addCommand(_afterVisitCmd);
+    state.getRenderer()->addCommand(_afterVisitCmd);
 
-    renderer->popGroup();
+    state.getRenderer()->popGroup();
 }
 
 void ClippingNode::setGlobalZOrder(float globalZOrder)

@@ -4,27 +4,11 @@
  Copyright (c) 2013-2015 zilongshanren
  Copyright (c) 2015 Mazyad Alabduljaleel
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #import "axmol/ui/EditBox/iOS/EditBoxIOS.h"
@@ -69,8 +53,6 @@
 {
     // custom setter cleanup
     self.textInput = nil;
-
-    [super dealloc];
 }
 
 #pragma mark - Properties
@@ -98,9 +80,7 @@
 
     [_textInput resignFirstResponder];
     [_textInput removeFromSuperview];
-    [_textInput release];
-
-    _textInput = [textInput retain];
+    _textInput = textInput;
 
     [self setInputFlag:self.dataInputMode];
     [self setReturnType:self.keyboardReturnType];
@@ -110,7 +90,7 @@
 
 - (void)createSingleLineTextField
 {
-    AxmolSingleLineTextField* textField = [[[AxmolSingleLineTextField alloc] initWithFrame:self.frameRect] autorelease];
+    AxmolSingleLineTextField* textField = [[AxmolSingleLineTextField alloc] initWithFrame:self.frameRect];
     textField.contentVerticalAlignment  = UIControlContentVerticalAlignmentCenter;
     textField.borderStyle               = UITextBorderStyleNone;
 
@@ -121,7 +101,7 @@
 
 - (void)createMultiLineTextField
 {
-    AxmolMultilineTextField* textView = [[[AxmolMultilineTextField alloc] initWithFrame:self.frameRect] autorelease];
+    AxmolMultilineTextField* textView = [[AxmolMultilineTextField alloc] initWithFrame:self.frameRect];
     self.textInput                    = textView;
 }
 
@@ -318,7 +298,7 @@
 - (void)doAnimationWhenKeyboardMoveWithDuration:(float)duration distance:(float)distance
 {
     auto view     = ax::Director::getInstance()->getRenderView();
-    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay();
+    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay().ptr;
 
     [hostView doAnimationWhenKeyboardMoveWithDuration:duration distance:distance];
 }
@@ -335,7 +315,7 @@
 - (void)openKeyboard
 {
     auto view     = ax::Director::getInstance()->getRenderView();
-    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay();
+    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay().ptr;
 
     self.textInput.contentScaleFactor = [hostView contentScaleFactor];
 
@@ -362,7 +342,7 @@
 - (void)animationSelector
 {
     auto view     = ax::Director::getInstance()->getRenderView();
-    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay();
+    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay().ptr;
 
     [hostView doAnimationWhenAnotherEditBeClicked];
 }
@@ -376,7 +356,7 @@
     _returnPressed = NO;
 
     auto view     = ax::Director::getInstance()->getRenderView();
-    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay();
+    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay().ptr;
 
     if ([hostView isKeyboardShown])
     {
@@ -469,7 +449,7 @@
     _returnPressed = NO;
 
     auto view     = ax::Director::getInstance()->getRenderView();
-    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay();
+    auto hostView = (__bridge RenderHostView*)view->getNativeDisplay().ptr;
 
     if ([hostView isKeyboardShown])
     {

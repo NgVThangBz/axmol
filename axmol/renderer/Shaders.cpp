@@ -3,27 +3,11 @@ Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2012 		cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #include "axmol/renderer/Shaders.h"
 
@@ -38,11 +22,14 @@ AX_DLL const std::string_view positionTexture_vs                 = "positionText
 AX_DLL const std::string_view positionTexture_fs                 = "positionTexture_fs"sv;
 AX_DLL const std::string_view positionTextureColor_vs            = "positionTextureColor_vs"sv;
 AX_DLL const std::string_view positionTextureColor_fs            = "positionTextureColor_fs"sv;
+AX_DLL const std::string_view positionTextureColor_fs_1          = "positionTextureColor_fs_1"sv;
 AX_DLL const std::string_view positionTextureColorAlphaTest_fs   = "positionTextureColorAlphaTest_fs"sv;
 AX_DLL const std::string_view positionTextureGray_fs             = "positionTextureGray_fs"sv;
 AX_DLL const std::string_view positionTextureGrayAlpha_fs        = "positionTextureGrayAlpha_fs"sv;
 AX_DLL const std::string_view label_normal_fs                    = "label_normal_fs"sv;
 AX_DLL const std::string_view label_outline_fs                   = "label_outline_fs"sv;
+AX_DLL const std::string_view label_normal_fs_1                  = "label_normal_fs_1"sv;
+AX_DLL const std::string_view label_outline_fs_1                 = "label_outline_fs_1"sv;
 AX_DLL const std::string_view label_distanceNormal_fs            = "label_distanceNormal_fs"sv;
 AX_DLL const std::string_view label_distanceOutline_fs           = "label_distanceOutline_fs"sv;
 AX_DLL const std::string_view label_distanceGlow_fs              = "label_distanceGlow_fs"sv;
@@ -55,6 +42,7 @@ AX_DLL const std::string_view layer_radialGradient_fs            = "layer_radial
 AX_DLL const std::string_view grayScale_fs                       = "grayScale_fs"sv;
 AX_DLL const std::string_view positionUColor_vs                  = "positionUColor_vs"sv;
 AX_DLL const std::string_view dualSampler_fs                     = "dualSampler_fs"sv;
+AX_DLL const std::string_view dualSampler_fs_1                   = "dualSampler_fs_1"sv;
 AX_DLL const std::string_view dualSampler_gray_fs                = "dualSampler_gray_fs"sv;
 AX_DLL const std::string_view cameraClear_vs                     = "cameraClear_vs"sv;
 AX_DLL const std::string_view cameraClear_fs                     = "cameraClear_fs"sv;

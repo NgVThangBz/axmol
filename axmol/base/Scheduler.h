@@ -4,27 +4,11 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #pragma once
@@ -41,7 +25,7 @@ namespace ax
 
 class Scheduler;
 
-typedef std::function<void(float)> ccSchedulerFunc;
+using SchedulerFunc = std::function<void(float)>;
 
 /**
  * @cond
@@ -107,14 +91,14 @@ public:
     // Initializes a timer with a target, a lambda and an interval in seconds, repeat in number of times to repeat,
     // delay in seconds.
     bool initWithCallback(Scheduler* scheduler,
-                          const ccSchedulerFunc& callback,
+                          const SchedulerFunc& callback,
                           void* target,
                           std::string_view key,
                           float seconds,
                           unsigned int repeat,
                           float delay);
 
-    const ccSchedulerFunc& getCallback() const { return _callback; }
+    const SchedulerFunc& getCallback() const { return _callback; }
     std::string_view getKey() const { return _key; }
 
     void trigger(float dt) override;
@@ -122,7 +106,7 @@ public:
 
 protected:
     void* _target;
-    ccSchedulerFunc _callback;
+    SchedulerFunc _callback;
     std::string _key;
 };
 
@@ -132,6 +116,7 @@ class AX_DLL TimerScriptHandler : public Timer
 {
 public:
     bool initWithScriptHandler(int handler, float seconds);
+    bool initWithCallback(const SchedulerFunc& callback, float seconds);
     int getScriptHandler() const { return _scriptHandler; }
 
     void trigger(float dt) override;
@@ -139,6 +124,7 @@ public:
 
 private:
     int _scriptHandler;
+    SchedulerFunc _callback;
 };
 
 #endif
@@ -156,12 +142,12 @@ private:
 
 struct SchedHandle
 {
-    SchedHandle(tlx::pod_vector<SchedHandle*>* o, const ccSchedulerFunc& cb, void* t, int pri, bool psd) noexcept
+    SchedHandle(tlx::pod_vector<SchedHandle*>* o, const SchedulerFunc& cb, void* t, int pri, bool psd) noexcept
         : owner(o), callback(cb), target(t), priority(pri), paused(psd)
     {}
     SchedHandle(const SchedHandle&) = delete;
     tlx::pod_vector<SchedHandle*>* owner;  // the owner sched list of this sched
-    ccSchedulerFunc callback;
+    SchedulerFunc callback;
     void* target;
     int priority;
     bool paused;
@@ -263,7 +249,7 @@ public:
      @param key The key to identify the callback function, because there is not way to identify a std::function<>.
      @since v3.0
      */
-    void schedule(const ccSchedulerFunc& callback,
+    void schedule(const SchedulerFunc& callback,
                   void* target,
                   float interval,
                   unsigned int repeat,
@@ -280,7 +266,7 @@ public:
      @param key The key to identify the callback function, because there is not way to identify a std::function<>.
      @since v3.0
      */
-    void schedule(const ccSchedulerFunc& callback, void* target, float interval, bool paused, std::string_view key);
+    void schedule(const SchedulerFunc& callback, void* target, float interval, bool paused, std::string_view key);
 
     /** The scheduled method will be called every `interval` seconds.
      If paused is true, then it won't be called until it is resumed.
@@ -334,6 +320,7 @@ public:
      @lua NA
      */
     unsigned int scheduleScriptFunc(unsigned int handler, float interval, bool paused);
+    unsigned int scheduleScriptFunc(const SchedulerFunc& callback, float interval, bool paused);
 #endif
     /////////////////////////////////////
 
@@ -465,18 +452,18 @@ protected:
      @note This method is only for internal use.
      @since v3.0
      */
-    void schedulePerFrame(const ccSchedulerFunc& callback, void* target, int priority, bool paused);
+    void schedulePerFrame(const SchedulerFunc& callback, void* target, int priority, bool paused);
 
     // update specific
 
     void priorityIn(tlx::pod_vector<SchedHandle*>& list,
-                    const ccSchedulerFunc& callback,
+                    const SchedulerFunc& callback,
                     void* target,
                     int priority,
                     bool paused);
-    void appendIn(tlx::pod_vector<SchedHandle*>& list, const ccSchedulerFunc& callback, void* target, bool paused);
+    void appendIn(tlx::pod_vector<SchedHandle*>& list, const SchedulerFunc& callback, void* target, bool paused);
 
-    void addToWaitList(const ccSchedulerFunc& callback, void* target, int priority, bool paused);
+    void addToWaitList(const SchedulerFunc& callback, void* target, int priority, bool paused);
 
     void activeWaitList();
 

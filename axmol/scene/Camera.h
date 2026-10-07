@@ -1,27 +1,11 @@
 /****************************************************************************
 Copyright (c) 2014-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2019 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 
  Code based GamePlay3D's Camera: http://gameplay3d.org
 
@@ -42,6 +26,7 @@ class Scene;
 class RenderView;
 class RenderTexture;
 class CameraBackgroundBrush;
+struct SceneRenderState;
 
 /**
  * Note:
@@ -77,75 +62,30 @@ class AX_DLL Camera : public Node
     friend class NodeGrid;
 
 public:
-    /**
-     * Creates a perspective camera.
+    /** Create a blank Camera with no projection configured.
      *
-     * @param fieldOfView The field of view for the perspective camera (normally in the range of 40-60 degrees).
-     * @param aspectRatio The aspect ratio of the camera (normally the width of the viewport divided by the height of
-     * the viewport).
-     * @param nearPlane The near plane distance.
-     * @param farPlane The far plane distance.
-     */
-    static Camera* createPerspective(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
-    /**
-     * Creates an orthographic camera.
+     *  Advanced users can call configurePerspective() / configureOrthographic()
+     *  / configureOrthographicView() after creation.
      *
-     * @param zoomX The zoom factor along the X-axis of the orthographic projection (the width of the ortho projection).
-     * @param zoomY The zoom factor along the Y-axis of the orthographic projection (the height of the ortho
-     * projection).
-     * @param nearPlane The near plane distance.
-     * @param farPlane The far plane distance.
+     *  @return An autoreleased Camera instance.
      */
-    static Camera* createOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
+    static Camera* create();
 
-    /**
-     * @brief Creates a 2D orthographic camera for a view of the given size.
+    /** Create a Camera with the given mode.
      *
-     * The camera uses an orthographic projection whose visible area matches
-     * `size.width` by `size.height`, and is positioned at the center of that
-     * area: `(size.width / 2, size.height / 2, 0)`.
+     * - Classic: traditional 2D calibrated perspective camera (default scene camera).
+     * - Ortho:   pure 2D orthographic camera.
+     * - Perspective: true 3D perspective camera.
      *
-     * This is useful for rendering 2D content in a local canvas coordinate space,
-     * such as offscreen rendering, RenderTexture capture, UI texture generation,
-     * or any pass where the render target has its own logical size.
-     *
-     * Unlike createOrthographic(), this helper also initializes the camera transform
-     * so that local coordinates from `(0, 0)` to `(size.width, size.height)` map
-     * naturally into the camera view.
-     *
-     * @param size       The logical size of the orthographic view.
-     * @param nearPlane  The near clipping plane.
-     * @param farPlane   The far clipping plane.
-     *
-     * @return An autoreleased Camera instance.
-     *
-     * @see configureOrthographicView
-     * @see createOrthographic
+     *  @return An autoreleased Camera instance.
      */
-    static Camera* createOrthographicView(const Vec2& size, float nearPlane, float farPlane);
-
-    /** create default camera (Classic calibrated perspective mode), the depth of the default camera is 0
-     */
-    static Camera* create(CameraMode mode = CameraMode::Classic);
-
-    /**
-     * Get the visiting camera , the visiting camera shall be set on Scene::render
-     */
-    static const Camera* getVisitingCamera() { return _visitingCamera; }
-
-    /**
-     * Set the visiting camera for draw context. Used by engine internals
-     * for offscreen capture (Transition, Utils, etc.)
-     */
-    static void setVisitingCamera(Camera* camera) { _visitingCamera = camera; }
-
-    /**
-     * Get the view-projection matrix of the current draw context.
-     */
-    static const Mat4& getVisitingViewProjectionMatrix();
+    static Camera* create(CameraMode mode);
 
     static const Viewport& getDefaultViewport();
     static void setDefaultViewport(const Viewport& vp);
+
+    Camera();
+    ~Camera();
 
     /**
      * @brief Updates the view-projection update state from the camera transform state.
@@ -164,6 +104,7 @@ public:
     /**get & set Camera flag*/
     CameraFlag getCameraFlag() const { return _cameraFlag; }
     void setCameraFlag(CameraFlag flag) { _cameraFlag = flag; }
+    CameraMode getCameraMode() const { return _cameraMode; }
 
     /**
      * Set a render texture as the camera's offscreen render target.
@@ -371,6 +312,7 @@ public:
      Use setBackgroundBrush to modify this default behavior.
      */
     void clearBackground();
+    void clearBackground(const SceneRenderState& state);
     /**
      Apply the FBO, RenderTargets and viewport.
      */
@@ -393,27 +335,14 @@ public:
      */
     CameraBackgroundBrush* getBackgroundBrush() const { return _clearBrush; }
 
-    void visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags) override;
+    void visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags) override;
 
     bool isBrushValid();
-
-    Camera();
-    ~Camera();
 
     /**
      * Set the owner scene of the camera, this method shall not be invoked manually
      */
     void setScene(Scene* scene);
-
-    /**set additional matrix for the projection matrix, it multiplies mat to projection matrix when called, used by
-     * WP8*/
-    void setAdditionalProjection(const Mat4& mat);
-
-    /** Init camera with Classic calibrated perspective mode */
-    void initClassic();
-
-    /** Update camera transformations */
-    void updateTransform() override;
 
     /**
      * Configure a perspective projection for this Camera.
@@ -445,6 +374,23 @@ public:
      */
     bool configureOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
 
+    /**
+     * Configure an orthographic projection for this Camera and position it for a view of the given size.
+     *
+     * The camera is positioned at the center of the area: `(size.width / 2, size.height / 2, 0)`.
+     * This is useful for offscreen rendering, RenderTexture capture, or any pass where the
+     * render target has its own logical size.
+     *
+     * May be called more than once (e.g. on canvas resize).
+     * Modifies both projection state and Camera Node transform.
+     *
+     * @param size       The logical size of the orthographic view.
+     * @param nearPlane  The near clipping plane.
+     * @param farPlane   The far clipping plane.
+     * @return true.
+     */
+    bool configureOrthographicView(const Vec2& size, float nearPlane, float farPlane);
+
     void applyViewport();
 
     /**
@@ -467,23 +413,32 @@ public:
     }
 
 protected:
-    static Camera* _visitingCamera;
     static Viewport _defaultViewport;
 
     /**
-     * Configure the Classic calibrated perspective view for the given canvas size.
+     * Configure a calibrated perspective projection for this Camera.
      *
-     * Recalculates the far plane, rebuilds projection, positions the Camera
-     * at the canvas center, and reapplies zoom if active.
+     * May be called more than once. Replaces the current projection configuration
+     * with a classic 2D perspective calibration using a fixed 60 degree FOV.
+     * Does NOT modify the Camera Node transform (position, rotation, scale).
+     *
+     * @param aspectRatio The aspect ratio (width / height).
+     * @param nearPlane The near plane distance.
+     * @param farPlane The far plane distance.
+     */
+    void configureClassic(float aspectRatio, float nearPlane, float farPlane);
+
+    /**
+     * Configure the Classic 2D calibrated view for a given canvas size.
+     *
+     * Unlike configureClassic(), this also updates the Camera Node transform
+     * to keep the view centered on the canvas.
      *
      * May be called more than once (e.g. on canvas resize).
-     * Modifies both projection state and Camera Node transform.
      *
      * @param canvasSize The logical canvas size in points.
      */
     void configureClassicView(const Vec2& canvasSize);
-
-    bool configureOrthographicView(const Vec2& size, float nearPlane, float farPlane);
 
     /**
      * Rebuilds the projection matrix from the Camera's current configuration.
@@ -516,11 +471,11 @@ protected:
     mutable Mat4 _viewProjection;
 
     Vec3 _up;
-    float _fieldOfView                = 0.f;
+    float _fieldOfView                = 60.f;
     float _aspectRatio                = 1.0f;
-    float _zoom[2]                    = {0.f};
-    float _nearPlane                  = 0.f;
-    float _farPlane                   = 0.f;
+    float _zoom[2]                    = {1.0f, 1.0f};
+    float _nearPlane                  = -1024.0f;
+    float _farPlane                   = 1024.0f;
     mutable bool _viewProjectionDirty = true;
     bool _viewProjectionUpdated = false;  // Whether or not the viewprojection matrix was updated since the last frame.
     CameraFlag _cameraFlag      = CameraFlag::DEFAULT;  // camera flag
@@ -529,13 +484,13 @@ protected:
     int8_t _depth = -1;  // camera depth, the depth of camera with CameraFlag::DEFAULT flag is 0 by default, a camera
                          // with larger depth is drawn on top of camera with smaller depth
 
-    CameraMode _cameraMode{CameraMode::Classic};  // set during creation
+    CameraMode _cameraMode{CameraMode::None};  // set during creation
 
-    float _eyeZdistance;  // Z eye projection distance for 2D in 3D projection.
-    float _zoomFactor =
-        1.0F;  // The zoom factor of the camera. 3D = (cameraZDistance * _zoomFactor), 2D = (cameraScale * _zoomFactor)
-    float _zoomFactorFarPlane;
-    float _zoomFactorNearPlane;
+    float _eyeZdistance = 1.0f;  // Z eye projection distance for 2D in 3D projection.
+    float _zoomFactor = 1.0f; /* The zoom factor of the camera. 3D = (cameraZDistance * _zoomFactor), 2D = (cameraScale
+                               * _zoomFactor) */
+    float _zoomFactorNearPlane = 10.0f;
+    float _zoomFactorFarPlane  = 1024.0f;
 
     CameraBackgroundBrush* _clearBrush = nullptr;  // brush used to clear the back ground
     RenderTexture* _targetTexture      = nullptr;  // optional offscreen render target

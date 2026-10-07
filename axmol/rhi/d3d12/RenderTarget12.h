@@ -1,30 +1,14 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #pragma once
 
 #include "axmol/rhi/RenderTarget.h"
-#include "axmol/rhi/d3d12/Driver12.h"
+#include "axmol/rhi/d3d12/GraphicsDevice12.h"
 #include "axmol/rhi/d3d12/Texture12.h"
 #include <d3d12.h>
 #include <dxgi1_5.h>
@@ -34,7 +18,7 @@ namespace ax::rhi::d3d12
 {
 static constexpr DXGI_FORMAT DEFAULT_SWAPCHAIN_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-class DriverImpl;
+class GraphicsDeviceImpl;
 
 /**
  * @brief A D3D12-based RenderTarget implementation
@@ -44,7 +28,7 @@ class RenderTargetImpl : public RenderTarget
 public:
     using Attachment = TextureImpl*;
 
-    RenderTargetImpl(DriverImpl* driver, bool defaultRenderTarget);
+    RenderTargetImpl(GraphicsDeviceImpl* driver, bool defaultRenderTarget);
     ~RenderTargetImpl();
 
     void cleanupResources() override;
@@ -73,7 +57,7 @@ public:
 
 private:
     uint64_t _lastFenceValue{0};
-    DriverImpl* _driver{nullptr};
+    GraphicsDeviceImpl* _driver{nullptr};
 
     tlx::inlined_vector<d3d12::DescriptorHandle*, INITIAL_COLOR_CAPACITY> _rtvsDescriptors{};
     DescriptorHandle* _dsvDescriptor{};

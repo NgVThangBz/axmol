@@ -1,29 +1,15 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #pragma once
 
 #include "axmol/media/MediaEngine.h"
+
+#include <memory>
 
 #if defined(__APPLE__)
 
@@ -34,9 +20,15 @@
 namespace ax
 {
 
+class AvfMediaEngine;
+struct AvfMediaCallbackState;
+
 class AvfMediaEngine : public MediaEngine
 {
 public:
+    AvfMediaEngine();
+    ~AvfMediaEngine() override;
+
     void fireMediaEvent(MEMediaEventType event)
     {
         if (_onMediaEvent)
@@ -53,6 +45,8 @@ public:
     bool close() override;
     bool setLoop(bool bLooping) override;
     bool setRate(double fRate) override;
+    bool setVolume(double volume) override;
+    double getVolume() const override;
     bool setCurrentTime(double fSeekTimeInSec) override;
     double getCurrentTime() override;
     double getDuration() override;
@@ -71,6 +65,7 @@ public:
     void internalPause();
 
 private:
+    std::shared_ptr<AvfMediaCallbackState> _callbackState;
     std::function<void(MEMediaEventType)> _onMediaEvent;
     std::function<void(const MEVideoFrame&)> _onVideoFrame;
     MEVideoPixelFormat _videoPF = MEVideoPixelFormat::INVALID;
@@ -85,6 +80,7 @@ private:
     bool _bAutoPlay     = false;
     bool _repeatEnabled = false;
     bool _playbackEnded = false;
+    double _volume      = 1.0;
 
     /*
     true: luma=[0,255] chroma=[1,255]

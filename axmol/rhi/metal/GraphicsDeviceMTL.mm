@@ -1,0 +1,689 @@
+/****************************************************************************
+ Copyright (c) 2018-2019 Xiamen Yaji Software Co., Ltd.
+ Copyright (c) 2019-present Simdsoft Limited.
+
+ https://axmol.dev/
+
+ SPDX-License-Identifier: MIT
+ ****************************************************************************/
+
+#include "axmol/rhi/metal/GraphicsDeviceMTL.h"
+#include "axmol/rhi/metal/GraphicsContextMTL.h"
+#include "axmol/rhi/metal/BufferMTL.h"
+#include "axmol/rhi/metal/GraphicsPipelineMTL.h"
+#include "axmol/rhi/metal/ComputePipelineMTL.h"
+#include "axmol/rhi/metal/ShaderModuleMTL.h"
+#include "axmol/rhi/metal/DepthStencilStateMTL.h"
+#include "axmol/rhi/metal/TextureMTL.h"
+#include "axmol/rhi/metal/ProgramMTL.h"
+#include "axmol/rhi/metal/RenderTargetMTL.h"
+#include "axmol/rhi/metal/UtilsMTL.h"
+#include "axmol/rhi/GraphicsDeviceFactory.h"
+#include "axmol/base/Macros.h"
+
+namespace ax::rhi
+{
+std::unique_ptr<GraphicsDevice> MetalGraphicsDeviceFactory::create()
+{
+    return std::make_unique<mtl::GraphicsDeviceImpl>();
+}
+}  // namespace ax::rhi
+
+namespace ax::rhi::mtl
+{
+
+inline FeatureSet operator--(FeatureSet& x)
+{
+    return x = (FeatureSet)(std::underlying_type<FeatureSet>::type(x) - 1);
+}
+
+namespace
+{
+int getMaxVertexAttributes(FeatureSet featureSet)
+{
+    int maxAttributes = 0;
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        maxAttributes = 31;
+        break;
+    default:
+        break;
+    }
+    return maxAttributes;
+}
+
+int getMaxTextureEntries(FeatureSet featureSet)
+{
+    int maxTextureEntries = 0;
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        maxTextureEntries = 31;
+        break;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        maxTextureEntries = 128;
+        break;
+    default:
+        break;
+    }
+    return maxTextureEntries;
+}
+
+int getMaxSamplerEntries(FeatureSet featureSet)
+{
+    int maxSamplerEntries = 0;
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        maxSamplerEntries = 16;
+        break;
+    default:
+        break;
+    }
+    return maxSamplerEntries;
+}
+
+int getMaxTextureWidthHeight(FeatureSet featureSet)
+{
+    int maxTextureSize = 0;
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+        maxTextureSize = 4096;
+        break;
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+        maxTextureSize = 8192;
+        break;
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        maxTextureSize = 16384;
+        break;
+    default:
+        break;
+    }
+    return maxTextureSize;
+}
+
+std::string_view featureSetToString(FeatureSet featureSet)
+{
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+        return "iOS_GPUFamily1_v1"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+        return "iOS_GPUFamily2_v1"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+        return "iOS_GPUFamily1_v2"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+        return "iOS_GPUFamily2_v2"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+        return "iOS_GPUFamily1_v3"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+        return "iOS_GPUFamily2_v3"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+        return "iOS_GPUFamily1_v4"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+        return "iOS_GPUFamily2_v4"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+        return "iOS_GPUFamily1_v5"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+        return "iOS_GPUFamily2_v5"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+        return "iOS_GPUFamily3_v1"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+        return "iOS_GPUFamily3_v2"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+        return "iOS_GPUFamily3_v3"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+        return "iOS_GPUFamily4_v1"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+        return "iOS_GPUFamily3_v4"sv;
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        return "iOS_GPUFamily4_v2"sv;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+        return "macOS_GPUFamily1_v1"sv;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+        return "macOS_GPUFamily1_v2"sv;
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+        return "macOS_ReadWriteTextureTier2"sv;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+        return "macOS_GPUFamily1_v3"sv;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+        return "macOS_GPUFamily1_v4"sv;
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        return "macOS_GPUFamily2_v1"sv;
+    default:
+        break;
+    }
+    return ""sv;
+}
+
+bool supportPVRTC(FeatureSet featureSet)
+{
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        return true;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        return false;
+    default:
+        break;
+    }
+    return false;
+}
+
+bool supportEACETC(FeatureSet featureSet)
+{
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        return true;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        return false;
+    default:
+        break;
+    }
+    return false;
+}
+
+bool supportASTC(FeatureSet featureSet)
+{
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+        return false;
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        return true;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        return false;
+    default:
+        break;
+    }
+    return false;
+}
+
+bool supportS3TC(FeatureSet featureSet)
+{
+    switch (featureSet)
+    {
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily1_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily2_v5:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v2:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v3:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v1:
+    case FeatureSet::FeatureSet_iOS_GPUFamily3_v4:
+    case FeatureSet::FeatureSet_iOS_GPUFamily4_v2:
+        return false;
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v1:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v2:
+    case FeatureSet::FeatureSet_macOS_ReadWriteTextureTier2:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v3:
+    case FeatureSet::FeatureSet_macOS_GPUFamily1_v4:
+    case FeatureSet::FeatureSet_macOS_GPUFamily2_v1:
+        return true;
+    default:
+        break;
+    }
+    return false;
+}
+}  // namespace
+
+bool GraphicsDeviceImpl::_isDepth24Stencil8PixelFormatSupported = false;
+
+GraphicsDeviceImpl::GraphicsDeviceImpl() {}
+
+GraphicsDeviceImpl::~GraphicsDeviceImpl() {}
+
+bool GraphicsDeviceImpl::init()
+{
+    _mtlDevice   = MTLCreateSystemDefaultDevice();
+    _mtlCmdQueue = [_mtlDevice newCommandQueue];
+
+    _deviceName = [_mtlDevice.name UTF8String];
+
+#if (AX_TARGET_PLATFORM == AX_PLATFORM_IOS)
+    const FeatureSet minRequiredFeatureSet = FeatureSet::FeatureSet_iOS_GPUFamily1_v1;
+    const FeatureSet maxKnownFeatureSet    = FeatureSet::FeatureSet_iOS_GPUFamily4_v2;
+#else
+    const FeatureSet minRequiredFeatureSet = FeatureSet::FeatureSet_macOS_GPUFamily1_v1;
+    const FeatureSet maxKnownFeatureSet    = FeatureSet::FeatureSet_macOS_GPUFamily2_v1;
+    _isDepth24Stencil8PixelFormatSupported = [_mtlDevice isDepth24Stencil8PixelFormatSupported];
+#endif
+
+    for (auto featureSet = maxKnownFeatureSet; featureSet >= minRequiredFeatureSet; --featureSet)
+    {
+        if ([_mtlDevice supportsFeatureSet:MTLFeatureSet(featureSet)])
+        {
+            _featureSet = featureSet;
+            break;
+        }
+    }
+
+    UtilsMTL::initGPUTextureFormats();
+
+    _caps.maxAttributes                  = getMaxVertexAttributes(_featureSet);
+    _caps.maxSamplesAllowed              = getMaxSamplerEntries(_featureSet);
+    _caps.maxTextureUnits                = getMaxTextureEntries(_featureSet);
+    _caps.maxTextureSize                 = getMaxTextureWidthHeight(_featureSet);
+    _caps.maxTexture3DSize               = _caps.maxTextureSize;
+    _caps.maxComputeWorkGroupCount[0]    = 65535;
+    _caps.maxComputeWorkGroupCount[1]    = 65535;
+    _caps.maxComputeWorkGroupCount[2]    = 65535;
+    _caps.maxComputeWorkGroupSize[0]     = 1024;
+    _caps.maxComputeWorkGroupSize[1]     = 1024;
+    _caps.maxComputeWorkGroupSize[2]     = 64;
+    _caps.maxComputeWorkGroupInvocations = 1024;
+    _caps.maxStorageBufferBindings       = 31;
+    _caps.maxStorageBufferSize           = static_cast<size_t>(_mtlDevice.maxBufferLength);
+
+    return true;
+}
+
+GraphicsContext* GraphicsDeviceImpl::createGraphicsContext(SurfaceHandle surface)
+{
+    return new GraphicsContextImpl(this, surface);
+}
+
+Buffer* GraphicsDeviceImpl::createBuffer(size_t size, BufferType type, BufferUsage usage, const void* initial)
+{
+    return new BufferImpl(_mtlDevice, size, type, usage, initial);
+}
+
+Buffer* GraphicsDeviceImpl::createBuffer(const BufferDesc& desc, const void* initial)
+{
+    return new BufferImpl(_mtlDevice, desc.size, desc.type, desc.usage, initial, desc.stride);
+}
+
+Texture* GraphicsDeviceImpl::createTexture(const TextureDesc& descriptor, std::optional<Color>)
+{
+    return new TextureImpl(_mtlDevice, descriptor);
+}
+
+Texture* GraphicsDeviceImpl::createTextureFromNativeHandle(const ExternalTextureDesc& descriptor)
+{
+    id<MTLTexture> nativeTexture = (__bridge id<MTLTexture>)descriptor.nativeTexture.ptr;
+    if (!nativeTexture)
+        return nullptr;
+
+    auto texture = new TextureImpl(_mtlDevice, nativeTexture);
+    texture->updateTextureDesc(descriptor.desc);
+    return texture;
+}
+
+RenderTarget* GraphicsDeviceImpl::createRenderTarget(Texture* colorAttachment, Texture* depthStencilAttachment)
+{
+    auto rtMTL = new RenderTargetImpl();
+    rtMTL->setColorTexture(colorAttachment);
+    rtMTL->setDepthStencilTexture(depthStencilAttachment);
+    return rtMTL;
+}
+
+DepthStencilState* GraphicsDeviceImpl::createDepthStencilState()
+{
+    return new DepthStencilStateImpl(_mtlDevice);
+}
+
+GraphicsPipeline* GraphicsDeviceImpl::createGraphicsPipeline()
+{
+    return new GraphicsPipelineImpl(_mtlDevice);
+}
+
+ComputePipeline* GraphicsDeviceImpl::createComputePipeline(Program* program)
+{
+    if (!program || !program->isValid() || !program->getCSModule())
+        return nullptr;
+
+    auto* pipeline = new ComputePipelineImpl(_mtlDevice, static_cast<ProgramImpl*>(program));
+    if (!pipeline->isValid())
+    {
+        pipeline->release();
+        return nullptr;
+    }
+    return pipeline;
+}
+
+Program* GraphicsDeviceImpl::createProgram(Data vsData, Data fsData)
+{
+    return new ProgramImpl(vsData, fsData);
+}
+
+Program* GraphicsDeviceImpl::createComputeProgram(Data csData)
+{
+    return new ProgramImpl(csData);
+}
+
+ShaderModule* GraphicsDeviceImpl::createShaderModule(ShaderStage stage, Data& chunk)
+{
+    return new ShaderModuleImpl(_mtlDevice, stage, chunk);
+}
+
+SamplerHandle GraphicsDeviceImpl::createSampler(const SamplerDesc& desc)
+{
+    MTLSamplerDescriptor* samplerDesc = [[MTLSamplerDescriptor alloc] init];
+
+    // --- Min & Mag Filter ---
+    switch (desc.minFilter)
+    {
+    case SamplerFilter::MIN_NEAREST:
+        samplerDesc.minFilter = MTLSamplerMinMagFilterNearest;
+        break;
+    case SamplerFilter::MIN_LINEAR:
+    case SamplerFilter::MIN_ANISOTROPIC:
+        samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
+        break;
+    default:
+        samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
+        break;
+    }
+
+    samplerDesc.magFilter =
+        (desc.magFilter == SamplerFilter::MAG_NEAREST) ? MTLSamplerMinMagFilterNearest : MTLSamplerMinMagFilterLinear;
+
+    // --- Mip Filter ---
+    switch (desc.mipFilter)
+    {
+    case SamplerFilter::MIP_DEFAULT:
+        samplerDesc.mipFilter = MTLSamplerMipFilterNotMipmapped;
+        break;
+    case SamplerFilter::MIP_NEAREST:
+        samplerDesc.mipFilter = MTLSamplerMipFilterNearest;
+        break;
+    case SamplerFilter::MIP_LINEAR:
+        samplerDesc.mipFilter = MTLSamplerMipFilterLinear;
+        break;
+    default:
+        samplerDesc.mipFilter = MTLSamplerMipFilterNotMipmapped;
+        break;
+    }
+
+    bool supportBorderColor{false};
+    if (@available(iOS 14.0, macOS 10.12, *))
+    {
+        const SEL selector = @selector(supportsSamplerBorderColor);
+        if ([_mtlDevice respondsToSelector:selector])
+        {
+            const IMP imp                         = [(NSObject*)_mtlDevice methodForSelector:selector];
+            const auto supportsSamplerBorderColor = reinterpret_cast<BOOL (*)(id, SEL)>(imp);
+            supportBorderColor                    = supportsSamplerBorderColor(_mtlDevice, selector);
+        }
+    }
+
+    // --- Address Modes ---
+    auto toMTLAddressMode = [supportBorderColor](SamplerAddressMode mode) -> MTLSamplerAddressMode {
+        switch (mode)
+        {
+        case SamplerAddressMode::REPEAT:
+            return MTLSamplerAddressModeRepeat;
+        case SamplerAddressMode::MIRROR:
+            return MTLSamplerAddressModeMirrorRepeat;
+        case SamplerAddressMode::CLAMP:
+            return MTLSamplerAddressModeClampToEdge;
+        case SamplerAddressMode::BORDER:
+            return supportBorderColor ? MTLSamplerAddressModeClampToBorderColor : MTLSamplerAddressModeClampToEdge;
+        }
+        return MTLSamplerAddressModeRepeat;
+    };
+
+    samplerDesc.sAddressMode = toMTLAddressMode(desc.sAddressMode);
+    samplerDesc.tAddressMode = toMTLAddressMode(desc.tAddressMode);
+    samplerDesc.rAddressMode = toMTLAddressMode(desc.wAddressMode);
+
+    // --- Border Color ---
+    if (desc.sAddressMode == SamplerAddressMode::BORDER || desc.tAddressMode == SamplerAddressMode::BORDER ||
+        desc.wAddressMode == SamplerAddressMode::BORDER)
+    {
+        if (supportBorderColor)
+        {
+            samplerDesc.borderColor = MTLSamplerBorderColorTransparentBlack;
+        }
+    }
+
+    // --- Compare Function ---
+    auto toMTLCompareFunc = [](CompareFunc func) -> MTLCompareFunction {
+        if (func == CompareFunc::NEVER)
+            return MTLCompareFunctionNever;
+        switch (func)
+        {
+        case CompareFunc::LESS:
+            return MTLCompareFunctionLess;
+        case CompareFunc::EQUAL:
+            return MTLCompareFunctionEqual;
+        case CompareFunc::LESS_EQUAL:
+            return MTLCompareFunctionLessEqual;
+        case CompareFunc::GREATER:
+            return MTLCompareFunctionGreater;
+        case CompareFunc::NOT_EQUAL:
+            return MTLCompareFunctionNotEqual;
+        case CompareFunc::GREATER_EQUAL:
+            return MTLCompareFunctionGreaterEqual;
+        case CompareFunc::ALWAYS:
+            return MTLCompareFunctionAlways;
+        default:
+            return MTLCompareFunctionNever;
+        }
+    };
+    samplerDesc.compareFunction = toMTLCompareFunc(desc.compareFunc);
+
+    // --- Anisotropy ---
+    samplerDesc.maxAnisotropy = std::clamp(desc.anisotropy + 1u, 1u, 16u);
+
+    // --- Create Sampler ---
+    id<MTLSamplerState> sampler = [_mtlDevice newSamplerStateWithDescriptor:samplerDesc];
+    return SamplerHandle{(__bridge_retained void*)sampler};
+}
+
+void GraphicsDeviceImpl::destroySampler(SamplerHandle& sampler)
+{
+    if (sampler)
+    {
+        id<MTLSamplerState> retainedSampler = (__bridge_transfer id<MTLSamplerState>)sampler.ptr;
+        AX_UNUSED_PARAM(retainedSampler);
+        sampler = nullptr;
+    }
+}
+
+std::string GraphicsDeviceImpl::getVendor() const
+{
+    return "Apple Inc.";
+}
+
+std::string GraphicsDeviceImpl::getRenderer() const
+{
+    return _deviceName;
+}
+
+std::string GraphicsDeviceImpl::getVersion() const
+{
+    return std::string{featureSetToString(_featureSet)};
+}
+
+std::string GraphicsDeviceImpl::getShaderVersion() const
+{
+    return "MSL 2.0"s;
+}
+
+bool GraphicsDeviceImpl::checkForFeatureSupported(FeatureType feature)
+{
+    bool featureSupported = false;
+    switch (feature)
+    {
+    case FeatureType::PVRTC:
+        featureSupported = supportPVRTC(_featureSet);
+        break;
+    case FeatureType::ETC1:
+    case FeatureType::ETC2:
+        featureSupported = supportEACETC(_featureSet);
+        break;
+    case FeatureType::S3TC:
+        featureSupported = supportS3TC(_featureSet);
+        break;
+    case FeatureType::IMG_FORMAT_BGRA8888:
+        featureSupported = true;
+        break;
+    case FeatureType::PACKED_DEPTH_STENCIL:
+        featureSupported = _isDepth24Stencil8PixelFormatSupported;
+        break;
+    case FeatureType::ASTC:
+        featureSupported = supportASTC(_featureSet);
+        break;
+    case FeatureType::COMPUTE_SHADER:
+    case FeatureType::STORAGE_BUFFER:
+    case FeatureType::TEXTURE_3D:
+        featureSupported = true;
+        break;
+    default:
+        break;
+    }
+    return featureSupported;
+}
+
+}  // namespace ax::rhi::mtl

@@ -2,7 +2,7 @@
  Copyright 2013 BlackBerry Inc.
  Copyright (c) 2015-2017 Chukong Technologies
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -1198,7 +1198,7 @@ bool Properties::parseColor(std::string_view str, Color* out)
 {
     if (!str.empty())
     {
-        if (str.length() == 9 && str[0] == '#')
+        if (str.length() == 9 && str[0] == '#')  // '#RRGGBBAA'
         {
             // Read the string into an int as hex.
             unsigned int color;
@@ -1206,7 +1206,10 @@ bool Properties::parseColor(std::string_view str, Color* out)
             if (ec == std::errc{})
             {
                 if (out)
-                    out->set(Color::fromHex(color));
+                {
+                    const uint32_t argb = (color >> 8) | (color << 24);
+                    out->set(Color::fromHex(argb));
+                }
                 return true;
             }
             else

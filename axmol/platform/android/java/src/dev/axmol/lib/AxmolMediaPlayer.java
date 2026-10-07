@@ -1,25 +1,9 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 package dev.axmol.lib;
 
@@ -104,7 +88,7 @@ public class AxmolMediaPlayer extends DefaultRenderersFactory implements Player.
      */
     public static final String TAG = "AxmolMediaPlayer";
     private Context mContext;
-    private ExoPlayer mPlayer;
+    private volatile ExoPlayer mPlayer;
     private volatile ByteBufferVideoRenderer mVideoRenderer;
     private MediaFormat mOutputFormat;
     private volatile long mNativeObj = 0; // native object address for send event to C++, weak ref
@@ -112,6 +96,7 @@ public class AxmolMediaPlayer extends DefaultRenderersFactory implements Player.
     private boolean mLooping = false;
     private volatile boolean mPlayWhenReady = false;
     private volatile boolean mPlaybackEnded = false;
+    private volatile double mVolume = 1.0;
     private AtomicInteger mState = new AtomicInteger(STATE_CLOSED);
 
     /**
@@ -193,6 +178,7 @@ public class AxmolMediaPlayer extends DefaultRenderersFactory implements Player.
                         .createMediaSource(MediaItem.fromUri(Uri.parse(sourceUri)));
 
                 mPlayer = new ExoPlayer.Builder(mContext, mediaPlayer).build();
+                mPlayer.setVolume((float) mVolume);
                 for (int i = 0; i < mPlayer.getRendererCount(); i++) {
                     Renderer renderer = mPlayer.getRenderer(i);
                     if (renderer instanceof ByteBufferVideoRenderer) {
@@ -259,6 +245,22 @@ public class AxmolMediaPlayer extends DefaultRenderersFactory implements Player.
                 mPlayer.setPlaybackSpeed((float) fRate);
         });
         return true;
+    }
+
+    public boolean setVolume(double volume) {
+        mVolume = volume;
+        if (mPlayer == null)
+            return true;
+
+        AxmolEngine.runOnUiThread(() -> {
+            if (mPlayer != null)
+                mPlayer.setVolume((float) mVolume);
+        });
+        return true;
+    }
+
+    public double getVolume() {
+        return mVolume;
     }
 
     public boolean setCurrentTime(double fSeekTimeInSec) {

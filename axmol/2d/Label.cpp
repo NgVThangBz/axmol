@@ -2,27 +2,11 @@
  Copyright (c) 2013      Zynga Inc.
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/2d/Label.h"
@@ -187,7 +171,7 @@ public:
     bool isVisible() const override { return _letterVisible; }
 
     // LabelLetter doesn't need to draw directly.
-    void draw(Renderer* /*renderer*/, const Mat4& /*transform*/, uint32_t /*flags*/) override {}
+    void draw(const SceneRenderState& /*state*/, const Mat4& /*transform*/, uint32_t /*flags*/) override {}
 
 private:
     bool _letterVisible;
@@ -663,6 +647,8 @@ void Label::reset()
     _uniformEffectType  = -1;
     _uniformTextColor   = -1;
 
+    _usesBuiltinLabelProgram = false;
+
     _useDistanceField   = false;
     _useA8Shader        = false;
     _clipEnabled        = false;
@@ -693,7 +679,7 @@ static Texture2D* _getTexture(Label* label)
     Texture2D* texture = nullptr;
     if (fontAtlas != nullptr)
     {
-        auto textures = fontAtlas->getTextures();
+        const auto& textures = fontAtlas->getTextures();
         if (!textures.empty())
         {
             texture = textures.begin()->second;
@@ -709,6 +695,8 @@ void Label::setVertexLayout()
 
 bool Label::setProgramState(rhi::ProgramState* programState, bool ownPS /*= false*/)
 {
+    // Explicit ProgramState assignments opt out of automatic sampler selection.
+    _usesBuiltinLabelProgram = false;
     if (Node::setProgramState(programState, ownPS))
     {
         updateUniformLocations();
@@ -726,7 +714,7 @@ bool Label::setProgramState(rhi::ProgramState* programState, bool ownPS /*= fals
     return false;
 }
 
-void Label::updateShaderProgram()
+uint32_t Label::getBuiltinProgramType()
 {
     uint32_t programType = rhi::ProgramType::POSITION_TEXTURE_COLOR;
     if (_currentLabelType == LabelType::BMFONT || _currentLabelType == LabelType::CHARMAP)
@@ -765,18 +753,40 @@ void Label::updateShaderProgram()
                 programType = rhi::ProgramType::LABLE_DISTANCE_GLOW;
             break;
         default:
-            return;
+            return rhi::ProgramType::BUILTIN_COUNT;
         }
     }
 
-    this->setProgramStateByProgramId(programType);
+    if (!_useDistanceField && _fontAtlas && !_fontAtlas->_antialiasEnabled)
+    {
+        switch (programType)
+        {
+        case rhi::ProgramType::LABEL_NORMAL:
+            return rhi::ProgramType::LABEL_NORMAL_ALIAS;
+        case rhi::ProgramType::LABLE_OUTLINE:
+            return rhi::ProgramType::LABLE_OUTLINE_ALIAS;
+        case rhi::ProgramType::POSITION_TEXTURE_COLOR:
+            return rhi::ProgramType::POSITION_TEXTURE_COLOR_ALIAS;
+        case rhi::ProgramType::DUAL_SAMPLER:
+            return rhi::ProgramType::DUAL_SAMPLER_ALIAS;
+        default:
+            break;
+        }
+    }
+    return programType;
+}
 
-    updateUniformLocations();
+void Label::updateShaderProgram()
+{
+    const auto programType = getBuiltinProgramType();
+    if (programType == rhi::ProgramType::BUILTIN_COUNT)
+        return;
 
-    for (auto&& batch : _batchCommands)
-        updateBatchCommand(batch);
+    if (_usesBuiltinLabelProgram && _programState && _programState->getProgram()->getProgramType() == programType)
+        return;
 
-    _quadCommand.setWeakPSVL(_programState, _vertexLayout);
+    if (this->setProgramStateByProgramId(programType))
+        _usesBuiltinLabelProgram = true;
 }
 
 void Label::updateBatchCommand(Label::BatchCommand& batch)
@@ -1956,12 +1966,12 @@ void Label::updateBuffer(TextureAtlas* textureAtlas, CustomCommand& customComman
 
 void Label::updateEffectUniforms(BatchCommand& batch,
                                  TextureAtlas* textureAtlas,
-                                 Renderer* renderer,
+                                 const SceneRenderState& state,
                                  const Mat4& transform)
 {
     updateBuffer(textureAtlas, batch.textCommand);
 
-    const auto& matrixProjection = Camera::getVisitingViewProjectionMatrix();
+    const auto& matrixProjection = state.getViewProjectionMatrix();
 
     if (_shadowEnabled)
     {
@@ -1987,7 +1997,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                 shadowPS->setUniform(_effectColorLocation, &shadowColor, sizeof(Vec4));
                 shadowPS->setUniform(_passLocation, &pass, sizeof(pass));
                 batch.shadowCommand.init(_globalZOrder);
-                renderer->addCommand(&batch.shadowCommand);
+                state.getRenderer()->addCommand(&batch.shadowCommand);
             }
 
             if (_useDistanceField)
@@ -2004,7 +2014,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                     effectPS->setUniform(_effectWidthLocation, &effectWidth, sizeof(float));
                     effectPS->setUniform(_passLocation, &pass, sizeof(pass));
                     batch.effectCommand.init(_globalZOrder);
-                    renderer->addCommand(&batch.effectCommand);
+                    state.getRenderer()->addCommand(&batch.effectCommand);
                 }
 
                 // text pass
@@ -2026,7 +2036,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                     effectPS->setUniform(_effectColorLocation, &effectColor, sizeof(Vec4));
                     effectPS->setUniform(_passLocation, &pass, sizeof(pass));
                     batch.effectCommand.init(_globalZOrder);
-                    renderer->addCommand(&batch.effectCommand);
+                    state.getRenderer()->addCommand(&batch.effectCommand);
                 }
 
                 // text pass
@@ -2047,7 +2057,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                 auto shadowPS = batch.shadowCommand.unsafePS();
                 shadowPS->setUniform(_textColorLocation, &_shadowColor, sizeof(Vec4));
                 batch.shadowCommand.init(_globalZOrder);
-                renderer->addCommand(&batch.shadowCommand);
+                state.getRenderer()->addCommand(&batch.shadowCommand);
             }
         }
         break;
@@ -2063,7 +2073,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                 shadowPS->setUniform(_effectColorLocation, &_shadowColor, sizeof(Vec4));
                 shadowPS->setUniform(_passLocation, &pass, sizeof(pass));
                 batch.shadowCommand.init(_globalZOrder);
-                renderer->addCommand(&batch.shadowCommand);
+                state.getRenderer()->addCommand(&batch.shadowCommand);
             }
 
             // glow pass
@@ -2076,7 +2086,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
                 effectPS->setUniform(_effectWidthLocation, &effectWidth, sizeof(float));
                 effectPS->setUniform(_passLocation, &pass, sizeof(pass));
                 batch.effectCommand.init(_globalZOrder);
-                renderer->addCommand(&batch.effectCommand);
+                state.getRenderer()->addCommand(&batch.effectCommand);
             }
 
             // text pass
@@ -2101,7 +2111,7 @@ void Label::updateEffectUniforms(BatchCommand& batch,
             batch.shadowCommand.updateVertexBuffer(
                 textureAtlas->getQuads(), (unsigned int)(textureAtlas->getTotalQuads() * sizeof(V3F_T2F_C4B_Quad)));
             batch.shadowCommand.init(_globalZOrder);
-            renderer->addCommand(&batch.shadowCommand);
+            state.getRenderer()->addCommand(&batch.shadowCommand);
 
             _displayedColor.a = oldOPacity;
             setColor(oldColor);
@@ -2109,10 +2119,10 @@ void Label::updateEffectUniforms(BatchCommand& batch,
     }
 
     batch.textCommand.init(_globalZOrder);
-    renderer->addCommand(&batch.textCommand);
+    state.getRenderer()->addCommand(&batch.textCommand);
 }
 
-void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void Label::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     if (_batchNodes.empty() || _utf32Text.empty())
     {
@@ -2120,24 +2130,24 @@ void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
     }
     // Don't do calculate the culling if the transform was not updated
 #if AX_USE_CULLING
-    auto visitingCamera = Camera::getVisitingCamera();
-    auto defaultCamera  = Camera::getDefaultCamera();
-    if (visitingCamera == defaultCamera)
+    auto visitingCamera = state.getCamera();
+    if (visitingCamera)
     {
-        const auto transformUpdated = flags & FLAGS_TRANSFORM_DIRTY;
-        _insideBounds               = (transformUpdated || visitingCamera->isViewProjectionUpdated())
-                                          ? renderer->checkVisibility(transform, _contentSize)
-                                          : _insideBounds;
+        _insideBounds =
+            state.requiresVisibilityUpdate(flags) ? state.checkVisibility(transform, _contentSize) : _insideBounds;
     }
     else
     {
-        _insideBounds = renderer->checkVisibility(transform, _contentSize);
+        _insideBounds = state.checkVisibility(transform, _contentSize);
     }
 
     if (_insideBounds)
 #endif
     {
-        ax::Mat4 matrixProjection = Camera::getVisitingViewProjectionMatrix();
+        if (_usesBuiltinLabelProgram)
+            updateShaderProgram();
+
+        ax::Mat4 matrixProjection = state.getViewProjectionMatrix();
         if (!_shadowEnabled && (_currentLabelType == LabelType::BMFONT || _currentLabelType == LabelType::CHARMAP))
         {
             updateBlendState();
@@ -2155,8 +2165,8 @@ void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
             pipelinePS->setUniform(_mvpMatrixLocation, matrixProjection.m, sizeof(matrixProjection.m));
             pipelinePS->setTexture(texture->getRHITexture());
             _quadCommand.init(_globalZOrder, texture, _blendFunc, textureAtlas->getQuads(),
-                              textureAtlas->getTotalQuads(), transform, flags);
-            renderer->addCommand(&_quadCommand);
+                              textureAtlas->getTotalQuads(), transform, flags, state.getView());
+            state.getRenderer()->addCommand(&_quadCommand);
         }
         else
         {
@@ -2170,8 +2180,10 @@ void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 
             if (_batchCommands.size() != _batchNodes.size())
             {
+                const auto oldSize = _batchCommands.size();
                 _batchCommands.resize(_batchNodes.size());
-                updateShaderProgram();
+                for (size_t batchIndex = oldSize; batchIndex < _batchCommands.size(); ++batchIndex)
+                    updateBatchCommand(_batchCommands[batchIndex]);
             }
 
             updateBlendState();
@@ -2191,7 +2203,7 @@ void Label::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
                 }
                 batch.textCommand.unsafePS()->setUniform(_mvpMatrixLocation, matrixMVP.m, sizeof(matrixMVP.m));
                 batch.effectCommand.unsafePS()->setUniform(_mvpMatrixLocation, matrixMVP.m, sizeof(matrixMVP.m));
-                updateEffectUniforms(batch, textureAtlas, renderer, transform);
+                updateEffectUniforms(batch, textureAtlas, state, transform);
             }
         }
     }
@@ -2211,7 +2223,7 @@ void Label::updateBlendState()
     updateBlend(_quadCommand.blendDesc(), _blendFunc);
 }
 
-void Label::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void Label::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (!_visible || (_utf8Text.empty() && _children.empty()))
     {
@@ -2227,7 +2239,7 @@ void Label::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t pare
         updateContent();
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
     if (!_utf8Text.empty() && _shadowEnabled && (_shadowDirty || (flags & FLAGS_DIRTY_MASK)))
     {
@@ -2244,7 +2256,7 @@ void Label::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t pare
         _shadowDirty = false;
     }
 
-    bool visibleByCamera = isVisitableByVisitingCamera();
+    bool visibleByCamera = isVisitableByCamera(state.cameraFlag);
     if (_children.empty() && !_textSprite && !visibleByCamera)
     {
         return;
@@ -2261,41 +2273,41 @@ void Label::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t pare
             auto node = _children.at(i);
 
             if (node && node->getLocalZOrder() < 0)
-                node->visit(renderer, _modelViewTransform, flags);
+                node->visit(state, _modelViewTransform, flags);
             else
                 break;
         }
 
-        this->drawSelf(visibleByCamera, renderer, flags);
+        this->drawSelf(visibleByCamera, state, flags);
 
         for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
         {
-            (*it)->visit(renderer, _modelViewTransform, flags);
+            (*it)->visit(state, _modelViewTransform, flags);
         }
     }
     else
     {
-        this->drawSelf(visibleByCamera, renderer, flags);
+        this->drawSelf(visibleByCamera, state, flags);
     }
 
 #if AX_LABEL_DEBUG_DRAW
-    _debugDrawNode->visit(renderer, _modelViewTransform, parentFlags | FLAGS_TRANSFORM_DIRTY);
+    _debugDrawNode->visit(state, _modelViewTransform, parentFlags | FLAGS_TRANSFORM_DIRTY);
 #endif
 }
 
-void Label::drawSelf(bool visibleByCamera, Renderer* renderer, uint32_t flags)
+void Label::drawSelf(bool visibleByCamera, const SceneRenderState& state, uint32_t flags)
 {
     if (_textSprite)
     {
         if (_shadowNode)
         {
-            _shadowNode->visit(renderer, _modelViewTransform, flags);
+            _shadowNode->visit(state, _modelViewTransform, flags);
         }
-        _textSprite->visit(renderer, _modelViewTransform, flags);
+        _textSprite->visit(state, _modelViewTransform, flags);
     }
     else if (visibleByCamera && !_utf8Text.empty())
     {
-        draw(renderer, _modelViewTransform, flags);
+        draw(state, _modelViewTransform, flags);
     }
 }
 

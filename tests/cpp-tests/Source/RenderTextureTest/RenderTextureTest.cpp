@@ -1,26 +1,10 @@
 /****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "RenderTextureTest.h"
@@ -165,12 +149,13 @@ void RenderTextureSave::addImage(ax::Object* sender)
 
     {
         _rtxPass->begin(getDefaultCamera());
+        SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
 
         Sprite* sprite = Sprite::create("Images/test-rgba1.png");
         sprite->setPosition(
             sprite->getContentSize().width + AXRANDOM_0_1() * (s.width - sprite->getContentSize().width),
             sprite->getContentSize().height + AXRANDOM_0_1() * (s.height - sprite->getContentSize().height));
-        sprite->visit();
+        sprite->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
 
         _rtxPass->end();
     }
@@ -192,6 +177,7 @@ void RenderTextureSave::onPointerMove(PointerEvent* event)
 
     {
         _rtxPass->begin(getDefaultCamera());
+        SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
 
         // for extra points, we'll draw this smoothly from the last position and vary the sprite's
         // scale/rotation/offset
@@ -220,7 +206,7 @@ void RenderTextureSave::onPointerMove(PointerEvent* event)
                 // Use AXRANDOM_0_1() will cause error when loading libtests.so on android, I don't know why.
                 brush->setColor(Color32(rand() % 127 + 128, 255, 255, brush->getOpacity()));
                 // Call visit to draw the brush, don't call draw..
-                brush->visit();
+                brush->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
             }
         }
 
@@ -275,8 +261,9 @@ RenderTextureIssue937::RenderTextureIssue937()
                                                       Rect(0, 0, s.width, s.height),
                                                       Rect(0, 0, pixelSize.width, pixelSize.height)));
         scope->begin(getDefaultCamera());
-        spr_premulti->visit();
-        spr_nonpremulti->visit();
+        SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
+        spr_premulti->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
+        spr_nonpremulti->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
         scope->end();
     }
 
@@ -425,9 +412,11 @@ void RenderTextureZbuffer::renderScreenShot()
 
     {
         auto renderer = _director->getRenderer();
+        auto camera   = getDefaultCamera();
         auto scope    = RefPtr<RenderTexturePass>(RenderTexturePass::obtain(texture), tlx::adopt_object);
-        scope->begin(getDefaultCamera());
-        this->visit(renderer, getNodeToParentTransform(), 0);
+        scope->begin(camera);
+        SceneRenderState renderState(renderer, camera);
+        this->visit(renderState, getNodeToParentTransform(), 0);
         scope->end();
     }
 
@@ -473,11 +462,12 @@ RenderTexturePartTest::RenderTexturePartTest()
                                                       Rect(0, 0, size.width, size.height),
                                                       Rect(0, 0, pixelSize.width, pixelSize.height)));
         scope->begin(getDefaultCamera());
+        SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
         scope->clear(ClearFlag::COLOR, {.color = Color(1, 0, 0, 1)});
-        sprite1->visit();
-        sprite11->visit();
-        sprite2->visit();
-        sprite22->visit();
+        sprite1->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
+        sprite11->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
+        sprite2->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
+        sprite22->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
         scope->end();
     }
 
@@ -549,7 +539,7 @@ RenderTextureTestDepthStencil::~RenderTextureTestDepthStencil()
     _renderer->setStencilTest(bitmask::any(_dsDesc.flags, DepthStencilFlags::STENCIL_TEST));
 }
 
-void RenderTextureTestDepthStencil::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void RenderTextureTestDepthStencil::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     {
         _rtxPass->begin();
@@ -558,24 +548,27 @@ void RenderTextureTestDepthStencil::draw(Renderer* renderer, const Mat4& transfo
 
         //    _renderCmds[0].init(_globalZOrder);
         //    _renderCmds[0].func = AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeClear, this);
-        renderer->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeClear, this), _globalZOrder);
+        state.getRenderer()->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeClear, this),
+                                                _globalZOrder);
 
         //    _renderCmds[1].init(_globalZOrder);
         //    _renderCmds[1].func = AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeStencil, this);
-        renderer->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeStencil, this),
-                                     _globalZOrder);
+        state.getRenderer()->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeStencil, this),
+                                                _globalZOrder);
 
-        _spriteDS->visit();
+        _spriteDS->visit(state, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
 
         //    _renderCmds[2].init(_globalZOrder);
         //    _renderCmds[2].func = AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeDraw, this);
-        renderer->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeDraw, this), _globalZOrder);
+        state.getRenderer()->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onBeforeDraw, this),
+                                                _globalZOrder);
 
-        _spriteDraw->visit();
+        _spriteDraw->visit(state, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
 
         //    _renderCmds[3].init(_globalZOrder);
         //    _renderCmds[3].func = AX_CALLBACK_0(RenderTextureTestDepthStencil::onAfterDraw, this);
-        renderer->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onAfterDraw, this), _globalZOrder);
+        state.getRenderer()->addCallbackCommand(AX_CALLBACK_0(RenderTextureTestDepthStencil::onAfterDraw, this),
+                                                _globalZOrder);
 
         /// !!!end will set current render target to default renderTarget
         /// !!!all render target share one depthStencilDesc, TODO: optimize me?
@@ -690,17 +683,17 @@ void RenderTextureTargetNode::update(float dt)
     time += dt;
 }
 
-void RenderTextureTargetNode::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void RenderTextureTargetNode::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     {
         _rtxPass->begin();
         if (_shouldClear)
             _rtxPass->clear(ClearFlag::COLOR, {.color = Color(0, 0, 0, 0)});
-        _container->visit();
+        _container->visit(state, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
         _rtxPass->end();
     }
 
-    RenderTextureTest::draw(renderer, transform, flags);
+    RenderTextureTest::draw(state, transform, flags);
 }
 
 std::string RenderTextureTargetNode::title() const
@@ -737,7 +730,7 @@ SpriteRenderTextureBug::SimpleSprite* SpriteRenderTextureBug::SimpleSprite::crea
     return sprite;
 }
 
-void SpriteRenderTextureBug::SimpleSprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void SpriteRenderTextureBug::SimpleSprite::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     if (_rt == nullptr)
     {
@@ -752,13 +745,14 @@ void SpriteRenderTextureBug::SimpleSprite::draw(Renderer* renderer, const Mat4& 
         _rtxPass->end();
     }
 
-    Sprite::draw(renderer, transform, flags);
+    Sprite::draw(state, transform, flags);
 }
 
 SpriteRenderTextureBug::SpriteRenderTextureBug()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(SpriteRenderTextureBug::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(SpriteRenderTextureBug::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto s = Director::getInstance()->getCanvasSize();
@@ -836,7 +830,8 @@ Issue16113Test::Issue16113Test()
             scope->begin();
             scope->clear(ClearFlag::COLOR, {.color = Color(0, 0, 0, 0)});
             text->setPosition(canvasSize.width / 2, canvasSize.height / 2);
-            text->Node::visit();
+            SceneRenderState renderState(_director->getRenderer(), getDefaultCamera());
+            text->Node::visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
             scope->end();
         }
         auto callback = [this](RenderTexture* rt, std::string_view path) { rt->release(); };
@@ -876,7 +871,8 @@ CameraTargetTextureTest::CameraTargetTextureTest()
     _rt = RenderTexture::create(_director->canvasToPixels(s), rhi::PixelFormat::RGBA8);
 
     // Camera with targetTexture: renders only USER1-flagged nodes to RT
-    _captureCamera = Camera::createOrthographic(s.width, s.height, -1024, 1024);
+    _captureCamera = Camera::create(CameraMode::Ortho);
+    // _captureCamera->configureOrthographic(s.width, s.height, -1024, 1024);
     _captureCamera->setCameraFlag(CameraFlag::USER1);
     _captureCamera->setPosition3D(Vec3(s.width / 2, s.height / 2, 0));
     _captureCamera->setTargetTexture(_rt);

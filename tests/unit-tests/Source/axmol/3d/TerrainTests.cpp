@@ -47,7 +47,7 @@ void checkVec3Near(const Vec3& actual, const Vec3& expected, float epsilon = 0.0
 
 TEST_CASE("Terrain ray hit keeps local intersection and pointer world hit spaces separate")
 {
-    if (!rhi::GraphicsCore::currentDriver())
+    if (!rhi::GraphicsCore::device())
     {
         WARN("Terrain GPU resources require an active RHI driver; skipping this environment.");
         return;
@@ -85,7 +85,8 @@ TEST_CASE("Terrain ray hit keeps local intersection and pointer world hit spaces
     event.setPointerInfo(InputPhase::PointerMove, Vec2::zero, inputState);
     event.setRay(worldRay);
 
-    auto camera = Camera::createPerspective(60.0f, 1.0f, 0.1f, 100.0f);
+    auto camera = Camera::create();
+    camera->configurePerspective(60.0f, 1.0f, 0.1f, 100.0f);
     REQUIRE(camera != nullptr);
 
     Vec3 pointerWorldHit;

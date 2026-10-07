@@ -1,9 +1,8 @@
 //--------------------------------------------------------------------------------------
-// File: MfMediaEngine.cpp
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-// Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+// Copyright (c) 2019-present Simdsoft Limited.
 //
 // https://axmol.dev/
 //-------------------------------------------------------------------------------------
@@ -143,6 +142,20 @@ bool MfMediaEngine::setRate(double fRate)
     return false;
 }
 
+bool MfMediaEngine::setVolume(double volume)
+{
+    if (m_mediaEngine && FAILED(m_mediaEngine->SetVolume(volume)))
+        return false;
+
+    m_volume = volume;
+    return true;
+}
+
+double MfMediaEngine::getVolume() const
+{
+    return m_mediaEngine ? m_mediaEngine->GetVolume() : m_volume;
+}
+
 bool MfMediaEngine::play()
 {
     if (m_state == MEMediaState::Playing)
@@ -185,7 +198,11 @@ bool MfMediaEngine::open(std::string_view sourceUri)
     m_readyToPlay = false;
     m_state       = MEMediaState::Preparing;
     if (m_mediaEngine)
+    {
+        if (FAILED(m_mediaEngine->SetVolume(m_volume)))
+            return false;
         return SUCCEEDED(m_mediaEngine->SetSource(bstrUrl.data()));
+    }
     return false;
 }
 

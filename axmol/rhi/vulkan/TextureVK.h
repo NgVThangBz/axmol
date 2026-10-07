@@ -1,25 +1,9 @@
 /****************************************************************************
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #pragma once
 
@@ -38,7 +22,7 @@ namespace ax::rhi::vk
  * @{
  */
 
-class DriverImpl;
+class GraphicsDeviceImpl;
 class RenderTargetImpl;
 class TextureImpl;
 
@@ -56,7 +40,7 @@ struct TextureHandle
     explicit operator bool() const { return image != VK_NULL_HANDLE; }
 
 private:
-    void destroy(DriverImpl* driver, uint64_t fenceValue);
+    void destroy(GraphicsDeviceImpl* driver, uint64_t fenceValue);
 
     TextureHandle detach()
     {
@@ -115,7 +99,7 @@ public:
     /**
      * @param desc Specifies the texture description.
      */
-    TextureImpl(DriverImpl*, const TextureDesc& desc);
+    TextureImpl(GraphicsDeviceImpl*, const TextureDesc& desc);
     ~TextureImpl();
 
     // only operate level=0, layer=0
@@ -134,6 +118,17 @@ public:
     void updateSubData(int xoffset, int yoffset, int width, int height, int level, const void* data, int layerIndex = 0)
         override;
 
+    void updateData3D(const void* data, int width, int height, int depth, int level) override;
+
+    void updateSubData3D(int xoffset,
+                         int yoffset,
+                         int zoffset,
+                         int width,
+                         int height,
+                         int depth,
+                         int level,
+                         const void* data) override;
+
     void updateCompressedSubData(int xoffset,
                                  int yoffset,
                                  int width,
@@ -151,6 +146,7 @@ public:
     const TextureHandle& internalHandle() const { return _nativeTexture; }
     VkSampler getSampler() const { return _sampler; }
     const TextureDesc& getDesc() const { return _desc; }
+    VkImageUsageFlags getUsageFlags() const { return _vkUsageFlags; }
 
     void setLastFenceValue(uint64_t fenceValue) { _lastFenceValue = fenceValue; }
 
@@ -164,8 +160,8 @@ public:
     /**
      * Wraps an existing VkImage (e.g. from OpenXR swapchain).
      */
-    TextureImpl(DriverImpl*, VkImage existingImage, VkImageView existingImageView, VkImageUsageFlags usage);
-    TextureImpl(DriverImpl*,
+    TextureImpl(GraphicsDeviceImpl*, VkImage existingImage, VkImageView existingImageView, VkImageUsageFlags usage);
+    TextureImpl(GraphicsDeviceImpl*,
                 VkImage existingImage,
                 VkImageView existingImageView,
                 VkImageUsageFlags usage,
@@ -177,7 +173,7 @@ protected:
     void ensureNativeTexture();
     void generateMipmaps(VkCommandBuffer cmd);
 
-    DriverImpl* _driver{nullptr};  // weak pointer
+    GraphicsDeviceImpl* _driver{nullptr};  // weak pointer
     ImageLayoutTracker _layoutTracker;
     TextureHandle _nativeTexture{};
     VkSampler _sampler{VK_NULL_HANDLE};

@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #pragma once
@@ -49,8 +33,17 @@ struct AX_DLL PointerHitResult
 {
     bool hit{false};
     Vec3 worldPoint{Vec3::zero};
+    Vec3 visualPoint{Vec3::zero};
     const Camera* camera{nullptr};
     const Node* target{nullptr};
+    bool visualPointValid{false};
+};
+
+struct AX_DLL PointerRayContext
+{
+    Ray trackingRay;
+    Mat4 primaryTrackingToWorld{Mat4::identity};
+    float trackingScale{1.0f};
 };
 
 /** @class PointerEvent
@@ -213,8 +206,6 @@ public:
      *         - InputPhase::PointerMove   when the pointer moves
      *         - InputPhase::PointerCancel when the pointer interaction is canceled
      *         - InputPhase::PointerScroll when the pointer performs a scroll
-     *         - InputPhase::PointerEnter  when the pointer enters a region
-     *         - InputPhase::PointerLeave  when the pointer leaves a region
      *
      * @note This reflects only the state of this PointerEvent
      *       instance and does not query the global pointer state.
@@ -257,6 +248,9 @@ public:
     [[internal]] void setRay(const Ray& ray) { _ray = ray; }
     const Ray& getRay() const { return _ray; }
     const Ray& getPreviousRay() const { return _previousRay; }
+    [[internal]] void setRayContext(const PointerRayContext* context);
+    [[internal]] void clearRayContext();
+    [[internal]] bool resolveRayForCamera(const Camera* camera);
 
     [[internal]] void setHitResult(const Vec3& worldPoint, const Camera* camera, const Node* target);
     [[internal]] void clearHitResult();
@@ -270,6 +264,8 @@ protected:
     const Camera* _camera{nullptr};
     Ray _ray;
     Ray _previousRay;
+    PointerRayContext _rayContext;
+    bool _hasRayContext{false};
     PointerHitResult _hitResult;
     std::optional<Vec3> _previousHitPoint;
     std::optional<Vec3> _startHitPoint;

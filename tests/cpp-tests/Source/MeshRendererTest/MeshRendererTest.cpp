@@ -2,27 +2,11 @@
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "MeshRendererTest.h"
@@ -164,8 +148,9 @@ std::string MeshRendererEmptyTest::subtitle() const
 
 MeshRendererBasicTest::MeshRendererBasicTest()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(MeshRendererBasicTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(MeshRendererBasicTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto s = Director::getInstance()->getCanvasSize();
@@ -414,7 +399,8 @@ MeshRendererUVAnimationTest::MeshRendererUVAnimationTest()
     Size visibleSize         = Director::getInstance()->getVisibleSize();
 
     // use custom camera
-    auto camera = Camera::createPerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
+    auto camera = Camera::create();
+    camera->configurePerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
     camera->setCameraFlag(CameraFlag::USER1);
 
     // create cylinder
@@ -506,7 +492,8 @@ MeshRendererFakeShadowTest::MeshRendererFakeShadowTest()
     auto layer = Layer::create();
     addChild(layer, 0);
     // create Camera
-    _camera = Camera::createPerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
+    _camera = Camera::create();
+    _camera->configurePerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
     _camera->setCameraFlag(CameraFlag::USER1);
     _camera->setPosition3D(Vec3(0.0f, 20.0f, 25.0f));
     _camera->setRotation3D(Vec3(-60.0f, 0.0f, 0.0f));
@@ -727,7 +714,8 @@ void MeshRendererFakeShadowTest::onPointerUp(ax::PointerEvent* event)
 MeshRendererBasicToonShaderTest::MeshRendererBasicToonShaderTest()
 {
     Size visibleSize = Director::getInstance()->getVisibleSize();
-    auto _camera     = Camera::createPerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
+    auto _camera     = Camera::create();
+    _camera->configurePerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
     _camera->setCameraFlag(CameraFlag::USER1);
     // create a teapot
     auto teapot = MeshRenderer::create("MeshRendererTest/teapot.c3b");
@@ -779,7 +767,8 @@ MeshRendererLightMapTest::MeshRendererLightMapTest()
     // the assets are from the OpenVR demo
     // get the visible size.
     Size visibleSize = Director::getInstance()->getVisibleSize();
-    _camera          = Camera::createPerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
+    _camera          = Camera::create();
+    _camera->configurePerspective(60, visibleSize.width / visibleSize.height, 0.1f, 200);
     _camera->setCameraFlag(CameraFlag::USER1);
     _camera->setPosition3D(Vec3(0.0f, 25.0f, 15.0f));
     _camera->setRotation3D(Vec3(-35.0f, 0.0f, 0.0f));
@@ -876,6 +865,7 @@ MeshRendererHitTest::MeshRendererHitTest()
         {
             AXLOGD("mesh3d began... x = {}, y = {}", event->getWorldPoint().x, event->getWorldPoint().y);
             target->setOpacity(100);
+            event->stopPropagation();
             return true;
         }
         return false;
@@ -912,8 +902,9 @@ MeshRendererEffectTest::MeshRendererEffectTest()
     auto s = Director::getInstance()->getCanvasSize();
     addNewMeshWithCoords(Vec2(s.width / 2, s.height / 2));
 
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(MeshRendererEffectTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(MeshRendererEffectTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_ANDROID)
     _backToForegroundListener = CustomEventListener::create(EVENT_COME_TO_FOREGROUND, [this](CustomEvent*) {
@@ -1051,8 +1042,9 @@ void AsyncLoadMeshRendererTest::asyncLoad_Callback(MeshRenderer* mesh, void* par
 
 MeshRendererWithSkinTest::MeshRendererWithSkinTest()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(MeshRendererWithSkinTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(MeshRendererWithSkinTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     // switch animation quality. In fact, you can set the mesh3d out of frustum to Animate3DQuality::QUALITY_NONE, it
@@ -1154,8 +1146,9 @@ void MeshRendererWithSkinTest::onPointerUp(PointerEvent* event)
 
 MeshRendererWithSkinOutlineTest::MeshRendererWithSkinOutlineTest()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(MeshRendererWithSkinOutlineTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(MeshRendererWithSkinOutlineTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto s = Director::getInstance()->getCanvasSize();
@@ -1237,8 +1230,9 @@ Animate3DTest::Animate3DTest()
 {
     addMeshRenderer();
 
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(Animate3DTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(Animate3DTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     scheduleUpdate();
@@ -1371,8 +1365,9 @@ AttachmentTest::AttachmentTest() : _hasWeapon(false), _mesh(nullptr)
     auto s = Director::getInstance()->getCanvasSize();
     addNewMeshWithCoords(Vec2(s.width / 2, s.height / 2));
 
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(AttachmentTest::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(AttachmentTest::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 }
 std::string AttachmentTest::title() const
@@ -1427,9 +1422,6 @@ MeshRendererReskinTest::MeshRendererReskinTest() : _mesh(nullptr)
     auto s = Director::getInstance()->getCanvasSize();
     addNewMeshWithCoords(Vec2(s.width / 2, s.height / 2));
 
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(MeshRendererReskinTest::onPointerUp, this);
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     TTFConfig ttfConfig("fonts/arial.ttf", 20);
     auto label1 = Label::createWithTTF(ttfConfig, "Hair");
     auto item1  = MenuItemLabel::create(label1, AX_CALLBACK_1(MeshRendererReskinTest::menuCallback_reSkin, this));
@@ -1523,8 +1515,6 @@ void MeshRendererReskinTest::addNewMeshWithCoords(Vec2 p)
 
     applyCurSkin();
 }
-
-void MeshRendererReskinTest::onPointerUp(PointerEvent* event) {}
 
 void MeshRendererReskinTest::applyCurSkin()
 {
@@ -1943,7 +1933,8 @@ UseCaseMeshRenderer::UseCaseMeshRenderer() : _caseIdx(0)
     addChild(menu);
 
     // setup camera
-    auto camera = Camera::createPerspective(40, s.width / s.height, 0.01f, 1000.f);
+    auto camera = Camera::create();
+    camera->configurePerspective(40, s.width / s.height, 0.01f, 1000.f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.f, 30.f, 100.f));
     camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2211,7 +2202,8 @@ std::string MeshRendererCubeMapTest::subtitle() const
 void MeshRendererCubeMapTest::addNewMeshWithCoords(Vec2 p)
 {
     Size visibleSize = Director::getInstance()->getVisibleSize();
-    _camera          = Camera::createPerspective(60, visibleSize.width / visibleSize.height, 10, 1000);
+    _camera          = Camera::create();
+    _camera->configurePerspective(60, visibleSize.width / visibleSize.height, 10, 1000);
     _camera->setPosition3D(Vec3(0.f, 0.f, 50.f));
     _camera->setCameraFlag(CameraFlag::USER1);
 
@@ -2462,7 +2454,8 @@ MeshRendererVertexColorTest::MeshRendererVertexColorTest()
     this->addChild(mesh);
 
     // setup camera
-    auto camera = Camera::createPerspective(40, s.width / s.height, 0.01f, 1000.f);
+    auto camera = Camera::create();
+    camera->configurePerspective(40, s.width / s.height, 0.01f, 1000.f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.0f, 0.0f, 10.f));
     camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2508,7 +2501,8 @@ CameraBackgroundClearTest::CameraBackgroundClearTest()
 
     // setup camera
     auto s  = Director::getInstance()->getCanvasSize();
-    _camera = Camera::createPerspective(40, s.width / s.height, 0.01f, 1000.f);
+    _camera = Camera::create();
+    _camera->configurePerspective(40, s.width / s.height, 0.01f, 1000.f);
     _camera->setCameraFlag(CameraFlag::USER1);
     _camera->setPosition3D(Vec3(0.f, 30.f, 100.f));
     _camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2577,7 +2571,8 @@ MotionStreak3DTest::MotionStreak3DTest()
 {
     auto s = Director::getInstance()->getCanvasSize();
 
-    auto camera = Camera::createPerspective(40, s.width / s.height, 0.01f, 1000.f);
+    auto camera = Camera::create();
+    camera->configurePerspective(40, s.width / s.height, 0.01f, 1000.f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.f, 50.f, 200.f));
     camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2645,7 +2640,8 @@ MeshRendererNormalMappingTest::MeshRendererNormalMappingTest()
     }
 
     // setup camera
-    auto camera = Camera::createPerspective(60.0, s.width / s.height, 1.0f, 1000.f);
+    auto camera = Camera::create();
+    camera->configurePerspective(60.0, s.width / s.height, 1.0f, 1000.f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.f, 0.f, 100.f));
     camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2696,7 +2692,8 @@ MeshRendererPropertyTest::MeshRendererPropertyTest()
 {
     auto s = Director::getInstance()->getCanvasSize();
 
-    auto camera = Camera::createPerspective(40, s.width / s.height, 0.01f, 1000.f);
+    auto camera = Camera::create();
+    camera->configurePerspective(40, s.width / s.height, 0.01f, 1000.f);
     camera->setCameraFlag(CameraFlag::USER1);
     camera->setPosition3D(Vec3(0.f, 50.f, 200.f));
     camera->lookAt(Vec3(0.f, 0.f, 0.f));
@@ -2710,10 +2707,6 @@ MeshRendererPropertyTest::MeshRendererPropertyTest()
     addChild(_mesh);
 
     setCameraMask(2);
-
-    // auto listener = PointerEventListener::create();
-    ////listener->onPointerUp = AX_CALLBACK_1(MeshRendererReskinTest::onPointerUp, this);
-    //_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     TTFConfig ttfConfig("fonts/arial.ttf", 20);
 

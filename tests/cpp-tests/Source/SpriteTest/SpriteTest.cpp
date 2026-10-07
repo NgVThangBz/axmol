@@ -2,27 +2,11 @@
  Copyright (c) 2012 cocos2d-x.org
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md)
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "SpriteTest.h"
@@ -154,8 +138,9 @@ SpriteTests::SpriteTests()
 
 Sprite1::Sprite1()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(Sprite1::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(Sprite1::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto s = Director::getInstance()->getCanvasSize();
@@ -219,8 +204,9 @@ std::string Sprite1::subtitle() const
 
 SpriteBatchNode1::SpriteBatchNode1()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(SpriteBatchNode1::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(SpriteBatchNode1::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto BatchNode = SpriteBatchNode::create("Images/grossini_dance_atlas.png", 50);
@@ -1674,8 +1660,9 @@ std::string SpriteBatchNodeAliased::subtitle() const
 
 SpriteNewTexture::SpriteNewTexture()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(SpriteNewTexture::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(SpriteNewTexture::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto node = Node::create();
@@ -1782,8 +1769,9 @@ std::string SpriteNewTexture::subtitle() const
 
 SpriteBatchNodeNewTexture::SpriteBatchNodeNewTexture()
 {
-    auto listener         = PointerEventListener::create();
-    listener->onPointerUp = AX_CALLBACK_1(SpriteBatchNodeNewTexture::onPointerUp, this);
+    auto listener           = PointerEventListener::create();
+    listener->onPointerDown = [](PointerEvent*) { return true; };
+    listener->onPointerUp   = AX_CALLBACK_1(SpriteBatchNodeNewTexture::onPointerUp, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
     auto batch = SpriteBatchNode::create("Images/grossini_dance_atlas.png", 50);

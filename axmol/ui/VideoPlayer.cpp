@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2014-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 
 #include "axmol/ui/VideoPlayer.h"
@@ -29,6 +13,7 @@
 
 // Now, common implementation based on redesigned MediaEngine is enable for windows and macOS
 #if defined(AX_ENABLE_VIDEO)
+#    include <algorithm>
 #    include <unordered_map>
 #    include <stdlib.h>
 #    include <string>
@@ -508,7 +493,8 @@ static void createVideoControlTexture()
     node->addChild(drawNode);
 
     auto rt     = RenderTexture::createForCanvas(Vec2(totalWidth, totalHeight), PixelFormat::RGBA8, PixelFormat::D24S8);
-    auto camera = Camera::createOrthographicView(imageSize, -1024, 1024);
+    auto camera = Camera::create();
+    camera->configureOrthographicView(imageSize, -1024, 1024);
     RefPtr<RenderTexturePass> pass(RenderTexturePass::obtain(rt), tlx::adopt_object);
     pass->begin(camera);
     pass->clear(ClearFlag::COLOR, {.color = Color(0, 0, 0, 0)});
@@ -526,10 +512,12 @@ static void createVideoControlTexture()
         ++i;
     }
 
-    node->visit();
+    auto* renderer = Director::getInstance()->getRenderer();
+    SceneRenderState renderState(renderer, camera);
+    node->visit(renderState, Mat4::identity, Node::FLAGS_TRANSFORM_DIRTY);
     pass->end();
 
-    Director::getInstance()->getRenderer()->render();
+    renderer->render();
 
     g_mediaControlsTexture = rt;
 }
@@ -969,6 +957,7 @@ void DefaultVideoController::createControls()
 
         if (rect.containsPoint(locationInNode))
         {
+            event->stopPropagation();
             auto percent  = locationInNode.x / rect.size.x;
             auto duration = _videoPlayer->getDuration();
             auto newTime  = percent * duration;
@@ -1200,9 +1189,9 @@ Node* VideoPlayer::getRenderNode()
     return pvd->_vrender;
 }
 
-void VideoPlayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+void VideoPlayer::draw(const SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
-    ax::ui::Widget::draw(renderer, transform, flags);
+    ax::ui::Widget::draw(state, transform, flags);
 
     auto pvd     = reinterpret_cast<PrivateVideoContext*>(_videoContext);
     auto vrender = pvd->_vrender;
@@ -1323,6 +1312,24 @@ void VideoPlayer::setPlayRate(float fRate)
     }
 }
 
+bool VideoPlayer::setVolume(double volume)
+{
+    volume = std::clamp(volume, 0.0, 1.0);
+
+    auto engine = reinterpret_cast<PrivateVideoContext*>(_videoContext)->_engine;
+    if (!engine || !engine->setVolume(volume))
+        return false;
+
+    _volume = volume;
+    return true;
+}
+
+double VideoPlayer::getVolume() const
+{
+    auto engine = reinterpret_cast<PrivateVideoContext*>(_videoContext)->_engine;
+    return engine ? engine->getVolume() : _volume;
+}
+
 void VideoPlayer::play()
 {
     if (!_videoURL.empty())
@@ -1403,6 +1410,8 @@ void VideoPlayer::stop()
 
 void VideoPlayer::seekTo(float sec)
 {
+    sec = (std::max)(0.0f, sec);
+
     if (!_videoURL.empty())
     {
         auto engine = reinterpret_cast<PrivateVideoContext*>(_videoContext)->_engine;
@@ -1509,6 +1518,7 @@ void VideoPlayer::copySpecialProperties(Widget* widget)
     {
         _isPlaying        = player->_isPlaying;
         _isLooping        = player->_isLooping;
+        _volume           = player->_volume;
         _userInputEnabled = player->_userInputEnabled;
         _styleType        = player->_styleType;
         _fullscreen       = player->_fullscreen;
@@ -1517,6 +1527,7 @@ void VideoPlayer::copySpecialProperties(Widget* widget)
         _keepAspectRatio  = player->_keepAspectRatio;
         _videoSource      = player->_videoSource;
         _eventCallback    = player->_eventCallback;
+        setVolume(_volume);
     }
 }
 

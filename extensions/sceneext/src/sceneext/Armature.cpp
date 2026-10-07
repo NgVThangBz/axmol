@@ -1,26 +1,10 @@
 /****************************************************************************
 Copyright (c) 2013-2017 Chukong Technologies Inc.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "sceneext/Armature.h"
@@ -360,7 +344,7 @@ void Armature::update(float dt)
     _armatureTransformDirty = false;
 }
 
-void Armature::draw(ax::Renderer* renderer, const Mat4& transform, uint32_t flags)
+void Armature::draw(const ax::SceneRenderState& state, const Mat4& transform, uint32_t flags)
 {
     if (_parentBone == nullptr && _batchNode == nullptr)
     {
@@ -400,17 +384,17 @@ void Armature::draw(ax::Renderer* renderer, const Mat4& transform, uint32_t flag
                         skin->setBlendFunc(_blendFunc);
                     }
                 }
-                skin->draw(renderer, transform, flags);
+                skin->draw(state, transform, flags);
             }
             break;
             case CS_DISPLAY_ARMATURE:
             {
-                node->draw(renderer, transform, flags);
+                node->draw(state, transform, flags);
             }
             break;
             default:
             {
-                node->visit(renderer, transform, flags);
+                node->visit(state, transform, flags);
                 //                AX_NODE_DRAW_SETUP();
             }
             break;
@@ -418,7 +402,7 @@ void Armature::draw(ax::Renderer* renderer, const Mat4& transform, uint32_t flag
         }
         else if (Node* node = dynamic_cast<Node*>(object))
         {
-            node->visit(renderer, transform, flags);
+            node->visit(state, transform, flags);
             //            AX_NODE_DRAW_SETUP();
         }
     }
@@ -436,7 +420,7 @@ void Armature::onExit()
     unscheduleUpdate();
 }
 
-void Armature::visit(ax::Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void Armature::visit(const ax::SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     // quick return if not visible. children won't be drawn.
     if (!_visible)
@@ -444,12 +428,12 @@ void Armature::visit(ax::Renderer* renderer, const Mat4& parentTransform, uint32
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
-    if (isVisitableByVisitingCamera())
+    if (isVisitableByCamera(state.cameraFlag))
     {
         sortAllChildren();
-        draw(renderer, _modelViewTransform, flags);
+        draw(state, _modelViewTransform, flags);
     }
 }
 

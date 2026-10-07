@@ -1,27 +1,11 @@
 /****************************************************************************
  Copyright (c) 2013-2016 Chukong Technologies Inc.
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/renderer/Renderer.h"
 
@@ -192,7 +176,7 @@ Renderer::~Renderer()
     free(_triBatchesToDraw);
 
     AX_SAFE_RELEASE(_depthStencilState);
-    AX_SAFE_RELEASE(_renderPipeline);
+    AX_SAFE_RELEASE(_graphicsPipeline);
     AX_SAFE_RELEASE(_context);
 }
 
@@ -205,12 +189,12 @@ void Renderer::init()
 
     auto driver        = axdrv;
     auto nativeDisplay = Director::getInstance()->getRenderView()->getNativeDisplay();
-    _context           = driver->createRenderContext(nativeDisplay);
+    _context           = driver->createGraphicsContext(nativeDisplay);
     _dsDesc.flags      = DepthStencilFlags::ALL;
     _currentRT = _defaultRT = _context->getScreenRenderTarget();
 
-    _renderPipeline = driver->createRenderPipeline();
-    _context->setRenderPipeline(_renderPipeline);
+    _graphicsPipeline = driver->createGraphicsPipeline();
+    _context->setGraphicsPipeline(_graphicsPipeline);
 
     _depthStencilState = driver->createDepthStencilState();
     _context->setDepthStencilState(_depthStencilState);
@@ -806,9 +790,9 @@ bool Renderer::checkVisibility(const Mat4& transform, const Vec2& size)
     auto director = Director::getInstance();
     auto scene    = director->getRunningScene();
 
-    // If draw to Rendertexture, return true directly.
-    //  only cull the default camera. The culling algorithm is valid for default camera.
-    if (!scene || (scene->_defaultCamera != Camera::getVisitingCamera()))
+    // Legacy Renderer API can only cull against the running scene default camera.
+    auto camera = scene ? scene->_defaultCamera : nullptr;
+    if (!camera)
         return true;
 
     Rect visibleRect(director->getVisibleOrigin(), director->getVisibleSize());
@@ -818,7 +802,7 @@ bool Renderer::checkVisibility(const Mat4& transform, const Vec2& size)
     float hSizeY = size.height / 2;
     Vec3 v3p(hSizeX, hSizeY, 0);
     transform.transformPoint(&v3p);
-    Vec2 v2p = Camera::getVisitingCamera()->projectWorldToCanvas(v3p);
+    Vec2 v2p = camera->projectWorldToCanvas(v3p);
 
     // convert content size to world coordinates
     float wshw = std::max(fabsf(hSizeX * transform.m[0] + hSizeY * transform.m[4]),

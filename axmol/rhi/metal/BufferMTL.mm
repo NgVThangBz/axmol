@@ -29,8 +29,13 @@
 namespace ax::rhi::mtl
 {
 
-BufferImpl::BufferImpl(id<MTLDevice> mtlDevice, size_t size, BufferType type, BufferUsage usage, const void* initial)
-    : Buffer(size, type, usage)
+BufferImpl::BufferImpl(id<MTLDevice> mtlDevice,
+                       size_t size,
+                       BufferType type,
+                       BufferUsage usage,
+                       const void* initial,
+                       uint32_t stride)
+    : Buffer(size, type, usage, stride)
 {
     if (BufferUsage::DYNAMIC == usage)
     {
@@ -59,16 +64,7 @@ BufferImpl::~BufferImpl()
 {
     if (BufferUsage::DYNAMIC == _usage)
     {
-        for (id<MTLBuffer> buffer in _dynamicDataBuffers)
-            [buffer release];
-
-        [_dynamicDataBuffers release];
-
         BufferManager::removeBuffer(this);
-    }
-    else
-    {
-        [_mtlBuffer release];
     }
 }
 

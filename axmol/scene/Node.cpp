@@ -5,27 +5,11 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #include "axmol/scene/Node.h"
@@ -66,6 +50,85 @@ AX_DLL uint64_t hashNodeName(std::string_view name)
 // reordered.
 uint32_t Node::s_globalOrderOfArrival = 0;
 int Node::__attachedNodeCount         = 0;
+
+SceneViewData SceneViewData::fromCamera(const Camera& camera)
+{
+    SceneViewData data;
+    data.view           = camera.getViewMatrix();
+    data.projection     = camera.getProjectionMatrix();
+    data.viewProjection = camera.getViewProjectionMatrix();
+    camera.getNodeToWorldTransform().getTranslation(&data.position);
+    return data;
+}
+
+SceneViewData SceneViewData::fromMatrices(const Mat4& view, const Mat4& projection, const Vec3& position)
+{
+    SceneViewData data;
+    data.view       = view;
+    data.projection = projection;
+    data.position   = position;
+    Mat4::multiply(projection, view, &data.viewProjection);
+    return data;
+}
+
+float SceneViewData::getDepthInView(const Mat4& transform) const
+{
+    float camWorldZ =
+        -(view.m[2] * transform.m[12] + view.m[6] * transform.m[13] + view.m[10] * transform.m[14] + view.m[14]);
+    return camWorldZ;
+}
+
+SceneRenderState::SceneRenderState(Renderer* renderer, const Camera* camera)
+    : renderer(renderer)
+    , camera(camera)
+    , view(camera ? SceneViewData::fromCamera(*camera) : SceneViewData{})
+    , cameraFlag(camera ? static_cast<unsigned short>(camera->getCameraFlag()) : 0)
+{}
+
+SceneRenderState::SceneRenderState(Renderer* renderer, const Camera* camera, const SceneViewData& view)
+    : renderer(renderer)
+    , camera(camera)
+    , view(view)
+    , cameraFlag(camera ? static_cast<unsigned short>(camera->getCameraFlag()) : 0)
+    , viewOverridden(true)
+{}
+
+bool SceneRenderState::requiresVisibilityUpdate(uint32_t flags) const
+{
+    return viewOverridden || (flags & Node::FLAGS_TRANSFORM_DIRTY) || (camera && camera->isViewProjectionUpdated());
+}
+
+bool SceneRenderState::checkVisibility(const Mat4& transform, const Vec2& size) const
+{
+    if (viewOverridden)
+        return true;
+
+    if (!renderer || !camera || camera->getCameraMode() != CameraMode::Classic)
+        return true;
+
+    auto director = Director::getInstance();
+    if (!director)
+        return true;
+
+    Rect visibleRect(director->getVisibleOrigin(), director->getVisibleSize());
+
+    float hSizeX = size.width / 2;
+    float hSizeY = size.height / 2;
+    Vec3 v3p(hSizeX, hSizeY, 0);
+    transform.transformPoint(&v3p);
+    Vec2 v2p = camera->projectWorldToCanvas(v3p);
+
+    float wshw = std::max(fabsf(hSizeX * transform.m[0] + hSizeY * transform.m[4]),
+                          fabsf(hSizeX * transform.m[0] - hSizeY * transform.m[4]));
+    float wshh = std::max(fabsf(hSizeX * transform.m[1] + hSizeY * transform.m[5]),
+                          fabsf(hSizeX * transform.m[1] - hSizeY * transform.m[5]));
+
+    visibleRect.origin.x -= wshw;
+    visibleRect.origin.y -= wshh;
+    visibleRect.size.width += wshw * 2;
+    visibleRect.size.height += wshh * 2;
+    return visibleRect.containsPoint(v2p);
+}
 
 // MARK: Constructor, Destructor, Init
 
@@ -108,10 +171,6 @@ Node::Node()
     , _ignoreAnchorPointForPosition(false)
     , _reorderChildDirty(false)
     , _isTransitionFinished(false)
-#if AX_ENABLE_SCRIPT_BINDING
-    , _scriptHandler(0)
-    , _updateScriptHandler(0)
-#endif
     , _componentContainer(nullptr)
     , _displayedColor(Color32::white)
     , _realColor(Color32::white)
@@ -122,6 +181,7 @@ Node::Node()
     , _onExitCallback(nullptr)
     , _onEnterTransitionDidFinishCallback(nullptr)
     , _onExitTransitionDidStartCallback(nullptr)
+    , _onCleanupCallback(nullptr)
 {
     // set default scheduler and actionManager
     _director      = Director::getInstance();
@@ -154,13 +214,6 @@ Node::~Node()
     AXLOGV("deallocing Node: {} - tag: {}", fmt::ptr(this), _tag);
 
     AX_SAFE_DELETE(_childrenIndexer);
-
-#if AX_ENABLE_SCRIPT_BINDING
-    if (_updateScriptHandler)
-    {
-        ScriptEngineManager::getInstance()->getScriptEngine()->removeScriptHandler(_updateScriptHandler);
-    }
-#endif
 
     // User object has to be released before others, since userObject may have a weak reference of this node
     // It may invoke `node->stopAllActions();` while `_actionManager` is null if the next line is after
@@ -213,9 +266,8 @@ bool Node::initLayer()
 
 void Node::cleanup()
 {
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::sendNodeEventToLua(this, kNodeOnCleanup);
-#endif  // #if AX_ENABLE_SCRIPT_BINDING
+    if (_onCleanupCallback)
+        _onCleanupCallback();
 
     // actions
     this->stopAllActions();
@@ -1218,18 +1270,24 @@ void Node::sortAllChildren()
 void Node::draw()
 {
     auto renderer = _director->getRenderer();
-    draw(renderer, _modelViewTransform, FLAGS_TRANSFORM_DIRTY);
+    auto scene    = _director->getRunningScene();
+    auto camera   = scene ? scene->getDefaultCamera() : nullptr;
+    SceneRenderState state(renderer, camera);
+    draw(state, _modelViewTransform, FLAGS_TRANSFORM_DIRTY);
 }
 
-void Node::draw(Renderer* /*renderer*/, const Mat4& /*transform*/, uint32_t /*flags*/) {}
+void Node::draw(const SceneRenderState& /*state*/, const Mat4& /*transform*/, uint32_t /*flags*/) {}
 
 void Node::visit()
 {
     auto renderer = _director->getRenderer();
-    visit(renderer, Mat4::identity, FLAGS_TRANSFORM_DIRTY);
+    auto scene    = _director->getRunningScene();
+    auto camera   = scene ? scene->getDefaultCamera() : nullptr;
+    SceneRenderState state(renderer, camera);
+    visit(state, Mat4::identity, FLAGS_TRANSFORM_DIRTY);
 }
 
-uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFlags)
+uint32_t Node::processParentFlags(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     if (_usingNormalizedPosition)
     {
@@ -1246,7 +1304,7 @@ uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFl
 
     // Fixes Github issue #16100. Basically when having two cameras, one camera might set as dirty the
     // node that is not visited by it, and might affect certain calculations. Besides, it is faster to do this.
-    if (!isVisitableByVisitingCamera())
+    if (!isVisitableByCamera(state.cameraFlag))
         return parentFlags;
 
     uint32_t flags = parentFlags;
@@ -1262,14 +1320,12 @@ uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFl
     return flags;
 }
 
-bool Node::isVisitableByVisitingCamera() const
+bool Node::isVisitableByCamera(unsigned short cameraFlag) const
 {
-    auto camera          = Camera::getVisitingCamera();
-    bool visibleByCamera = camera ? ((unsigned short)camera->getCameraFlag() & _cameraMask) != 0 : true;
-    return visibleByCamera;
+    return cameraFlag == 0 ? true : ((cameraFlag & _cameraMask) != 0);
 }
 
-void Node::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t parentFlags)
+void Node::visit(const SceneRenderState& state, const Mat4& parentTransform, uint32_t parentFlags)
 {
     // quick return if not visible. children won't be drawn.
     if (!_visible)
@@ -1277,9 +1333,9 @@ void Node::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t paren
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    uint32_t flags = processParentFlags(state, parentTransform, parentFlags);
 
-    bool visibleByCamera = isVisitableByVisitingCamera();
+    bool visibleByCamera = isVisitableByCamera(state.cameraFlag);
 
     int i = 0;
 
@@ -1292,20 +1348,20 @@ void Node::visit(Renderer* renderer, const Mat4& parentTransform, uint32_t paren
             auto node = _children.at(i);
 
             if (node && node->_localZOrder < 0)
-                node->visit(renderer, _modelViewTransform, flags);
+                node->visit(state, _modelViewTransform, flags);
             else
                 break;
         }
         // self draw
         if (visibleByCamera)
-            this->draw(renderer, _modelViewTransform, flags);
+            this->draw(state, _modelViewTransform, flags);
 
         for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
-            (*it)->visit(renderer, _modelViewTransform, flags);
+            (*it)->visit(state, _modelViewTransform, flags);
     }
     else if (visibleByCamera)
     {
-        this->draw(renderer, _modelViewTransform, flags);
+        this->draw(state, _modelViewTransform, flags);
     }
 
     // FIX ME: Why need to set _orderOfArrival to 0??
@@ -1344,10 +1400,6 @@ void Node::onEnter()
     this->resume();
 
     _running = true;
-
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::sendNodeEventToLua(this, kNodeOnEnter);
-#endif
 }
 
 void Node::onEnterTransitionDidFinish()
@@ -1358,10 +1410,6 @@ void Node::onEnterTransitionDidFinish()
     _isTransitionFinished = true;
     for (const auto& child : _children)
         child->onEnterTransitionDidFinish();
-
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::sendNodeEventToLua(this, kNodeOnEnterTransitionDidFinish);
-#endif
 }
 
 void Node::onExitTransitionDidStart()
@@ -1371,10 +1419,6 @@ void Node::onExitTransitionDidStart()
 
     for (const auto& child : _children)
         child->onExitTransitionDidStart();
-
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::sendNodeEventToLua(this, kNodeOnExitTransitionDidStart);
-#endif
 }
 
 void Node::onExit()
@@ -1398,10 +1442,6 @@ void Node::onExit()
 
     for (const auto& child : _children)
         child->onExit();
-
-#if AX_ENABLE_SCRIPT_BINDING
-    ScriptEngineManager::sendNodeEventToLua(this, kNodeOnExit);
-#endif
 }
 
 void Node::setEventDispatcher(EventDispatcher* dispatcher)
@@ -1514,28 +1554,9 @@ void Node::scheduleUpdateWithPriority(int priority)
     _scheduler->scheduleUpdate(this, priority, !_running);
 }
 
-void Node::scheduleUpdateWithPriorityLua(int nHandler, int priority)
-{
-    unscheduleUpdate();
-
-#if AX_ENABLE_SCRIPT_BINDING
-    _updateScriptHandler = nHandler;
-#endif
-
-    _scheduler->scheduleUpdate(this, priority, !_running);
-}
-
 void Node::unscheduleUpdate()
 {
     _scheduler->unscheduleUpdate(this);
-
-#if AX_ENABLE_SCRIPT_BINDING
-    if (_updateScriptHandler)
-    {
-        ScriptEngineManager::getInstance()->getScriptEngine()->removeScriptHandler(_updateScriptHandler);
-        _updateScriptHandler = 0;
-    }
-#endif
 }
 
 void Node::schedule(SEL_SCHEDULE selector)
@@ -1621,16 +1642,6 @@ void Node::pause()
 // override me
 void Node::update(float fDelta)
 {
-#if AX_ENABLE_SCRIPT_BINDING
-    if (0 != _updateScriptHandler)
-    {
-        // only lua use
-        SchedulerScriptData data(_updateScriptHandler, fDelta);
-        ScriptEvent event(kScheduleEvent, &data);
-        ScriptEngineManager::sendEventToLua(event);
-    }
-#endif
-
     if (_componentContainer && !_componentContainer->isEmpty())
     {
         _componentContainer->visit(fDelta);
@@ -1907,8 +1918,18 @@ Vec2 Node::convertToWorldSpaceAR(const Vec2& nodePoint) const
 
 Vec2 Node::convertToScreenSpace(const Vec2& nodePoint) const
 {
+    auto scene  = _director->getRunningScene();
+    auto camera = scene ? scene->getDefaultCamera() : nullptr;
+    return convertToScreenSpace(nodePoint, camera);
+}
+
+Vec2 Node::convertToScreenSpace(const Vec2& nodePoint, const Camera* camera) const
+{
+    if (!camera)
+        return Vec2::zero;
+
     Vec2 worldPoint(this->convertToWorldSpace(nodePoint));
-    return Camera::getDefaultCamera()->projectWorldToScreen(Vec3(worldPoint.x, worldPoint.y, 0.0f));
+    return camera->projectWorldToScreen(Vec3(worldPoint.x, worldPoint.y, 0.0f));
 }
 
 // convenience methods which take a PointerEvent instead of Vec2

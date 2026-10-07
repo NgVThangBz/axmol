@@ -80,13 +80,14 @@ void TransitionProgress::onEnter()
     sprite->setAnchorPoint(Vec2(0.5f, 0.5f));
 
     // render outScene to its texturebuffer
-    auto camera = Camera::createOrthographicView(_director->getCanvasSize(), -1024, 1024);
+    auto camera = Camera::create(CameraMode::Ortho);
 
     {
         RefPtr<RenderTexturePass> pass(RenderTexturePass::obtain(texture), tlx::adopt_object);
         pass->begin(camera);
+        SceneRenderState renderState(_director->getRenderer(), camera);
         pass->clear(ClearFlag::COLOR, {.color = Color(0, 0, 0, 1)});
-        _sceneToBeModified->visit(_director->getRenderer(), _sceneToBeModified->getNodeToParentTransform(), 0);
+        _sceneToBeModified->visit(renderState, _sceneToBeModified->getNodeToParentTransform(), 0);
         pass->end();
     }
     _director->getRenderer()->render();

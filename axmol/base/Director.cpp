@@ -4,27 +4,11 @@ Copyright (c) 2010-2013 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 // axmol includes
@@ -312,21 +296,18 @@ void Director::calculateDeltaTime()
             _deltaTime  = std::chrono::duration_cast<std::chrono::microseconds>(now - _lastUpdate).count() / 1000000.0f;
             _lastUpdate = now;
         }
-        _deltaTime = MAX(1e-6f, _deltaTime);
+        _deltaTime = std::clamp(_deltaTime, 1e-6f, _maxDeltaTime);
     }
-
-#if defined(_AX_DEBUG) && _AX_DEBUG
-    // If we are debugging our code, prevent big delta time
-    if (_deltaTime > 0.2f)
-    {
-        _deltaTime = 1 / 60.0f;
-    }
-#endif
 }
 
 float Director::getDeltaTime() const
 {
     return _deltaTime;
+}
+
+void Director::setMaxDeltaTime(float maxDeltaTime)
+{
+    _maxDeltaTime = MAX(maxDeltaTime, 1.0f / 60);
 }
 
 void Director::setRenderView(RenderViewCore* renderView)
@@ -410,7 +391,7 @@ Camera* Director::getOverlayCamera()
 {
     if (!_overlayCamera)
     {
-        _overlayCamera = Camera::createOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
+        _overlayCamera = Camera::create(CameraMode::Ortho);
         _overlayCamera->retain();
         _overlayCamera->setCameraFlag(CameraFlag::DEFAULT);
         _overlayCamera->setDepth(127);
@@ -423,7 +404,7 @@ Camera* Director::getOffscreenCamera()
 {
     if (!_offscreenCamera)
     {
-        _offscreenCamera = Camera::createOrthographicView(_canvasSizeInPoints, -1024.0f, 1024.0f);
+        _offscreenCamera = Camera::create(CameraMode::Ortho);
         _offscreenCamera->retain();
         _offscreenCamera->setCameraFlag(CameraFlag::DEFAULT);
         _offscreenCamera->setDepth(0);
@@ -477,21 +458,6 @@ float Director::getZEye() const
 void Director::setClearColor(const Color& clearColor)
 {
     _clearColor = clearColor;
-}
-
-static void getViewProjMatrix(Mat4* transformOut)
-{
-    if (nullptr == transformOut)
-        return;
-
-    Director* director = Director::getInstance();
-    AXASSERT(nullptr != director, "Director is null when setting matrix stack");
-
-    auto scene  = director->getRunningScene();
-    auto camera = scene ? scene->getDefaultCamera() : nullptr;
-
-    AXASSERT(camera, "Director screen/world conversion requires a running scene default camera");
-    *transformOut = camera ? camera->getViewProjectionMatrix() : Mat4::identity;
 }
 
 Vec2 Director::canvasToPixels(const Vec2& size) const
@@ -896,7 +862,7 @@ void Director::cleanupDirector()
     ProgramManager::destroyInstance();
     VertexLayoutManager::destroyInstance();
 
-    rhi::GraphicsCore::destroyCurrentDriver();
+    rhi::GraphicsCore::shutdown();
 
     if (_renderView)
     {
@@ -1062,11 +1028,9 @@ void Director::showStats()
             _frames  = 0;
         }
 
-        auto previousCamera = Camera::_visitingCamera;
         auto* overlayCamera = getOverlayCamera();
         if (overlayCamera)
         {
-            Camera::_visitingCamera = overlayCamera;
             overlayCamera->apply();
         }
 
@@ -1089,12 +1053,11 @@ void Director::showStats()
         const Mat4& identity = Mat4::identity;
         if (overlayCamera)
         {
-            _drawnVerticesLabel->visit(_renderer, identity, 0);
-            _drawnBatchesLabel->visit(_renderer, identity, 0);
-            _FPSLabel->visit(_renderer, identity, 0);
+            SceneRenderState overlayState(_renderer, overlayCamera);
+            _drawnVerticesLabel->visit(overlayState, identity, 0);
+            _drawnBatchesLabel->visit(overlayState, identity, 0);
+            _FPSLabel->visit(overlayState, identity, 0);
         }
-
-        Camera::_visitingCamera = previousCamera;
     }
 }
 
@@ -1116,15 +1079,13 @@ void Director::showVRModeIndicator()
         _VRModeLabel->enableOutline(Color32::black, 2);
     }
 
-    auto previousCamera = Camera::_visitingCamera;
     auto* overlayCamera = getOverlayCamera();
     if (overlayCamera)
     {
-        Camera::_visitingCamera = overlayCamera;
         overlayCamera->apply();
-        _VRModeLabel->visit(_renderer, Mat4::identity, 0);
+        SceneRenderState overlayState(_renderer, overlayCamera);
+        _VRModeLabel->visit(overlayState, Mat4::identity, 0);
     }
-    Camera::_visitingCamera = previousCamera;
 }
 
 void Director::calculateMPF()
@@ -1498,15 +1459,13 @@ void Director::renderFrame()
         // draw the notifications node
         if (_notificationNode)
         {
-            auto previousCamera = Camera::_visitingCamera;
             auto* overlayCamera = getOverlayCamera();
             if (overlayCamera)
             {
-                Camera::_visitingCamera = overlayCamera;
                 overlayCamera->apply();
-                _notificationNode->visit(_renderer, Mat4::identity, 0);
+                SceneRenderState overlayState(_renderer, overlayCamera);
+                _notificationNode->visit(overlayState, Mat4::identity, 0);
             }
-            Camera::_visitingCamera = previousCamera;
         }
 
         updateFrameRate();

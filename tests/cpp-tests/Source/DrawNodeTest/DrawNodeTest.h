@@ -1,26 +1,10 @@
 /****************************************************************************
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 #pragma once
 
@@ -360,6 +344,28 @@ public:
     virtual std::string subtitle() const override;
 };
 
+class DrawNodeCornerRectTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeCornerRectTest);
+
+    DrawNodeCornerRectTest();
+
+    std::string title() const override;
+    std::string subtitle() const override;
+};
+
+class DrawNodeSolidCornerRectTest : public DrawNodeBaseTest
+{
+public:
+    CREATE_FUNC(DrawNodeSolidCornerRectTest);
+
+    DrawNodeSolidCornerRectTest();
+
+    std::string title() const override;
+    std::string subtitle() const override;
+};
+
 class DrawNodeSolidCircleTest : public DrawNodeBaseTest
 {
 public:
@@ -401,7 +407,7 @@ public:
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 
-    void onPointerUp(ax::PointerEvent* event);
+    bool onPointerDown(ax::PointerEvent* event);
     void addNewControlPoint(ax::Vec2 p);
     void update(float dt) override;
 
@@ -409,17 +415,6 @@ private:
     ax::DrawNode* drawNodeCP = nullptr;
     std::vector<ax::Vec2> points;
     ax::PointArray* array;
-};
-
-class DrawNodeRoundRectTest : public DrawNodeBaseTest
-{
-public:
-    CREATE_FUNC(DrawNodeRoundRectTest);
-
-    DrawNodeRoundRectTest();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
 };
 
 class DrawNodeButtonTest : public DrawNodeBaseTest

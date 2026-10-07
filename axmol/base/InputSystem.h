@@ -2,27 +2,11 @@
 Copyright (c) 2010      cocos2d-x.org
 Copyright (c) 2013-2016 Chukong Technologies Inc.
 Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
-Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+Copyright (c) 2019-present Simdsoft Limited.
 
 https://axmol.dev/
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+SPDX-License-Identifier: MIT
 ****************************************************************************/
 
 #pragma once
@@ -71,6 +55,18 @@ public:
      */
     static InputSystem* getInstance();
     static void destroyInstance();
+
+    /*
+     * @brief Enable or disable multi-touch support.
+     * @param enabled True to enable multi-touch, false to disable.
+     */
+    void setMultiTouchEnabled(bool enabled) { _multiTouchEnabled = enabled; }
+
+    /*
+     * @brief Returns whether multi-touch support is enabled.
+     */
+    bool isMultiTouchEnabled() const { return _multiTouchEnabled; }
+
     /**
      * @brief Unified bridging utility to extract a node's UI bounding rect in native OS window coordinates.
      */
@@ -84,7 +80,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////
 
     // handle key event
-    void handleKeyEvent(KeyboardEvent::KeyCode keyCode, InputPhase phase);
+    void handleKeyEvent(KeyboardEvent::KeyCode keyCode, InputPhase phase, uint32_t modifiers = 0);
 
     // pointer input handling helpers migrated from RenderView
     void handlePointerDown(Vec2 point, const PointerInputState& state);
@@ -95,12 +91,20 @@ public:
     void handlePointerScroll(Vec2 point, Vec2 scrollDelat, const PointerInputState& state);
 
     // VR controller input: PointerType::Controller with a 3D ray.
-    PointerHitResult handleVRPointerEvent(InputPhase phase, Vec2 point, const Ray& ray, const PointerInputState& state);
-    PointerHitResult hitTestVRPointer(Vec2 point, const Ray& ray, const PointerInputState& state);
+    PointerHitResult handleVRPointerEvent(InputPhase phase,
+                                          Vec2 point,
+                                          const Ray& ray,
+                                          const PointerInputState& state,
+                                          const PointerRayContext* rayContext = nullptr);
+    PointerHitResult hitTestVRPointer(Vec2 point,
+                                      const Ray& ray,
+                                      const PointerInputState& state,
+                                      const PointerRayContext* rayContext = nullptr);
     PointerHitResult handleVRPointerScroll(Vec2 point,
                                            Vec2 scrollDelta,
                                            const Ray& ray,
-                                           const PointerInputState& state);
+                                           const PointerInputState& state,
+                                           const PointerRayContext* rayContext = nullptr);
 
     void handleXRInput(const XRInputEvent::State& state);
 
@@ -246,11 +250,13 @@ protected:
     PointerHitResult dispatchVRPointerEvent(InputPhase phase,
                                             Vec2 point,
                                             const Ray& ray,
-                                            const PointerInputState& state);
+                                            const PointerInputState& state,
+                                            const PointerRayContext* rayContext);
     PointerHitResult dispatchVRPointerScroll(Vec2 point,
                                              Vec2 scrollDelta,
                                              const Ray& ray,
-                                             const PointerInputState& state);
+                                             const PointerInputState& state,
+                                             const PointerRayContext* rayContext);
 
     // cached mouse position with inputScale applied
     Vec2 _lastPointerPosition;  // the original pointer position
@@ -260,6 +266,7 @@ protected:
     PointerEvent _scrollEvent{};
 
     bool _interactive{true};
+    bool _multiTouchEnabled{true};
 
     ax::IMEKeyboardNotificationInfo _cachedKeyboardNotifInfo;
 

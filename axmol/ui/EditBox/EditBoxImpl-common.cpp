@@ -3,27 +3,11 @@
  Copyright (c) 2012 James Chen
  Copyright (c) 2013-2015 zilongshanren
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
+ Copyright (c) 2019-present Simdsoft Limited.
 
  https://axmol.dev/
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+ SPDX-License-Identifier: MIT
  ****************************************************************************/
 #include "axmol/ui/EditBox/EditBoxImpl-common.h"
 
@@ -163,21 +147,13 @@ void EditBoxImplCommon::setFont(std::string_view fontName, int fontSize)
     _fontSize = fontSize;
     this->setNativeFont(fontName, fontSize * _label->getNodeToWorldAffineTransform().a);
 
-    if (FileUtils::getInstance()->isFileExist(fontName))
+    if (!_fontName.empty())
     {
-        TTFConfig ttfConfig(fontName, fontSize);
-        _label->setTTFConfig(ttfConfig);
+        _label->setSystemFontName(fontName);
     }
-    else
+    if (fontSize > 0)
     {
-        if (!_fontName.empty())
-        {
-            _label->setSystemFontName(fontName);
-        }
-        if (fontSize > 0)
-        {
-            _label->setSystemFontSize(fontSize);
-        }
+        _label->setSystemFontSize(fontSize);
     }
 }
 
@@ -194,21 +170,13 @@ void EditBoxImplCommon::setPlaceholderFont(std::string_view fontName, int fontSi
     _placeholderFontSize = fontSize;
     this->setNativePlaceholderFont(fontName, fontSize * _labelPlaceHolder->getNodeToWorldAffineTransform().a);
 
-    if (FileUtils::getInstance()->isFileExist(fontName))
+    if (!_placeholderFontName.empty())
     {
-        TTFConfig ttfConfig(fontName, fontSize);
-        _labelPlaceHolder->setTTFConfig(ttfConfig);
+        _labelPlaceHolder->setSystemFontName(fontName);
     }
-    else
+    if (fontSize > 0)
     {
-        if (!_placeholderFontName.empty())
-        {
-            _labelPlaceHolder->setSystemFontName(fontName);
-        }
-        if (fontSize > 0)
-        {
-            _labelPlaceHolder->setSystemFontSize(fontSize);
-        }
+        _labelPlaceHolder->setSystemFontSize(fontSize);
     }
 }
 
@@ -325,7 +293,7 @@ void EditBoxImplCommon::setGlobalZOrder(float globalZOrder)
     }
 }
 
-void EditBoxImplCommon::draw(Renderer* /*renderer*/, const Mat4& /*transform*/, uint32_t flags)
+void EditBoxImplCommon::draw(const SceneRenderState& /*state*/, const Mat4& /*transform*/, uint32_t flags)
 {
     if (flags)
     {
