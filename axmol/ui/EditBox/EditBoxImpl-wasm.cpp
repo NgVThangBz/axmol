@@ -353,12 +353,17 @@ void EditBoxImplWasm::lazyInit()
                     input.blur();
                     return;
                 }
+                if (event.key === "Escape")
+                {
+                    // end editing so the engine fires the RETURN action, same as native desktop EditBox
+                    event.preventDefault();
+                    input.blur();
+                    return;
+                }
                 if (event.key === "Tab")
                 {
-                    // end editing with a tab action so the delegate can move to the next/previous EditBox
+                    // the engine already forwards KEY_TAB to the app, ending editing here would move twice
                     event.preventDefault();
-                    Module.axmol_editbox_endAction = event.shiftKey ? 2 : 1;
-                    input.blur();
                     return;
                 }
                 if (event.key === "Backspace")
@@ -437,7 +442,23 @@ std::string_view EditBoxImplWasm::getNativeDefaultFontName()
 
 void EditBoxImplWasm::nativeCloseKeyboard()
 {
-    // don't need to implement
+    if (_activeEditBox != this)
+        return;
+
+    // clear first so the blur below doesn't report an end of editing to the delegate
+    _activeEditBox = nullptr;
+    // clang-format off
+    EM_ASM({
+        var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
+        input.style.display = "none";
+        input.blur();
+    });
+    // clang-format on
+
+    // restore the engine labels hidden by openKeyboard, refreshInactiveText only shows them when not editing
+    _editingMode = false;
+    _editBox->setBrightStyle(Widget::BrightStyle::NORMAL);
+    refreshInactiveText();
 }
 
 void EditBoxImplWasm::setNativeMaxLength(int /*maxLength*/)

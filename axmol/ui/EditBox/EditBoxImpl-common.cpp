@@ -24,7 +24,8 @@ static const int AX_EDIT_BOX_PADDING = 1;
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
 #    define PASSWORD_CHAR "*"
 #else
-#    define PASSWORD_CHAR "\u25CF"
+// BZ: Sarabun has no U+25CF, use the bullet it does contain
+#    define PASSWORD_CHAR "\u2022"
 #endif
 
 namespace ax
@@ -147,13 +148,23 @@ void EditBoxImplCommon::setFont(std::string_view fontName, int fontSize)
     _fontSize = fontSize;
     this->setNativeFont(fontName, fontSize * _label->getNodeToWorldAffineTransform().a);
 
-    if (!_fontName.empty())
+    // BZ: keep TTF file support, dropped upstream in #3349. System font fallback can't load TTF paths (wasm renders 10px).
+    // SDF is off on purpose: the global SDF flag made these labels soft.
+    if (FileUtils::getInstance()->isFileExist(fontName))
     {
-        _label->setSystemFontName(fontName);
+        TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC, nullptr, false);
+        _label->setTTFConfig(ttfConfig);
     }
-    if (fontSize > 0)
+    else
     {
-        _label->setSystemFontSize(fontSize);
+        if (!_fontName.empty())
+        {
+            _label->setSystemFontName(fontName);
+        }
+        if (fontSize > 0)
+        {
+            _label->setSystemFontSize(fontSize);
+        }
     }
 }
 
@@ -170,13 +181,21 @@ void EditBoxImplCommon::setPlaceholderFont(std::string_view fontName, int fontSi
     _placeholderFontSize = fontSize;
     this->setNativePlaceholderFont(fontName, fontSize * _labelPlaceHolder->getNodeToWorldAffineTransform().a);
 
-    if (!_placeholderFontName.empty())
+    if (FileUtils::getInstance()->isFileExist(fontName))
     {
-        _labelPlaceHolder->setSystemFontName(fontName);
+        TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC, nullptr, false);
+        _labelPlaceHolder->setTTFConfig(ttfConfig);
     }
-    if (fontSize > 0)
+    else
     {
-        _labelPlaceHolder->setSystemFontSize(fontSize);
+        if (!_placeholderFontName.empty())
+        {
+            _labelPlaceHolder->setSystemFontName(fontName);
+        }
+        if (fontSize > 0)
+        {
+            _labelPlaceHolder->setSystemFontSize(fontSize);
+        }
     }
 }
 
