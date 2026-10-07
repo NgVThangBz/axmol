@@ -159,20 +159,24 @@ void EditBoxImplWasm::setNativeVisible(bool visible)
         {
             var inputMode = $1;
             var inputFlag = $2;
-            // set input type
-            switch (inputMode)
+            input = Module.axmol_editbox_select($3 != 0);
+            // set input type, <textarea> has none
+            if (input.tagName === "INPUT")
             {
-            case 2:  // NUMERIC
-            case 3:  // PHONE_NUMBER
-                input.type = 'number';
-            default:
-                if (inputFlag != 0)
+                switch (inputMode)
                 {
-                    input.type = 'text';
-                }
-                else
-                {
-                    input.type = 'password';
+                case 2:  // NUMERIC
+                case 3:  // PHONE_NUMBER
+                    input.type = 'number';
+                default:
+                    if (inputFlag != 0)
+                    {
+                        input.type = 'text';
+                    }
+                    else
+                    {
+                        input.type = 'password';
+                    }
                 }
             }
 
@@ -190,12 +194,16 @@ void EditBoxImplWasm::setNativeVisible(bool visible)
             }
         }
     },
-    (int)visible, (int)_editBoxInputMode, (int)_editBoxInputFlag);
+    (int)visible, (int)_editBoxInputMode, (int)_editBoxInputFlag,
+    (int)(_editBoxInputMode == EditBox::InputMode::ANY));
     // clang-format on
 }
 
 void EditBoxImplWasm::updateNativeFrame(const Rect& rect)
 {
+    // the native element is shared, don't let an idle EditBox move or restyle it
+    if (_activeEditBox != this)
+        return;
     // clang-format off
     EM_ASM({
         var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
@@ -213,10 +221,12 @@ void EditBoxImplWasm::updateNativeFrame(const Rect& rect)
     float scale   = (designH > 0.f) ? (rect.size.y / designH) : 1.f;
     int fontPx    = _fontSize > 0 ? static_cast<int>(_fontSize * scale + 0.5f) : 0;
     int phPx      = _placeholderFontSize > 0 ? static_cast<int>(_placeholderFontSize * scale + 0.5f) : fontPx;
-    this->applyNativeStyle(fontPx, phPx, static_cast<int>(rect.size.y + 0.5f));
+    // same inset as the engine labels (1 design unit), also keeps the caret clear of the focus ring
+    int padPx = (std::max)(2, static_cast<int>(scale + 0.5f));
+    this->applyNativeStyle(fontPx, phPx, static_cast<int>(rect.size.y + 0.5f), padPx);
 }
 
-void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, int boxHeightPx)
+void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, int boxHeightPx, int paddingPx)
 {
     uint32_t tc = ((uint32_t)_colText.r << 24) | ((uint32_t)_colText.g << 16) | ((uint32_t)_colText.b << 8) |
                   (uint32_t)_colText.a;
@@ -228,11 +238,12 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
     uint32_t bgc = ((uint32_t)bg.r << 24) | ((uint32_t)bg.g << 16) | ((uint32_t)bg.b << 8) | (uint32_t)bgA;
 
     if (fontSizePx == _appliedFontPx && placeholderSizePx == _appliedPlaceholderPx && boxHeightPx == _appliedBoxPx &&
-        tc == _appliedTextColor && pc == _appliedPlaceholderColor && bgc == _appliedBgColor)
+        paddingPx == _appliedPadPx && tc == _appliedTextColor && pc == _appliedPlaceholderColor && bgc == _appliedBgColor)
         return;
     _appliedFontPx            = fontSizePx;
     _appliedPlaceholderPx     = placeholderSizePx;
     _appliedBoxPx             = boxHeightPx;
+    _appliedPadPx             = paddingPx;
     _appliedTextColor         = tc;
     _appliedPlaceholderColor  = pc;
     _appliedBgColor           = bgc;
@@ -244,8 +255,11 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
             input.style.fontSize = $0 + "px";
         input.style.boxSizing = "border-box";
         input.style.border    = "0";
-        input.style.padding   = "0";
-        if ($10 > 0)
+        input.style.padding   = input.tagName === "TEXTAREA" ? $15 + "px" : "0 " + $15 + "px";
+        input.style.resize = "none";
+        if (input.tagName === "TEXTAREA")
+            input.style.lineHeight = "";
+        else if ($10 > 0)
             input.style.lineHeight = $10 + "px";
         input.style.color           = "rgba(" + $1 + "," + $2 + "," + $3 + "," + ($4 / 255) + ")";
         input.style.backgroundColor = "rgba(" + $11 + "," + $12 + "," + $13 + "," + ($14 / 255) + ")";
@@ -257,7 +271,7 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
             (document.head || document.body).appendChild(style);
         }
         var ph = $5 > 0 ? ("font-size:" + $5 + "px;") : "";
-        style.textContent = "#axmol_editbox_input::placeholder{color:rgba(" + $6 + "," + $7 + "," + $8 + "," +
+        style.textContent = "#axmol_editbox_input::placeholder,#axmol_editbox_textarea::placeholder{color:rgba(" + $6 + "," + $7 + "," + $8 + "," +
                             ($9 / 255) + ");" + ph + "opacity:1;}";
     },
     fontSizePx,
@@ -265,7 +279,8 @@ void EditBoxImplWasm::applyNativeStyle(int fontSizePx, int placeholderSizePx, in
     placeholderSizePx,
     (int)_colPlaceHolder.r, (int)_colPlaceHolder.g, (int)_colPlaceHolder.b, (int)_colPlaceHolder.a,
     boxHeightPx,
-    (int)bg.r, (int)bg.g, (int)bg.b, (int)bgA);
+    (int)bg.r, (int)bg.g, (int)bg.b, (int)bgA,
+    paddingPx);
     // clang-format on
 }
 
@@ -296,6 +311,8 @@ void EditBoxImplWasm::nativeOpenKeyboard()
     }
 
     _activeEditBox = this;
+    // the shared element may carry the style of another EditBox
+    _appliedBoxPx = -1;
 
     this->editBoxEditingDidBegin();
 
@@ -331,84 +348,104 @@ void EditBoxImplWasm::lazyInit()
 {
     // clang-format off
     EM_ASM({
-        var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
-        input.id = "axmol_editbox_input";
-        // set input type
-        input.type = "text";
-        // set input style
-        input.style.position = "absolute";
-        input.style.left     = "0px";
-        input.style.top      = "0px";
-        input.style.width    = "200px";
-        input.style.height   = "30px";
-        // input.style.border = "1px solid black";
-        input.style.padding              = " 0 0 0 0px";
-        // document.body.appendChild(input);
-        input.addEventListener(
-            "keydown", function(event) {
-                if (event.key === "Enter")
-                {
-                    // end editing so the engine fires the RETURN action (native "Done" behavior)
-                    event.preventDefault();
-                    input.blur();
-                    return;
-                }
-                if (event.key === "Escape")
-                {
-                    // end editing so the engine fires the RETURN action, same as native desktop EditBox
-                    event.preventDefault();
-                    input.blur();
-                    return;
-                }
-                if (event.key === "Tab")
-                {
-                    // the engine already forwards KEY_TAB to the app, ending editing here would move twice
-                    event.preventDefault();
-                    return;
-                }
-                if (event.key === "Backspace")
-                {
-                    // the engine's window-level key handler suppresses the browser's default backspace, delete manually
-                    var start = input.selectionStart;
-                    var end   = input.selectionEnd;
-                    if (start === end)
+        // single line EditBox uses <input>, InputMode::ANY uses <textarea>, only one of them is visible at a time
+        var setup = function(el, id) {
+            el.id = id;
+            // set input style
+            el.style.position = "absolute";
+            el.style.left     = "0px";
+            el.style.top      = "0px";
+            el.style.width    = "200px";
+            el.style.height   = "30px";
+            // el.style.border = "1px solid black";
+            el.style.padding              = " 0 0 0 0px";
+            // document.body.appendChild(el);
+            el.addEventListener(
+                "keydown", function(event) {
+                    if (event.key === "Enter" && el.tagName !== "TEXTAREA")
                     {
-                        if (start === 0)
-                            return;
-                        start -= 1;
+                        // end editing so the engine fires the RETURN action (native "Done" behavior)
+                        event.preventDefault();
+                        el.blur();
+                        return;
                     }
-                    input.setRangeText("", start, end, "end");
-                    // programmatic edits don't fire 'input', notify the engine ourselves
-                    input.dispatchEvent(new Event("input"));
-                    return;
-                }
+                    if (event.key === "Escape")
+                    {
+                        // end editing so the engine fires the RETURN action, same as native desktop EditBox
+                        event.preventDefault();
+                        el.blur();
+                        return;
+                    }
+                    if (event.key === "Tab")
+                    {
+                        // the engine already forwards KEY_TAB to the app, ending editing here would move twice
+                        event.preventDefault();
+                        return;
+                    }
+                    if (event.key === "Backspace")
+                    {
+                        // the engine's window-level key handler suppresses the browser's default backspace, delete manually
+                        var start = el.selectionStart;
+                        var end   = el.selectionEnd;
+                        if (start === end)
+                        {
+                            if (start === 0)
+                                return;
+                            start -= 1;
+                        }
+                        el.setRangeText("", start, end, "end");
+                        // programmatic edits don't fire 'input', notify the engine ourselves
+                        el.dispatchEvent(new Event("input"));
+                        return;
+                    }
 
-                if (input.maxlength !== undefined && input.value.length >= input.maxlength)
-                {
-                    // prevent max chars
-                    event.preventDefault();
-                }
-            });
-        input.addEventListener(
-            'input', function() {
-                var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
-                var result = Module.stringToUTF8WithLen(input.value);
-                _axmol_editbox_textchange(result.ptr, result.length);
-                _free(result.ptr);
-            });
-        input.addEventListener(
-            'blur', function() {
-                // handle focus lost
-                var input = Module.axmol_editbox_input = Module.axmol_editbox_input || document.createElement("input");
-                input.style.display                 = "none";
+                    if (el.maxlength !== undefined && el.value.length >= el.maxlength)
+                    {
+                        // prevent max chars
+                        event.preventDefault();
+                    }
+                });
+            el.addEventListener(
+                'input', function() {
+                    var result = Module.stringToUTF8WithLen(el.value);
+                    _axmol_editbox_textchange(result.ptr, result.length);
+                    _free(result.ptr);
+                });
+            el.addEventListener(
+                'blur', function() {
+                    // handle focus lost
+                    el.style.display                 = "none";
 
-                var action = Module.axmol_editbox_endAction || 0;
-                Module.axmol_editbox_endAction = 0;
+                    var action = Module.axmol_editbox_endAction || 0;
+                    Module.axmol_editbox_endAction = 0;
 
-                var result = Module.stringToUTF8WithLen(input.value);
-                _axmol_editbox_endediting(result.ptr, result.length, action);
-                _free(result.ptr)
-            });
+                    var result = Module.stringToUTF8WithLen(el.value);
+                    _axmol_editbox_endediting(result.ptr, result.length, action);
+                    _free(result.ptr)
+                });
+        };
+
+        var input = document.createElement("input");
+        input.type = "text";
+        var area = document.createElement("textarea");
+        setup(input, "axmol_editbox_input");
+        setup(area, "axmol_editbox_textarea");
+        Module.axmol_editbox_inputbase = input;
+        Module.axmol_editbox_textarea  = area;
+        Module.axmol_editbox_input     = input;
+
+        // make the element for the given mode current, the previous one is blurred (ends its editing) and hidden
+        Module.axmol_editbox_select = function(multiline) {
+            var el  = multiline ? Module.axmol_editbox_textarea : Module.axmol_editbox_inputbase;
+            var cur = Module.axmol_editbox_input;
+            if (cur && cur !== el)
+            {
+                cur.blur();
+                cur.style.display = "none";
+            }
+            Module.axmol_editbox_input = el;
+            return el;
+        };
     });
     // clang-format on
     s_isInitialized = true;
