@@ -37,7 +37,7 @@ public class EditBoxHelper {
 
     private static SparseArray<AxmolEditBox> mEditBoxArray;
     private static int mViewTag = 0;
-    private static float mPadding = 5.0f;
+    private static float mPadding = 1.0f;
     //Call native methods
     private static native void nativeEditBoxEditingDidBegin(int index);
     private static native void nativeEditBoxEditingChanged(int index, String text);
