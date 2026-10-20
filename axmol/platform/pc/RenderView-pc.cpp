@@ -1844,7 +1844,7 @@ void RenderView::onGLFWCharCallback(GLFWwindow* /*window*/, unsigned int charCod
     {
         std::string utf8String;
         char32_t codepoint = static_cast<char32_t>(charCode);
-        text_utils::UTF32ToUTF8(std::u32string_view{&codepoint, 1zu}, utf8String);
+        text_utils::UTF32ToUTF8(std::u32string_view{&codepoint, 1}, utf8String);
         InputSystem::getInstance()->dispatchInsertText(utf8String);
     }
 }
