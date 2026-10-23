@@ -432,6 +432,10 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         }
         break; 
     case WM_CHAR:
+        if (_editBoxInputMode != ax::ui::EditBox::InputMode::ANY && (wParam == VK_TAB || wParam == VK_ESCAPE))
+        {
+            return 0;
+        }
         if (wParam == VK_RETURN)
         {
             if (_editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
