@@ -125,8 +125,8 @@ public:
                   const Vec2& destination,
                   const Color& color,
                   float thickness            = 1.0f,
-                  DrawNode::EndStyle etStart = DrawNode::EndStyle::Round,
-                  DrawNode::EndStyle etEnd   = DrawNode::EndStyle::Round);
+                  DrawNode::EndStyle etStart = DrawNode::EndStyle::Butt,
+                  DrawNode::EndStyle etEnd   = DrawNode::EndStyle::Butt);
 
     /** Draws a rectangle given the origin and destination point measured in points.
      * The origin and the destination can not have the same x and y coordinate.
