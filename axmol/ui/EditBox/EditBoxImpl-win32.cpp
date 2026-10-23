@@ -102,10 +102,17 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
     this->cleanupEditCtrl();
     if (!_hwndEdit)
     {
-        _hwndEdit = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT",  // predefined class
-                                      NULL,                       // no window title
-                                      WS_CHILD | ES_LEFT | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL |
-                                          (singleLine ? 0 : ES_AUTOVSCROLL | ES_MULTILINE),
+        const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
+
+        DWORD style = WS_CHILD | ES_LEFT | WS_TABSTOP | ES_AUTOHSCROLL;
+        if (!password)
+            style |= ES_MULTILINE;
+        if (!singleLine)
+            style |= ES_AUTOVSCROLL;
+
+        _hwndEdit = ::CreateWindowExW(0, L"EDIT",  // predefined class
+                                      NULL,        // no window title
+                                      style,
                                       0, 0, 0,
                                       0,                 // set size in WM_SIZE message
                                       s_hwndAxmol,       // parent window
@@ -120,6 +127,9 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
 
         this->setNativeFont(this->getNativeDefaultFontName(), this->_fontSize);
         this->setNativeText(this->_text);
+
+        if (password)
+            ::SendMessageW(_hwndEdit, EM_SETPASSWORDCHAR, (WPARAM)L'*', 0);
     }
 }
 
@@ -131,7 +141,15 @@ void EditBoxImplWin::createNativeControl()
 void EditBoxImplWin::setNativeFont(std::string_view fontName, int fontSize)
 {
     auto renderView = Director::getInstance()->getRenderView();
-    auto hFont = ::CreateFontW(static_cast<int>(fontSize * renderView->getScaleX()), 0, 0, 0, FW_NORMAL, FALSE, FALSE,
+    float scale     = renderView ? renderView->getScaleX() : 1.0f;
+    if (_editBox)
+        scale *= _editBox->getNodeToWorldAffineTransform().a;
+
+    int pixelSize = static_cast<int>(_fontSize * scale + 0.5f);
+    if (pixelSize < 1)
+        pixelSize = 1;
+
+    auto hFont = ::CreateFontW(-pixelSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE,
                                FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
                                VARIABLE_PITCH, ntcvt::from_chars(fontName).c_str());
 
@@ -284,9 +302,63 @@ void EditBoxImplWin::setNativeVisible(bool visible)
 
 void EditBoxImplWin::updateNativeFrame(const Rect& rect)
 {
-    ::SetWindowPos(_hwndEdit, HWND_NOTOPMOST, static_cast<int>(rect.origin.x), static_cast<int>(rect.origin.y),
-                   static_cast<int>(rect.size.width), static_cast<int>(rect.size.height),
-                   SWP_NOZORDER | SWP_NOACTIVATE);
+    if (!_hwndEdit)
+        return;
+
+    int x = static_cast<int>(rect.origin.x);
+    int y = static_cast<int>(rect.origin.y);
+    int w = static_cast<int>(rect.size.width);
+    int h = static_cast<int>(rect.size.height);
+
+    const bool nonAny   = (_editBoxInputMode != EditBox::InputMode::ANY);
+    const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
+
+    auto renderView = Director::getInstance()->getRenderView();
+    float scale     = renderView ? renderView->getScaleX() : 1.0f;
+    if (_editBox)
+        scale *= _editBox->getNodeToWorldAffineTransform().a;
+    int margin = static_cast<int>(2 * scale + 0.5f);
+
+    int textHeight = 0;
+    if (nonAny && _hEditFont)
+    {
+        HDC hdc       = ::GetDC(_hwndEdit);
+        HFONT oldFont = static_cast<HFONT>(::SelectObject(hdc, _hEditFont));
+        TEXTMETRICW tm;
+        if (::GetTextMetricsW(hdc, &tm))
+            textHeight = tm.tmHeight;
+        ::SelectObject(hdc, oldFont);
+        ::ReleaseDC(_hwndEdit, hdc);
+    }
+
+    if (nonAny && password && textHeight > 0)
+    {
+        int top = (h - textHeight) / 2;
+        if (top < 0)
+            top = 0;
+        y += top;
+        h = textHeight;
+    }
+
+    ::SetWindowPos(_hwndEdit, HWND_NOTOPMOST, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+
+    if (nonAny && textHeight > 0)
+    {
+        if (password)
+        {
+            ::SendMessageW(_hwndEdit, EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN, MAKELPARAM(margin, margin));
+        }
+        else
+        {
+            RECT rc;
+            ::GetClientRect(_hwndEdit, &rc);
+            int top = (rc.bottom - rc.top - textHeight) / 2;
+            if (top < 0)
+                top = 0;
+            RECT fmt = {rc.left + margin, rc.top + top, rc.right - margin, rc.bottom};
+            ::SendMessageW(_hwndEdit, EM_SETRECT, 0, reinterpret_cast<LPARAM>(&fmt));
+        }
+    }
 }
 
 std::string_view EditBoxImplWin::getNativeDefaultFontName()
