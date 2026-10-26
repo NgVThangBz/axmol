@@ -63,6 +63,8 @@ private:
     static LRESULT CALLBACK hookGLFWWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     bool _initialFocus{true};
+    bool _ctrlSingleLine{false};
+    bool _ctrlPassword{false};
     bool _changedTextManually{false};
     bool _hasFocus{false};
     HWND _hwndEdit{nullptr};
