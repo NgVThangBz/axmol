@@ -36,10 +36,10 @@ namespace ui
 
 namespace
 {
+
 std::wstring resolveNativeFontFace(std::string_view fontName)
 {
-    auto fileUtils = FileUtils::getInstance();
-    if (!fileUtils->isFileExist(fontName))
+    if (fontName.find_first_of("./\\") == std::string_view::npos)
         return ntcvt::from_chars(fontName);
 
     static std::unordered_map<std::string, std::wstring> s_faces;
@@ -48,6 +48,10 @@ std::wstring resolveNativeFontFace(std::string_view fontName)
     if (it != s_faces.end())
         return it->second;
 
+    auto fileUtils = FileUtils::getInstance();
+    if (!fileUtils->isFileExist(fontName))
+        return ntcvt::from_chars(fontName);
+
     std::string fullPath = fileUtils->fullPathForFilename(fontName);
     std::replace(fullPath.begin(), fullPath.end(), '/', '\\');
     ::AddFontResourceExW(ntcvt::from_chars(fullPath).c_str(), FR_PRIVATE, 0);
@@ -55,6 +59,33 @@ std::wstring resolveNativeFontFace(std::string_view fontName)
     std::string face = fullPath.substr(fullPath.find_last_of('\\') + 1);
     face             = face.substr(0, face.find_first_of(".-"));
     return s_faces.emplace(key, ntcvt::from_chars(face)).first->second;
+}
+
+constexpr DWORD kEditStyleMask = ES_MULTILINE | ES_AUTOVSCROLL | ES_NUMBER | ES_UPPERCASE | ES_CENTER | ES_RIGHT;
+
+DWORD makeEditStyle(EditBox::InputMode mode, EditBox::InputFlag flag, TextHAlignment alignment)
+{
+    const bool password   = (flag == EditBox::InputFlag::PASSWORD);
+    const bool singleLine = (mode != EditBox::InputMode::ANY) || password;
+
+    DWORD style = WS_CHILD | WS_TABSTOP | ES_AUTOHSCROLL;
+    if (!password)
+        style |= ES_MULTILINE;
+    if (!singleLine)
+        style |= ES_AUTOVSCROLL;
+    if (mode == EditBox::InputMode::NUMERIC || mode == EditBox::InputMode::DECIMAL ||
+        mode == EditBox::InputMode::PHONE_NUMBER)
+        style |= ES_NUMBER;
+    if (flag == EditBox::InputFlag::INITIAL_CAPS_ALL_CHARACTERS && mode != EditBox::InputMode::ANY && !password)
+        style |= ES_UPPERCASE;
+
+    if (alignment == TextHAlignment::CENTER)
+        style |= ES_CENTER;
+    else if (alignment == TextHAlignment::RIGHT)
+        style |= ES_RIGHT;
+    else
+        style |= ES_LEFT;
+    return style;
 }
 }  // namespace
 
@@ -124,55 +155,44 @@ void EditBoxImplWin::cleanupEditCtrl()
     }
 }
 
-void EditBoxImplWin::createEditCtrl(bool singleLine)
+void EditBoxImplWin::createEditCtrl()
 {
-    const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
-    if (_hwndEdit && _ctrlSingleLine == singleLine && _ctrlPassword == password)
+    const DWORD style = makeEditStyle(_editBoxInputMode, _editBoxInputFlag, _alignment);
+    if (_hwndEdit && ((static_cast<DWORD>(::GetWindowLongW(_hwndEdit, GWL_STYLE)) ^ style) & kEditStyleMask) == 0)
         return;
-
     this->cleanupEditCtrl();
-    if (!_hwndEdit)
-    {
 
-        DWORD style = WS_CHILD | ES_LEFT | WS_TABSTOP | ES_AUTOHSCROLL;
-        if (!password)
-            style |= ES_MULTILINE;
-        if (!singleLine)
-            style |= ES_AUTOVSCROLL;
+    _hwndEdit = ::CreateWindowExW(0, L"EDIT",  // predefined class
+                                  NULL,        // no window title
+                                  style, 0, 0, 0,
+                                  0,                 // set size in WM_SIZE message
+                                  s_hwndAxmol,       // parent window
+                                  s_editboxChildID,  // edit control ID
+                                  s_hInstance,
+                                  this);  // pointer not needed
 
-        _hwndEdit = ::CreateWindowExW(0, L"EDIT",  // predefined class
-                                      NULL,        // no window title
-                                      style,
-                                      0, 0, 0,
-                                      0,                 // set size in WM_SIZE message
-                                      s_hwndAxmol,       // parent window
-                                      s_editboxChildID,  // edit control ID
-                                      s_hInstance,
-                                      this);  // pointer not needed
+    SetWindowLongPtrW(_hwndEdit, GWLP_USERDATA, (LONG_PTR)this);
+    _prevWndProc = (WNDPROC)SetWindowLongPtrW(_hwndEdit, GWLP_WNDPROC, (LONG_PTR)WindowProc);
 
-        _ctrlSingleLine = singleLine;
-        _ctrlPassword   = password;
+    ::SendMessageW(_hwndEdit, EM_LIMITTEXT, this->_maxLength, 0);
 
-        SetWindowLongPtrW(_hwndEdit, GWLP_USERDATA, (LONG_PTR)this);
-        _prevWndProc = (WNDPROC)SetWindowLongPtrW(_hwndEdit, GWLP_WNDPROC, (LONG_PTR)WindowProc);
+    this->setNativeFont(_fontName.empty() ? this->getNativeDefaultFontName() : std::string_view(_fontName),
+                        this->_fontSize);
+    this->setNativeText(this->_text);
 
-        ::SendMessageW(_hwndEdit, EM_LIMITTEXT, this->_maxLength, 0);
-
-        this->setNativeFont(_fontName.empty() ? this->getNativeDefaultFontName() : std::string_view(_fontName), this->_fontSize);
-        this->setNativeText(this->_text);
-
-        if (password)
-            ::SendMessageW(_hwndEdit, EM_SETPASSWORDCHAR, (WPARAM)L'*', 0);
-    }
+    if (_editBoxInputFlag == EditBox::InputFlag::PASSWORD)
+        ::SendMessageW(_hwndEdit, EM_SETPASSWORDCHAR, (WPARAM)L'*', 0);
 }
 
 void EditBoxImplWin::createNativeControl()
 {
-    this->createEditCtrl(false);
 }
 
 void EditBoxImplWin::setNativeFont(std::string_view fontName, int fontSize)
 {
+    if (!_hwndEdit)
+        return;
+
     auto renderView = Director::getInstance()->getRenderView();
     float scale     = renderView ? renderView->getScaleX() : 1.0f;
     if (_editBox)
@@ -228,49 +248,15 @@ void EditBoxImplWin::setNativePlaceholderFontColor(const Color32& /*color*/)
     // not implemented yet
 }
 
-void EditBoxImplWin::setNativeInputMode(EditBox::InputMode inputMode)
+void EditBoxImplWin::setNativeInputMode(EditBox::InputMode /*inputMode*/)
 {
-    if (_editBoxInputMode == ax::ui::EditBox::InputMode::ANY)
-    {
-        this->createEditCtrl(false);
-    }
-    else if (_editBoxInputMode == ax::ui::EditBox::InputMode::NUMERIC ||
-             _editBoxInputMode == ax::ui::EditBox::InputMode::DECIMAL ||
-             _editBoxInputMode == ax::ui::EditBox::InputMode::PHONE_NUMBER)
-    {
-        this->createEditCtrl(true);
-        ::SetWindowLongW(_hwndEdit, GWL_STYLE, ::GetWindowLongW(_hwndEdit, GWL_STYLE) | ES_NUMBER);
-    }
-    else
-    {
-        this->createEditCtrl(true);
-    }
-
-    if (this->_editBoxInputFlag != ax::ui::EditBox::InputFlag::PASSWORD)
-    {
-        ::PostMessageW(_hwndEdit, EM_SETPASSWORDCHAR, (WPARAM)0, (LPARAM)0);
-    }
+    if (_hwndEdit)
+        this->createEditCtrl();
 }
-void EditBoxImplWin::setNativeInputFlag(EditBox::InputFlag inputFlag)
+void EditBoxImplWin::setNativeInputFlag(EditBox::InputFlag /*inputFlag*/)
 {
-    if (inputFlag == EditBox::InputFlag::PASSWORD)
-    {
-        this->createEditCtrl(true);
-    }
-    else
-    {
-        if (_editBoxInputMode != ax::ui::EditBox::InputMode::ANY)
-        {
-            this->createEditCtrl(true);
-
-            if (inputFlag == EditBox::InputFlag::INITIAL_CAPS_ALL_CHARACTERS)
-            {
-                ::SetWindowLongW(_hwndEdit, GWL_STYLE, ::GetWindowLongW(_hwndEdit, GWL_STYLE) | ES_UPPERCASE);
-            }
-            // Clear the password style
-            ::PostMessageW(_hwndEdit, EM_SETPASSWORDCHAR, (WPARAM)0, (LPARAM)0);
-        }
-    }
+    if (_hwndEdit)
+        this->createEditCtrl();
 }
 
 void EditBoxImplWin::setNativeReturnType(EditBox::KeyboardReturnType returnType)
@@ -278,26 +264,17 @@ void EditBoxImplWin::setNativeReturnType(EditBox::KeyboardReturnType returnType)
     // not implemented yet
 }
 
-void EditBoxImplWin::setNativeTextHorizontalAlignment(TextHAlignment alignment)
+void EditBoxImplWin::setNativeTextHorizontalAlignment(TextHAlignment /*alignment*/)
 {
-    LONG style = ::GetWindowLongW(_hwndEdit, GWL_STYLE);
-    switch (alignment)
-    {
-    case TextHAlignment::LEFT:
-        style = (style & ~ES_CENTER & ~ES_RIGHT) | ES_LEFT;
-        break;
-    case TextHAlignment::CENTER:
-        style = (style & ~ES_LEFT & ~ES_RIGHT) | ES_CENTER;
-        break;
-    case TextHAlignment::RIGHT:
-        style = (style & ~ES_LEFT & ~ES_CENTER) | ES_RIGHT;
-        break;
-    }
-    ::SetWindowLongW(_hwndEdit, GWL_STYLE, style);
+    if (_hwndEdit)
+        this->createEditCtrl();
 }
 
 void EditBoxImplWin::setNativeText(std::string_view text)
 {
+    if (!_hwndEdit)
+        return;
+
     std::u16string utf16Result;
     ax::text_utils::UTF8ToUTF16(text, utf16Result);
     const bool previousChangedTextManually = _changedTextManually;
@@ -323,6 +300,9 @@ void EditBoxImplWin::setNativePlaceHolder(std::string_view /*text*/)
 
 void EditBoxImplWin::setNativeVisible(bool visible)
 {
+    if (!_hwndEdit)
+        return;
+
     if (visible)
     {
         ::ShowWindow(_hwndEdit, SW_SHOWNOACTIVATE);
@@ -338,10 +318,10 @@ void EditBoxImplWin::updateNativeFrame(const Rect& rect)
     if (!_hwndEdit)
         return;
 
-    int x = static_cast<int>(std::llround(rect.origin.x));
-    int y = static_cast<int>(std::llround(rect.origin.y));
-    int w = static_cast<int>(std::llround(rect.size.width));
-    int h = static_cast<int>(std::llround(rect.size.height));
+    int x = std::lround(rect.origin.x);
+    int y = std::lround(rect.origin.y);
+    int w = std::lround(rect.size.width);
+    int h = std::lround(rect.size.height);
 
     const bool nonAny   = (_editBoxInputMode != EditBox::InputMode::ANY);
     const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
@@ -350,7 +330,7 @@ void EditBoxImplWin::updateNativeFrame(const Rect& rect)
     float scale     = renderView ? renderView->getScaleX() : 1.0f;
     if (_editBox)
         scale *= _editBox->getNodeToWorldAffineTransform().a;
-    int margin = static_cast<int>(2 * scale + 0.5f);
+    int margin = std::lround(2 * scale + 0.5f);
 
     int textHeight = 0;
     if (nonAny && _hEditFont)
@@ -408,6 +388,9 @@ void EditBoxImplWin::nativeOpenKeyboard()
 
     this->editBoxEditingDidBegin();
 
+    this->createEditCtrl();
+    ::ShowWindow(_hwndEdit, SW_SHOWNOACTIVATE);
+
     this->setNativeFont(_fontName.empty() ? this->getNativeDefaultFontName() : std::string_view(_fontName), _fontSize);
 
     auto rect = ui::Helper::getNodeNativeWindowRect(_editBox);
@@ -425,6 +408,9 @@ void EditBoxImplWin::nativeCloseKeyboard()
 
 void EditBoxImplWin::setNativeMaxLength(int maxLength)
 {
+    if (!_hwndEdit)
+        return;
+
     ::SendMessageW(_hwndEdit, EM_LIMITTEXT, maxLength, 0);
 }
 
