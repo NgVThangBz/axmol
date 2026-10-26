@@ -332,10 +332,10 @@ void EditBoxImplWin::updateNativeFrame(const Rect& rect)
     if (!_hwndEdit)
         return;
 
-    int x = static_cast<int>(rect.origin.x);
-    int y = static_cast<int>(rect.origin.y);
-    int w = static_cast<int>(rect.size.width);
-    int h = static_cast<int>(rect.size.height);
+    int x = static_cast<int>(std::llround(rect.origin.x));
+    int y = static_cast<int>(std::llround(rect.origin.y));
+    int w = static_cast<int>(std::llround(rect.size.width));
+    int h = static_cast<int>(std::llround(rect.size.height));
 
     const bool nonAny   = (_editBoxInputMode != EditBox::InputMode::ANY);
     const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
