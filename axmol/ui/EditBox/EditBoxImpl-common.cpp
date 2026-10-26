@@ -76,69 +76,126 @@ void EditBoxImplCommon::initInactiveLabels(const Vec2& size)
 {
     std::string_view defaultFontName = this->getNativeDefaultFontName();
 
+    setFont(defaultFontName, size.height * 2 / 3);
+    setPlaceholderFont(defaultFontName, size.height * 2 / 3);
+}
+
+static void applyLabelFont(Label* label, std::string_view fontName, int fontSize)
+{
+    if (FileUtils::getInstance()->isFileExist(fontName))
+    {
+        TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC, nullptr, false);
+        label->setTTFConfig(ttfConfig);
+    }
+    else
+    {
+        if (!fontName.empty())
+        {
+            label->setSystemFontName(fontName);
+        }
+        if (fontSize > 0)
+        {
+            label->setSystemFontSize(fontSize);
+        }
+    }
+}
+
+Label* EditBoxImplCommon::ensureLabel()
+{
+    if (_label)
+        return _label;
+
     _label = Label::create();
     _label->setAnchorPoint(Vec2(0.0f, 1.0f));
     _label->setOverflow(Label::Overflow::CLAMP);
     _label->setVisible(false);
     _label->setGlobalZOrder(_editBox->getGlobalZOrder());
+    _label->setTextColor(_colText);
+    _label->setHorizontalAlignment(_alignment);
+    applyLabelFont(_label, _fontName, _fontSize);
     _editBox->addChild(_label, kLabelZOrder);
+    placeInactiveLabels(_contentSize);
+    return _label;
+}
+
+Label* EditBoxImplCommon::ensurePlaceholderLabel()
+{
+    if (_labelPlaceHolder)
+        return _labelPlaceHolder;
 
     _labelPlaceHolder = Label::create();
     _labelPlaceHolder->setAnchorPoint(Vec2(0.0f, 1.0f));
-    _labelPlaceHolder->setTextColor(Color32::gray);
+    _labelPlaceHolder->setTextColor(_colPlaceHolder);
     _labelPlaceHolder->enableWrap(false);
     _labelPlaceHolder->setGlobalZOrder(_editBox->getGlobalZOrder());
+    _labelPlaceHolder->setHorizontalAlignment(_alignment);
+    _labelPlaceHolder->setVisible(_text.empty() && !_editingMode);
+    applyLabelFont(_labelPlaceHolder, _placeholderFontName, _placeholderFontSize);
+    _labelPlaceHolder->setString(_placeHolder);
     _editBox->addChild(_labelPlaceHolder, kLabelZOrder);
-
-    setFont(defaultFontName, size.height * 2 / 3);
-    setPlaceholderFont(defaultFontName, size.height * 2 / 3);
+    placeInactiveLabels(_contentSize);
+    return _labelPlaceHolder;
 }
 
 void EditBoxImplCommon::placeInactiveLabels(const Vec2& size)
 {
-    _label->setDimensions(size.width, size.height);
+    const bool multiline = _editBoxInputMode == EditBox::InputMode::ANY;
 
-    auto placeholderSize = _labelPlaceHolder->getContentSize();
-
-    if (_editBoxInputMode == EditBox::InputMode::ANY)
+    if (_label)
     {
-        _label->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height - AX_EDIT_BOX_PADDING));
-        _label->setVerticalAlignment(TextVAlignment::TOP);
-        _label->enableWrap(true);
-
-        _labelPlaceHolder->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height - AX_EDIT_BOX_PADDING));
-        _labelPlaceHolder->setVerticalAlignment(TextVAlignment::TOP);
+        _label->setDimensions(size.width, size.height);
+        _label->enableWrap(multiline);
+        if (multiline)
+        {
+            _label->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height - AX_EDIT_BOX_PADDING));
+            _label->setVerticalAlignment(TextVAlignment::TOP);
+        }
+        else
+        {
+            _label->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height));
+            _label->setVerticalAlignment(TextVAlignment::CENTER);
+        }
     }
-    else
-    {
-        _label->enableWrap(false);
-        _label->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height));
-        _label->setVerticalAlignment(TextVAlignment::CENTER);
 
-        _labelPlaceHolder->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, (size.height + placeholderSize.height) / 2));
-        _labelPlaceHolder->setVerticalAlignment(TextVAlignment::CENTER);
+    if (_labelPlaceHolder)
+    {
+        if (multiline)
+        {
+            _labelPlaceHolder->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, size.height - AX_EDIT_BOX_PADDING));
+            _labelPlaceHolder->setVerticalAlignment(TextVAlignment::TOP);
+        }
+        else
+        {
+            const float placeholderHeight = _labelPlaceHolder->getContentSize().height;
+            _labelPlaceHolder->setPosition(Vec2((float)AX_EDIT_BOX_PADDING, (size.height + placeholderHeight) / 2));
+            _labelPlaceHolder->setVerticalAlignment(TextVAlignment::CENTER);
+        }
     }
 }
 
 void EditBoxImplCommon::setInactiveText(std::string_view text)
 {
+    if (text.empty() && !_label)
+        return;
+
+    auto label = ensureLabel();
     if (EditBox::InputFlag::PASSWORD == _editBoxInputFlag)
     {
         std::string passwordString;
         for (size_t i = 0, len = text.length(); i < len; ++i)
             passwordString.append(PASSWORD_CHAR);
-        _label->setString(passwordString);
+        label->setString(passwordString);
     }
     else
     {
-        _label->setString(text);
+        label->setString(text);
     }
     // Clip the text width to fit to the text box
     const auto maxSize = applyPadding(_editBox->getContentSize());
-    Vec2 labelSize     = _label->getContentSize();
+    Vec2 labelSize     = label->getContentSize();
     if (labelSize.width > maxSize.width || labelSize.height > maxSize.height)
     {
-        _label->setDimensions(maxSize.width, maxSize.height);
+        label->setDimensions(maxSize.width, maxSize.height);
     }
 }
 
@@ -146,64 +203,36 @@ void EditBoxImplCommon::setFont(std::string_view fontName, int fontSize)
 {
     _fontName = fontName;
     _fontSize = fontSize;
-    this->setNativeFont(fontName, fontSize * _label->getNodeToWorldAffineTransform().a);
+    this->setNativeFont(fontName, fontSize * _editBox->getNodeToWorldAffineTransform().a);
 
-    // BZ: keep TTF file support, dropped upstream in #3349. System font fallback can't load TTF paths (wasm renders 10px).
-    // SDF is off on purpose: the global SDF flag made these labels soft.
-    if (FileUtils::getInstance()->isFileExist(fontName))
-    {
-        TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC, nullptr, false);
-        _label->setTTFConfig(ttfConfig);
-    }
-    else
-    {
-        if (!_fontName.empty())
-        {
-            _label->setSystemFontName(fontName);
-        }
-        if (fontSize > 0)
-        {
-            _label->setSystemFontSize(fontSize);
-        }
-    }
+    if (_label)
+        applyLabelFont(_label, fontName, fontSize);
 }
 
 void EditBoxImplCommon::setFontColor(const Color32& color)
 {
     _colText = color;
     this->setNativeFontColor(color);
-    _label->setTextColor(color);
+    if (_label)
+        _label->setTextColor(color);
 }
 
 void EditBoxImplCommon::setPlaceholderFont(std::string_view fontName, int fontSize)
 {
     _placeholderFontName = fontName;
     _placeholderFontSize = fontSize;
-    this->setNativePlaceholderFont(fontName, fontSize * _labelPlaceHolder->getNodeToWorldAffineTransform().a);
+    this->setNativePlaceholderFont(fontName, fontSize * _editBox->getNodeToWorldAffineTransform().a);
 
-    if (FileUtils::getInstance()->isFileExist(fontName))
-    {
-        TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC, nullptr, false);
-        _labelPlaceHolder->setTTFConfig(ttfConfig);
-    }
-    else
-    {
-        if (!_placeholderFontName.empty())
-        {
-            _labelPlaceHolder->setSystemFontName(fontName);
-        }
-        if (fontSize > 0)
-        {
-            _labelPlaceHolder->setSystemFontSize(fontSize);
-        }
-    }
+    if (_labelPlaceHolder)
+        applyLabelFont(_labelPlaceHolder, fontName, fontSize);
 }
 
 void EditBoxImplCommon::setPlaceholderFontColor(const Color32& color)
 {
     _colPlaceHolder = color;
     this->setNativePlaceholderFontColor(color);
-    _labelPlaceHolder->setTextColor(color);
+    if (_labelPlaceHolder)
+        _labelPlaceHolder->setTextColor(color);
 }
 
 void EditBoxImplCommon::setInputMode(EditBox::InputMode inputMode)
@@ -245,23 +274,23 @@ void EditBoxImplCommon::refreshInactiveText()
     refreshLabelAlignment();
     if (!_editingMode)
     {
-        if (_text.empty())
-        {
-            _label->setVisible(false);
-            _labelPlaceHolder->setVisible(true);
-        }
-        else
-        {
-            _label->setVisible(true);
+        const bool hasText = !_text.empty();
+        if (_label)
+            _label->setVisible(hasText);
+
+        if (!hasText && !_placeHolder.empty())
+            ensurePlaceholderLabel()->setVisible(true);
+        else if (_labelPlaceHolder)
             _labelPlaceHolder->setVisible(false);
-        }
     }
 }
 
 void EditBoxImplCommon::refreshLabelAlignment()
 {
-    _label->setHorizontalAlignment(_alignment);
-    _labelPlaceHolder->setHorizontalAlignment(_alignment);
+    if (_label)
+        _label->setHorizontalAlignment(_alignment);
+    if (_labelPlaceHolder)
+        _labelPlaceHolder->setHorizontalAlignment(_alignment);
 }
 
 void EditBoxImplCommon::setText(std::string_view text)
@@ -275,7 +304,10 @@ void EditBoxImplCommon::setPlaceHolder(std::string_view text)
 {
     _placeHolder = text;
     this->setNativePlaceHolder(text);
-    _labelPlaceHolder->setString(_placeHolder);
+    if (_labelPlaceHolder)
+        _labelPlaceHolder->setString(_placeHolder);
+    else if (!_placeHolder.empty())
+        ensurePlaceholderLabel();
 }
 
 void EditBoxImplCommon::setVisible(bool visible)
@@ -287,8 +319,10 @@ void EditBoxImplCommon::setVisible(bool visible)
     else
     {
         this->setNativeVisible(visible);
-        _label->setVisible(visible);
-        _labelPlaceHolder->setVisible(visible);
+        if (_label)
+            _label->setVisible(visible);
+        if (_labelPlaceHolder)
+            _labelPlaceHolder->setVisible(visible);
     }
 }
 
@@ -334,8 +368,10 @@ void EditBoxImplCommon::openKeyboard()
     // as child windows inside the Axmol GLFW engine window. Therefore, we do
     // not hide the engine‑drawn label here.
 #if AX_TARGET_PLATFORM != AX_PLATFORM_LINUX
-    _label->setVisible(false);
-    _labelPlaceHolder->setVisible(false);
+    if (_label)
+        _label->setVisible(false);
+    if (_labelPlaceHolder)
+        _labelPlaceHolder->setVisible(false);
 #endif
 
     _editingMode = true;
