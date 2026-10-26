@@ -119,7 +119,6 @@ protected:
     void setInactiveText(std::string_view text);
     void refreshLabelAlignment();
     void placeInactiveLabels(const Size& size);
-    Label* ensureLabel();
     Label* ensurePlaceholderLabel();
     void doAnimationWhenKeyboardMove(float duration, float distance) override {};
 
