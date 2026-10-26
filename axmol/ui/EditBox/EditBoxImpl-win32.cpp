@@ -126,10 +126,13 @@ void EditBoxImplWin::cleanupEditCtrl()
 
 void EditBoxImplWin::createEditCtrl(bool singleLine)
 {
+    const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
+    if (_hwndEdit && _ctrlSingleLine == singleLine && _ctrlPassword == password)
+        return;
+
     this->cleanupEditCtrl();
     if (!_hwndEdit)
     {
-        const bool password = (_editBoxInputFlag == EditBox::InputFlag::PASSWORD);
 
         DWORD style = WS_CHILD | ES_LEFT | WS_TABSTOP | ES_AUTOHSCROLL;
         if (!password)
@@ -146,6 +149,9 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
                                       s_editboxChildID,  // edit control ID
                                       s_hInstance,
                                       this);  // pointer not needed
+
+        _ctrlSingleLine = singleLine;
+        _ctrlPassword   = password;
 
         SetWindowLongPtrW(_hwndEdit, GWLP_USERDATA, (LONG_PTR)this);
         _prevWndProc = (WNDPROC)SetWindowLongPtrW(_hwndEdit, GWLP_WNDPROC, (LONG_PTR)WindowProc);
