@@ -468,6 +468,7 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
                     }
                     hideAndRestoreFocus();
                 }
+                return 0;
             }
             else if (s_previousFocusWnd != s_hwndAxmol)
             {
@@ -508,6 +509,8 @@ LRESULT EditBoxImplWin::_WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
 
                 _initialFocus = false;
             }
+
+            ::SendMessageW(hwnd, EM_SETSEL, 0, -1);
             _endAction                 = EditBoxDelegate::EditBoxEndAction::UNKNOWN;
             s_previousFocusWnd         = _hwndEdit;
             this->_changedTextManually = false;
