@@ -379,9 +379,7 @@ void EditBoxImplWin::updateNativeFrame(const Rect& rect)
         {
             RECT rc;
             ::GetClientRect(_hwndEdit, &rc);
-            int top = (rc.bottom - rc.top - textHeight) / 2;
-            if (top < 0)
-                top = 0;
+            int top  = (rc.bottom - rc.top - textHeight) / 2;
             RECT fmt = {rc.left + margin, rc.top + top, rc.right - margin, rc.bottom};
             ::SendMessageW(_hwndEdit, EM_SETRECT, 0, reinterpret_cast<LPARAM>(&fmt));
         }
