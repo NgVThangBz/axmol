@@ -210,7 +210,7 @@ void EditBoxImplWin::setNativeFont(std::string_view fontName, int fontSize)
     {
         AXLOGW("Failed to create font for EditBox, fallback to default font");
         hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
-        if (hFont)
+        if (!hFont)
             return;
     }
 
@@ -330,7 +330,7 @@ void EditBoxImplWin::updateNativeFrame(const Rect& rect)
     float scale     = renderView ? renderView->getScaleX() : 1.0f;
     if (_editBox)
         scale *= _editBox->getNodeToWorldAffineTransform().a;
-    int margin = std::lround(2 * scale + 0.5f);
+    int margin = std::lround(2 * scale);
 
     int textHeight = 0;
     if (nonAny && _hEditFont)
@@ -627,7 +627,7 @@ LRESULT EditBoxImplWin::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
         return pThis->_WindowProc(hwnd, uMsg, wParam, lParam);
     }
 
-    return ::CallWindowProcW(pThis->_prevWndProc, hwnd, uMsg, wParam, lParam);
+    return ::DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 }  // namespace ui
 
