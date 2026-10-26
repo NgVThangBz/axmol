@@ -402,6 +402,8 @@ void EditBoxImplWin::nativeOpenKeyboard()
 
     this->editBoxEditingDidBegin();
 
+    this->setNativeFont(_fontName.empty() ? this->getNativeDefaultFontName() : std::string_view(_fontName), _fontSize);
+
     auto rect = ui::Helper::getNodeNativeWindowRect(_editBox);
     this->updateNativeFrame(rect);
 
