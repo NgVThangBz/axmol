@@ -17,6 +17,9 @@ SPDX-License-Identifier: MIT
 #    include "axmol/ui/EditBox/EditBox.h"
 #    include <tchar.h>
 #    include <stdio.h>
+#    include <algorithm>
+#    include <unordered_map>
+#    include "axmol/platform/FileUtils.h"
 #    include "axmol/2d/Label.h"
 #    include "axmol/base/Director.h"
 #    include "axmol/base/text_utils.h"
@@ -30,6 +33,30 @@ namespace ax
 
 namespace ui
 {
+
+namespace
+{
+std::wstring resolveNativeFontFace(std::string_view fontName)
+{
+    auto fileUtils = FileUtils::getInstance();
+    if (!fileUtils->isFileExist(fontName))
+        return ntcvt::from_chars(fontName);
+
+    static std::unordered_map<std::string, std::wstring> s_faces;
+    const std::string key(fontName);
+    auto it = s_faces.find(key);
+    if (it != s_faces.end())
+        return it->second;
+
+    std::string fullPath = fileUtils->fullPathForFilename(fontName);
+    std::replace(fullPath.begin(), fullPath.end(), '/', '\\');
+    ::AddFontResourceExW(ntcvt::from_chars(fullPath).c_str(), FR_PRIVATE, 0);
+
+    std::string face = fullPath.substr(fullPath.find_last_of('\\') + 1);
+    face             = face.substr(0, face.find_first_of(".-"));
+    return s_faces.emplace(key, ntcvt::from_chars(face)).first->second;
+}
+}  // namespace
 
 bool EditBoxImplWin::s_isInitialized       = false;
 HMENU EditBoxImplWin::s_editboxChildID     = (HMENU)100;
@@ -125,7 +152,7 @@ void EditBoxImplWin::createEditCtrl(bool singleLine)
 
         ::SendMessageW(_hwndEdit, EM_LIMITTEXT, this->_maxLength, 0);
 
-        this->setNativeFont(this->getNativeDefaultFontName(), this->_fontSize);
+        this->setNativeFont(_fontName.empty() ? this->getNativeDefaultFontName() : std::string_view(_fontName), this->_fontSize);
         this->setNativeText(this->_text);
 
         if (password)
@@ -151,7 +178,7 @@ void EditBoxImplWin::setNativeFont(std::string_view fontName, int fontSize)
 
     auto hFont = ::CreateFontW(-pixelSize, 0, 0, 0, FW_NORMAL, FALSE, FALSE,
                                FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-                               VARIABLE_PITCH, ntcvt::from_chars(fontName).c_str());
+                               VARIABLE_PITCH, resolveNativeFontFace(fontName).c_str());
 
     if (!hFont)
     {
