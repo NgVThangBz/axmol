@@ -120,6 +120,7 @@ protected:
     void refreshLabelAlignment();
     void placeInactiveLabels(const Size& size);
     Label* ensurePlaceholderLabel();
+    void ensurePlaceholderIfNeeded();
     void doAnimationWhenKeyboardMove(float duration, float distance) override {};
 
     Label* _label;

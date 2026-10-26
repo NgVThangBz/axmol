@@ -126,6 +126,12 @@ Label* EditBoxImplCommon::ensurePlaceholderLabel()
     return _labelPlaceHolder;
 }
 
+void EditBoxImplCommon::ensurePlaceholderIfNeeded()
+{
+    if (_text.empty() && !_editingMode && !_placeHolder.empty())
+        ensurePlaceholderLabel();
+}
+
 void EditBoxImplCommon::placeInactiveLabels(const Vec2& size)
 {
     const bool multiline = _editBoxInputMode == EditBox::InputMode::ANY;
@@ -284,8 +290,8 @@ void EditBoxImplCommon::setPlaceHolder(std::string_view text)
     this->setNativePlaceHolder(text);
     if (_labelPlaceHolder)
         _labelPlaceHolder->setString(_placeHolder);
-    else if (!_placeHolder.empty())
-        ensurePlaceholderLabel();
+    else if (_editBox->isRunning())
+        ensurePlaceholderIfNeeded();
 }
 
 void EditBoxImplCommon::setVisible(bool visible)
@@ -335,6 +341,7 @@ void EditBoxImplCommon::onEnter(void)
 {
     std::string_view text = getText();
     setInactiveText(text);
+    ensurePlaceholderIfNeeded();
 }
 
 void EditBoxImplCommon::openKeyboard()
