@@ -42,12 +42,6 @@
     NSDictionary* attributes =
         @{NSForegroundColorAttributeName : _placeholderTextColor, NSFontAttributeName : _placeholderFont};
 
-    // center vertically
-    CGSize textSize = [self.placeholder sizeWithAttributes:attributes];
-    CGFloat hdif    = rect.size.height - textSize.height;
-    hdif            = MAX(0, hdif);
-    rect.origin.y += ceil(hdif / 2.0);
-
     [[self placeholder] drawInRect:rect withAttributes:attributes];
 }
 

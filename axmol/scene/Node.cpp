@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 #include "axmol/scene/Node.h"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <regex>
 
@@ -50,6 +51,30 @@ AX_DLL uint64_t hashNodeName(std::string_view name)
 // reordered.
 uint32_t Node::s_globalOrderOfArrival = 0;
 int Node::__attachedNodeCount         = 0;
+
+static bool __pixelSnapEnabled = false;
+
+void Node::setPixelSnapEnabled(bool enabled)
+{
+    __pixelSnapEnabled = enabled;
+}
+
+bool Node::isPixelSnapEnabled()
+{
+    return __pixelSnapEnabled;
+}
+
+static bool snapTranslationToPixel(Mat4& transform)
+{
+    auto renderView = Director::getInstance()->getRenderView();
+    float scaleX    = renderView->getScaleX();
+    float scaleY    = renderView->getScaleY();
+    if (scaleX <= 0 || scaleY <= 0 || std::abs(transform.m[1]) > 1e-4f || std::abs(transform.m[4]) > 1e-4f)
+        return false;
+    transform.m[12] = std::round(transform.m[12] * scaleX) / scaleX;
+    transform.m[13] = std::round(transform.m[13] * scaleY) / scaleY;
+    return true;
+}
 
 SceneViewData SceneViewData::fromCamera(const Camera& camera)
 {
@@ -1337,6 +1362,15 @@ void Node::visit(const SceneRenderState& state, const Mat4& parentTransform, uin
 
     bool visibleByCamera = isVisitableByCamera(state.cameraFlag);
 
+    Mat4 snappedTransform;
+    const Mat4* drawTransform = &_modelViewTransform;
+    if (__pixelSnapEnabled && visibleByCamera)
+    {
+        snappedTransform = _modelViewTransform;
+        if (snapTranslationToPixel(snappedTransform))
+            drawTransform = &snappedTransform;
+    }
+
     int i = 0;
 
     if (!_children.empty())
@@ -1354,14 +1388,14 @@ void Node::visit(const SceneRenderState& state, const Mat4& parentTransform, uin
         }
         // self draw
         if (visibleByCamera)
-            this->draw(state, _modelViewTransform, flags);
+            this->draw(state, *drawTransform, flags);
 
         for (auto it = _children.cbegin() + i, itCend = _children.cend(); it != itCend; ++it)
             (*it)->visit(state, _modelViewTransform, flags);
     }
     else if (visibleByCamera)
     {
-        this->draw(state, _modelViewTransform, flags);
+        this->draw(state, *drawTransform, flags);
     }
 
     // FIX ME: Why need to set _orderOfArrival to 0??

@@ -169,6 +169,13 @@ public:
      */
     static int getAttachedNodeCount();
 
+    /**
+     * Snaps the translation of every node's render transform to whole device pixels (rotation-free nodes only).
+     * Affects drawing only; positions and the transforms passed to children are untouched. Off by default.
+     */
+    static void setPixelSnapEnabled(bool enabled);
+    static bool isPixelSnapEnabled();
+
 public:
     /**
      * Gets the description string. It makes debugging easier.

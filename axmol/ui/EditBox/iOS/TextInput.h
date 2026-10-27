@@ -10,7 +10,7 @@
 
 #pragma once
 
-static const int AX_EDIT_BOX_PADDING = 1;
+static const int AX_EDIT_BOX_PADDING = 2;
 
 /**
     This protocol provides a common interface for consolidating text input method calls

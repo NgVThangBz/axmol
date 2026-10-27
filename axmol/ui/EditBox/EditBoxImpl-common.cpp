@@ -19,6 +19,8 @@
 #include "axmol/ui/UIHelper.h"
 #include "axmol/base/InputSystem.h"
 
+#include <cmath>
+
 static const int AX_EDIT_BOX_PADDING = 2;
 
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32)
@@ -207,7 +209,7 @@ void EditBoxImplCommon::setPlaceholderFont(std::string_view fontName, int fontSi
 {
     _placeholderFontName = fontName;
     _placeholderFontSize = fontSize;
-    this->setNativePlaceholderFont(fontName, fontSize * _editBox->getNodeToWorldAffineTransform().a);
+    this->setNativePlaceholderFont(fontName, std::round(fontSize * _editBox->getNodeToWorldAffineTransform().a));
 
     if (_labelPlaceHolder)
         applyLabelFont(_labelPlaceHolder, fontName, fontSize);
@@ -245,6 +247,8 @@ void EditBoxImplCommon::setInputFlag(EditBox::InputFlag inputFlag)
 {
     _editBoxInputFlag = inputFlag;
     this->setNativeInputFlag(inputFlag);
+    if (_label)
+        refreshInactiveText();
 }
 
 void EditBoxImplCommon::setReturnType(EditBox::KeyboardReturnType returnType)
@@ -358,6 +362,8 @@ void EditBoxImplCommon::openKeyboard()
 #endif
 
     _editingMode = true;
+    this->setNativePlaceholderFont(_placeholderFontName,
+                                   std::round(_placeholderFontSize * _editBox->getNodeToWorldAffineTransform().a));
     this->setNativeVisible(true);
     this->nativeOpenKeyboard();
 }

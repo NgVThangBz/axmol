@@ -18,10 +18,12 @@
 #    include "axmol/ui/EditBox/EditBox.h"
 #    include "axmol/base/Director.h"
 #    include "axmol/2d/Label.h"
+#    include "axmol/platform/FileUtils.h"
 #    import "axmol/platform/ios/RenderHostView-ios.h"
 
 #    import <Foundation/Foundation.h>
 #    import <UIKit/UIKit.h>
+#    import <CoreText/CoreText.h>
 
 #    import "axmol/ui/EditBox/iOS/EditBoxIOS.h"
 
@@ -197,6 +199,30 @@ UIFont* EditBoxImplIOS::createNativeFont(std::string_view fontName, int fontSize
     else
     {
         fontSize = fontSize * scaleFactor / renderView->getRenderScale();
+    }
+
+    if (fontName.size() > 4 && fontName.substr(fontName.size() - 4) == ".ttf")
+    {
+        static NSMutableDictionary<NSString*, NSString*>* psNameCache = [NSMutableDictionary dictionary];
+        NSString* psName = psNameCache[fntName];
+        if (psName == nil)
+        {
+            auto path  = FileUtils::getInstance()->fullPathForFilename(fontName);
+            NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.c_str()]];
+            CFErrorRef error = nullptr;
+            CTFontManagerRegisterFontsForURL((__bridge CFURLRef)url, kCTFontManagerScopeProcess, &error);
+            if (error)
+                CFRelease(error);
+            NSArray* descriptors = (__bridge_transfer NSArray*)CTFontManagerCreateFontDescriptorsFromURL((__bridge CFURLRef)url);
+            if (descriptors.count > 0)
+            {
+                psName = (__bridge_transfer NSString*)CTFontDescriptorCopyAttribute(
+                    (__bridge CTFontDescriptorRef)descriptors[0], kCTFontNameAttribute);
+            }
+            psNameCache[fntName] = psName ?: @"";
+        }
+        if (psName.length > 0)
+            fntName = psName;
     }
 
     UIFont* textFont = [UIFont fontWithName:fntName size:fontSize];
