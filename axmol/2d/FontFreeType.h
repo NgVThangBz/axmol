@@ -47,7 +47,7 @@ class AX_DLL FontFreeType : public Font
 {
 public:
     static const int DistanceMapSpread;
-    static constexpr int DEFAULT_BASE_FONT_SIZE = 32;
+    static constexpr int DEFAULT_BASE_FONT_SIZE = 6;
 
     /**
      * Set font engine for ttf fallback render support
