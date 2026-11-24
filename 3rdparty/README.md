@@ -6,22 +6,22 @@
 
 ## astcenc
 - [![Upstream](https://img.shields.io/github/v/release/ARM-software/astc-encoder?label=Upstream)](https://github.com/ARM-software/astc-encoder)
-- Version: 5.7.0
+- Version: 5.7.1
 - License: Apache-2.0
 
 ## Box2D
 - [![Upstream](https://img.shields.io/github/v/release/erincatto/box2d?label=Upstream)](https://github.com/erincatto/box2d)
-- Version: 3.2.0-8c65dcb (Until May 1, 2026)
+- Version: 3.2.0
 - License: MIT
 
 ## c-ares
 - [![Upstream](https://img.shields.io/github/v/release/c-ares/c-ares?label=Upstream)](https://github.com/c-ares/c-ares)
-- Version: 1.34.8
+- Version: 1.34.9
 - License: MIT
 
 ## Clipper2
-- [![Upstream](https://img.shields.io/github/v/tag/AngusJohnson/Clipper2?label=Upstream)](https://github.com/AngusJohnson/Clipper2)
-- Version: 2.0.1
+- [![Upstream](https://img.shields.io/github/v/tag/PolyClipping/Clipper2?label=Upstream)](https://github.com/PolyClipping/Clipper2)
+- Version: 2.0.1 (+git-b496b45, until Oct 30, 2026)
 - License: BSL-1.0
 
 ## ConcurrentQueue
@@ -36,7 +36,7 @@
 
 ## curl
 - [![Upstream](https://img.shields.io/github/v/release/curl/curl?label=Upstream)](https://github.com/curl/curl)
-- Version: 8.22.0
+- Version: 8.23.0
 - License: Curl (MIT/X)
 
 ## doctest
@@ -51,7 +51,7 @@
 
 ## fast_float
 - [![Upstream](https://img.shields.io/github/v/release/fastfloat/fast_float?label=Upstream)](https://github.com/fastfloat/fast_float)
-- Version: 8.3.0
+- Version: 8.3.3
 - License: MIT
 
 ## flatbuffers
@@ -61,23 +61,20 @@
 
 ## {fmt}
 - [![Upstream](https://img.shields.io/github/v/release/fmtlib/fmt?label=Upstream)](https://github.com/fmtlib/fmt)
-- Version: 12.2.0
+- Version: 12.2.1
 
 - License: MIT
 
 ## FreeType
 - [![Upstream](https://img.shields.io/gitlab/v/tag/freetype/freetype?label=Upstream)](https://gitlab.freedesktop.org/freetype/freetype)
-- Version: 2.14.3-a6d4860 (Until Apr 12, 2026), with modifications:
+- Version: 2.15.0, with modifications:
   - ftsystem.c: Use UTF-8 instead ACP for Windows paths
-  - hvfload.c: Fix glyph->metrics.height too-small(=4) issue
 - License: BSD-style (The FreeType Project)
 
 ## Glad
 - [![Upstream](https://img.shields.io/github/v/tag/Dav1dde/glad?label=Upstream)](https://github.com/Dav1dde/glad)
 - Version: 2.0.8
 - License: MIT
-
-`vk_mem_alloc.h` is taken from https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator Version: 3.4.0
 
 ## glfw
 - [![Upstream](https://img.shields.io/github/v/release/glfw/glfw?label=Upstream)](https://github.com/glfw/glfw)
@@ -89,19 +86,19 @@
 - Version: 1.5.16
 - License: MIT
 
-## jni.hpps
+## jni.hpp
 - [![Upstream](https://img.shields.io/github/v/release/mapbox/jni.hpp?label=Upstream)](https://github.com/mapbox/jni.hpp)
 - Version: v4.0.0
 - License: MIT-like
 
 ## JoltPhysics
 - [![Upstream](https://img.shields.io/github/v/release/jrouwe/JoltPhysics?label=Upstream)](https://github.com/jrouwe/JoltPhysics)
-- Version: v5.6.0 with modified CMake scripts for cross-platform compatibility
+- Version: v5.7.0 with modified CMake scripts for cross-platform compatibility
 - License: MIT
 
 ## jpeg-turbo
 - [![Upstream](https://img.shields.io/github/v/release/libjpeg-turbo/libjpeg-turbo?label=Upstream)](https://github.com/libjpeg-turbo/libjpeg-turbo)
-- Version: 3.2.0
+- Version: 3.2.1
 - License: BSD-style (IJG,BSD-3-Clause,zlib)
 
 ## kcp
@@ -111,7 +108,7 @@
 
 ## llhttp
 - [![Upstream](https://img.shields.io/github/v/release/nodejs/llhttp?label=Upstream)](https://github.com/nodejs/llhttp)
-- Version: 9.4.3
+- Version: 9.4.4
 - License: MIT
 
 ## lua
@@ -127,7 +124,7 @@
 
 - luajit
   - Upstream: https://github.com/LuaJIT/LuaJIT
-  - Version: 2.1-24c20c9
+  - Version: 2.1-96f7b29
   - License: MIT
 
 - lua-cjson
@@ -137,7 +134,7 @@
 
 ## lz4
 - [![Upstream](https://img.shields.io/github/v/release/lz4/lz4?label=Upstream)](https://github.com/lz4/lz4)
-- Version: 1.10.0
+- Version: 1.11.1
 - License: BSD 2-Clause
 
 ## minimp3
@@ -178,7 +175,7 @@
 
 ## OpenXR-SDK
 - [![Upstream](https://img.shields.io/github/v/release/KhronosGroup/OpenXR-SDK?label=Upstream)](https://github.com/KhronosGroup/OpenXR-SDK)
-- Version: 1.1.63
+- Version: 1.1.65
 - License: Apache-2.0
 
 ## OpenAL Soft
@@ -192,6 +189,7 @@
   - Disable non‑standard [[clang::nonblocking]] attribute to avoid compiler compatibility issues
   - Restrict warning flags scope to target: `alsoft.common`
   - Fix compile error with fmt 12.2.0
+  - Fix `alc.cpp` compile error with MSVC 14.52
 - License: LGPL-2.1
 
 ## OpenSSL
@@ -206,7 +204,7 @@
 
 ## png
 - [![Upstream](https://img.shields.io/github/v/tag/glennrp/libpng?label=Upstream)](https://github.com/glennrp/libpng)
-- Version: 1.6.58
+- Version: 1.6.59
 - License: PNG Reference Library License version 2
 
 ## poly2tri
@@ -241,7 +239,7 @@
 
 ## simdjson
 - [![Upstream](https://img.shields.io/github/v/tag/simdjson/simdjson?label=Upstream)](https://github.com/simdjson/simdjson)
-- Version: 4.6.11
+- Version: 5.1.1
 - License: Apache-2.0
 
 ## stb (stb_image)
@@ -251,13 +249,18 @@
 
 ## tracy
 - [![Upstream](https://img.shields.io/github/v/release/wolfpld/tracy?label=Upstream)](https://github.com/wolfpld/tracy)
-- Version: 0.14.1
+- Version: 0.15.0
 - License: BSD-3-Clause
 
 ## unzip (minizip-1.2)
 - Upstream: https://github.com/simdsoft/mz12
 - Version: 1.2, with bugfixs & improvements
 - License: zlib
+
+## vkma (VulkanMemoryAllocator)
+-  [![Upstream](https://img.shields.io/github/v/release/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator?label=Upstream)](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
+- Version: 3.5.0
+- License: MIT
 
 ## webp
 - [![Upstream](https://img.shields.io/github/v/tag/webmproject/libwebp?label=Upstream)](https://github.com/webmproject/libwebp)
@@ -271,7 +274,7 @@
 
 ## xxHash
 - [![Upstream](https://img.shields.io/github/v/release/Cyan4973/xxHash?label=Upstream)](https://github.com/Cyan4973/xxHash)
-- Version: 0.8.3
+- Version: 0.8.4
 - License: BSD-2-Clause
 
 ## yasio
@@ -281,5 +284,5 @@
 
 ## zlib
 - [![Upstream](https://img.shields.io/github/v/tag/madler/zlib?label=Upstream)](https://github.com/madler/zlib)
-- Version: 1.3.2
+- Version: 1.4
 - License: zlib

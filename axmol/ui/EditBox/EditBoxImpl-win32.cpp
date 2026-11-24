@@ -20,6 +20,7 @@ SPDX-License-Identifier: MIT
 #    include <algorithm>
 #    include <unordered_map>
 #    include "axmol/platform/FileUtils.h"
+#    include <cmath>
 #    include "axmol/2d/Label.h"
 #    include "axmol/base/Director.h"
 #    include "axmol/base/text_utils.h"
